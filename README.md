@@ -12,7 +12,7 @@
             src="https://img.shields.io/badge/patreon-donate-orange.svg?logo=patreon" alt="GabutAkut on Patreon"></a>
 </p>
 
-These are distinctly different in terms of purpose and design. We think an application will look easy to use if the appearance of an application looks simple and has many uses. gabutakut want to make a download manager application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
+gabutakut want to make a download manager application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
 
 made with love and sleep deprivation. :D
 
