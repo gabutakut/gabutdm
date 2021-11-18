@@ -2,7 +2,7 @@
 
 <h1 align="center">
     <br>
-    <img src="gabutakut.png" alt="Gabut Download Manager">
+    <img src="data/icons/128/com.github.gabutakut.gabutdm.svg" alt="Gabut Download Manager">
 </h1>
 <h4 align="center">Simple and Faster Download Manager</h4>
 <p align="center">
@@ -12,7 +12,7 @@
             src="https://img.shields.io/badge/patreon-donate-orange.svg?logo=patreon" alt="GabutAkut on Patreon"></a>
 </p>
 
-gabutakut want to make a download manager application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
+Gabutakut want to make a download manager application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
 
 made with love and sleep deprivation. :D
 
@@ -24,7 +24,7 @@ made with love and sleep deprivation. :D
 ![screenshot](Screenshot5.png)
 ![screenshot](Screenshot6.png)
 
-##dependencies:
+## Dependencies:
 
 * aria2c
 * meson

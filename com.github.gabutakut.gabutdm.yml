@@ -1,0 +1,49 @@
+app-id: com.github.gabutakut.gabutdm
+
+runtime: io.elementary.Platform
+runtime-version: '6'
+sdk: io.elementary.Sdk
+
+command: com.github.gabutakut.gabutdm
+
+finish-args:
+  - '--share=network'
+  - '--talk-name=com.canonical.Unity.LauncherEntry'
+  - '--share=ipc'
+  - '--socket=fallback-x11'
+  - '--socket=wayland'
+  - '--socket=x11'
+  - '--filesystem=home'
+  - '--filesystem=xdg-download'
+
+cleanup:
+  - '*.a'
+  - '*.la'
+  - '*.o'
+  - '/include'
+
+modules:
+  - name: libcanberra
+    buildsystem: autotools
+    sources:
+      - type: git
+        url: git://git.0pointer.net/libcanberra.git
+        tag: master
+  - name: llibqrencode4
+    buildsystem: autotools
+    sources:
+      - type: git
+        url: https://github.com/fukuchi/libqrencode.git
+        tag: v4.0.0
+  - name: aria2
+    config-opts:
+      - '--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt'
+    sources:
+      - type: archive
+        url: https://github.com/aria2/aria2/releases/download/release-1.36.0/aria2-1.36.0.tar.xz
+        sha256: 58d1e7608c12404f0229a3d9a4953d0d00c18040504498b483305bcb3de907a5
+  - name: gabutdm
+    buildsystem: meson
+    sources:
+      - type: dir
+        path: .
