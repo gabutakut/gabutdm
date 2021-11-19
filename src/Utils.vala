@@ -1219,14 +1219,20 @@ namespace Gabut {
         var session = new Soup.Session ();
         var msg = new Soup.Message ("GET", url);
         session.send_message (msg);
-        if (msg.status_code == 200) {
-            var file = File.new_for_path (filename);
-            FileOutputStream out_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
-            out_stream.write (msg.response_body.flatten ().data);
-            if (callback != null) {
-                Idle.add ((owned)callback);
+        session.queue_message (msg, (sess, mess) => {
+            if (mess.status_code == 200) {
+                try {
+                    var file = File.new_for_path (filename);
+                    FileOutputStream out_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
+                    out_stream.write (mess.response_body.flatten ().data);
+                    if (callback != null) {
+                        Idle.add ((owned)callback);
+                    }
+                } catch (Error e) {
+                    GLib.warning (e.message);
+                }
             }
-        }
+        });
         yield;
     }
 
