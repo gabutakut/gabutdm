@@ -403,7 +403,7 @@ namespace Gabut {
             torrenttree.set_tooltip_column (FileCol.FILEPATH);
 
             var scrolled = new Gtk.ScrolledWindow (null, null) {
-                expand = true,
+                expand = true
             };
             scrolled.add (torrenttree);
 
