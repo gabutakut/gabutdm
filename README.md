@@ -12,7 +12,7 @@
             src="https://img.shields.io/badge/patreon-donate-orange.svg?logo=patreon" alt="GabutAkut on Patreon"></a>
 </p>
 
-Gabutakut want to make a download manager application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
+Gabutakut Download Manager a application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
 
 made with love and sleep deprivation. :D
 
