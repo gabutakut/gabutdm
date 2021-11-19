@@ -1,0 +1,23 @@
+# Listing files to compile
+sources = files (
+    'Application.vala',
+    'Downloader.vala',
+    'DownloadRow.vala',
+    'GabutWindow.vala',
+    'Utils.vala',
+    'AlertView.vala',
+    'ModeButton.vala',
+    'UnityLauncherEntry.vala',
+    'Preferences.vala',
+    'AddUrl.vala',
+    'HeaderLabel.vala',
+    'MediaEntry.vala',
+    'SuccesDialog.vala',
+    'GabutServer.vala',
+    'QrCode.vala',
+    'ServerUpload.vala',
+    'ServerHome.vala',
+    'FileChooser.vala',
+    'ServerDM.vala',
+    'ServerCss.vala',
+)
