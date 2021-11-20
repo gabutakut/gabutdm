@@ -57,7 +57,7 @@ namespace Gabut {
             }
             set {
                 _url = value;
-                linklabel.label = value;
+                linklabel.label = _url;
             }
         }
 
