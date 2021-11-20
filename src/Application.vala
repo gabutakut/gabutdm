@@ -65,7 +65,7 @@ namespace Gabut {
                     get_css_online.begin ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", create_folder (".bootstrap.min.css"));
                 }
                 var gabutserver = new GabutServer ();
-                gabutserver.set_listent_all.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
+                gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 gabutserver.send_post_data.connect (dialog_server);
                 gabutserver.address_url.connect ((url, options, later, linkmode)=> {
                     gabutwindow.add_url_box (url, options, later, linkmode);
@@ -78,11 +78,13 @@ namespace Gabut {
                     gabutserver.stop_server ();
                 });
                 gabutwindow.get_host.connect (()=> {
+                    gabutserver.stop_server ();
+                    gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                     return gabutserver.get_address ();
                 });
                 gabutwindow.restart_server.connect (()=> {
                     gabutserver.stop_server ();
-                    gabutserver.set_listent_all.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
+                    gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 });
                 downloaders = new GLib.List<Downloader> ();
                 succesdls = new GLib.List<SuccesDialog> ();
