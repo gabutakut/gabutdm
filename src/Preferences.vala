@@ -256,7 +256,7 @@ namespace Gabut {
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
                 transition_duration = 500,
-                hhomogeneous = false,
+                hhomogeneous = false
             };
             stack.add_named (settings, "settings");
             stack.add_named (bittorrent, "bittorrent");

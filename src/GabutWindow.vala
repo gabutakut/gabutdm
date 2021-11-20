@@ -54,7 +54,7 @@ namespace Gabut {
             list_box.set_placeholder (nodown_alert);
 
             var scrolled = new Gtk.ScrolledWindow (null, null) {
-                expand = true,
+                expand = true
             };
             scrolled.add (list_box);
 
