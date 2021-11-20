@@ -77,15 +77,6 @@ parts:
         - libxcb1-dev
         - libxkbcommon-dev
         - libcanberra0
-        - libcogl-pango20
-        - libcogl-path20
-        - libcogl20
-        - libevdev2
-        - libinput10
-        - libltdl7
-        - libmtdev1
-        - libogg0
-        - liborc-0.4-0
         - aria2
   desktop-gnome-platform:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
@@ -99,7 +90,7 @@ parts:
       snapcraftctl build
       mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
 apps:
-  niki:
+  gabutdm:
     command: usr/bin/com.github.gabutakut.gabutdm
     desktop: usr/share/applications/com.github.gabutakut.gabutdm.desktop
     plugs:
@@ -107,11 +98,9 @@ apps:
       - desktop-legacy
       - opengl
       - x11
-    environment:
-      GSETTINGS_SCHEMA_DIR: $SNAP/share/glib-2.0/schemas
-    slots: [ dbus-niki ]
+    slots: [ dbus-gabutdm ]
 slots:
-  dbus-niki:
+  dbus-gabutdm:
     interface: dbus
     bus: session
     name: com.github.gabutakut.gabutdm
