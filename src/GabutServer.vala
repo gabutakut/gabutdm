@@ -27,8 +27,8 @@ namespace Gabut {
         public signal GLib.List<string> get_dl_row (int status);
         private SourceFunc callback;
 
-        public async void set_listent_all (int port) throws Error {
-            callback = set_listent_all.callback;
+        public async void set_listent (int port) throws Error {
+            callback = set_listent.callback;
             this.add_handler ("/", home_handler);
             this.add_handler ("/Upload", upload_handler);
             this.add_handler ("/Downloading", gabut_handler);
@@ -36,7 +36,11 @@ namespace Gabut {
             this.add_handler ("/Complete", gabut_handler);
             this.add_handler ("/Waiting", gabut_handler);
             this.add_handler ("/Error", gabut_handler);
-            this.listen_all (port, Soup.ServerListenOptions.IPV4_ONLY);
+            if (!bool.parse (get_dbsetting (DBSettings.IPLOCAL))) {
+                this.listen_all (port, Soup.ServerListenOptions.IPV4_ONLY);
+            } else {
+                this.listen_local (port, Soup.ServerListenOptions.IPV4_ONLY);
+            }
             yield;
         }
 
@@ -171,14 +175,18 @@ namespace Gabut {
         }
 
         public string get_address () {
-            try {
-                var resolver = Resolver.get_default ();
-                var addresses = resolver.lookup_by_name ("www.google.com");
-                var client = new SocketClient ();
-                var conn = client.connect (new InetSocketAddress (addresses.nth_data (0), 80));
-                InetSocketAddress local = conn.get_local_address () as InetSocketAddress;
-                return @"http://$(local.get_address ()):$(get_uris ().nth_data (0).port)";
-            } catch (Error e) {
+            if (!bool.parse (get_dbsetting (DBSettings.IPLOCAL))) {
+                try {
+                    var resolver = Resolver.get_default ();
+                    var addresses = resolver.lookup_by_name ("www.google.com");
+                    var client = new SocketClient ();
+                    var conn = client.connect (new InetSocketAddress (addresses.nth_data (0), 80));
+                    InetSocketAddress local = conn.get_local_address () as InetSocketAddress;
+                    return @"http://$(local.get_address ()):$(get_uris ().nth_data (0).port)";
+                } catch (Error e) {
+                    return @"$(e.message)";
+                }
+            } else {
                 return @"http://$(get_listeners ().nth_data (0).local_address)";
             }
         }

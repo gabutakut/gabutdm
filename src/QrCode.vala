@@ -24,6 +24,8 @@ namespace Gabut {
         public signal string get_host ();
         private Gtk.Image imageqr;
         private Gtk.LinkButton linkbutton;
+        private Gtk.Button host_button;
+        private bool local_server;
 
         public QrCode (Gtk.Application application) {
             Object (application: application,
@@ -84,7 +86,7 @@ namespace Gabut {
             header.pack_start (header_grid);
 
             imageqr = new Gtk.Image ();
-            linkbutton = new Gtk.LinkButton (get_dbsetting (DBSettings.IPLOCAL));
+            linkbutton = new Gtk.LinkButton ("");
 
             var link_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
                 margin_top = 10,
@@ -98,8 +100,8 @@ namespace Gabut {
                 destroy ();
             });
 
-            var host_button = new Gtk.Button.with_label (_("Reload"));
-            host_button.clicked.connect (reload_host);
+            host_button = new Gtk.Button.with_label (_("Share Host"));
+            host_button.clicked.connect (share_server);
 
             var box_action = new Gtk.Grid () {
                 width_request = 200,
@@ -131,14 +133,23 @@ namespace Gabut {
 
         public override void show () {
             base.show ();
-            create_qrcode (get_dbsetting (DBSettings.IPLOCAL));
+            local_server = bool.parse (get_dbsetting (DBSettings.IPLOCAL));
+            Idle.add (load_host);
         }
 
-        private void reload_host () {
+        private void share_server () {
+            local_server = !local_server;
+            set_dbsetting (DBSettings.IPLOCAL, @"$(local_server)");
+            load_host ();
+        }
+
+        private bool load_host () {
+            host_button.label = local_server? _("Share Host") : _("Local Host");
             string host = get_host ();
-            create_qrcode (set_dbsetting (DBSettings.IPLOCAL, host));
+            create_qrcode (host);
             linkbutton.uri = host;
             linkbutton.label = host;
+            return false;
         }
 
         private void create_qrcode (string strinput) {
