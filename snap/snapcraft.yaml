@@ -98,6 +98,8 @@ apps:
       - desktop-legacy
       - opengl
       - x11
+      - network
+      - home
     slots: [ dbus-gabutdm ]
 slots:
   dbus-gabutdm:

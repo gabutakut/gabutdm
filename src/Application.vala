@@ -33,7 +33,7 @@ namespace Gabut {
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE
             );
             GLib.OptionEntry [] options = new GLib.OptionEntry [2];
-            options [0] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "open File or URIs" };
+            options [0] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
             options [1] = { null };
             add_main_option_entries (options);
         }
@@ -77,9 +77,11 @@ namespace Gabut {
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
                 });
-                gabutwindow.get_host.connect (()=> {
-                    gabutserver.stop_server ();
-                    gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
+                gabutwindow.get_host.connect ((reboot)=> {
+                    if (reboot) {
+                        gabutserver.stop_server ();
+                        gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
+                    }
                     return gabutserver.get_address ();
                 });
                 gabutwindow.restart_server.connect (()=> {
@@ -124,7 +126,7 @@ namespace Gabut {
                 perform_key_event ("<Control>v", true, 100);
                 perform_key_event ("<Control>v", false, 0);
             } else {
-                gabutwindow.show_all ();
+                gabutwindow.present ();
             }
         }
 

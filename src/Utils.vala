@@ -668,7 +668,46 @@ namespace Gabut {
         USERAGENT = 13,
         OUT = 14,
         PROXYMETHOD = 15,
-        SELECTFILE = 16
+        SELECTFILE = 16;
+
+        public string get_name () {
+            switch (this) {
+                case URL:
+                    return "url";
+                case MAGNETBACKUP:
+                    return "magnetbackup";
+                case TORRENTBACKUP:
+                    return "torrentbackup";
+                case PROXY:
+                    return "proxy";
+                case PORT:
+                    return "port";
+                case USERNAME:
+                    return "username";
+                case USERNAMEPASS:
+                    return "usernamepass";
+                case USER:
+                    return "user";
+                case USERPASS:
+                    return "userpass";
+                case DIR:
+                    return "dir";
+                case COOKIE:
+                    return "cookie";
+                case REFERER:
+                    return "referer";
+                case USERAGENT:
+                    return "useragent";
+                case OUT:
+                    return "OUT";
+                case PROXYMETHOD:
+                    return "proxymethod";
+                case SELECTFILE:
+                    return "selectfile";
+                default:
+                    return "id";
+            }
+        }
     }
 
     private enum FileCol {
@@ -1185,7 +1224,7 @@ namespace Gabut {
         string rpcport = get_dbsetting (DBSettings.RPCPORT);
         string size_req = get_dbsetting (DBSettings.RPCSIZE);
         string cache = get_dbsetting (DBSettings.DISKCACHE);
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", "--rpc-listen-all", @"--disk-cache=$(cache)", "--file-allocation=none", "--quiet=true"};
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--disk-cache=$(cache)", "--file-allocation=none", "--quiet=true"};
         GLib.SubprocessFlags flags = GLib.SubprocessFlags.STDIN_INHERIT | GLib.SubprocessFlags.STDOUT_SILENCE | GLib.SubprocessFlags.STDERR_MERGE;
         GLib.Subprocess subprocess = new GLib.Subprocess.newv (exec, flags);
         if (yield subprocess.wait_check_async ()) {
@@ -1775,7 +1814,7 @@ namespace Gabut {
             if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
                 string magnetbackup = hashoptions.@get (AriaOptions.BT_SAVE_METADATA.get_name ());
                 if (stmt.column_text (DBOption.MAGNETBACKUP) != magnetbackup) {
-                    buildstr.append (@" magnetbackup = \"$(magnetbackup)\"");
+                    buildstr.append (@" $(DBOption.MAGNETBACKUP.get_name ()) = \"$(magnetbackup)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ())) {
@@ -1784,7 +1823,7 @@ namespace Gabut {
                 }
                 string torrentbackup = hashoptions.@get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ());
                 if (stmt.column_text (DBOption.TORRENTBACKUP) != torrentbackup) {
-                    buildstr.append (@" torrentbackup = $(torrentbackup)");
+                    buildstr.append (@" $(DBOption.TORRENTBACKUP.get_name ()) = $(torrentbackup)");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
@@ -1793,7 +1832,7 @@ namespace Gabut {
                 }
                 string proxy = hashoptions.@get (AriaOptions.PROXY.get_name ());
                 if (stmt.column_text (DBOption.PROXY) != proxy) {
-                    buildstr.append (@" proxy = \"$(proxy)\"");
+                    buildstr.append (@" $(DBOption.PROXY.get_name ()) = \"$(proxy)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
@@ -1802,7 +1841,7 @@ namespace Gabut {
                 }
                 string port = hashoptions.@get (AriaOptions.PROXYPORT.get_name ());
                 if (stmt.column_text (DBOption.PORT) != port) {
-                    buildstr.append (@" port = \"$(port)\"");
+                    buildstr.append (@" $(DBOption.PORT.get_name ()) = \"$(port)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
@@ -1811,7 +1850,7 @@ namespace Gabut {
                 }
                 string username = hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ());
                 if (stmt.column_text (DBOption.USERNAME) != username) {
-                    buildstr.append (@" username = \"$(username)\"");
+                    buildstr.append (@" $(DBOption.USERNAME.get_name ()) = \"$(username)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
@@ -1820,7 +1859,7 @@ namespace Gabut {
                 }
                 string passwd = hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ());
                 if (stmt.column_text (DBOption.USERNAMEPASS) != passwd) {
-                    buildstr.append (@" usernamepass = \"$(passwd)\"");
+                    buildstr.append (@" $(DBOption.USERNAMEPASS.get_name ()) = \"$(passwd)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
@@ -1829,7 +1868,7 @@ namespace Gabut {
                 }
                 string user = hashoptions.@get (AriaOptions.USERNAME.get_name ());
                 if (stmt.column_text (DBOption.USER) != user) {
-                    buildstr.append (@" user = \"$(user)\"");
+                    buildstr.append (@" $(DBOption.USER.get_name ()) = \"$(user)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PASSWORD.get_name ())) {
@@ -1838,7 +1877,7 @@ namespace Gabut {
                 }
                 string userpass = hashoptions.@get (AriaOptions.PASSWORD.get_name ());
                 if (stmt.column_text (DBOption.USERPASS) != userpass) {
-                    buildstr.append (@" userpass = \"$(userpass)\"");
+                    buildstr.append (@" $(DBOption.USERPASS.get_name ()) = \"$(userpass)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
@@ -1847,7 +1886,7 @@ namespace Gabut {
                 }
                 string dir = hashoptions.@get (AriaOptions.DIR.get_name ());
                 if (stmt.column_text (DBOption.DIR) != dir) {
-                    buildstr.append (@" dir = \"$(dir)\"");
+                    buildstr.append (@" $(DBOption.DIR.get_name ()) = \"$(dir)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.COOKIE.get_name ())) {
@@ -1856,7 +1895,7 @@ namespace Gabut {
                 }
                 string cookie = hashoptions.@get (AriaOptions.COOKIE.get_name ());
                 if (stmt.column_text (DBOption.COOKIE) != cookie) {
-                    buildstr.append (@" cookie = \"$(cookie)\"");
+                    buildstr.append (@" $(DBOption.COOKIE.get_name ()) = \"$(cookie)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.REFERER.get_name ())) {
@@ -1865,7 +1904,7 @@ namespace Gabut {
                 }
                 string referer = hashoptions.@get (AriaOptions.REFERER.get_name ());
                 if (stmt.column_text (DBOption.REFERER) != referer) {
-                    buildstr.append (@" referer = \"$(referer)\"");
+                    buildstr.append (@" $(DBOption.REFERER.get_name ()) = \"$(referer)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.USER_AGENT.get_name ())) {
@@ -1874,7 +1913,7 @@ namespace Gabut {
                 }
                 string useragent = hashoptions.@get (AriaOptions.USER_AGENT.get_name ());
                 if (stmt.column_text (DBOption.USERAGENT) != useragent) {
-                    buildstr.append (@" useragent = \"$(useragent)\"");
+                    buildstr.append (@" $(DBOption.USERAGENT.get_name ()) = \"$(useragent)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.OUT.get_name ())) {
@@ -1883,7 +1922,7 @@ namespace Gabut {
                 }
                 string outf = hashoptions.@get (AriaOptions.OUT.get_name ());
                 if (stmt.column_text (DBOption.OUT) != outf) {
-                    buildstr.append (@" out = \"$(outf)\"");
+                    buildstr.append (@" $(DBOption.OUT.get_name ()) = \"$(outf)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXY_METHOD.get_name ())) {
@@ -1892,7 +1931,7 @@ namespace Gabut {
                 }
                 string proxymethod = hashoptions.@get (AriaOptions.PROXY_METHOD.get_name ());
                 if (stmt.column_text (DBOption.PROXYMETHOD) != proxymethod) {
-                    buildstr.append (@" proxymethod = \"$(proxymethod)\"");
+                    buildstr.append (@" $(DBOption.PROXYMETHOD.get_name ()) = \"$(proxymethod)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.SELECT_FILE.get_name ())) {
@@ -1901,7 +1940,7 @@ namespace Gabut {
                 }
                 string selectfile = hashoptions.@get (AriaOptions.SELECT_FILE.get_name ());
                 if (stmt.column_text (DBOption.SELECTFILE) != selectfile) {
-                    buildstr.append (@" selectfile = \"$(selectfile)\"");
+                    buildstr.append (@" $(DBOption.SELECTFILE.get_name ()) = \"$(selectfile)\"");
                 }
             }
             if (buildstr.str.hash () == empty_hash) {

@@ -178,10 +178,10 @@ namespace Gabut {
             if (!bool.parse (get_dbsetting (DBSettings.IPLOCAL))) {
                 try {
                     var resolver = Resolver.get_default ();
-                    var addresses = resolver.lookup_by_name ("www.google.com");
+                    var address = resolver.lookup_by_name ("www.google.com");
                     var client = new SocketClient ();
-                    var conn = client.connect (new InetSocketAddress (addresses.nth_data (0), 80));
-                    InetSocketAddress local = conn.get_local_address () as InetSocketAddress;
+                    var connection = client.connect_to_host (address.nth_data (0).to_string (), 80);
+                    InetSocketAddress local = connection.get_local_address () as InetSocketAddress;
                     return @"http://$(local.get_address ()):$(get_uris ().nth_data (0).port)";
                 } catch (Error e) {
                     return @"$(e.message)";

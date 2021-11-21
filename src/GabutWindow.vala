@@ -24,7 +24,7 @@ namespace Gabut {
         public signal void send_file (string url);
         public signal void stop_server ();
         public signal void restart_server ();
-        public signal string get_host ();
+        public signal string get_host (bool reboot);
         private Gtk.ListBox list_box;
         private Gtk.Revealer search_rev;
         private Preferences preferences = null;
@@ -153,8 +153,8 @@ namespace Gabut {
                 if (qrcode == null) {
                     qrcode = new QrCode (application);
                     qrcode.show_all ();
-                    qrcode.get_host.connect (()=> {
-                        return get_host ();
+                    qrcode.get_host.connect ((reboot)=> {
+                        return get_host (reboot);
                     });
                     qrcode.destroy.connect (()=> {
                         qrcode = null;
