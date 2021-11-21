@@ -21,7 +21,7 @@
 
 namespace Gabut {
     public class QrCode : Gtk.Dialog {
-        public signal string get_host ();
+        public signal string get_host (bool reboot);
         private Gtk.Image imageqr;
         private Gtk.LinkButton linkbutton;
         private Gtk.Button host_button;
@@ -134,18 +134,20 @@ namespace Gabut {
         public override void show () {
             base.show ();
             local_server = bool.parse (get_dbsetting (DBSettings.IPLOCAL));
-            Idle.add (load_host);
+            Idle.add (()=> {
+                return load_host (false);
+            });
         }
 
         private void share_server () {
             local_server = !local_server;
             set_dbsetting (DBSettings.IPLOCAL, @"$(local_server)");
-            load_host ();
+            load_host (true);
         }
 
-        private bool load_host () {
+        private bool load_host (bool reboot) {
             host_button.label = local_server? _("Share Host") : _("Local Host");
-            string host = get_host ();
+            string host = get_host (reboot);
             create_qrcode (host);
             linkbutton.uri = host;
             linkbutton.label = host;

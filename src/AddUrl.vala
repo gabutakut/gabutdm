@@ -276,7 +276,6 @@ namespace Gabut {
             later_button.clicked.connect (()=> {
                 set_option ();
                 download_send (true);
-                //  downloadfile (link_entry.text, hashoption, true, 1);
                 destroy ();
             });
 
@@ -328,7 +327,6 @@ namespace Gabut {
             start_button.clicked.connect (()=> {
                 set_option ();
                 download_send (false);
-                //  downloadfile (link_entry.text, hashoption, false, 1);
                 destroy ();
             });
         }
