@@ -1471,7 +1471,7 @@ namespace Gabut {
 
     private int table_settings (Sqlite.Database db) {
         string dir = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD).replace ("/", "\\/");
-        return db.exec ("CREATE TABLE IF NOT EXISTS settings (
+        return db.exec (@"CREATE TABLE IF NOT EXISTS settings (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,
             rpcport        TEXT    NOT NULL,
             maxtries       TEXT    NOT NULL,
