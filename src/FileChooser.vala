@@ -24,7 +24,8 @@ namespace Gabut {
         public FileChooser (Gtk.Application application) {
             Object (application: application,
                     title: _("Open"),
-                    action: Gtk.FileChooserAction.OPEN
+                    action: Gtk.FileChooserAction.OPEN,
+                    deletable: false
             );
         }
 
@@ -35,7 +36,6 @@ namespace Gabut {
             var metalink = new Gtk.FileFilter ();
             metalink.set_filter_name (_("Metalink"));
             metalink.add_pattern ("application/metalink+xml");
-            get_style_context ().add_class (Gtk.STYLE_CLASS_HEADER);
 
             add_filter (torrent);
             add_filter (metalink);

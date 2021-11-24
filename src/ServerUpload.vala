@@ -26,7 +26,7 @@ namespace Gabut {
                 <html>
                 <head>
                 <style>
-                    $(ServerCss.get_css);
+                    $(ServerCss.get_css ());
                 </style>
                 <style>
                     $(get_css(create_folder (".bootstrap.min.css")));
@@ -118,7 +118,7 @@ namespace Gabut {
                                         const msg = `File Name: $(set_dollar ("{name}")) <br/>
                                                 File Size: $(set_dollar ("{returnFileSize (size)}")) <br/>
                                                 File type: $(set_dollar ("{type}")) <br/>
-                                                File Last Modified: $(set_dollar ("{new Date(lastModified)}"))`;
+                                                File Last Modified: $(set_dollar ("{new Date (lastModified)}"))`;
                                         metadata.innerHTML = msg;
                                         removeAllChildNodes(imgdata);
                                         removeAllChildNodes(videodata);

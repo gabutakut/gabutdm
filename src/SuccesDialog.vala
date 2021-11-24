@@ -40,18 +40,18 @@ namespace Gabut {
                 halign = Gtk.Align.END,
                 icon_size = Gtk.IconSize.DIALOG
             };
-    
+
             var icon_badge = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
                 gicon = new ThemedIcon ("process-completed"),
                 icon_size = Gtk.IconSize.LARGE_TOOLBAR
             };
-    
+
             var overlay = new Gtk.Overlay ();
             overlay.add (icon_image);
             overlay.add_overlay (icon_badge);
-    
+
             var primarylabel = new Gtk.Label ("Download Complete") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 45,
@@ -60,7 +60,7 @@ namespace Gabut {
                 xalign = 0
             };
             primarylabel.get_style_context ().add_class ("primary");
-    
+
             filesizelabel = new Gtk.Label (null) {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 45,

@@ -21,7 +21,8 @@
 
 namespace Gabut {
     public class ServerCss {
-        public abstract const string get_css = "
+        public static string get_css () {
+            return "
             html {
                 background: transparent;
             }
@@ -321,5 +322,6 @@ namespace Gabut {
                 animation-name: fadeInLeft;
             }
         ";
+        }
     }
 }

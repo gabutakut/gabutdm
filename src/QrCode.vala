@@ -41,18 +41,18 @@ namespace Gabut {
                 pixel_size = 64,
                 gicon = new ThemedIcon ("go-home")
             };
-    
+
             var icon_badge = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
                 gicon = new ThemedIcon ("emblem-favorite"),
                 icon_size = Gtk.IconSize.LARGE_TOOLBAR
             };
-    
+
             var overlay = new Gtk.Overlay ();
             overlay.add (icon_image);
             overlay.add_overlay (icon_badge);
-    
+
             var primary = new Gtk.Label ("Scan Code") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 35,
@@ -60,8 +60,9 @@ namespace Gabut {
                 wrap = true,
                 xalign = 0
             };
+
             primary.get_style_context ().add_class ("primary");
-    
+
             var secondary = new Gtk.Label ("Host Gabut Server") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 35,
@@ -141,7 +142,7 @@ namespace Gabut {
 
         private void share_server () {
             local_server = !local_server;
-            set_dbsetting (DBSettings.IPLOCAL, @"$(local_server)");
+            set_dbsetting (DBSettings.IPLOCAL, local_server.to_string ());
             load_host (true);
         }
 

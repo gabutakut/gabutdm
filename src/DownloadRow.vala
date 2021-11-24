@@ -27,7 +27,7 @@ namespace Gabut {
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
         private Gtk.Label filename_label;
-        private Gtk.Image imagefile;
+        public Gtk.Image imagefile;
         private bool stoptimer;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
 
@@ -86,7 +86,7 @@ namespace Gabut {
                             if (filename != null) {
                                 Idle.add (()=> {
                                     GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
-                                    notify_app (_("Download Complete"), (filename));
+                                    notify_app (_("Download Complete"), filename);
                                     if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                         send_dialog ();
                                     }
@@ -127,6 +127,7 @@ namespace Gabut {
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null) {
                             filename = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
+                            notify_app (_("Download Error"), filename);
                             aria_remove (ariagid);
                         }
                         if (timeout_id != 0) {
@@ -257,7 +258,7 @@ namespace Gabut {
                 }
             }
         }
-        
+
         public DownloadRow (Sqlite.Statement stmt) {
             linkmode = stmt.column_int (DBDownload.LINKMODE);
             status = stmt.column_int (DBDownload.STATUS);

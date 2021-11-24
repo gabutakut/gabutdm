@@ -62,7 +62,7 @@ namespace Gabut {
             self.pause_message (msg);
             if (msg.method == "POST") {
                 try {
-                    if  (msg.request_headers.get_content_type (null) == "multipart/form-data") {
+                    if (msg.request_headers.get_content_type (null) == "multipart/form-data") {
                         var multipart = new Soup.Multipart.from_message (msg.request_headers , msg.request_body);
                         Soup.MessageHeaders headers;
                         unowned Soup.Buffer body;
@@ -104,7 +104,7 @@ namespace Gabut {
                 string result = (string) msg.request_body.data;
                 try {
                     MatchInfo match_info;
-                    Regex regex = new Regex (@"link:(.*?),filename:(.*?),referrer:(.*?),mimetype:(.*?),filesize:(.*?),resumable:(.*?),");
+                    Regex regex = new Regex ("link:(.*?),filename:(.*?),referrer:(.*?),mimetype:(.*?),filesize:(.*?),resumable:(.*?),");
                     bool matches = regex.match_full (result, -1, 0, 0, out match_info);
                     if (matches) {
                         msg.set_status_full (200, "OK");
@@ -138,9 +138,9 @@ namespace Gabut {
                 var hashoption = new Gee.HashMap<string, string> ();
                 hashoption[AriaOptions.BT_SAVE_METADATA.get_name ()] = "true";
                 hashoption[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = "true";
-                if (Regex.match_simple (@"gabutlink=(.*?)", result)) {
+                if (Regex.match_simple ("gabutlink=(.*?)", result)) {
                     string reslink = result.split ("gabutlink=")[1].strip ();
-                    if (reslink !="") {
+                    if (reslink != "") {
                         if (reslink.has_prefix ("magnet:?")) {
                             address_url (reslink, hashoption, false, LinkMode.MAGNETLINK);
                         } else if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
@@ -151,7 +151,7 @@ namespace Gabut {
                 } else {
                     msg.set_status_full (500, "OK");
                 }
-                if  (msg.request_headers.get_content_type (null) == "multipart/form-data") {
+                if (msg.request_headers.get_content_type (null) == "multipart/form-data") {
                     var multipart = new Soup.Multipart.from_message (msg.request_headers , msg.request_body);
                     Soup.MessageHeaders headers;
                     unowned Soup.Buffer body;
@@ -184,7 +184,7 @@ namespace Gabut {
                     InetSocketAddress local = connection.get_local_address () as InetSocketAddress;
                     return @"http://$(local.get_address ()):$(get_uris ().nth_data (0).port)";
                 } catch (Error e) {
-                    return @"$(e.message)";
+                    return e.message;
                 }
             } else {
                 return @"http://$(get_listeners ().nth_data (0).local_address)";
