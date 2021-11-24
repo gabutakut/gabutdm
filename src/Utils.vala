@@ -663,9 +663,9 @@ namespace Gabut {
         MAGNETBACKUP = 2,
         TORRENTBACKUP = 3,
         PROXY = 4,
-        PORT = 5,
-        USERNAME = 6,
-        USERNAMEPASS = 7,
+        PROXYPORT = 5,
+        PROXYUSERNAME = 6,
+        PROXYPASSWORD = 7,
         USER = 8,
         USERPASS = 9,
         DIR = 10,
@@ -686,11 +686,11 @@ namespace Gabut {
                     return "torrentbackup";
                 case PROXY:
                     return "proxy";
-                case PORT:
+                case PROXYPORT:
                     return "port";
-                case USERNAME:
+                case PROXYUSERNAME:
                     return "username";
-                case USERNAMEPASS:
+                case PROXYPASSWORD:
                     return "usernamepass";
                 case USER:
                     return "user";
@@ -1720,15 +1720,15 @@ namespace Gabut {
             if (proxy != "") {
                 hashoption[AriaOptions.PROXYUSERNAME.get_name ()] = proxy;
             }
-            string port = stmt.column_text (DBOption.PORT);
+            string port = stmt.column_text (DBOption.PROXYPORT);
             if (port != "") {
                 hashoption[AriaOptions.PROXYPORT.get_name ()] = port;
             }
-            string username = stmt.column_text (DBOption.USERNAME);
+            string username = stmt.column_text (DBOption.PROXYUSERNAME);
             if (username != "") {
                 hashoption[AriaOptions.PROXYUSERNAME.get_name ()] = username;
             }
-            string usernamepass = stmt.column_text (DBOption.USERNAMEPASS);
+            string usernamepass = stmt.column_text (DBOption.PROXYPASSWORD);
             if (usernamepass != "") {
                 hashoption[AriaOptions.PROXYPASSWORD.get_name ()] = usernamepass;
             }
@@ -1782,19 +1782,19 @@ namespace Gabut {
             res = stmt.bind_text (DBOption.PROXY, "");
         }
         if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
-            res = stmt.bind_text (DBOption.PORT, hashoptions.@get (AriaOptions.PROXYPORT.get_name ()));
+            res = stmt.bind_text (DBOption.PROXYPORT, hashoptions.@get (AriaOptions.PROXYPORT.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.PORT, "");
+            res = stmt.bind_text (DBOption.PROXYPORT, "");
         }
         if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
-            res = stmt.bind_text (DBOption.USERNAME, hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ()));
+            res = stmt.bind_text (DBOption.PROXYUSERNAME, hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.USERNAME, "");
+            res = stmt.bind_text (DBOption.PROXYUSERNAME, "");
         }
         if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
-            res = stmt.bind_text (DBOption.USERNAMEPASS, hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ()));
+            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.USERNAMEPASS, "");
+            res = stmt.bind_text (DBOption.PROXYPASSWORD, "");
         }
         if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
             res = stmt.bind_text (DBOption.USER, hashoptions.@get (AriaOptions.USERNAME.get_name ()));
@@ -1895,8 +1895,8 @@ namespace Gabut {
                     buildstr.append (",");
                 }
                 string port = hashoptions.@get (AriaOptions.PROXYPORT.get_name ());
-                if (stmt.column_text (DBOption.PORT) != port) {
-                    buildstr.append (@" $(DBOption.PORT.get_name ()) = \"$(port)\"");
+                if (stmt.column_text (DBOption.PROXYPORT) != port) {
+                    buildstr.append (@" $(DBOption.PROXYPORT.get_name ()) = \"$(port)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
@@ -1904,8 +1904,8 @@ namespace Gabut {
                     buildstr.append (",");
                 }
                 string username = hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ());
-                if (stmt.column_text (DBOption.USERNAME) != username) {
-                    buildstr.append (@" $(DBOption.USERNAME.get_name ()) = \"$(username)\"");
+                if (stmt.column_text (DBOption.PROXYUSERNAME) != username) {
+                    buildstr.append (@" $(DBOption.PROXYUSERNAME.get_name ()) = \"$(username)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
@@ -1913,8 +1913,8 @@ namespace Gabut {
                     buildstr.append (",");
                 }
                 string passwd = hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ());
-                if (stmt.column_text (DBOption.USERNAMEPASS) != passwd) {
-                    buildstr.append (@" $(DBOption.USERNAMEPASS.get_name ()) = \"$(passwd)\"");
+                if (stmt.column_text (DBOption.PROXYPASSWORD) != passwd) {
+                    buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"$(passwd)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
