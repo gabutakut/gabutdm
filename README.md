@@ -16,7 +16,7 @@
             alt="Get it from the Snap Store" src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" /></a>
     <a href="https://appcenter.elementary.io/com.github.gabutakut.gabutdm"><img
             src="https://appcenter.elementary.io/badge.svg" alt="Get it from the Appcenter"></a>
-    <a href="#-repository"><img
+    <a href="https://launchpad.net/~torik-habib/+archive/ubuntu/gabutdm"><img
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
 
