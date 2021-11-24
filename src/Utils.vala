@@ -1508,13 +1508,13 @@ namespace Gabut {
     }
 
     private void check_optdown () {
-        if ((db_table ("download") - 1) == DBDownload.FILEORDIR) {
+        if ((db_table ("download") - 1) != DBDownload.FILEORDIR) {
             if (db_table ("download") > 0) {
                 GabutApp.db.exec ("DROP TABLE download;");
             }
             table_download (GabutApp.db);
         }
-        if ((db_table ("options") - 1) == DBOption.SELECTFILE) {
+        if ((db_table ("options") - 1) != DBOption.SELECTFILE) {
             if (db_table ("options") > 0) {
                 GabutApp.db.exec ("DROP TABLE options;");
             }
