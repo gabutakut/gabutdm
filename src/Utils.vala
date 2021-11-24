@@ -1471,7 +1471,7 @@ namespace Gabut {
 
     private int table_settings (Sqlite.Database db) {
         string dir = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD).replace ("/", "\\/");
-        return db.exec ("CREATE TABLE IF NOT EXISTS settings (
+        return db.exec (@"CREATE TABLE IF NOT EXISTS settings (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,
             rpcport        TEXT    NOT NULL,
             maxtries       TEXT    NOT NULL,
@@ -1508,13 +1508,13 @@ namespace Gabut {
     }
 
     private void check_optdown () {
-        if ((db_table ("download") - 1) == DBDownload.FILEORDIR) {
+        if ((db_table ("download") - 1) != DBDownload.FILEORDIR) {
             if (db_table ("download") > 0) {
                 GabutApp.db.exec ("DROP TABLE download;");
             }
             table_download (GabutApp.db);
         }
-        if ((db_table ("options") - 1) == DBOption.SELECTFILE) {
+        if ((db_table ("options") - 1) != DBOption.SELECTFILE) {
             if (db_table ("options") > 0) {
                 GabutApp.db.exec ("DROP TABLE options;");
             }
