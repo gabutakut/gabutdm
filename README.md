@@ -88,4 +88,4 @@ or With `add-apt-repository`
 
 Repo intall
 
-    sudo apt install ccom.github.gabutakut.gabutdm
+    sudo apt install com.github.gabutakut.gabutdm
