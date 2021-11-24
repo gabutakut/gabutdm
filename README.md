@@ -22,7 +22,7 @@
 
 Gabut Download Manager a application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
 
-Made with love and sleep deprivation. :D
+Made with love.
 
 ## Preview
 
