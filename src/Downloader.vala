@@ -123,7 +123,7 @@ namespace Gabut {
             }
             set {
                 _transferrate = value;
-                transfer_rate.label = @"$(GLib.format_size ((uint64) transferrate))";
+                transfer_rate.label = GLib.format_size ((uint64) transferrate);
             }
         }
 
@@ -160,7 +160,7 @@ namespace Gabut {
             }
             set {
                 _aconnection = value;
-                connectlabel.label = @"$(_aconnection)";
+                connectlabel.label = _aconnection.to_string ();
             }
         }
 
@@ -452,7 +452,7 @@ namespace Gabut {
             bt_req_limit.value_changed.connect (()=> {
                 aria_set_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT, bt_req_limit.value.to_string ());
             });
-            
+
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
                 transition_duration = 500,
@@ -733,7 +733,7 @@ namespace Gabut {
             aria_files_store (ariagid);
             if (totalsize > 0 && transferrate > 0) {
                 uint64 remaining_time = (totalsize - transferred) / transferrate;
-                timeleft.label = @"$(format_time ((int) remaining_time))";
+                timeleft.label = format_time ((int) remaining_time);
             }
             return stoptimer;
         }

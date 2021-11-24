@@ -26,7 +26,7 @@ namespace Gabut {
                 <html>
                 <head>
                 <style>
-                    $(ServerCss.get_css);
+                    $(ServerCss.get_css ());
                 </style>
                 <style>
                     $(get_css(create_folder (".bootstrap.min.css")));

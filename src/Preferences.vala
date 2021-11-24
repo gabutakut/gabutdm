@@ -242,6 +242,28 @@ namespace Gabut {
             };
             retonhide.add (deletegrid);
 
+            var replacegrid = new Gtk.Grid ();
+            replacegrid.add (new Gtk.Image.from_icon_name ("edit-find-replace", Gtk.IconSize.SMALL_TOOLBAR));
+            replacegrid.add (new Gtk.Label (_("Replace File")));
+
+            var allowrepl = new Gtk.CheckButton () {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (aria_get_globalops (AriaOptions.ALLOW_OVERWRITE))
+            };
+            allowrepl.add (replacegrid);
+
+            var autorengrid = new Gtk.Grid ();
+            autorengrid.add (new Gtk.Image.from_icon_name ("edit", Gtk.IconSize.SMALL_TOOLBAR));
+            autorengrid.add (new Gtk.Label (_("Auto Rename")));
+
+            var autorename = new Gtk.CheckButton () {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING))
+            };
+            autorename.add (autorengrid);
+
             var notifyopt = new Gtk.Grid () {
                 expand = true,
                 height_request = 190
@@ -252,6 +274,9 @@ namespace Gabut {
             notifyopt.attach (new HeaderLabel (_("Notify:"), 450), 0, 2, 1, 1);
             notifyopt.attach (systemnotif, 0, 3, 1, 1);
             notifyopt.attach (dialognotify, 0, 4, 1, 1);
+            notifyopt.attach (new HeaderLabel (_("File Download:"), 450), 0, 5, 1, 1);
+            notifyopt.attach (allowrepl, 0, 6, 1, 1);
+            notifyopt.attach (autorename, 0, 7, 1, 1);
 
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
@@ -283,6 +308,8 @@ namespace Gabut {
                 aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, set_dbsetting (DBSettings.BTTIMEOUTTRACK, bt_timeout.value.to_string ()));
                 aria_set_globalops (AriaOptions.BT_MAX_OPEN_FILES, set_dbsetting (DBSettings.MAXOPENFILE, maxopfile.value.to_string ()));
                 aria_set_globalops (AriaOptions.SEED_TIME, set_dbsetting (DBSettings.SEEDTIME, bt_seedtime.value.to_string ()));
+                aria_set_globalops (AriaOptions.ALLOW_OVERWRITE, set_dbsetting (DBSettings.OVERWRITE, allowrepl.active.to_string ()));
+                aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, set_dbsetting (DBSettings.AUTORENAMING, autorename.active.to_string ()));
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());

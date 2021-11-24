@@ -27,12 +27,14 @@ namespace Gabut {
         public signal string get_host (bool reboot);
         private Gtk.ListBox list_box;
         private Gtk.Revealer search_rev;
+        private Gtk.Revealer property_rev;
         private Preferences preferences = null;
         private QrCode qrcode;
         private Gtk.SearchEntry search_entry;
         private ModeButton view_mode;
         private AlertView nodown_alert;
         private int64 statusactive = 0;
+        private GLib.List<AddUrl> properties;
 
         public GabutWindow (Gtk.Application application) {
             Object (application: application);
@@ -60,7 +62,7 @@ namespace Gabut {
 
             var overlay = new Gtk.Overlay ();
             overlay.add (scrolled);
-    
+
             var frame = new Gtk.Frame (null) {
                 width_request = 350,
                 height_request = 350,
@@ -89,7 +91,8 @@ namespace Gabut {
             list_box.remove.connect ((wid)=> {
                 view_status ();
             });
-            Timeout.add (500,() => {
+
+            Timeout.add (500, ()=> {
                 bool statact = statusactive > 0;
                 set_progress_visible.begin (!is_active && statact);
                 set_badge_visible.begin (!is_active && statact);
@@ -100,6 +103,7 @@ namespace Gabut {
                     return hide_on_delete ();
                 } else {
                     stop_server ();
+                    check_table ();
                     return false;
                 }
             });
@@ -161,6 +165,39 @@ namespace Gabut {
                     });
                 }
             });
+            var property_button = new Gtk.Button.from_icon_name ("document-properties", Gtk.IconSize.BUTTON) {
+                tooltip_text = _("Property")
+            };
+            properties = new GLib.List<AddUrl> ();
+            property_button.clicked.connect (()=> {
+                var row = (DownloadRow) list_box.get_selected_row ();
+                if (row != null) {
+                    if (!property_active (row)) {
+                        var property = new AddUrl.Property (application);
+                        property.show_all ();
+                        properties.append (property);
+                        property.property (row);
+                        property.saveproperty.connect ((hashoption)=> {
+                            row.hashoption = hashoption;
+                        });
+                        property.destroy.connect (()=> {
+                            properties.foreach ((proper)=> {
+                                if (proper == property) {
+                                    properties.remove_link (properties.find (proper));
+                                }
+                            });
+                        });
+                    }
+                }
+            });
+            property_rev = new Gtk.Revealer () {
+                transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT
+            };
+            property_rev.add (property_button);
+            headerbar.pack_end (property_rev);
+            list_box.row_selected.connect ((row)=> {
+                property_rev.reveal_child = row != null? true : false;
+            });
             var add_button = new Gtk.Button.from_icon_name ("insert-link", Gtk.IconSize.BUTTON) {
                 tooltip_text = _("add link")
             };
@@ -201,8 +238,20 @@ namespace Gabut {
             return headerbar;
         }
 
+        private bool property_active (DownloadRow row) {
+            bool active = false;
+            properties.foreach ((propet)=> {
+                if (propet.row == row) {
+                    propet.show_all ();
+                    active = true;
+                }
+            });
+            return active;
+        }
+
         public override void destroy () {
             base.destroy ();
+            check_optdown ();
             var downloads = new GLib.List<DownloadRow> ();
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).url == "") {
@@ -391,7 +440,7 @@ namespace Gabut {
             }
             return false;
         }
-    
+
         public void view_status () {
             if (search_rev.child_revealed) {
                 list_box.set_filter_func ((item) => {

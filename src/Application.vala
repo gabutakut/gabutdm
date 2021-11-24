@@ -41,7 +41,7 @@ namespace Gabut {
         public override int command_line (ApplicationCommandLine command) {
             var dict = command.get_options_dict ();
             activate ();
-            if (dict.contains (GLib.OPTION_REMAINING)) {   
+            if (dict.contains (GLib.OPTION_REMAINING)) {
                 foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, VariantType.BYTESTRING_ARRAY).get_bytestring_array ()) {
                     if (GLib.FileUtils.test (arg_file, GLib.FileTest.EXISTS)) {
                         dialog_url (File.new_for_path (arg_file).get_uri ());
@@ -254,7 +254,7 @@ namespace Gabut {
                 }
             }
         }
-    
+
         private static void perform_key_event (string accelerator, bool press, ulong delay) {
             uint keysym;
             Gdk.ModifierType modifiers;
