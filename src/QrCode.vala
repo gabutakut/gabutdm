@@ -173,11 +173,10 @@ namespace Gabut {
                     digit_ornot += (*qrentdata & 1);
                     if (digit_ornot == 1) {
                         context.set_source_rgb (0.0, 0.0, 0.0);
-                        context.rectangle (rectx, recty, 4, 4);
                     } else {
                         context.set_source_rgb (1.0, 1.0, 1.0);
-                        context.rectangle (rectx, recty, 4, 4);
                     }
+                    context.rectangle (rectx, recty, 4, 4);
                     context.fill ();
                     qrentdata++;
                 }
