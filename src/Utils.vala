@@ -1246,9 +1246,8 @@ namespace Gabut {
     private bool exec_aria () {
         if (!aria_getverion ()) {
             ensure_run.begin ();
-        } else {
-            set_startup ();
         }
+        set_startup ();
         return aria_getverion ();
     }
 
@@ -1264,13 +1263,12 @@ namespace Gabut {
         if (yield subprocess.wait_check_async ()) {
             if (subprocess.get_successful ()) {
                 if (callback != null) {
+                    subprocess.force_exit ();
                     Idle.add ((owned)callback);
                 }
             }
         }
         yield;
-        set_startup ();
-        subprocess.force_exit ();
     }
 
     private void set_startup () {
