@@ -23,6 +23,18 @@ namespace Gabut {
     public class Preferences : Gtk.Dialog {
         public signal void restart_server ();
         public signal void max_active ();
+        private Gtk.Button allocate_button;
+
+        FileAllocation _fileallocation = null;
+        FileAllocation fileallocation {
+            get {
+                return _fileallocation;
+            }
+            set {
+                _fileallocation = value;
+                allocate_button.label = _("File Allocation: %s").printf (_fileallocation.fileallocation.get_name ());
+            }
+        }
 
         public Preferences (Gtk.Application application) {
             Object (application: application,
@@ -191,6 +203,35 @@ namespace Gabut {
                 hexpand = true,
                 value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
             };
+            allocate_button = new Gtk.Button.with_label ("") {
+                margin_top = 5
+            };
+            var allocate_flow = new Gtk.FlowBox ();
+            var allocate_popover = new Gtk.Popover (allocate_button);
+            allocate_popover.position = Gtk.PositionType.TOP;
+            allocate_popover.add (allocate_flow);
+            allocate_popover.show.connect (() => {
+                if (fileallocation != null) {
+                    allocate_flow.select_child (fileallocation);
+                    fileallocation.grab_focus ();
+                }
+            });
+            allocate_button.clicked.connect (() => {
+                allocate_popover.visible = !allocate_popover.visible;
+            });
+            foreach (var allocate in FileAllocations.get_all ()) {
+                allocate_flow.add (new FileAllocation (allocate));
+            }
+            allocate_flow.show_all ();
+            allocate_flow.child_activated.connect ((allocate)=> {
+                fileallocation = allocate as FileAllocation;
+                allocate_popover.hide ();
+            });
+            foreach (var allocate in allocate_flow.get_children ()) {
+                if (((FileAllocation) allocate).fileallocation.get_name () == get_dbsetting (DBSettings.FILEALLOCATION)) {
+                    fileallocation = allocate as FileAllocation;
+                }
+            };
 
             var moreoptions = new Gtk.Grid () {
                 expand = true,
@@ -208,6 +249,7 @@ namespace Gabut {
             moreoptions.attach (maxrequest, 1, 3, 1, 1);
             moreoptions.attach (new HeaderLabel (_("Disk Cache (in Byte):"), 220), 1, 4, 1, 1);
             moreoptions.attach (diskcache, 1, 5, 1, 1);
+            moreoptions.attach (allocate_button, 1, 6, 1, 1);
 
             var notifydia = new Gtk.Grid ();
             notifydia.add (new Gtk.Image.from_icon_name ("dialog-information", Gtk.IconSize.SMALL_TOOLBAR));
@@ -326,7 +368,11 @@ namespace Gabut {
                 if (maxrequest.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))) {
                     set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());
                 }
-                if (diskcache.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE)) || maxrequest.value != double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE)) || rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))) {
+                if (diskcache.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
+                || maxrequest.value != double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))
+                || rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
+                || get_dbsetting (DBSettings.FILEALLOCATION) != fileallocation.fileallocation.get_name ()) {
+                    set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.get_name ());
                     aria_shutdown ();
                     do {
                     } while (aria_getverion ());

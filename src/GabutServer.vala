@@ -175,6 +175,7 @@ namespace Gabut {
         }
 
         public string get_address () {
+            var soupuri = get_uris ().nth_data (0);
             if (!bool.parse (get_dbsetting (DBSettings.IPLOCAL))) {
                 try {
                     var resolver = Resolver.get_default ();
@@ -182,12 +183,12 @@ namespace Gabut {
                     var client = new SocketClient ();
                     var connection = client.connect_to_host (address.nth_data (0).to_string (), 80);
                     InetSocketAddress local = connection.get_local_address () as InetSocketAddress;
-                    return @"http://$(local.get_address ()):$(get_uris ().nth_data (0).port)";
+                    return @"$(soupuri.scheme)://$(local.get_address ()):$(soupuri.port)";
                 } catch (Error e) {
                     return e.message;
                 }
             } else {
-                return @"http://$(get_listeners ().nth_data (0).local_address)";
+                return @"$(soupuri.scheme)://$(get_listeners ().nth_data (0).local_address)";
             }
         }
     }
