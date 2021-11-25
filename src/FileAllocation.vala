@@ -20,7 +20,7 @@
 */
 
 namespace Gabut {
-    public class FileAllocation : Gtk.FlowBoxChild  {
+    public class FileAllocation : Gtk.FlowBoxChild {
         private Gtk.Grid content;
         public FileAllocations fileallocation { get; private set; }
 
