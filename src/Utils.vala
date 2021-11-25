@@ -42,7 +42,8 @@ namespace Gabut {
         PORTLOCAL = 18,
         SEEDTIME = 19,
         OVERWRITE = 20,
-        AUTORENAMING = 21;
+        AUTORENAMING = 21,
+        FILEALLOCATION = 22;
 
         public string get_name () {
             switch (this) {
@@ -88,6 +89,8 @@ namespace Gabut {
                     return "overwrite";
                 case AUTORENAMING:
                     return "autorenaming";
+                case FILEALLOCATION:
+                    return "allocation";
                 default:
                     return "id";
             }
@@ -740,6 +743,30 @@ namespace Gabut {
         N_COLUMNS
     }
 
+    public enum FileAllocations {
+        NONE = 0,
+        PREALLOC = 1,
+        TRUNC = 2,
+        FALLOC = 3;
+
+        public string get_name () {
+            switch (this) {
+                case PREALLOC:
+                    return "Prealloc";
+                case TRUNC:
+                    return "Trunc";
+                case FALLOC:
+                    return "Falloc";
+                default:
+                    return "None";
+            }
+        }
+
+        public static FileAllocations [] get_all () {
+            return { NONE, PREALLOC, TRUNC, FALLOC};
+        }
+    }
+
     private string urljsonrpchost () {
         return @"http://localhost:$(get_dbsetting(DBSettings.RPCPORT))/jsonrpc";
     }
@@ -1230,7 +1257,8 @@ namespace Gabut {
         string rpcport = get_dbsetting (DBSettings.RPCPORT);
         string size_req = get_dbsetting (DBSettings.RPCSIZE);
         string cache = get_dbsetting (DBSettings.DISKCACHE);
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--disk-cache=$(cache)", "--file-allocation=none", "--quiet=true"};
+        string allocate = get_dbsetting (DBSettings.FILEALLOCATION);
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--disk-cache=$(cache)", @"--file-allocation=$(allocate.down ())", "--quiet=true"};
         GLib.SubprocessFlags flags = GLib.SubprocessFlags.STDIN_INHERIT | GLib.SubprocessFlags.STDOUT_SILENCE | GLib.SubprocessFlags.STDERR_MERGE;
         GLib.Subprocess subprocess = new GLib.Subprocess.newv (exec, flags);
         if (yield subprocess.wait_check_async ()) {
@@ -1493,13 +1521,14 @@ namespace Gabut {
             portlocal      TEXT    NOT NULL,
             seedtime       TEXT    NOT NULL,
             overwrite      TEXT    NOT NULL,
-            autorenaming   TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"true\");");
+            autorenaming   TEXT    NOT NULL,
+            allocation     TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\");");
     }
 
     private void check_table () {
-        if ((db_table ("settings") - 1) != DBSettings.AUTORENAMING) {
+        if ((db_table ("settings") - 1) != DBSettings.FILEALLOCATION) {
             if (db_table ("settings") > 0) {
                 GabutApp.db.exec ("DROP TABLE settings;");
             }
