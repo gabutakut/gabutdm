@@ -482,7 +482,7 @@ namespace Gabut {
             if (user_entry.text != "") {
                 hashoptions[AriaOptions.PROXYUSERNAME.get_name ()] = user_entry.text.strip ();
                 if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text.to_string ());                    
+                    aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text.to_string ());
                 }
             }
             if (pass_entry.text != "") {
