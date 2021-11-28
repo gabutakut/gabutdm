@@ -39,8 +39,12 @@ namespace Gabut {
         private MediaEntry logpass_entry;
         private MediaEntry useragent_entry;
         private MediaEntry refer_entry;
+        private MediaEntry checksum_entry;
         private Gtk.CheckButton save_meta;
-        private Gtk.CheckButton proxymethod;
+        private Gtk.FlowBox method_flow;
+        private Gtk.FlowBox checksums_flow;
+        private Gtk.Button prometh_button;
+        private Gtk.Button checksum_button;
         private Gtk.CheckButton usecookie;
         private Gtk.CheckButton usefolder;
         private Gtk.FileChooserButton folder_location;
@@ -48,6 +52,29 @@ namespace Gabut {
         public DialogType dialogtype { get; construct; }
         private Gee.HashMap<string, string> hashoptions;
         public DownloadRow row;
+
+        ProxyMethod _proxymethod = null;
+        ProxyMethod proxymethod {
+            get {
+                return _proxymethod;
+            }
+            set {
+                _proxymethod = value;
+                prometh_button.label = _("Method: %s").printf (_proxymethod.method.get_name ());
+            }
+        }
+
+        ChecksumType _checksumtype = null;
+        ChecksumType checksumtype {
+            get {
+                return _checksumtype;
+            }
+            set {
+                _checksumtype = value;
+                checksum_button.label = _("%s").printf (_checksumtype.checksums.get_name ().up ().replace ("=", "").replace ("-", ""));
+                checksum_entry.sensitive = checksumtype.checksums.get_name () == "none"? false : true;
+            }
+        }
 
         public AddUrl (Gtk.Application application) {
             Object (application: application,
@@ -77,6 +104,7 @@ namespace Gabut {
             view_mode.append_text (_("Login"));
             view_mode.append_text (_("Option"));
             view_mode.append_text (_("Folder"));
+            view_mode.append_text (_("Checksum"));
             view_mode.selected = 0;
 
             var header = get_header_bar ();
@@ -107,13 +135,13 @@ namespace Gabut {
             overlay.add_overlay (sizelabel);
 
             link_entry = new MediaEntry ("insert-link", "edit-paste") {
-                width_request = 300,
+                width_request = 340,
                 margin_end = 74,
                 placeholder_text = _("Url or Magnet")
             };
 
             name_entry = new MediaEntry ("dialog-information", "edit-paste") {
-                width_request = 300,
+                width_request = 340,
                 margin_end = 74,
                 placeholder_text = _("Follow source name")
             };
@@ -129,18 +157,38 @@ namespace Gabut {
             };
             alllink.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             alllink.attach (overlay, 0, 0, 1, 5);
-            alllink.attach (new HeaderLabel (_("Address:"), 300), 1, 1, 1, 1);
+            alllink.attach (new HeaderLabel (_("Address:"), 340), 1, 1, 1, 1);
             alllink.attach (link_entry, 1, 2, 1, 1);
-            alllink.attach (new HeaderLabel (_("Filename:"), 300), 1, 3, 1, 1);
+            alllink.attach (new HeaderLabel (_("Filename:"), 340), 1, 3, 1, 1);
             alllink.attach (name_entry, 1, 4, 1, 1);
             alllink.attach (save_meta, 1, 5, 1, 1);
 
-            proxymethod = new Gtk.CheckButton.with_label (_("Method Get")) {
-                margin_bottom = 5
+            prometh_button = new Gtk.Button.with_label ("");
+            method_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL
             };
-            proxymethod.toggled.connect (()=> {
-                proxymethod.label = !proxymethod.active? _("Method Get") : _("Method Tunnel");
+            var method_popover = new Gtk.Popover (prometh_button);
+            method_popover.position = Gtk.PositionType.TOP;
+            method_popover.add (method_flow);
+            method_popover.show.connect (() => {
+                if (proxymethod != null) {
+                    method_flow.select_child (proxymethod);
+                    proxymethod.grab_focus ();
+                }
             });
+            prometh_button.clicked.connect (() => {
+                method_popover.visible = !method_popover.visible;
+            });
+            foreach (var method in ProxyMethods.get_all ()) {
+                method_flow.add (new ProxyMethod (method));
+            }
+            method_flow.show_all ();
+            method_flow.child_activated.connect ((method)=> {
+                proxymethod = method as ProxyMethod;
+                method_popover.hide ();
+            });
+            proxymethod = method_flow.get_children ().nth_data (0) as ProxyMethod;
+
             proxy_entry = new MediaEntry ("user-home", "edit-paste") {
                 width_request = 100,
                 placeholder_text = _("Address")
@@ -167,7 +215,7 @@ namespace Gabut {
                 column_spacing = 10
             };
             proxygrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            proxygrid.attach (proxymethod, 0, 1, 1, 1);
+            proxygrid.attach (prometh_button, 0, 1, 1, 1);
             proxygrid.attach (new HeaderLabel (_("Host:"), 100), 0, 2, 1, 1);
             proxygrid.attach (proxy_entry, 0, 3, 1, 1);
             proxygrid.attach (new HeaderLabel (_("Port:"), 100), 1, 2, 1, 1);
@@ -269,67 +317,114 @@ namespace Gabut {
             foldergrid.attach (usefolder, 1, 2, 1, 1);
             foldergrid.attach (folder_location, 1, 3, 1, 1);
 
+            checksum_button = new Gtk.Button.with_label ("");
+            checksums_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL
+            };
+            var checksums_popover = new Gtk.Popover (checksum_button);
+            checksums_popover.position = Gtk.PositionType.TOP;
+            checksums_popover.add (checksums_flow);
+            checksums_popover.show.connect (() => {
+                if (checksumtype != null) {
+                    checksums_flow.select_child (checksumtype);
+                    checksumtype.grab_focus ();
+                }
+            });
+            checksum_button.clicked.connect (() => {
+                checksums_popover.visible = !checksums_popover.visible;
+            });
+            foreach (var checksum in AriaChecksumTypes.get_all ()) {
+                checksums_flow.add (new ChecksumType (checksum));
+            }
+            checksums_flow.show_all ();
+
+            checksum_entry = new MediaEntry ("emblem-symbolic-link", "edit-paste") {
+                width_request = 300,
+                placeholder_text = _("Hash")
+            };
+            checksums_flow.child_activated.connect ((checksum)=> {
+                checksumtype = checksum as ChecksumType;
+                checksums_popover.hide ();
+            });
+            checksumtype = checksums_flow.get_children ().nth_data (0) as ChecksumType;
+
+            var checksumgrid = new Gtk.Grid () {
+                expand = true,
+                height_request = 130,
+                halign = Gtk.Align.CENTER
+            };
+            checksumgrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
+            checksumgrid.attach (new HeaderLabel (_("Type:"), 300), 1, 0, 1, 1);
+            checksumgrid.attach (checksum_button, 1, 1, 1, 1);
+            checksumgrid.attach (new HeaderLabel (_("Hash:"), 300), 1, 2, 1, 1);
+            checksumgrid.attach (checksum_entry, 1, 3, 1, 1);
+
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
-                transition_duration = 500,
-                vhomogeneous = false
+                transition_duration = 500
             };
             stack.add_named (alllink, "alllink");
             stack.add_named (proxygrid, "proxygrid");
             stack.add_named (logingrid, "logingrid");
             stack.add_named (moregrid, "moregrid");
             stack.add_named (foldergrid, "foldergrid");
+            stack.add_named (checksumgrid, "checksumgrid");
             stack.visible_child = alllink;
             stack.show_all ();
 
-            var close_button = new Gtk.Button.with_label (_("Cancel"));
+            var close_button = new Gtk.Button.with_label (_("Cancel")) {
+                width_request = 120,
+                height_request = 25
+            };
             close_button.clicked.connect (()=> {
                 destroy ();
             });
 
-            var start_button = new Gtk.Button.with_label (_("Download"));
+            var start_button = new Gtk.Button.with_label (_("Download")) {
+                width_request = 120,
+                height_request = 25
+            };
             start_button.clicked.connect (()=> {
                 set_option ();
                 download_send (false);
                 destroy ();
             });
 
-            var later_button = new Gtk.Button.with_label (_("Download Later"));
+            var later_button = new Gtk.Button.with_label (_("Download Later")) {
+                width_request = 120,
+                height_request = 25
+            };
             later_button.clicked.connect (()=> {
                 set_option ();
                 download_send (true);
                 destroy ();
             });
 
-            var save_button = new Gtk.Button.with_label (_("Save"));
+            var save_button = new Gtk.Button.with_label (_("Save")) {
+                width_request = 120,
+                height_request = 25
+            };
             save_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             save_button.clicked.connect (()=> {
-                set_option ();
+                set_option (true);
                 saveproperty (hashoptions);
                 destroy ();
             });
-
-            var box_action = new Gtk.Grid () {
+            var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
                 margin_top = 10,
-                margin_bottom = 10,
-                column_spacing = 10,
-                column_homogeneous = true,
-                halign = Gtk.Align.CENTER,
-                orientation = Gtk.Orientation.HORIZONTAL
+                margin_bottom = 10
             };
             box_action.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
 
             switch (dialogtype) {
                 case DialogType.PROPERTY:
-                    box_action.width_request = 250;
-                    box_action.add (save_button);
-                    box_action.add (close_button);
+                    box_action.pack_end (close_button, false, false, 0);
+                    box_action.pack_end (save_button, false, false, 0);
                     break;
                 default:
-                    box_action.width_request = 350;
-                    box_action.add (start_button);
-                    box_action.add (close_button);
-                    box_action.add (later_button);
+                    box_action.pack_start (start_button, false, false, 0);
+                    box_action.pack_start (later_button, false, false, 0);
+                    box_action.pack_end (close_button, false, false, 0);
                     break;
             }
 
@@ -338,7 +433,8 @@ namespace Gabut {
                 orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
                 margin_start = 10,
-                margin_end = 10
+                margin_end = 10,
+                expand = true
             };
             maingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             maingrid.add (stack);
@@ -360,6 +456,9 @@ namespace Gabut {
                     case 4:
                         stack.visible_child = foldergrid;
                         break;
+                    case 5:
+                        stack.visible_child = checksumgrid;
+                        break;
                     default:
                         stack.visible_child = alllink;
                         break;
@@ -367,45 +466,87 @@ namespace Gabut {
             });
         }
 
-        private void set_option () {
+        private void set_option (bool save = false) {
             if (proxy_entry.text != "") {
                 hashoptions[AriaOptions.PROXY.get_name ()] = proxy_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.PROXY, proxy_entry.text.to_string ());
+                }
             }
             if (port_entry.text != "") {
                 hashoptions[AriaOptions.PROXYPORT.get_name ()] = port_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.PROXYPORT, port_entry.text.to_string ());
+                }
             }
             if (user_entry.text != "") {
                 hashoptions[AriaOptions.PROXYUSERNAME.get_name ()] = user_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text.to_string ());                    
+                }
             }
             if (pass_entry.text != "") {
                 hashoptions[AriaOptions.PROXYPASSWORD.get_name ()] = pass_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, pass_entry.text.to_string ());
+                }
             }
             if (loguser_entry.text != "") {
                 hashoptions[AriaOptions.USERNAME.get_name ()] = loguser_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.USERNAME, loguser_entry.text.to_string ());
+                }
             }
             if (logpass_entry.text != "") {
                 hashoptions[AriaOptions.PASSWORD.get_name ()] = logpass_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.PASSWORD, logpass_entry.text.to_string ());
+                }
             }
             if (usefolder.active) {
                 hashoptions[AriaOptions.DIR.get_name ()] = folder_location.get_file ().get_path ().replace ("/", "\\/");
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.DIR, folder_location.get_file ().get_path ().replace ("/", "\\/"));
+                }
             }
             if (usecookie.active) {
                 hashoptions[AriaOptions.COOKIE.get_name ()] = cookie_location.get_file ().get_path ().replace ("/", "\\/");
-            }
-            if (proxymethod.active) {
-                hashoptions[AriaOptions.PROXY_METHOD.get_name ()] = "tunnel";
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.COOKIE, cookie_location.get_file ().get_path ().replace ("/", "\\/"));
+                }
             }
             if (refer_entry.text != "") {
                 hashoptions[AriaOptions.REFERER.get_name ()] = refer_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text.to_string ());
+                }
             }
             if (name_entry.text != "") {
                 hashoptions[AriaOptions.OUT.get_name ()] = name_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text.to_string ());
+                }
             }
             if (useragent_entry.text != "") {
                 hashoptions[AriaOptions.USER_AGENT.get_name ()] = useragent_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.USER_AGENT, useragent_entry.text.strip ());
+                }
+            }
+            if (checksum_entry.text != "") {
+                hashoptions[AriaOptions.CHECKSUM.get_name ()] = checksumtype.checksums.get_name () + checksum_entry.text.strip ();
+                if (save) {
+                    aria_set_option (row.ariagid, AriaOptions.CHECKSUM, checksumtype.checksums.get_name () + checksum_entry.text.strip ());
+                }
             }
             hashoptions[AriaOptions.BT_SAVE_METADATA.get_name ()] = save_meta.active.to_string ();
             hashoptions[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = save_meta.active.to_string ();
+            hashoptions[AriaOptions.PROXY_METHOD.get_name ()] = proxymethod.method.get_name ().down ();
+            if (save) {
+                aria_set_option (row.ariagid, AriaOptions.BT_SAVE_METADATA, save_meta.active.to_string ());
+                aria_set_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA, save_meta.active.to_string ());
+                aria_set_option (row.ariagid, AriaOptions.PROXY_METHOD, proxymethod.method.get_name ().down ());
+            }
         }
 
         public override void show () {
@@ -486,7 +627,19 @@ namespace Gabut {
                 name_entry.text = hashoptions.@get (AriaOptions.OUT.get_name ());
             }
             if (hashoptions.has_key (AriaOptions.PROXY_METHOD.get_name ())) {
-                proxymethod.active = hashoptions.@get (AriaOptions.PROXY_METHOD.get_name ()) == "tunnel"? true : false;
+                foreach (var method in method_flow.get_children ()) {
+                    if (((ProxyMethod) method).method.get_name ().down () == hashoptions.@get (AriaOptions.PROXY_METHOD.get_name ())) {
+                        proxymethod = method as ProxyMethod;
+                    }
+                };
+            }
+            if (hashoptions.has_key (AriaOptions.CHECKSUM.get_name ())) {
+                foreach (var checksum in checksums_flow.get_children ()) {
+                    if (hashoptions.@get (AriaOptions.CHECKSUM.get_name ()).contains (((ChecksumType) checksum).checksums.get_name ())) {
+                        checksumtype = checksum as ChecksumType;
+                        checksum_entry.text = hashoptions.@get (AriaOptions.CHECKSUM.get_name ()).split ("=")[1];
+                    }
+                };
             }
             save_meta.active = bool.parse (hashoptions.get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ())) | bool.parse (hashoptions.get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()));
         }

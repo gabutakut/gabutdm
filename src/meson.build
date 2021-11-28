@@ -20,5 +20,7 @@ sources = files (
     'FileChooser.vala',
     'ServerDM.vala',
     'ServerCss.vala',
-    'FileAllocation.vala'
+    'FileAllocation.vala',
+    'ProxyMethod.vala',
+    'ChecksumType.vala'
 )

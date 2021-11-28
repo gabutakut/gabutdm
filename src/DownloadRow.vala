@@ -181,8 +181,7 @@ namespace Gabut {
                             pathname = file.get_path ();
                         } else {
                             if (filename != "") {
-                                string[] dirpath = file.get_path ().split (filename);
-                                pathname = GLib.File.new_build_filename (dirpath[0], filename).get_path ();
+                                pathname = GLib.File.new_build_filename (file.get_path ().split (filename)[0], filename).get_path ();
                             }
                         }
                     }

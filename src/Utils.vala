@@ -308,7 +308,8 @@ namespace Gabut {
         BT_MAX_OPEN_FILES = 88,
         SELECT_FILE = 89,
         HEADER = 90,
-        SEED_TIME = 91;
+        SEED_TIME = 91,
+        CHECKSUM = 92;
 
         public string get_name () {
             switch (this) {
@@ -494,6 +495,8 @@ namespace Gabut {
                     return "header";
                 case SEED_TIME:
                     return "seed-time";
+                case CHECKSUM:
+                    return "checksum";
                 default:
                     return "allow-overwrite";
             }
@@ -677,7 +680,8 @@ namespace Gabut {
         USERAGENT = 13,
         OUT = 14,
         PROXYMETHOD = 15,
-        SELECTFILE = 16;
+        SELECTFILE = 16,
+        CHECKSUM = 17;
 
         public string get_name () {
             switch (this) {
@@ -713,6 +717,8 @@ namespace Gabut {
                     return "proxymethod";
                 case SELECTFILE:
                     return "selectfile";
+                case CHECKSUM:
+                    return "checksum";
                 default:
                     return "id";
             }
@@ -763,7 +769,55 @@ namespace Gabut {
         }
 
         public static FileAllocations [] get_all () {
-            return { NONE, PREALLOC, TRUNC, FALLOC};
+            return { NONE, PREALLOC, TRUNC, FALLOC };
+        }
+    }
+
+    public enum ProxyMethods {
+        GET = 0,
+        TUNNEL = 1;
+
+        public string get_name () {
+            switch (this) {
+                case TUNNEL:
+                    return "Tunnel";
+                default:
+                    return "Get";
+            }
+        }
+
+        public static ProxyMethods [] get_all () {
+            return { GET, TUNNEL };
+        }
+    }
+
+    public enum AriaChecksumTypes {
+        NONE = 0,
+		MD5 = 1,
+		SHA1 = 2,
+		SHA256 = 3,
+		SHA384 = 4,
+		SHA512 = 5;
+
+        public string get_name () {
+            switch (this) {
+                case MD5:
+                    return "md-5=";
+                case SHA1:
+                    return "sha-1=";
+                case SHA256:
+                    return "sha-256=";
+                case SHA384:
+                    return "sha-384=";
+                case SHA512:
+                    return "sha-512=";
+                default:
+                    return "none";
+            }
+        }
+
+        public static AriaChecksumTypes [] get_all () {
+            return { NONE, MD5, SHA1, SHA256, SHA384, SHA512 };
         }
     }
 
@@ -1492,7 +1546,8 @@ namespace Gabut {
             useragent      TEXT    NOT NULL,
             out            TEXT    NOT NULL,
             proxymethod    TEXT    NOT NULL,
-            selectfile     TEXT    NOT NULL);");
+            selectfile     TEXT    NOT NULL,
+            checksum       TEXT    NOT NULL);");
     }
 
     private int table_settings (Sqlite.Database db) {
@@ -1541,7 +1596,7 @@ namespace Gabut {
             }
             table_download (GabutApp.db);
         }
-        if ((db_table ("options") - 1) != DBOption.SELECTFILE) {
+        if ((db_table ("options") - 1) != DBOption.CHECKSUM) {
             if (db_table ("options") > 0) {
                 GabutApp.db.exec ("DROP TABLE options;");
             }
@@ -1783,6 +1838,10 @@ namespace Gabut {
             if (selectfile != "") {
                 hashoption[AriaOptions.SELECT_FILE.get_name ()] = selectfile;
             }
+            string checksums = stmt.column_text (DBOption.CHECKSUM);
+            if (checksums != "") {
+                hashoption[AriaOptions.CHECKSUM.get_name ()] = checksums;
+            }
         }
         stmt.reset ();
         return hashoption;
@@ -1790,7 +1849,7 @@ namespace Gabut {
 
     private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
         Sqlite.Statement stmt;
-        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, port, username, usernamepass, user, userpass, dir, cookie, referer, useragent, out, proxymethod, selectfile) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, port, username, usernamepass, user, userpass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBOption.URL, url);
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
@@ -1867,6 +1926,11 @@ namespace Gabut {
             res = stmt.bind_text (DBOption.SELECTFILE, hashoptions.@get (AriaOptions.SELECT_FILE.get_name ()));
         } else {
             res = stmt.bind_text (DBOption.SELECTFILE, "");
+        }
+        if (hashoptions.has_key (AriaOptions.CHECKSUM.get_name ())) {
+            res = stmt.bind_text (DBOption.CHECKSUM, hashoptions.@get (AriaOptions.CHECKSUM.get_name ()));
+        } else {
+            res = stmt.bind_text (DBOption.CHECKSUM, "");
         }
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
@@ -2023,6 +2087,15 @@ namespace Gabut {
                 string selectfile = hashoptions.@get (AriaOptions.SELECT_FILE.get_name ());
                 if (stmt.column_text (DBOption.SELECTFILE) != selectfile) {
                     buildstr.append (@" $(DBOption.SELECTFILE.get_name ()) = \"$(selectfile)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.CHECKSUM.get_name ())) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                string checksums = hashoptions.@get (AriaOptions.CHECKSUM.get_name ());
+                if (stmt.column_text (DBOption.CHECKSUM) != checksums) {
+                    buildstr.append (@" $(DBOption.CHECKSUM.get_name ()) = \"$(checksums)\"");
                 }
             }
             if (buildstr.str.hash () == empty_hash) {
