@@ -106,7 +106,7 @@ slots:
   dbus-gabutdm:
     interface: dbus
     bus: session
-    name: com.canonical.Unity.LauncherEntry
+    name: com.github.gabutakut.gabutdm
 plugs:
   gnome-3-36-1804:
     interface: content
