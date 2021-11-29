@@ -26,12 +26,17 @@ namespace Gabut {
         private Gtk.Clipboard clipboard;
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
+        private static Gtk.TargetEntry [] target_list;
 
         public GabutApp () {
             Object (
                 application_id: "com.github.gabutakut.gabutdm",
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE
             );
+            Gtk.TargetEntry string_entry = { "STRING", 0, Target.STRING};
+            Gtk.TargetEntry urilist_entry = { "text/uri-list", 0, Target.URILIST};
+            target_list += string_entry;
+            target_list += urilist_entry;
             GLib.OptionEntry [] options = new GLib.OptionEntry [2];
             options [0] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
             options [1] = { null };
@@ -71,6 +76,8 @@ namespace Gabut {
                     gabutwindow.add_url_box (url, options, later, linkmode);
                 });
                 gabutwindow = new GabutWindow (this);
+                Gtk.drag_dest_set (gabutwindow, Gtk.DestDefaults.ALL, target_list, Gdk.DragAction.COPY);
+                gabutwindow.drag_data_received.connect (on_drag_data_received);
                 add_window (gabutwindow);
                 gabutwindow.show_all ();
                 gabutwindow.send_file.connect (dialog_url);
@@ -271,6 +278,22 @@ namespace Gabut {
                     XTest.fake_key_event (display, modcode, press, delay);
                 }
                 XTest.fake_key_event (display, keycode, press, delay);
+            }
+        }
+
+        private void on_drag_data_received (Gtk.Widget widget, Gdk.DragContext drag_context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
+            if ((selection_data == null) || !(selection_data.get_length () >= 0)) {
+                return;
+            }
+            switch (target_type) {
+                case Target.STRING:
+                    dialog_url ((string) selection_data.get_data ());
+                    break;
+                case Target.URILIST:
+                    foreach (var uri in selection_data.get_uris ()) {
+                        dialog_url (uri);
+                    };
+                break;
             }
         }
 

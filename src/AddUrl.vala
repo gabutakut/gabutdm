@@ -43,8 +43,8 @@ namespace Gabut {
         private Gtk.CheckButton save_meta;
         private Gtk.FlowBox method_flow;
         private Gtk.FlowBox checksums_flow;
-        private Gtk.Button prometh_button;
-        private Gtk.Button checksum_button;
+        private Gtk.MenuButton prometh_button;
+        private Gtk.MenuButton checksum_button;
         private Gtk.CheckButton usecookie;
         private Gtk.CheckButton usefolder;
         private Gtk.FileChooserButton folder_location;
@@ -163,7 +163,7 @@ namespace Gabut {
             alllink.attach (name_entry, 1, 4, 1, 1);
             alllink.attach (save_meta, 1, 5, 1, 1);
 
-            prometh_button = new Gtk.Button.with_label ("");
+            prometh_button = new Gtk.MenuButton ();
             method_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL
             };
@@ -176,9 +176,7 @@ namespace Gabut {
                     proxymethod.grab_focus ();
                 }
             });
-            prometh_button.clicked.connect (() => {
-                method_popover.visible = !method_popover.visible;
-            });
+            prometh_button.popover = method_popover;
             foreach (var method in ProxyMethods.get_all ()) {
                 method_flow.add (new ProxyMethod (method));
             }
@@ -317,7 +315,7 @@ namespace Gabut {
             foldergrid.attach (usefolder, 1, 2, 1, 1);
             foldergrid.attach (folder_location, 1, 3, 1, 1);
 
-            checksum_button = new Gtk.Button.with_label ("");
+            checksum_button = new Gtk.MenuButton ();
             checksums_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL
             };
@@ -330,9 +328,7 @@ namespace Gabut {
                     checksumtype.grab_focus ();
                 }
             });
-            checksum_button.clicked.connect (() => {
-                checksums_popover.visible = !checksums_popover.visible;
-            });
+            checksum_button.popover = checksums_popover;
             foreach (var checksum in AriaChecksumTypes.get_all ()) {
                 checksums_flow.add (new ChecksumType (checksum));
             }
