@@ -821,6 +821,11 @@ namespace Gabut {
         }
     }
 
+    private enum Target {
+        STRING,
+        URILIST
+    }
+
     private string urljsonrpchost () {
         return @"http://localhost:$(get_dbsetting(DBSettings.RPCPORT))/jsonrpc";
     }

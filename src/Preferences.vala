@@ -23,7 +23,7 @@ namespace Gabut {
     public class Preferences : Gtk.Dialog {
         public signal void restart_server ();
         public signal void max_active ();
-        private Gtk.Button allocate_button;
+        private Gtk.MenuButton allocate_button;
 
         FileAllocation _fileallocation = null;
         FileAllocation fileallocation {
@@ -203,7 +203,7 @@ namespace Gabut {
                 hexpand = true,
                 value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
             };
-            allocate_button = new Gtk.Button.with_label ("") {
+            allocate_button = new Gtk.MenuButton () {
                 margin_top = 5
             };
             var allocate_flow = new Gtk.FlowBox ();
@@ -216,9 +216,7 @@ namespace Gabut {
                     fileallocation.grab_focus ();
                 }
             });
-            allocate_button.clicked.connect (() => {
-                allocate_popover.visible = !allocate_popover.visible;
-            });
+            allocate_button.popover = allocate_popover;
             foreach (var allocate in FileAllocations.get_all ()) {
                 allocate_flow.add (new FileAllocation (allocate));
             }
