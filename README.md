@@ -38,7 +38,7 @@ Made with love.
 
 ## Dependencies:
 
-* aria2c
+* aria2
 * meson
 * glib-2.0
 * gtk+-3.0
@@ -56,7 +56,7 @@ Made with love.
 
 Install `Dependency`  with command
 
-    sudo apt install aria2c meson debhelper valac libgtk-3-dev libsqlite3-dev libcanberra-dev libxtst-dev libx11-dev libsoup2.4-dev libgee-0.8-dev libjson-glib-dev libqrencode-dev libgdk-pixbuf2.0-dev libcairo2-dev
+    sudo apt install aria2 meson debhelper valac libgtk-3-dev libsqlite3-dev libcanberra-dev libxtst-dev libx11-dev libsoup2.4-dev libgee-0.8-dev libjson-glib-dev libqrencode-dev libgdk-pixbuf2.0-dev libcairo2-dev
 
 Run `meson` to configure the build environment and then `ninja` to build and run automated tests
 
