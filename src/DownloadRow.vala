@@ -38,6 +38,15 @@ namespace Gabut {
             }
             set {
                 _linkmode = value;
+                if (linkmode == LinkMode.METALINK) {
+                    imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
+                } else if (linkmode == LinkMode.MAGNETLINK) {
+                    imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
+                } else if (linkmode == LinkMode.TORRENT) {
+                    imagefile.gicon = new ThemedIcon ("application-x-bittorrent");
+                } else {
+                    imagefile.gicon = new ThemedIcon ("insert-link");
+                }
             }
         }
 
@@ -50,8 +59,6 @@ namespace Gabut {
                 _fileordir = value;
                 if (value != "") {
                     imagefile.gicon = new ThemedIcon (GLib.ContentType.get_generic_icon_name (value));
-                } else {
-                    imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
                 }
             }
         }
@@ -307,10 +314,8 @@ namespace Gabut {
 
         construct {
             imagefile = new Gtk.Image () {
-                icon_size = Gtk.IconSize.DND,
-                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm")
+                icon_size = Gtk.IconSize.DND
             };
-
             var openimage = new Gtk.Button () {
                 focus_on_click = false,
                 tooltip_text = _("Open Details")
