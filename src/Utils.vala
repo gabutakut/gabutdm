@@ -1302,12 +1302,18 @@ namespace Gabut {
         return Base64.encode (byte.get_data ());
     }
 
-    private bool exec_aria () {
-        if (!aria_getverion ()) {
-            ensure_run.begin ();
+    private int max_exec = 1000;
+    private void exec_aria () {
+        int start_exec = 0;
+        do {
+            if (start_exec < max_exec) {
+                ensure_run.begin ();
+            }
+            start_exec++;
+        } while (!aria_getverion () && start_exec < max_exec);
+        if (aria_getverion ()) {
+            set_startup ();
         }
-        set_startup ();
-        return aria_getverion ();
     }
 
     private async void ensure_run () throws Error {
@@ -1331,19 +1337,45 @@ namespace Gabut {
     }
 
     private void set_startup () {
-        aria_set_globalops (AriaOptions.MAX_TRIES, get_dbsetting (DBSettings.MAXTRIES));
-        aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, get_dbsetting (DBSettings.CONNSERVER));
-        aria_set_globalops (AriaOptions.TIMEOUT, get_dbsetting (DBSettings.TIMEOUT));
-        aria_set_globalops (AriaOptions.RETRY_WAIT, get_dbsetting (DBSettings.RETRY));
-        aria_set_globalops (AriaOptions.DIR, get_dbsetting (DBSettings.DIR));
-        aria_set_globalops (AriaOptions.BT_MAX_PEERS, get_dbsetting (DBSettings.BTMAXPEERS));
-        aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, get_dbsetting (DBSettings.BTTIMEOUTTRACK));
-        aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.MAXACTIVE));
-        aria_set_globalops (AriaOptions.SPLIT, get_dbsetting (DBSettings.SPLIT));
-        aria_set_globalops (AriaOptions.BT_MAX_OPEN_FILES, get_dbsetting (DBSettings.MAXOPENFILE));
-        aria_set_globalops (AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
-        aria_set_globalops (AriaOptions.ALLOW_OVERWRITE, get_dbsetting (DBSettings.OVERWRITE));
-        aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, get_dbsetting (DBSettings.AUTORENAMING));
+        do {
+            aria_set_globalops (AriaOptions.MAX_TRIES, get_dbsetting (DBSettings.MAXTRIES));
+        } while (get_dbsetting (DBSettings.MAXTRIES) != aria_get_globalops (AriaOptions.MAX_TRIES));
+        do {
+            aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, get_dbsetting (DBSettings.CONNSERVER));
+        } while (get_dbsetting (DBSettings.CONNSERVER) != aria_get_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER));
+        do {
+            aria_set_globalops (AriaOptions.TIMEOUT, get_dbsetting (DBSettings.TIMEOUT));
+        } while (get_dbsetting (DBSettings.TIMEOUT) != aria_get_globalops (AriaOptions.TIMEOUT));
+        do {
+            aria_set_globalops (AriaOptions.RETRY_WAIT, get_dbsetting (DBSettings.RETRY));
+        } while (get_dbsetting (DBSettings.RETRY) != aria_get_globalops (AriaOptions.RETRY_WAIT));
+        do {
+            aria_set_globalops (AriaOptions.DIR, get_dbsetting (DBSettings.DIR));
+        } while (get_dbsetting (DBSettings.DIR) != aria_get_globalops (AriaOptions.DIR));
+        do {
+            aria_set_globalops (AriaOptions.BT_MAX_PEERS, get_dbsetting (DBSettings.BTMAXPEERS));
+        } while (get_dbsetting (DBSettings.BTMAXPEERS) != aria_get_globalops (AriaOptions.BT_MAX_PEERS));
+        do {
+            aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, get_dbsetting (DBSettings.BTTIMEOUTTRACK));
+        } while (get_dbsetting (DBSettings.BTTIMEOUTTRACK) != aria_get_globalops (AriaOptions.BT_TRACKER_TIMEOUT));
+        do {
+            aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.MAXACTIVE));
+        } while (get_dbsetting (DBSettings.MAXACTIVE) != aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS));
+        do {
+            aria_set_globalops (AriaOptions.SPLIT, get_dbsetting (DBSettings.SPLIT));
+        } while (get_dbsetting (DBSettings.SPLIT) != aria_get_globalops (AriaOptions.SPLIT));
+        do {
+            aria_set_globalops (AriaOptions.BT_MAX_OPEN_FILES, get_dbsetting (DBSettings.MAXOPENFILE));
+        } while (get_dbsetting (DBSettings.MAXOPENFILE) != aria_get_globalops (AriaOptions.BT_MAX_OPEN_FILES));
+        do {
+            aria_set_globalops (AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
+        } while (get_dbsetting (DBSettings.SEEDTIME) != aria_get_globalops (AriaOptions.SEED_TIME));
+        do {
+            aria_set_globalops (AriaOptions.ALLOW_OVERWRITE, get_dbsetting (DBSettings.OVERWRITE));
+        } while (get_dbsetting (DBSettings.OVERWRITE) != aria_get_globalops (AriaOptions.ALLOW_OVERWRITE));
+        do {
+            aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, get_dbsetting (DBSettings.AUTORENAMING));
+        } while (get_dbsetting (DBSettings.AUTORENAMING) != aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING));
     }
 
     private async void get_css_online (string url, string filename) throws Error {
