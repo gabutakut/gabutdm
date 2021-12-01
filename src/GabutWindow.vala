@@ -123,7 +123,7 @@ namespace Gabut {
             };
             headerbar.pack_end (menu_button);
             menu_button.clicked.connect (()=> {
-                if (preferences == null && exec_aria ()) {
+                if (preferences == null && aria_getverion ()) {
                     preferences = new Preferences (application);
                     preferences.restart_server.connect (()=> {
                         restart_server ();
