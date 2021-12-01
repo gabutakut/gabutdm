@@ -195,7 +195,7 @@ namespace Gabut {
             } else if (link.has_suffix (".torrent")) {
                 icon = "application-x-bittorrent";
             } else if (link.has_suffix (".metalink")) {
-                icon = "applications-other";
+                icon = "com.github.gabutakut.gabutdm";
             } else if (link == "") {
                 icon = "list-add";
             } else {
