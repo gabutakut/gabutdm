@@ -13,7 +13,6 @@ finish-args:
   - '--socket=fallback-x11'
   - '--socket=wayland'
   - '--socket=x11'
-  - '--filesystem=home'
   - '--filesystem=xdg-download'
 
 cleanup:
