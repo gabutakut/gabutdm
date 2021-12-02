@@ -295,10 +295,7 @@ namespace Gabut {
                 ariagid = aria_metalink (url, hashoption);
                 notify_app (_("Starting"),
                             _("Metalink"));
-            } else if (linkmode == LinkMode.MAGNETLINK) {
-                ariagid = aria_url (url, hashoption);
-                notify_app (_("Starting"), url);
-            } else {
+            } else if (linkmode == LinkMode.MAGNETLINK || linkmode == LinkMode.URL) {
                 ariagid = aria_url (url, hashoption);
                 notify_app (_("Starting"), url);
             }
