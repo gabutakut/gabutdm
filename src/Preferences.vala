@@ -160,11 +160,7 @@ namespace Gabut {
             bittorrent.attach (new HeaderLabel (_("Seed Time (in Minutes):"), 220), 0, 2, 1, 1);
             bittorrent.attach (bt_seedtime, 0, 3, 1, 1);
 
-            var dialog = new Gtk.FileChooserDialog (
-            _("Pick File"), this, Gtk.FileChooserAction.SELECT_FOLDER,
-            _("Cancel"), Gtk.ResponseType.CANCEL,
-            _("Open"), Gtk.ResponseType.ACCEPT);
-            var folder_location = new Gtk.FileChooserButton.with_dialog (dialog);
+            var folder_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.SELECT_FOLDER);
             var filter_folder = new Gtk.FileFilter ();
             filter_folder.add_mime_type ("inode/directory");
             folder_location.set_filter (filter_folder);
