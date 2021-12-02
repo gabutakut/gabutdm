@@ -10,7 +10,7 @@
     <p>Features:</p>
     <ul>
       <li>
-        Gabutakut Download Manager application that can download Metallink Magnetlink Torrents using Aria2c and,
+        Gabutakut Download Manager application that can download Link URIs Metallink Magnetlink Torrents using Aria2c and,
         an application that has a local server service interface.
         can also accept file transfers from smartphones.
         Made with love and sleep deprivation. :D
@@ -28,7 +28,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="1.5.1" date="2021-11-12">
+    <release version="1.5.8" date="2021-12-2">
       <description>
         <p>Release</p>
         <ul>
@@ -93,7 +93,7 @@
   <url type="bugtracker">http://github.com/gabutakut/gabutdm/issues</url>
   <url type="help">http://github.com/gabutakut/gabutdm/issues</url>
   <custom>
-    <value key="x-appcenter-color-primary">#37a400</value>
+    <value key="x-appcenter-color-primary">#2A7D00</value>
     <value key="x-appcenter-color-primary-text">#d1ff82</value>
     <value key="x-appcenter-suggested-price">6</value>
   </custom>

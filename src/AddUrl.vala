@@ -265,11 +265,7 @@ namespace Gabut {
             moregrid.attach (new HeaderLabel (_("Referer:"), 300), 1, 2, 1, 1);
             moregrid.attach (refer_entry, 1, 3, 1, 1);
 
-            var opfile = new Gtk.FileChooserDialog (
-                _("Pick File"), this, Gtk.FileChooserAction.OPEN,
-                _("Cancel"), Gtk.ResponseType.CANCEL,
-                _("Open"), Gtk.ResponseType.ACCEPT);
-            cookie_location = new Gtk.FileChooserButton.with_dialog (opfile);
+            cookie_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.OPEN);
             var all_file = new Gtk.FileFilter ();
             all_file.set_filter_name (_("All Files"));
             all_file.add_pattern ("*");
@@ -285,11 +281,7 @@ namespace Gabut {
             });
             cookie_location.sensitive = usecookie.active;
 
-            var opfolder = new Gtk.FileChooserDialog (
-                _("Pick File"), this, Gtk.FileChooserAction.SELECT_FOLDER,
-                _("Cancel"), Gtk.ResponseType.CANCEL,
-                _("Open"), Gtk.ResponseType.ACCEPT);
-            folder_location = new Gtk.FileChooserButton.with_dialog (opfolder);
+            folder_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.SELECT_FOLDER);
             var filter_folder = new Gtk.FileFilter ();
             filter_folder.add_mime_type ("inode/directory");
             folder_location.set_filter (filter_folder);

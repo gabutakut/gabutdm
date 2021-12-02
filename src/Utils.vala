@@ -1515,17 +1515,27 @@ namespace Gabut {
         return "$%s".printf (dollar);
     }
 
-    private File[] run_open_file (Gtk.Window widget, bool multi) {
-        var file = new FileChooser (widget.application);
-        file.select_multiple = multi;
+    private File[] run_open_file (Gtk.Window window, bool multi) {
+        var filechooser = new Gtk.FileChooserNative (_("Open"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
+        filechooser.select_multiple = multi;
+
+        var torrent = new Gtk.FileFilter ();
+        torrent.set_filter_name (_("Torrent"));
+        torrent.add_mime_type ("application/x-bittorrent");
+        var metalink = new Gtk.FileFilter ();
+        metalink.set_filter_name (_("Metalink"));
+        metalink.add_pattern ("application/metalink+xml");
+
+        filechooser.add_filter (torrent);
+        filechooser.add_filter (metalink);
 
         File[] files = null;
-        if (file.run () == Gtk.ResponseType.ACCEPT) {
-            foreach (File item in file.get_files ()) {
+        if (filechooser.run () == Gtk.ResponseType.ACCEPT) {
+            foreach (File item in filechooser.get_files ()) {
                 files += item;
             }
         }
-        file.destroy ();
+        filechooser.destroy ();
         return files;
     }
 

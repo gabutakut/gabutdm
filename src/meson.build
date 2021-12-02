@@ -17,7 +17,6 @@ sources = files (
     'QrCode.vala',
     'ServerUpload.vala',
     'ServerHome.vala',
-    'FileChooser.vala',
     'ServerDM.vala',
     'ServerCss.vala',
     'FileAllocation.vala',
