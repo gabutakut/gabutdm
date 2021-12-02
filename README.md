@@ -20,7 +20,7 @@
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
 
-Gabut Download Manager a application that can download metallink magnetlink torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
+Gabut Download Manager a application that can download link URIs metallink magnetlink Torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
 
 Made with love.
 
