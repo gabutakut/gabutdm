@@ -826,8 +826,10 @@ namespace Gabut {
         URILIST
     }
 
-    private string urljsonrpchost () {
-        return @"http://localhost:$(get_dbsetting(DBSettings.RPCPORT))/jsonrpc";
+    private string aria_listent;
+
+    private void setjsonrpchost () {
+        aria_listent = @"http://localhost:$(get_dbsetting(DBSettings.RPCPORT))/jsonrpc";
     }
 
     private string result_ret (string result) {
@@ -843,7 +845,7 @@ namespace Gabut {
 
     private string aria_url (string url, Gee.HashMap<string, string> options) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"],{");
         uint hasempty = stringbuild.str.hash ();
@@ -866,7 +868,7 @@ namespace Gabut {
 
     private string aria_torrent (string torr, Gee.HashMap<string, string> options) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -889,7 +891,7 @@ namespace Gabut {
 
     private string aria_metalink (string metal, Gee.HashMap<string, string> options) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"],{");
         uint hasempty = stringbuild.str.hash ();
@@ -912,7 +914,7 @@ namespace Gabut {
 
     private string aria_remove (string gid) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forceRemove\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -925,7 +927,7 @@ namespace Gabut {
 
     private string aria_pause (string gid) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forcePause\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -938,7 +940,7 @@ namespace Gabut {
 
     private string aria_pause_all () {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -951,7 +953,7 @@ namespace Gabut {
 
     private string aria_purge_all () {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -964,7 +966,7 @@ namespace Gabut {
 
     private string aria_shutdown () {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -977,7 +979,7 @@ namespace Gabut {
 
     private string aria_unpause (string gid) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -990,7 +992,7 @@ namespace Gabut {
 
     private string aria_get_peers (TorrentPeers peers, string gid) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1014,7 +1016,7 @@ namespace Gabut {
 
     private string aria_tell_status (string gid, TellStatus type) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"$(type.get_name ())\"]]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1038,7 +1040,7 @@ namespace Gabut {
 
     private string aria_tell_bittorent (string gid, TellBittorrent tellbit) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1084,7 +1086,7 @@ namespace Gabut {
     private GLib.List<string> aria_tell_active () {
         var listgid = new GLib.List<string> ();
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1111,7 +1113,7 @@ namespace Gabut {
 
     private string aria_str_files (AriaGetfiles files, string gid) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1139,7 +1141,7 @@ namespace Gabut {
     private Gtk.ListStore aria_files_store (string gid) {
         var liststore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1175,7 +1177,7 @@ namespace Gabut {
 
     private string aria_get_option (string gid, AriaOptions option) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getOption\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1196,7 +1198,7 @@ namespace Gabut {
 
     private string aria_set_option (string gid, AriaOptions option, string value) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeOption\", \"params\":[\"$(gid)\", {\"$(option.get_name ())\":\"$(value)\"}]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1209,7 +1211,7 @@ namespace Gabut {
 
     private string aria_get_globalops (AriaOptions option) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1230,7 +1232,7 @@ namespace Gabut {
 
     private string aria_set_globalops (AriaOptions option, string value) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1243,7 +1245,7 @@ namespace Gabut {
 
     private string aria_deleteresult (string gid) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1256,7 +1258,7 @@ namespace Gabut {
 
     private string aria_geturis (string gid) {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1280,7 +1282,7 @@ namespace Gabut {
 
     private bool aria_getverion () {
         var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", urljsonrpchost ());
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
@@ -1304,6 +1306,7 @@ namespace Gabut {
 
     private int max_exec = 1000;
     private void exec_aria () {
+        setjsonrpchost ();
         int start_exec = 0;
         do {
             if (start_exec < max_exec) {
