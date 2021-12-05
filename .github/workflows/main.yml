@@ -19,12 +19,3 @@ jobs:
         repository-url: https://flatpak.elementary.io/repo.flatpakrepo
         cache-key: "flatpak-builder-${{ github.sha }}"
 
-  Lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    container:
-      image: valalang/lint
-    steps:
-    - uses: actions/checkout@v2
-    - name: Lint
-      run: io.elementary.vala-lint -d .
