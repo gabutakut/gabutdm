@@ -27,6 +27,7 @@ namespace Gabut {
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
         private static Gtk.TargetEntry [] target_list;
+        private bool startingup = false;
 
         public GabutApp () {
             Object (
@@ -37,14 +38,19 @@ namespace Gabut {
             Gtk.TargetEntry urilist_entry = { "text/uri-list", 0, Target.URILIST};
             target_list += string_entry;
             target_list += urilist_entry;
-            GLib.OptionEntry [] options = new GLib.OptionEntry [2];
-            options [0] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
-            options [1] = { null };
+            GLib.OptionEntry [] options = new GLib.OptionEntry [3];
+            options [0] = { "startingup", 0, 0, OptionArg.NONE, null, null, "Run App on Startup" };
+            options [1] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
+            options [2] = { null };
             add_main_option_entries (options);
         }
 
         public override int command_line (ApplicationCommandLine command) {
             var dict = command.get_options_dict ();
+            if (dict.contains ("startingup") && gabutwindow == null) {
+                startingup = true;
+            }
+            create_startup.begin ();
             activate ();
             if (dict.contains (GLib.OPTION_REMAINING)) {
                 foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, VariantType.BYTESTRING_ARRAY).get_bytestring_array ()) {
@@ -65,6 +71,9 @@ namespace Gabut {
                                 _("Can't open database: %s\n").printf (db.errmsg ())
                     );
                 }
+                if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
+                    return;
+                }
                 exec_aria ();
                 if (!GLib.FileUtils.test (create_folder (".bootstrap.min.css"), GLib.FileTest.EXISTS)) {
                     get_css_online.begin ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", create_folder (".bootstrap.min.css"));
@@ -79,7 +88,9 @@ namespace Gabut {
                 Gtk.drag_dest_set (gabutwindow, Gtk.DestDefaults.ALL, target_list, Gdk.DragAction.COPY);
                 gabutwindow.drag_data_received.connect (on_drag_data_received);
                 add_window (gabutwindow);
-                gabutwindow.show_all ();
+                if (!startingup) {
+                    gabutwindow.show_all ();
+                }
                 gabutwindow.send_file.connect (dialog_url);
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
@@ -133,7 +144,12 @@ namespace Gabut {
                 perform_key_event ("<Control>v", true, 100);
                 perform_key_event ("<Control>v", false, 0);
             } else {
-                gabutwindow.present ();
+                if (startingup) {
+                    gabutwindow.show_all ();
+                    startingup = false;
+                } else {
+                    gabutwindow.present ();
+                }
             }
         }
 

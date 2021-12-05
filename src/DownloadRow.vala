@@ -92,10 +92,12 @@ namespace Gabut {
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
                                 Idle.add (()=> {
-                                    GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
-                                    notify_app (_("Download Complete"), filename);
-                                    if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
-                                        send_dialog ();
+                                    if (timeout_id != 0) {
+                                        GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
+                                        notify_app (_("Download Complete"), filename);
+                                        if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
+                                            send_dialog ();
+                                        }
                                     }
                                     return false;
                                 });
@@ -149,6 +151,9 @@ namespace Gabut {
                         } else {
                             ((Gtk.Image) start_button.image).icon_name = "preferences-system-time";
                             start_button.tooltip_text = _("Waiting");
+                        }
+                        if (timeout_id == 0) {
+                            statuschange (ariagid);
                         }
                         add_timeout ();
                         break;

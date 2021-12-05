@@ -278,6 +278,17 @@ namespace Gabut {
             };
             retonhide.add (deletegrid);
 
+            var startupgrid = new Gtk.Grid ();
+            startupgrid.add (new Gtk.Image.from_icon_name ("system-run", Gtk.IconSize.SMALL_TOOLBAR));
+            startupgrid.add (new Gtk.Label (_("Launch App on Startup")));
+
+            var appstartup = new Gtk.CheckButton () {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.STARTUP))
+            };
+            appstartup.add (startupgrid);
+
             var replacegrid = new Gtk.Grid ();
             replacegrid.add (new Gtk.Image.from_icon_name ("edit-find-replace", Gtk.IconSize.SMALL_TOOLBAR));
             replacegrid.add (new Gtk.Label (_("Replace File")));
@@ -307,12 +318,13 @@ namespace Gabut {
             notifyopt.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 0, 1, 1);
             notifyopt.attach (retonhide, 0, 1, 1, 1);
-            notifyopt.attach (new HeaderLabel (_("Notify:"), 450), 0, 2, 1, 1);
-            notifyopt.attach (systemnotif, 0, 3, 1, 1);
-            notifyopt.attach (dialognotify, 0, 4, 1, 1);
-            notifyopt.attach (new HeaderLabel (_("File Download:"), 450), 0, 5, 1, 1);
-            notifyopt.attach (allowrepl, 0, 6, 1, 1);
-            notifyopt.attach (autorename, 0, 7, 1, 1);
+            notifyopt.attach (appstartup, 0, 2, 1, 1);            
+            notifyopt.attach (new HeaderLabel (_("Notify:"), 450), 0, 3, 1, 1);
+            notifyopt.attach (systemnotif, 0, 4, 1, 1);
+            notifyopt.attach (dialognotify, 0, 5, 1, 1);
+            notifyopt.attach (new HeaderLabel (_("File Download:"), 450), 0, 6, 1, 1);
+            notifyopt.attach (allowrepl, 0, 7, 1, 1);
+            notifyopt.attach (autorename, 0, 8, 1, 1);
 
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
@@ -349,6 +361,7 @@ namespace Gabut {
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
+                set_dbsetting (DBSettings.STARTUP, appstartup.active.to_string ());
                 if (maxcurrent.value != double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))) {
                     aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.MAXACTIVE, maxcurrent.value.to_string ()));
                     max_active ();

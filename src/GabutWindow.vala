@@ -225,10 +225,7 @@ namespace Gabut {
                 tooltip_text = _("Pause All")
             };
             headerbar.pack_start (stopall_button);
-            stopall_button.clicked.connect (()=> {
-                aria_pause_all ();
-                Timeout.add_seconds (1, get_active);
-            });
+            stopall_button.clicked.connect (stop_all);
 
             var removeall_button = new Gtk.Button.from_icon_name ("edit-clear", Gtk.IconSize.BUTTON) {
                 tooltip_text = _("Remove All")
@@ -367,6 +364,7 @@ namespace Gabut {
                 }
             }
             set_badge.begin (statusactive);
+            remove_time = 0;
             return false;
         }
 
@@ -412,6 +410,7 @@ namespace Gabut {
             return linkexist;
         }
 
+        private uint remove_time = 0U;
         private void start_all () {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).status != StatusMode.COMPLETE) {
@@ -419,7 +418,28 @@ namespace Gabut {
                     ((DownloadRow) row).update_progress ();
                 }
             }
-            Timeout.add_seconds (1, get_active);
+            view_status ();
+            if (remove_time > 0) {
+                Source.remove (remove_time);
+            }
+            remove_time = 0;
+            remove_time = Timeout.add (50, get_active);
+        }
+
+        private void stop_all () {
+            aria_pause_all ();
+            foreach (var row in list_box.get_children ()) {
+                if (((DownloadRow) row).status != StatusMode.COMPLETE) {
+                    aria_pause (((DownloadRow) row).ariagid);
+                    ((DownloadRow) row).update_progress ();
+                }
+            }
+            view_status ();
+            if (remove_time > 0) {
+                Source.remove (remove_time);
+            }
+            remove_time = 0;
+            remove_time = Timeout.add (50, get_active);
         }
 
         public string set_selected (string ariagid, string selected) {

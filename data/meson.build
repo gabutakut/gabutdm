@@ -51,7 +51,6 @@ i18n.merge_file (
     install_dir: join_paths (get_option ('datadir'), 'applications')
 )
 
-# Translate and install our .appdata.xml file so AppCenter will see it
 i18n.merge_file (
     input: meson.project_name () + '.appdata.xml.in',
     output: meson.project_name () + '.appdata.xml',

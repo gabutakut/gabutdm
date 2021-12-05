@@ -7,27 +7,35 @@
   <name>Gabut Download Manager</name>
   <summary>Simple and Faster Download Manager</summary>
   <description>
-    <p>Features:</p>
-    <ul>
-      <li>
-        Gabutakut Download Manager application that can download Link URIs Metallink Magnetlink Torrents using Aria2c and,
+    <p>Download whatever you want.</p>
+      <p>
+        Gabut Download Manager application that can download Link URIs Metallink Magnetlink Torrents using Aria2c and,
         an application that has a local server service interface.
         can also accept file transfers from smartphones.
-        Made with love and sleep deprivation. :D
-      </li>
-      <li>Torrent.</li>
-      <li>Metalink.</li>
-      <li>Magnetlink.</li>
-      <li>URIs.</li>
-      <li>Local server.</li>
-      <li>File Transfer.</li>
+        Made with love.:D
+      </p>
+      <p>Features:</p>
+      <ul>
+        <li>Torrent.</li>
+        <li>Metalink.</li>
+        <li>Magnetlink.</li>
+        <li>URIs.</li>
+        <li>Local server.</li>
+        <li>File Transfer.</li>
     </ul>
-    <p></p>
   </description>
   <provides>
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.5.9" date="2021-12-5">
+      <description>
+        <p>Add startup</p>
+        <ul>
+          Start all and pause all view
+        </ul>
+      </description>
+    </release>
     <release version="1.5.8" date="2021-12-2">
       <description>
         <p>Release</p>
