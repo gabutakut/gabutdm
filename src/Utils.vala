@@ -43,7 +43,8 @@ namespace Gabut {
         SEEDTIME = 19,
         OVERWRITE = 20,
         AUTORENAMING = 21,
-        FILEALLOCATION = 22;
+        FILEALLOCATION = 22,
+        STARTUP = 23;
 
         public string get_name () {
             switch (this) {
@@ -91,6 +92,8 @@ namespace Gabut {
                     return "autorenaming";
                 case FILEALLOCATION:
                     return "allocation";
+                case STARTUP:
+                    return "startup";
                 default:
                     return "id";
             }
@@ -1447,14 +1450,13 @@ namespace Gabut {
         if (!fileinput.query_exists ()) {
             return "";
         }
-        string mime_type = null;
         try {
             FileInfo infos = fileinput.query_info ("standard::*", 0);
-            mime_type = infos.get_content_type ();
+            return infos.get_content_type ();
         } catch (Error e) {
             GLib.warning (e.message);
         }
-        return mime_type;
+        return "";
     }
     private string get_css (string cssloc) {
         try {
@@ -1466,8 +1468,8 @@ namespace Gabut {
         return "";
     }
 
-    private static string config_folder () {
-        var config_dir = File.new_for_path (GLib.Path.build_path (GLib.Path.DIR_SEPARATOR_S, Environment.get_user_config_dir (), Environment.get_application_name ()));
+    private static string config_folder (string folder) {
+        var config_dir = File.new_for_path (GLib.Path.build_path (GLib.Path.DIR_SEPARATOR_S, Environment.get_user_config_dir (), folder));
         if (!config_dir.query_exists ()) {
             try {
                 config_dir.make_directory_with_parents ();
@@ -1478,8 +1480,34 @@ namespace Gabut {
         return config_dir.get_path ();
     }
 
+    private static File file_start () {
+        return File.new_for_path (Path.build_filename (config_folder ("autostart"), Environment.get_application_name () + ".desktop"));
+    }
+    private async void create_startup () throws Error {
+        File file = file_start ();
+        if (file.query_exists ()) {
+            file.delete ();
+        }
+        FileOutputStream outstartup = file.create (FileCreateFlags.REPLACE_DESTINATION);
+        yield outstartup.write_async ("[Desktop Entry]\n".data);
+        yield outstartup.write_async ("Type=Application\n".data);
+        yield outstartup.write_async ("Name=Autostart Gabut Download Manager\n".data);
+        yield outstartup.write_async ("Comment=Simple and Faster Download Manager\n".data);
+        yield outstartup.write_async ("X-GNOME-Autostart-enabled=true\n".data);
+        yield outstartup.write_async ("Terminal=false\n".data);
+        yield outstartup.write_async ("Categories=Network;P2P;FileTransfer;\n".data);
+        yield outstartup.write_async ("NoDisplay=true\n".data);
+        yield outstartup.write_async ("Icon=com.github.gabutakut.gabutdm\n".data);
+        if (file.get_path ().contains (".var")) {
+            yield outstartup.write_async ("Exec=/usr/bin/flatpak run --branch=master --arch=x86_64 --command=com.github.gabutakut.gabutdm --file-forwarding com.github.gabutakut.gabutdm @@u --startingup @@\n".data);
+            yield outstartup.write_async ("X-Flatpak=com.github.gabutakut.gabutdm\n".data);
+        } else {
+            yield outstartup.write_async ("Exec=com.github.gabutakut.gabutdm --startingup\n".data);
+        }
+    }
+
     private static string create_folder (string name) {
-        return GLib.Path.build_filename (config_folder (), Environment.get_application_name () + name);
+        return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
     }
 
     private void notify_app (string message, string msg_bd) {
@@ -1625,13 +1653,14 @@ namespace Gabut {
             seedtime       TEXT    NOT NULL,
             overwrite      TEXT    NOT NULL,
             autorenaming   TEXT    NOT NULL,
-            allocation     TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\");");
+            allocation     TEXT    NOT NULL,
+            startup        TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\");");
     }
 
     private void check_table () {
-        if ((db_table ("settings") - 1) != DBSettings.FILEALLOCATION) {
+        if ((db_table ("settings") - 1) != DBSettings.STARTUP) {
             if (db_table ("settings") > 0) {
                 GabutApp.db.exec ("DROP TABLE settings;");
             }
