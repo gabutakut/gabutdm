@@ -374,7 +374,7 @@ namespace Gabut {
             };
             start_button.clicked.connect (()=> {
                 set_option ();
-                download_send (false);
+                download_send.begin (false);
                 destroy ();
             });
 
@@ -384,7 +384,7 @@ namespace Gabut {
             };
             later_button.clicked.connect (()=> {
                 set_option ();
-                download_send (true);
+                download_send.begin (true);
                 destroy ();
             });
 
@@ -542,16 +542,16 @@ namespace Gabut {
             set_keep_above (true);
         }
 
-        private void download_send (bool start) {
+        private async void download_send (bool start) throws Error {
             string url = link_entry.text;
             if (url.has_prefix ("file://") && url.has_suffix (".torrent")) {
-                string bencode = file_bencoder (url);
+                string bencode = data_bencoder (File.new_for_uri (url).load_bytes ());
                 downloadfile (bencode, hashoptions, start, LinkMode.TORRENT);
             } else if (url.has_prefix ("file://") && url.has_suffix (".meta4")) {
-                string bencode = file_bencoder (url);
+                string bencode = data_bencoder (File.new_for_uri (url).load_bytes ());
                 downloadfile (bencode, hashoptions, start, LinkMode.METALINK);
             } else if (url.has_prefix ("file://") && url.has_suffix (".metalink")) {
-                string bencode = file_bencoder (url);
+                string bencode = data_bencoder (File.new_for_uri (url).load_bytes ());
                 downloadfile (bencode, hashoptions, start, LinkMode.METALINK);
             } else {
                 if (url.has_prefix ("magnet:?")) {

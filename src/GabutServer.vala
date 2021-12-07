@@ -109,6 +109,15 @@ namespace Gabut {
                     if (matches) {
                         msg.set_status_full (200, "OK");
                         send_post_data (match_info);
+                    } else if (Regex.match_simple ("openlink=(.*?)", result)) {
+                        msg.set_status_full (200, "OK");
+                        string reslink = result.split ("openlink=")[1].strip ();
+                        if (reslink != "") {
+                            if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
+                                notify_app (_("Open Link"), reslink);
+                                open_fileman.begin (reslink);
+                            }
+                        }
                     } else {
                         msg.set_status_full (500, "Error");
                     }
@@ -148,10 +157,7 @@ namespace Gabut {
                         }
                     }
                     msg.set_status_full (200, "OK");
-                } else {
-                    msg.set_status_full (500, "OK");
-                }
-                if (msg.request_headers.get_content_type (null) == "multipart/form-data") {
+                } else if (msg.request_headers.get_content_type (null) == "multipart/form-data") {
                     var multipart = new Soup.Multipart.from_message (msg.request_headers , msg.request_body);
                     Soup.MessageHeaders headers;
                     unowned Soup.Buffer body;
@@ -167,8 +173,10 @@ namespace Gabut {
                             address_url (bencode, hashoption, false, LinkMode.METALINK);
                         }
                     }
+                    msg.set_status_full (200, "OK");
+                } else {
+                    msg.set_status_full (500, "Error");
                 }
-                msg.set_status_full (200, "OK");
             } else if (msg.method == "GET") {
                 msg.set_status_full (200, "OK");
             }

@@ -186,10 +186,6 @@ namespace Gabut {
             icon_image.gicon = new ThemedIcon (GLib.ContentType.get_generic_icon_name (datastrs[3]));
         }
 
-        private async void open_fileman (string fileuri) throws Error {
-            yield AppInfo.launch_default_for_uri_async (fileuri, null);
-        }
-
         public override void show () {
             base.show ();
             set_keep_above (true);

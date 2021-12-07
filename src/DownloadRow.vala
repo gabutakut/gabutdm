@@ -92,7 +92,7 @@ namespace Gabut {
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
                                 Idle.add (()=> {
-                                    if (timeout_id != 0) {
+                                    if (timeout_id == 0) {
                                         GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
                                         notify_app (_("Download Complete"), filename);
                                         if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {

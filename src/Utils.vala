@@ -1293,14 +1293,8 @@ namespace Gabut {
         return result.down ().contains ("result");
     }
 
-    private string file_bencoder (string url) {
-        try {
-            File file = File.new_for_uri (url);
-            return Base64.encode (file.load_bytes ().get_data ());
-        } catch (Error eror) {
-            warning ("%s\n", eror.message);
-        }
-        return "";
+    private async void open_fileman (string fileuri) throws Error {
+        yield AppInfo.launch_default_for_uri_async (fileuri, null);
     }
 
     private string data_bencoder (GLib.Bytes byte) {
