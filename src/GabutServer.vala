@@ -83,7 +83,6 @@ namespace Gabut {
                     }
                     msg.set_status_full (200, "OK");
                 } catch (Error e) {
-                    notify_app (_("Error Make"), _("%s").printf (e.message));
                     GLib.warning (e.message);
                 }
             } else if (msg.method == "GET") {
@@ -111,7 +110,7 @@ namespace Gabut {
                         send_post_data (match_info);
                     } else if (Regex.match_simple ("openlink=(.*?)", result)) {
                         msg.set_status_full (200, "OK");
-                        string reslink = result.split ("openlink=")[1].strip ();
+                        string reslink = result.replace ("openlink=", "").strip ();
                         if (reslink != "") {
                             if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
                                 notify_app (_("Open Link"), reslink);
@@ -148,7 +147,7 @@ namespace Gabut {
                 hashoption[AriaOptions.BT_SAVE_METADATA.get_name ()] = "true";
                 hashoption[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = "true";
                 if (Regex.match_simple ("gabutlink=(.*?)", result)) {
-                    string reslink = result.split ("gabutlink=")[1].strip ();
+                    string reslink = result.replace ("gabutlink=", "").strip ();
                     if (reslink != "") {
                         if (reslink.has_prefix ("magnet:?")) {
                             address_url (reslink, hashoption, false, LinkMode.MAGNETLINK);

@@ -84,9 +84,6 @@ namespace Gabut {
                 var gabutserver = new GabutServer ();
                 gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 gabutserver.send_post_data.connect (dialog_server);
-                gabutserver.address_url.connect ((url, options, later, linkmode)=> {
-                    gabutwindow.add_url_box (url, options, later, linkmode);
-                });
                 gabutwindow = new GabutWindow (this);
                 Gtk.drag_dest_set (gabutwindow, Gtk.DestDefaults.ALL, target_list, Gdk.DragAction.COPY);
                 gabutwindow.drag_data_received.connect (on_drag_data_received);
@@ -108,6 +105,9 @@ namespace Gabut {
                 gabutwindow.restart_server.connect (()=> {
                     gabutserver.stop_server ();
                     gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
+                });
+                gabutserver.address_url.connect ((url, options, later, linkmode)=> {
+                    gabutwindow.add_url_box (url, options, later, linkmode);
                 });
                 downloaders = new GLib.List<Downloader> ();
                 succesdls = new GLib.List<SuccesDialog> ();
@@ -160,7 +160,7 @@ namespace Gabut {
             bool active = false;
             succesdls.foreach ((succesdl)=> {
                 if (succesdl.datastr.split ("<gabut>")[1] == datastr.split ("<gabut>")[1]) {
-                    succesdl.show_all ();
+                    succesdl.present ();
                     active = true;
                 }
             });
@@ -235,7 +235,7 @@ namespace Gabut {
             bool active = false;
             downloaders.foreach ((downloader)=> {
                 if (downloader.ariagid == ariagid) {
-                    downloader.show_all ();
+                    downloader.present ();
                     active = true;
                 }
             });

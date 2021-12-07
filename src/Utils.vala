@@ -1389,12 +1389,12 @@ namespace Gabut {
                     var file = File.new_for_path (filename);
                     FileOutputStream out_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
                     out_stream.write (mess.response_body.flatten ().data);
-                    if (callback != null) {
-                        Idle.add ((owned)callback);
-                    }
                 } catch (Error e) {
                     GLib.warning (e.message);
                 }
+            }
+            if (callback != null) {
+                Idle.add ((owned)callback);
             }
         });
         yield;
@@ -1508,7 +1508,7 @@ namespace Gabut {
         if (!bool.parse (get_dbsetting (DBSettings.SYSTEMNOTIF))) {
             return;
         }
-        var notification = new GLib.Notification ("");
+        var notification = new GLib.Notification ("Gabut DOwnload Manager");
         notification.set_title (message);
         notification.set_body (msg_bd);
         GabutApp.gabutwindow.application.send_notification ("notify.app", notification);
