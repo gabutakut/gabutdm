@@ -88,11 +88,11 @@ namespace Gabut {
                     <div class=\"overlay-content\">
                         <nav>
                         <ul>
-                            <li class=\"hideit\"><a href=\"/Downloading\">Downloading</a></li>
-                            <li class=\"hideit\"><a href=\"/Paused\">Paused</a></li>
-                            <li class=\"hideit\"><a href=\"/Complete\">Complete</a></li>
-                            <li class=\"hideit\"><a href=\"/Waiting\">Waiting</a></li>
-                            <li class=\"hideit\"><a href=\"/Error\">Error</a></li>
+                            <h2 id=\"metadata\">Open link On Browser PC</h2>
+                            <form class=\"text\" action=\"/\" method=\"post\" enctype=\"text/plain\">
+                                <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"openlink\">
+                                <button class=\"btn btn-primary btn-lg active\">Open</button>
+                            </form>
                         </ul>
                     </nav>
                     </div>

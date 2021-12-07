@@ -34,6 +34,9 @@ namespace Gabut {
                 application_id: "com.github.gabutakut.gabutdm",
                 flags: ApplicationFlags.HANDLES_COMMAND_LINE
             );
+        }
+
+        construct {
             Gtk.TargetEntry string_entry = { "STRING", 0, Target.STRING};
             Gtk.TargetEntry urilist_entry = { "text/uri-list", 0, Target.URILIST};
             target_list += string_entry;
