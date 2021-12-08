@@ -239,7 +239,7 @@ namespace Gabut {
             bool active = false;
             properties.foreach ((propet)=> {
                 if (propet.row == row) {
-                    propet.show_all ();
+                    propet.present ();
                     active = true;
                 }
             });

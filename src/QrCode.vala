@@ -147,7 +147,11 @@ namespace Gabut {
         }
 
         private bool load_host (bool reboot) {
-            host_button.label = local_server? _("Share Host") : _("Local Host");
+            if (local_server) {
+                host_button.label =_("Share Host");
+            } else {
+                host_button.label = _("Local Host");
+            }
             string host = get_host (reboot);
             create_qrcode (host);
             linkbutton.uri = host;
