@@ -318,7 +318,7 @@ namespace Gabut {
             notifyopt.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 0, 1, 1);
             notifyopt.attach (retonhide, 0, 1, 1, 1);
-            notifyopt.attach (appstartup, 0, 2, 1, 1);            
+            notifyopt.attach (appstartup, 0, 2, 1, 1);
             notifyopt.attach (new HeaderLabel (_("Notify:"), 450), 0, 3, 1, 1);
             notifyopt.attach (systemnotif, 0, 4, 1, 1);
             notifyopt.attach (dialognotify, 0, 5, 1, 1);
