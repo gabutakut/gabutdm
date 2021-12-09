@@ -16,6 +16,8 @@
             alt="Get it from the Snap Store" src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" /></a>
     <a href="https://appcenter.elementary.io/com.github.gabutakut.gabutdm"><img
             src="https://appcenter.elementary.io/badge.svg" alt="Get it from the Appcenter"></a>
+    <a href="https://flathub.org/apps/details/com.github.gabutakut.gabutdm"><img
+            src="https://flathub.org/assets/badges/flathub-badge-en.svg" width="160" alt="Download on Flathub"></a>
     <a href="https://launchpad.net/~torik-habib/+archive/ubuntu/gabutdm"><img
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
