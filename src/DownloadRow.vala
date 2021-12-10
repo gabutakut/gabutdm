@@ -22,7 +22,6 @@
 namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
         public signal void statuschange (string ariagid);
-        private static Gtk.SizeGroup size_group;
         private Gtk.Button start_button;
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
@@ -58,7 +57,7 @@ namespace Gabut {
             set {
                 _fileordir = value;
                 if (value != "") {
-                    imagefile.gicon = new ThemedIcon (GLib.ContentType.get_generic_icon_name (value));
+                    imagefile.gicon = GLib.ContentType.get_icon (value);
                 }
             }
         }
@@ -310,10 +309,6 @@ namespace Gabut {
             }
         }
 
-        static construct {
-            size_group = new Gtk.SizeGroup (Gtk.SizeGroupMode.HORIZONTAL);
-        }
-
         construct {
             imagefile = new Gtk.Image () {
                 icon_size = Gtk.IconSize.DND
@@ -367,9 +362,6 @@ namespace Gabut {
                 tooltip_text = _("Remove")
             };
             remove_button.clicked.connect (remove_down);
-
-            size_group.add_widget (start_button);
-            size_group.add_widget (remove_button);
 
             var grid = new Gtk.Grid () {
                 margin = 6,
