@@ -571,7 +571,7 @@ namespace Gabut {
             link_entry.text = match_info.fetch (PostServer.URL);
             name_entry.text = match_info.fetch (PostServer.FILENAME);
             refer_entry.text = match_info.fetch (PostServer.REFERRER);
-            status_image.gicon = new ThemedIcon (GLib.ContentType.get_generic_icon_name (match_info.fetch (PostServer.MIME)));
+            status_image.gicon = GLib.ContentType.get_icon (match_info.fetch (PostServer.MIME));
             sizelabel.label = GLib.format_size (int64.parse (match_info.fetch (PostServer.FILESIZE)));
         }
 

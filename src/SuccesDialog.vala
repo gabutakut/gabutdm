@@ -183,7 +183,7 @@ namespace Gabut {
             File file = File.new_for_path (datastrs[1]);
             directory.text = file.get_path ();
             filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (datastrs[2]), GLib.FormatSizeFlags.LONG_FORMAT));
-            icon_image.gicon = new ThemedIcon (GLib.ContentType.get_generic_icon_name (datastrs[3]));
+            icon_image.gicon = GLib.ContentType.get_icon (datastrs[3]);
         }
 
         public override void show () {
