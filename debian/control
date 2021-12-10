@@ -17,9 +17,11 @@ Build-Depends: meson (>= 0.43),
                libgdk-pixbuf2.0-dev,
                libcairo2-dev,
 Standards-Version: 4.14
+Homepage: https://github.com/gabutakut/gabutdm
 
 Package: com.github.gabutakut.gabutdm
 Architecture: any
 Depends: aria2, ${misc:Depends}, ${shlibs:Depends} 
 Description: Gabut Download Manaer
-    Gabut Download manager that support torrent metalink magnet URIs url link with local webservice.
+    Gabut Download manager that support torrent metalink magnet URIs url link 
+    with local webservice.
