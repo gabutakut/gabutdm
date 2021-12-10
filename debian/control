@@ -15,7 +15,7 @@ Build-Depends: meson (>= 0.43),
                libjson-glib-dev,
                libqrencode-dev,
                libgdk-pixbuf2.0-dev,
-               libcairo2-dev,
+               libcairo2-dev
 Standards-Version: 4.14
 Homepage: https://github.com/gabutakut/gabutdm
 
