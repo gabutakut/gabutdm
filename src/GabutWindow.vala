@@ -335,7 +335,9 @@ namespace Gabut {
         public void resume_progress (string ariagid = "") {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).ariagid == ariagid) {
-                    ((DownloadRow) row).add_timeout ();
+                    if (((DownloadRow) row).status != StatusMode.COMPLETE) {
+                        ((DownloadRow) row).add_timeout ();
+                    }
                 }
             }
             foreach (var row in list_box.get_children ()) {

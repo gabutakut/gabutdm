@@ -28,6 +28,7 @@ namespace Gabut {
         private Gtk.Label filename_label;
         public Gtk.Image imagefile;
         private bool stoptimer;
+        private uint completedl = 0U;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
 
         private int _linkmode;
@@ -90,7 +91,11 @@ namespace Gabut {
                         start_button.tooltip_text = _("Complete");
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
-                                Idle.add (()=> {
+                                if (completedl != 0) {
+                                    Source.remove (completedl);
+                                    completedl = 0;
+                                }
+                                completedl = Timeout.add (50, ()=> {
                                     if (timeout_id == 0) {
                                         GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
                                         notify_app (_("Download Complete"), filename);
@@ -98,6 +103,8 @@ namespace Gabut {
                                             send_dialog ();
                                         }
                                     }
+                                    update_download (this);
+                                    completedl = 0;
                                     return false;
                                 });
                             }
