@@ -282,18 +282,14 @@ namespace Gabut {
             linkmode = stmt.column_int (DBDownload.LINKMODE);
             status = stmt.column_int (DBDownload.STATUS);
             ariagid = stmt.column_text (DBDownload.ARIAGID);
-            totalsize = stmt.column_int64 (DBDownload.TOTALSIZE);
             transferrate = stmt.column_int (DBDownload.TRANSFERRATE);
+            totalsize = stmt.column_int64 (DBDownload.TOTALSIZE);
             transferred = stmt.column_int64 (DBDownload.TRANSFERRED);
             filepath = stmt.column_text (DBDownload.FILEPATH);
             filename = stmt.column_text (DBDownload.FILENAME);
             url = stmt.column_text (DBDownload.URL);
             fileordir = stmt.column_text (DBDownload.FILEORDIR);
             transfer_rate.label = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
-            double fraction = (double) transferred / (double) totalsize;
-            if (fraction > 0.0) {
-                progressbar.fraction = fraction;
-            }
             hashoption = get_dboptions (url);
         }
 
