@@ -1504,14 +1504,16 @@ namespace Gabut {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
     }
 
-    private void notify_app (string message, string msg_bd) {
+    private void notify_app (string message, string msg_bd, GLib.Icon iconimg) {
         if (!bool.parse (get_dbsetting (DBSettings.SYSTEMNOTIF))) {
             return;
         }
-        var notification = new GLib.Notification ("Gabut DOwnload Manager");
+        var notification = new GLib.Notification (Environment.get_application_name ());
+        notification.set_priority (GLib.NotificationPriority.NORMAL);
+        notification.set_icon (iconimg);
         notification.set_title (message);
         notification.set_body (msg_bd);
-        GabutApp.gabutwindow.application.send_notification ("notify.app", notification);
+        GabutApp.gabutwindow.application.send_notification (Environment.get_application_name (), notification);
     }
 
     private void move_widget (Gtk.Widget widget) {

@@ -98,12 +98,14 @@ namespace Gabut {
                                 completedl = Timeout.add (50, ()=> {
                                     if (timeout_id == 0) {
                                         GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
-                                        notify_app (_("Download Complete"), filename);
+                                        notify_app (_("Download Complete"), filename, imagefile.gicon);
                                         if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                             send_dialog ();
                                         }
                                     }
-                                    update_download (this);
+                                    if (db_download_exist (url)) {
+                                        update_download (this);
+                                    }
                                     completedl = 0;
                                     return false;
                                 });
@@ -142,7 +144,7 @@ namespace Gabut {
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null) {
                             filename = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
-                            notify_app (_("Download Error"), filename);
+                            notify_app (_("Download Error"), filename, imagefile.gicon);
                             aria_remove (ariagid);
                         }
                         if (timeout_id != 0) {
@@ -301,14 +303,14 @@ namespace Gabut {
             if (linkmode == LinkMode.TORRENT) {
                 ariagid = aria_torrent (url, hashoption);
                 notify_app (_("Starting"),
-                            _("Torrent"));
+                            _("Torrent"), imagefile.gicon);
             } else if (linkmode == LinkMode.METALINK) {
                 ariagid = aria_metalink (url, hashoption);
                 notify_app (_("Starting"),
-                            _("Metalink"));
+                            _("Metalink"), imagefile.gicon);
             } else if (linkmode == LinkMode.MAGNETLINK || linkmode == LinkMode.URL) {
                 ariagid = aria_url (url, hashoption);
-                notify_app (_("Starting"), url);
+                notify_app (_("Starting"), url, imagefile.gicon);
             }
             this.url = url;
             if (later) {

@@ -75,9 +75,9 @@ namespace Gabut {
                             if (!filed.query_exists ()) {
                                 FileOutputStream out_stream = filed.create (FileCreateFlags.REPLACE_DESTINATION);
                                 out_stream.write (body.get_as_bytes ().get_data ());
-                                notify_app (_("File Transfered"), _("%s").printf (filename));
+                                notify_app (_("File Transfered"), _("%s").printf (filename), GLib.ContentType.get_icon (get_mime_type (filed)));
                             } else {
-                                notify_app (_("File Exist"), _("%s").printf (filename));
+                                notify_app (_("File Exist"), _("%s").printf (filename), GLib.ContentType.get_icon (get_mime_type (filed)));
                             }
                         }
                     }
@@ -113,7 +113,7 @@ namespace Gabut {
                         string reslink = result.replace ("openlink=", "").strip ();
                         if (reslink != "") {
                             if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
-                                notify_app (_("Open Link"), reslink);
+                                notify_app (_("Open Link"), reslink, new ThemedIcon ("insert-link"));
                                 open_fileman.begin (reslink);
                             }
                         }

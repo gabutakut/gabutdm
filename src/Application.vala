@@ -71,8 +71,7 @@ namespace Gabut {
             if (gabutwindow == null) {
                 if (open_database (out db) != Sqlite.OK) {
                     notify_app (_("Database Error"),
-                                _("Can't open database: %s\n").printf (db.errmsg ())
-                    );
+                                _("Can't open database: %s\n").printf (db.errmsg ()), new ThemedIcon ("office-database"));
                 }
                 if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
                     return;
