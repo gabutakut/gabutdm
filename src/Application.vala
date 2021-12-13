@@ -86,7 +86,6 @@ namespace Gabut {
                 gabutwindow = new GabutWindow (this);
                 Gtk.drag_dest_set (gabutwindow, Gtk.DestDefaults.ALL, target_list, Gdk.DragAction.COPY);
                 gabutwindow.drag_data_received.connect (on_drag_data_received);
-                add_window (gabutwindow);
                 if (!startingup) {
                     gabutwindow.show_all ();
                 }
