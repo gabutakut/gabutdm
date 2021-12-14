@@ -53,7 +53,7 @@ namespace Gabut {
             overlay.add (icon_image);
             overlay.add_overlay (icon_badge);
 
-            var primary = new Gtk.Label ("Scan Code") {
+            var primary = new Gtk.Label ("Scan QR Code") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 35,
                 use_markup = true,

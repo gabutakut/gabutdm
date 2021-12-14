@@ -20,13 +20,13 @@
 */
 
 namespace Gabut {
-    public class GabutWindow : Gtk.Window {
+    public class GabutWindow : Hdy.ApplicationWindow {
         public signal void send_file (string url);
         public signal void stop_server ();
         public signal void restart_server ();
         public signal string get_host (bool reboot);
         private Gtk.ListBox list_box;
-        private Gtk.Revealer search_rev;
+        private Gtk.Stack headerstack;
         private Gtk.Revealer property_rev;
         private Preferences preferences = null;
         private QrCode qrcode;
@@ -41,7 +41,6 @@ namespace Gabut {
         }
 
         construct {
-            get_style_context ().add_class ("rounded");
             nodown_alert = new AlertView (
                 _("No File Download"),
                 _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
@@ -56,38 +55,38 @@ namespace Gabut {
             list_box.set_placeholder (nodown_alert);
 
             var scrolled = new Gtk.ScrolledWindow (null, null) {
+                height_request = 350,
+                width_request = 650,
                 expand = true
             };
+            scrolled.get_style_context ().add_class ("frame");
             scrolled.add (list_box);
 
-            var overlay = new Gtk.Overlay ();
-            overlay.add (scrolled);
+            headerstack = new Gtk.Stack () {
+                transition_type = Gtk.StackTransitionType.SLIDE_DOWN,
+                transition_duration = 500,
+                hhomogeneous = false
+            };
+            headerstack.add_named (mode_headerbar (), "mode");
+            headerstack.add_named (saarch_headerbar (), "search");
+            headerstack.visible_child_name = "mode";
+            headerstack.show_all ();
 
-            var frame = new Gtk.Frame (null) {
-                width_request = 350,
-                height_request = 350,
-                expand = true
-            };
-            frame.add (overlay);
-            var image_label = new Gtk.Grid () {
-                margin_bottom = 5
-            };
             var frame_header = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
-                valign = Gtk.Align.CENTER,
-                width_request = 650
+                valign = Gtk.Align.START
             };
-            frame_header.get_style_context ().add_class (Gtk.STYLE_CLASS_HEADER);
-            frame_header.get_style_context ().add_class ("default-decoration");
-            search_rev = new Gtk.Revealer () {
-                transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN
-            };
-            search_rev.add (saarch_headerbar ());
             frame_header.add (build_headerbar ());
-            frame_header.add (mode_headerbar ());
-            frame_header.add (search_rev);
-            set_titlebar (frame_header);
-            add (frame);
+            frame_header.add (headerstack);
+
+            var mainwindow = new Gtk.Grid () {
+                orientation = Gtk.Orientation.VERTICAL,
+                expand = true
+            };
+            mainwindow.get_style_context ().add_class ("rounded");
+            mainwindow.add (frame_header);
+            mainwindow.add (scrolled);
+            add (mainwindow);
             list_box.remove.connect ((wid)=> {
                 view_status ();
             });
@@ -103,21 +102,21 @@ namespace Gabut {
                     return hide_on_delete ();
                 } else {
                     stop_server ();
-                    check_table ();
                     return false;
                 }
             });
         }
 
-        private Gtk.HeaderBar build_headerbar () {
-            var headerbar = new Gtk.HeaderBar () {
-                hexpand = true,
+        private Hdy.HeaderBar build_headerbar () {
+            var headerbar = new Hdy.HeaderBar () {
                 title = _("Gabut Download Manager"),
                 has_subtitle = false,
                 show_close_button = true,
+                interpolate_size = false,
                 decoration_layout = "close:maximize"
             };
             headerbar.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
+            move_widget (headerbar);
             var menu_button = new Gtk.Button.from_icon_name ("open-menu", Gtk.IconSize.BUTTON) {
                 tooltip_text = _("Open Settings")
             };
@@ -143,9 +142,14 @@ namespace Gabut {
             };
             headerbar.pack_end (search_button);
             search_button.clicked.connect (()=> {
-                search_rev.reveal_child = !search_rev.reveal_child;
+                ((Gtk.Image) search_button.image).icon_name = headerstack.visible_child_name == "mode"? "com.github.gabutakut.gabutdm" : "system-search";
+                headerstack.visible_child_name = headerstack.visible_child_name == "mode"? headerstack.visible_child_name = "search" : headerstack.visible_child_name = "mode";
+                var row = (DownloadRow) list_box.get_selected_row ();
+                if (row != null) {
+                    list_box.unselect_row (row);
+                }
             });
-            search_rev.notify["child-revealed"].connect (()=> {
+            headerstack.notify["visible-child"].connect (()=> {
                 view_status ();
                 search_entry.text = "";
             });
@@ -191,7 +195,7 @@ namespace Gabut {
                 }
             });
             property_rev = new Gtk.Revealer () {
-                transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT
+                transition_type = Gtk.RevealerTransitionType.CROSSFADE
             };
             property_rev.add (property_button);
             headerbar.pack_end (property_rev);
@@ -301,7 +305,6 @@ namespace Gabut {
             var headerbar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
                 hexpand = true
             };
-            headerbar.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             headerbar.get_style_context ().add_class ("default-decoration");
             view_mode = new ModeButton () {
                 hexpand = false,
@@ -314,7 +317,6 @@ namespace Gabut {
             view_mode.append_text (_("Waiting"));
             view_mode.append_text (_("Error"));
             view_mode.selected = 0;
-            view_mode.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             headerbar.set_center_widget (view_mode);
             view_mode.notify["selected"].connect (view_status);
             return headerbar;
@@ -322,10 +324,10 @@ namespace Gabut {
 
         private Gtk.Box saarch_headerbar () {
             var box_s = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-            box_s.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             box_s.get_style_context ().add_class ("default-decoration");
             search_entry = new Gtk.SearchEntry () {
-                placeholder_text = _("Search Download File")
+                placeholder_text = _("Search Download File"),
+                margin = 2
             };
             search_entry.search_changed.connect (view_status);
             box_s.set_center_widget (search_entry);
@@ -464,7 +466,7 @@ namespace Gabut {
         }
 
         public void view_status () {
-            if (search_rev.child_revealed) {
+            if (headerstack.visible_child_name == "search") {
                 list_box.set_filter_func ((item) => {
                     return ((DownloadRow) item).filename.casefold ().contains (search_entry.text.casefold ());
                 });

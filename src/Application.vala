@@ -144,6 +144,8 @@ namespace Gabut {
                 start ();
                 perform_key_event ("<Control>v", true, 100);
                 perform_key_event ("<Control>v", false, 0);
+                check_table ();
+                pantheon_theme.begin ();
             } else {
                 if (startingup) {
                     gabutwindow.show_all ();
