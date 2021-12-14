@@ -19,6 +19,7 @@ actions = [
     '.pause.svg',
     '.magnet.svg',
     '.waiting.svg',
+    '.auto-symbolic.svg'
 ]
 
 foreach m : actions

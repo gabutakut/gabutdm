@@ -44,7 +44,8 @@ namespace Gabut {
         OVERWRITE = 20,
         AUTORENAMING = 21,
         FILEALLOCATION = 22,
-        STARTUP = 23;
+        STARTUP = 23,
+        STYLE = 24;
 
         public string get_name () {
             switch (this) {
@@ -94,6 +95,8 @@ namespace Gabut {
                     return "allocation";
                 case STARTUP:
                     return "startup";
+                case STYLE:
+                    return "style";
                 default:
                     return "id";
             }
@@ -1650,13 +1653,14 @@ namespace Gabut {
             overwrite      TEXT    NOT NULL,
             autorenaming   TEXT    NOT NULL,
             allocation     TEXT    NOT NULL,
-            startup        TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\");");
+            startup        TEXT    NOT NULL,
+            style          TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\");");
     }
 
     private void check_table () {
-        if ((db_table ("settings") - 1) != DBSettings.STARTUP) {
+        if ((db_table ("settings") - 1) != DBSettings.STYLE) {
             if (db_table ("settings") > 0) {
                 GabutApp.db.exec ("DROP TABLE settings;");
             }
@@ -2196,5 +2200,38 @@ namespace Gabut {
         }
         stmt.reset ();
         return false;
+    }
+
+    [DBus (name = "io.elementary.pantheon.AccountsService")]
+    private interface AccountsService : Object {
+        public abstract int prefers_color_scheme { owned get; set; }
+    }
+
+    [DBus (name = "org.freedesktop.Accounts")]
+    private interface Accounts : Object {
+        public abstract GLib.ObjectPath find_user_by_name (string username) throws GLib.Error;
+    }
+
+    private async void pantheon_theme () throws Error {
+        var gtk_settings = Gtk.Settings.get_default ();
+        switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
+            case 1:
+                gtk_settings.gtk_application_prefer_dark_theme = false;
+                break;
+            case 2:
+                gtk_settings.gtk_application_prefer_dark_theme = true;
+                break;
+            default:
+                Accounts accounts_service = yield GLib.Bus.get_proxy (GLib.BusType.SYSTEM, "org.freedesktop.Accounts", "/org/freedesktop/Accounts");
+                GLib.ObjectPath? user_path = accounts_service.find_user_by_name (GLib.Environment.get_user_name ());
+                AccountsService pantheon = yield GLib.Bus.get_proxy (GLib.BusType.SYSTEM, "org.freedesktop.Accounts", user_path, GLib.DBusProxyFlags.GET_INVALIDATED_PROPERTIES);
+                if (pantheon != null) {
+                    gtk_settings.gtk_application_prefer_dark_theme = pantheon.prefers_color_scheme == 1? true : false;
+                    ((GLib.DBusProxy) pantheon).g_properties_changed.connect ((changed, invalid) => {
+                        gtk_settings.gtk_application_prefer_dark_theme = pantheon.prefers_color_scheme == 1? true : false;
+                    });
+                }
+                break;
+        }
     }
 }

@@ -311,20 +311,31 @@ namespace Gabut {
             };
             autorename.add (autorengrid);
 
+            var style_mode = new ModeButton ();
+            style_mode.append_icon ("com.github.gabutakut.gabutdm.auto-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
+            style_mode.append_icon ("display-brightness-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
+            style_mode.append_icon ("weather-clear-night-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
+            style_mode.selected = int.parse (get_dbsetting (DBSettings.STYLE));
+            style_mode.notify["selected"].connect (() => {
+                set_dbsetting (DBSettings.STYLE, style_mode.selected.to_string ());
+                pantheon_theme.begin ();
+            });
             var notifyopt = new Gtk.Grid () {
                 expand = true,
                 height_request = 190
             };
             notifyopt.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 0, 1, 1);
-            notifyopt.attach (retonhide, 0, 1, 1, 1);
-            notifyopt.attach (appstartup, 0, 2, 1, 1);
-            notifyopt.attach (new HeaderLabel (_("Notify:"), 450), 0, 3, 1, 1);
-            notifyopt.attach (systemnotif, 0, 4, 1, 1);
-            notifyopt.attach (dialognotify, 0, 5, 1, 1);
-            notifyopt.attach (new HeaderLabel (_("File Download:"), 450), 0, 6, 1, 1);
-            notifyopt.attach (allowrepl, 0, 7, 1, 1);
-            notifyopt.attach (autorename, 0, 8, 1, 1);
+            notifyopt.attach (new HeaderLabel (_("Style"), 450), 0, 0, 1, 1);
+            notifyopt.attach (style_mode, 0, 1, 1, 1);
+            notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 2, 1, 1);
+            notifyopt.attach (retonhide, 0, 3, 1, 1);
+            notifyopt.attach (appstartup, 0, 4, 1, 1);
+            notifyopt.attach (new HeaderLabel (_("Notify:"), 450), 0, 5, 1, 1);
+            notifyopt.attach (systemnotif, 0, 6, 1, 1);
+            notifyopt.attach (dialognotify, 0, 7, 1, 1);
+            notifyopt.attach (new HeaderLabel (_("File Download:"), 450), 0, 8, 1, 1);
+            notifyopt.attach (allowrepl, 0, 9, 1, 1);
+            notifyopt.attach (autorename, 0, 10, 1, 1);
 
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
