@@ -9,8 +9,7 @@ command: com.github.gabutakut.gabutdm
 finish-args:
   - '--share=network'
   - '--talk-name=com.canonical.Unity.LauncherEntry'
-  - '--system-talk-name=io.elementary.pantheon.AccountsService'
-  - '--system-talk-name=org.freedesktop.Accounts'
+  - '--talk-name=org.freedesktop.portal.Desktop'
   - '--share=ipc'
   - '--socket=fallback-x11'
   - '--socket=wayland'
