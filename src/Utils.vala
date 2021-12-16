@@ -2202,17 +2202,17 @@ namespace Gabut {
         return false;
     }
 
-    [DBus (name = "io.elementary.pantheon.AccountsService")]
-    private interface AccountsService : Object {
-        public abstract int prefers_color_scheme { owned get; set; }
+    [DBus (name = "org.freedesktop.portal.Settings")]
+    private interface PortalSettings : Object {
+        public abstract Variant read (string namespace, string key) throws DBusError, IOError;
+        public signal void setting_changed (string namespace, string key, Variant value);
     }
 
-    [DBus (name = "org.freedesktop.Accounts")]
-    private interface Accounts : Object {
-        public abstract GLib.ObjectPath find_user_by_name (string username) throws GLib.Error;
-    }
-
+    private SourceFunc themecall;
     private async void pantheon_theme () throws Error {
+        if (themecall != null) {
+            Idle.add ((owned)themecall);
+        }
         var gtk_settings = Gtk.Settings.get_default ();
         switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
             case 1:
@@ -2222,14 +2222,16 @@ namespace Gabut {
                 gtk_settings.gtk_application_prefer_dark_theme = true;
                 break;
             default:
-                Accounts accounts_service = yield GLib.Bus.get_proxy (GLib.BusType.SYSTEM, "org.freedesktop.Accounts", "/org/freedesktop/Accounts");
-                GLib.ObjectPath? user_path = accounts_service.find_user_by_name (GLib.Environment.get_user_name ());
-                AccountsService pantheon = yield GLib.Bus.get_proxy (GLib.BusType.SYSTEM, "org.freedesktop.Accounts", user_path, GLib.DBusProxyFlags.GET_INVALIDATED_PROPERTIES);
-                if (pantheon != null) {
-                    gtk_settings.gtk_application_prefer_dark_theme = pantheon.prefers_color_scheme == 1? true : false;
-                    ((GLib.DBusProxy) pantheon).g_properties_changed.connect ((changed, invalid) => {
-                        gtk_settings.gtk_application_prefer_dark_theme = pantheon.prefers_color_scheme == 1? true : false;
+                PortalSettings portalsettings = yield GLib.Bus.get_proxy (GLib.BusType.SESSION, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop");
+                if (portalsettings != null) {
+                    themecall = pantheon_theme.callback;
+                    gtk_settings.gtk_application_prefer_dark_theme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? true : false;
+                    portalsettings.setting_changed.connect ((scheme, key, value) => {
+                        if (scheme == "org.freedesktop.appearance" && key == "color-scheme") {
+                            gtk_settings.gtk_application_prefer_dark_theme = value.get_uint32 () == 1? true : false;
+                        }
                     });
+                    yield;
                 }
                 break;
         }
