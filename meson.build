@@ -2,9 +2,9 @@ project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.6.0')
 
 i18n = import ('i18n')
 
-vapi = join_paths(meson.current_source_dir(), 'vapi')
-add_project_arguments ('-DGETTEXT_PACKAGE="@0@"'.format (meson.project_name ()), language: 'c')
-add_project_arguments(['--vapidir', vapi], language: 'vala')
+vapi = join_paths (meson.current_source_dir(), 'vapi')
+add_project_arguments ('-DGETTEXT_PACKAGE="' + meson.project_name() + '"'.format (meson.project_name()), language:'c')
+add_project_arguments (['--vapidir', vapi], language: 'vala')
 
 dependencies = [
     dependency ('glib-2.0'),
