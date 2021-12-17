@@ -1,5 +1,5 @@
 name: gabutdm
-version: "1.5.9"
+version: "1.6.1"
 grade: stable
 base: core20
 summary: Simple and Faster Download Manager
@@ -35,6 +35,7 @@ parts:
         - libgee-0.8-dev
         - libjson-glib-dev
         - libgdk-pixbuf2.0-dev
+        - libhandy-1-dev
     stage-packages:
         - libx11-dev
         - libxau-dev
