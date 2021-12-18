@@ -12,7 +12,7 @@ description: |
 confinement: strict
 parts:
   gabutdm:
-    after: [desktop-gnome-platform]
+    after: [libhandy, desktop-gnome-platform]
     plugin: meson
     meson-parameters:
       - --prefix=/usr
@@ -80,6 +80,19 @@ parts:
         - libcanberra0
         - libqrencode4
         - aria2
+  libhandy:
+    source: https://gitlab.gnome.org/GNOME/libhandy.git
+    source-branch: 'libhandy-1-2'
+    source-depth: 1
+    plugin: meson
+    meson-parameters:
+      - --prefix=/usr
+      - --buildtype=release
+      - -Dgtk_doc=false
+      - -Dtests=false
+      - -Dexamples=false
+      - -Dglade_catalog=disabled
+
   desktop-gnome-platform:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
     source-subdir: gtk
