@@ -587,6 +587,9 @@ namespace Gabut {
                         }
                         return false;
                     });
+                    if (hashb == builder.str.hash ()) {
+                        return false;
+                    }
                     string aria_gid = sendselected (ariagid, builder.str);
                     this.ariagid = aria_gid;
                     update_progress ();

@@ -35,7 +35,7 @@ parts:
         - libgee-0.8-dev
         - libjson-glib-dev
         - libgdk-pixbuf2.0-dev
-        - libhandy-1-dev
+        - libhandy-0.0-dev
     stage-packages:
         - libx11-dev
         - libxau-dev
