@@ -92,6 +92,54 @@ parts:
       - -Dtests=false
       - -Dexamples=false
       - -Dglade_catalog=disabled
+    override-build: |
+      snapcraftctl build
+    build-packages:
+        - libgirepository1.0-dev
+        - valac
+        - gobject-introspection
+        - gettext
+    stage-packages:
+        - libx11-dev
+        - libxau-dev
+        - libxcomposite-dev
+        - libxcursor-dev
+        - libxdamage-dev
+        - libxdmcp-dev
+        - libxext-dev
+        - libxfixes-dev
+        - libxi-dev
+        - libxinerama-dev
+        - libxrandr-dev
+        - libxrender-dev
+        - libatk1.0-dev
+        - libatk-bridge2.0-dev
+        - libatspi2.0-dev
+        - libcairo2-dev
+        - libcairo2
+        - libdatrie-dev
+        - libepoxy-dev
+        - libfontconfig1-dev
+        - libfreetype6-dev
+        - libgtk-3-dev
+        - libgdk-pixbuf2.0-dev
+        - libgee-0.8-dev
+        - libgraphite2-dev
+        - libharfbuzz-dev
+        - libpango1.0-dev
+        - libpangocairo-1.0-0
+        - libpangoft2-1.0-0
+        - libpixman-1-dev
+        - libpng-dev
+        - libthai-dev
+        - libwayland-client0
+        - libwayland-cursor0
+        - libwayland-egl1
+        - libwayland-dev
+        - libxcb-render0-dev
+        - libxcb-shm0-dev
+        - libxcb1-dev
+        - libxkbcommon-dev
 
   desktop-gnome-platform:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
