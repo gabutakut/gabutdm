@@ -81,17 +81,10 @@ parts:
         - libqrencode4
         - aria2
   libhandy:
-    source: https://gitlab.gnome.org/GNOME/libhandy.git
-    source-branch: 'libhandy-1-2'
-    source-depth: 1
     plugin: meson
     meson-parameters:
       - --prefix=/usr
-      - --buildtype=release
-      - -Dgtk_doc=false
-      - -Dtests=false
-      - -Dexamples=false
-      - -Dglade_catalog=disabled
+    source: https://gitlab.gnome.org/GNOME/libhandy.git
     override-build: |
       snapcraftctl build
     build-packages:
