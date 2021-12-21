@@ -301,7 +301,7 @@ namespace Gabut {
         }
 
         private Hdy.HeaderBar mode_headerbar () {
-            var headerbar = new Hdy.HeaderBar (){
+            var headerbar = new Hdy.HeaderBar () {
                 has_subtitle = false,
                 show_close_button = false,
                 hexpand = true
