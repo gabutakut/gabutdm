@@ -611,8 +611,7 @@ namespace Gabut {
         PATH = 1,
         LENGTH = 2,
         COMPLETEDLENGTH = 3,
-        SELECTED = 4,
-        URIS = 5;
+        URIS = 4;
 
         public string get_name () {
             switch (this) {
@@ -659,6 +658,8 @@ namespace Gabut {
                     return "totalsize";
                 case TRANSFERRATE:
                     return "transferrate";
+                case TRANSFERRED:
+                    return "transferred";
                 case LINKMODE:
                     return "linkmode";
                 case FILEORDIR:
@@ -1546,7 +1547,7 @@ namespace Gabut {
     }
 
     private File[] run_open_file (Gtk.Window window, bool multi) {
-        var filechooser = new Gtk.FileChooserNative (_("Open"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
         filechooser.select_multiple = multi;
 
         var torrent = new Gtk.FileFilter ();
@@ -1555,6 +1556,7 @@ namespace Gabut {
         var metalink = new Gtk.FileFilter ();
         metalink.set_filter_name (_("Metalink"));
         metalink.add_pattern ("application/metalink+xml");
+        metalink.add_pattern ("application/metalink4+xml");
 
         filechooser.add_filter (torrent);
         filechooser.add_filter (metalink);

@@ -27,6 +27,7 @@ namespace Gabut {
         private Gtk.ProgressBar progressbar;
         private Gtk.Label filename_label;
         public Gtk.Image imagefile;
+        public Gtk.Image badge_img;
         private bool stoptimer;
         private uint completedl = 0U;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
@@ -39,13 +40,13 @@ namespace Gabut {
             set {
                 _linkmode = value;
                 if (linkmode == LinkMode.METALINK) {
-                    imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
+                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
                 } else if (linkmode == LinkMode.MAGNETLINK) {
-                    imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
+                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
                 } else if (linkmode == LinkMode.TORRENT) {
-                    imagefile.gicon = new ThemedIcon ("application-x-bittorrent");
+                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("application-x-bittorrent");
                 } else {
-                    imagefile.gicon = new ThemedIcon ("insert-link");
+                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("insert-link");
                 }
             }
         }
@@ -153,13 +154,8 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     default:
-                        if (linkmode != LinkMode.MAGNETLINK) {
-                            ((Gtk.Image) start_button.image).icon_name = "media-playback-start";
-                            start_button.tooltip_text = _("Downloading");
-                        } else {
-                            ((Gtk.Image) start_button.image).icon_name = "preferences-system-time";
-                            start_button.tooltip_text = _("Waiting");
-                        }
+                        ((Gtk.Image) start_button.image).icon_name = "media-playback-start";
+                        start_button.tooltip_text = _("Downloading");
                         if (timeout_id == 0) {
                             statuschange (ariagid);
                         }
@@ -318,12 +314,23 @@ namespace Gabut {
             imagefile = new Gtk.Image () {
                 icon_size = Gtk.IconSize.DND
             };
+
+            badge_img = new Gtk.Image () {
+                halign = Gtk.Align.END,
+                valign = Gtk.Align.END,
+                icon_size = Gtk.IconSize.MENU
+            };
+    
+            var overlay = new Gtk.Overlay ();
+            overlay.add_overlay (badge_img);
+            overlay.add (imagefile);
+
             var openimage = new Gtk.Button () {
                 focus_on_click = false,
                 tooltip_text = _("Open Details")
             };
             openimage.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            openimage.add (imagefile);
+            openimage.add (overlay);
             openimage.clicked.connect (download);
 
             transfer_rate = new Gtk.Label (null) {
@@ -414,6 +421,7 @@ namespace Gabut {
             } else if (status == StatusMode.COMPLETE) {
                 remove_timeout ();
             } else if (status == StatusMode.WAIT) {
+                if (aria_pause (ariagid) == "") {}
                 add_timeout ();
             } else {
                 if (linkmode == LinkMode.TORRENT) {
