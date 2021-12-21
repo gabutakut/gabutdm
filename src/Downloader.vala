@@ -416,19 +416,22 @@ namespace Gabut {
             };
             torrentlist.add (scrolled);
 
-            down_limit = new Gtk.SpinButton.with_range (0, 50000000, 1) {
+            down_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
-                hexpand = true
+                hexpand = true,
+                primary_icon_name = "dialog-information"
             };
 
-            up_limit = new Gtk.SpinButton.with_range (0, 500000000, 1) {
+            up_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
-                hexpand = true
+                hexpand = true,
+                primary_icon_name = "dialog-information"
             };
 
-            bt_req_limit = new Gtk.SpinButton.with_range (0, 500000000, 1) {
+            bt_req_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
-                hexpand = true
+                hexpand = true,
+                primary_icon_name = "dialog-information"
             };
 
             var limitergrid = new Gtk.Grid () {
@@ -436,21 +439,21 @@ namespace Gabut {
                 height_request = 150
             };
             limitergrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            limitergrid.attach (new HeaderLabel (_("Max Download Limit (in Byte):"), 550), 0, 0, 1, 1);
+            limitergrid.attach (new HeaderLabel (_("Max Download Limit (in Kb):"), 550), 0, 0, 1, 1);
             limitergrid.attach (down_limit, 0, 1, 1, 1);
-            limitergrid.attach (new HeaderLabel (_("Max Upload Limit (in Byte):"), 550), 0, 2, 1, 1);
+            limitergrid.attach (new HeaderLabel (_("Max Upload Limit (in Kb):"), 550), 0, 2, 1, 1);
             limitergrid.attach (up_limit, 0, 3, 1, 1);
-            limitergrid.attach (new HeaderLabel (_("BitTorrent Request Peer Speed Limit (in Byte):"), 550), 0, 4, 1, 1);
+            limitergrid.attach (new HeaderLabel (_("BitTorrent Request Peer Speed Limit (in Kb):"), 550), 0, 4, 1, 1);
             limitergrid.attach (bt_req_limit, 0, 5, 1, 1);
 
             down_limit.value_changed.connect (()=> {
-                aria_set_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT, down_limit.value.to_string ());
+                aria_set_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT, @"$(down_limit.value)K");
             });
             up_limit.value_changed.connect (()=> {
-                aria_set_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT, up_limit.value.to_string ());
+                aria_set_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT, @"$(up_limit.value)K");
             });
             bt_req_limit.value_changed.connect (()=> {
-                aria_set_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT, bt_req_limit.value.to_string ());
+                aria_set_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT, @"$(bt_req_limit.value)K");
             });
 
             var stack = new Gtk.Stack () {
@@ -640,9 +643,9 @@ namespace Gabut {
 
         public void aria_gid (string ariagid) {
             this.ariagid = ariagid;
-            down_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT));
-            up_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT));
-            bt_req_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT));
+            down_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT)) / 1024;
+            up_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT)) / 1024;
+            bt_req_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT)) / 1024;
             torrentmode.label = _("<b>Mode: </b> %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
             timecreation.label = _("<b>Time Creation: </b> %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE));
 

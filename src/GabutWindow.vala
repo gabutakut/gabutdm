@@ -43,7 +43,7 @@ namespace Gabut {
         construct {
             nodown_alert = new AlertView (
                 _("No File Download"),
-                _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
+                _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
                 "com.github.gabutakut.gabutdm"
             );
             nodown_alert.show_all ();
@@ -59,7 +59,6 @@ namespace Gabut {
                 width_request = 650,
                 expand = true
             };
-            scrolled.get_style_context ().add_class ("frame");
             scrolled.add (list_box);
 
             headerstack = new Gtk.Stack () {
@@ -113,10 +112,11 @@ namespace Gabut {
                 has_subtitle = false,
                 show_close_button = true,
                 interpolate_size = false,
+                hexpand = true,
                 decoration_layout = "close:maximize"
             };
-            headerbar.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             move_widget (headerbar);
+            headerbar.get_style_context ().add_class ("default-decoration");
             var menu_button = new Gtk.Button.from_icon_name ("open-menu", Gtk.IconSize.BUTTON) {
                 tooltip_text = _("Open Settings")
             };
@@ -278,8 +278,7 @@ namespace Gabut {
             return strlist;
         }
 
-        public override void show () {
-            base.show ();
+        public void load_dowanload () {
             get_download ().foreach ((row)=> {
                 if (!get_exist (row.url)) {
                     list_box.add (row);
@@ -301,8 +300,10 @@ namespace Gabut {
             get_active ();
         }
 
-        private Gtk.Box mode_headerbar () {
-            var headerbar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+        private Hdy.HeaderBar mode_headerbar () {
+            var headerbar = new Hdy.HeaderBar (){
+                has_subtitle = false,
+                show_close_button = false,
                 hexpand = true
             };
             headerbar.get_style_context ().add_class ("default-decoration");
@@ -317,20 +318,24 @@ namespace Gabut {
             view_mode.append_text (_("Waiting"));
             view_mode.append_text (_("Error"));
             view_mode.selected = 0;
-            headerbar.set_center_widget (view_mode);
+            headerbar.set_custom_title (view_mode);
             view_mode.notify["selected"].connect (view_status);
             return headerbar;
         }
 
-        private Gtk.Box saarch_headerbar () {
-            var box_s = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        private Hdy.HeaderBar saarch_headerbar () {
+            var box_s = new Hdy.HeaderBar () {
+                has_subtitle = false,
+                show_close_button = false,
+                hexpand = true
+            };
             box_s.get_style_context ().add_class ("default-decoration");
             search_entry = new Gtk.SearchEntry () {
-                placeholder_text = _("Search Download File"),
+                placeholder_text = _("Find Here"),
                 margin = 2
             };
             search_entry.search_changed.connect (view_status);
-            box_s.set_center_widget (search_entry);
+            box_s.set_custom_title (search_entry);
             return box_s;
         }
 
@@ -467,13 +472,29 @@ namespace Gabut {
 
         public void view_status () {
             if (headerstack.visible_child_name == "search") {
+                if (search_entry.text.strip () == "") {
+                    list_box.set_filter_func ((item) => {
+                        return false;
+                    });
+                    var search_alert = new AlertView (
+                        _("Find File"),
+                        _("Mode Search Based on Filename."),
+                        "system-search"
+                    );
+                    search_alert.show_all ();
+                    list_box.set_placeholder (search_alert);
+                    return;
+                }
                 list_box.set_filter_func ((item) => {
+                    if (((DownloadRow) item).filename == null) {
+                        return false;
+                    }
                     return ((DownloadRow) item).filename.casefold ().contains (search_entry.text.casefold ());
                 });
                 if (!has_visible_children ()) {
                     var empty_alert = new AlertView (
                         _("No Search Found"),
-                        _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
+                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
                         "system-search"
                     );
                     empty_alert.show_all ();
@@ -490,7 +511,7 @@ namespace Gabut {
                     });
                     var active_alert = new AlertView (
                         _("No Active Download"),
-                        _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
+                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.active"
                     );
                     active_alert.show_all ();
@@ -502,7 +523,7 @@ namespace Gabut {
                     });
                     var nopause_alert = new AlertView (
                         _("No Paused Download"),
-                        _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
+                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.pause"
                     );
                     nopause_alert.show_all ();
@@ -514,7 +535,7 @@ namespace Gabut {
                     });
                     var nocomp_alerst = new AlertView (
                         _("No Complete Download"),
-                        _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
+                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.complete"
                     );
                     nocomp_alerst.show_all ();
@@ -526,7 +547,7 @@ namespace Gabut {
                     });
                     var nowait_alert = new AlertView (
                         _("No Waiting Download"),
-                        _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
+                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.waiting"
                     );
                     nowait_alert.show_all ();
@@ -538,7 +559,7 @@ namespace Gabut {
                     });
                     var noerr_alert = new AlertView (
                         _("No Error Download"),
-                        _("Insert Link, add Torrent, add Metalink, Magnet URIs."),
+                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.error"
                     );
                     noerr_alert.show_all ();

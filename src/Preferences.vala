@@ -65,36 +65,42 @@ namespace Gabut {
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_TRIES))
             };
 
             var numbconn = new Gtk.SpinButton.with_range (0, 16, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "network-wireless",
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER))
             };
 
             var maxcurrent = new Gtk.SpinButton.with_range (1, 20, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "media-playback-start",
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))
             };
 
             var timeout = new Gtk.SpinButton.with_range (0, 600, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.TIMEOUT))
             };
 
             var retry = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.RETRY_WAIT))
             };
 
             var split = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "edit-cut",
                 value = double.parse (aria_get_globalops (AriaOptions.SPLIT))
             };
 
@@ -119,27 +125,31 @@ namespace Gabut {
             settings.attach (new HeaderLabel (_("Split:"), 220), 0, 4, 1, 1);
             settings.attach (split, 0, 5, 1, 1);
 
-            var maxopfile = new Gtk.SpinButton.with_range (0, 100, 1) {
+            var maxopfile = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_OPEN_FILES))
             };
 
             var maxpeers = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_PEERS))
             };
 
             var bt_timeout = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_TRACKER_TIMEOUT))
             };
 
             var bt_seedtime = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.SEED_TIME))
             };
 
@@ -179,24 +189,28 @@ namespace Gabut {
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
             };
 
             var local_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (get_dbsetting (DBSettings.PORTLOCAL))
             };
 
             var maxrequest = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))
             };
 
             var diskcache = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
                 width_request = 220,
                 hexpand = true,
+                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
             };
             allocate_button = new Gtk.MenuButton () {
@@ -325,7 +339,7 @@ namespace Gabut {
                 height_request = 190
             };
             notifyopt.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            notifyopt.attach (new HeaderLabel (_("Style"), 450), 0, 0, 1, 1);
+            notifyopt.attach (new HeaderLabel (_("Style:"), 450), 0, 0, 1, 1);
             notifyopt.attach (style_mode, 0, 1, 1, 1);
             notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 2, 1, 1);
             notifyopt.attach (retonhide, 0, 3, 1, 1);

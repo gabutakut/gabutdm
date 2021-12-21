@@ -23,7 +23,6 @@ namespace Gabut {
     private class MediaEntry : Gtk.Entry {
         public string first_label { get; construct; }
         public string second_label { get; construct; }
-        public signal void tooltip_notify (string text);
         public MediaEntry (string first_label, string second_label, bool second = true) {
             Object (
                 first_label: first_label,
@@ -42,11 +41,9 @@ namespace Gabut {
                 Gtk.Clipboard clipboard = Gtk.Clipboard.get_for_display (get_display (), Gdk.SELECTION_CLIPBOARD);
                 if (pos == Gtk.EntryIconPosition.PRIMARY) {
                     clipboard.set_text (text, text.length);
-                    tooltip_notify (primary_icon_tooltip_text);
                 }
                 if (pos == Gtk.EntryIconPosition.SECONDARY) {
                     text = clipboard.wait_for_text ().strip ();
-                    tooltip_notify (secondary_icon_tooltip_text);
                 }
             });
             activates_default = true;
