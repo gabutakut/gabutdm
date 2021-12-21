@@ -10,17 +10,12 @@ description: |
     Made with love.
 
 confinement: strict
+package-repositories:
+  - type: apt
+    ppa:  ppa:torik-habib/gabutdm
 parts:
-  ppa-libhandy:
-    plugin: nil
-    prepare: |
-      echo "deb http://ppa.launchpad.net/torik-habib/gabutdm/ubuntu focal main" | tee /etc/apt/sources.list.d/libhandy.list
-      apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 2B067CC53533F081B664BF72F6CBED8742796C8E
-      apt update
-      apt upgrade -yy
-    prime: [-*]
   gabutdm:
-    after: [ppa-libhandy, desktop-gnome-platform]
+    after: [desktop-gnome-platform]
     plugin: meson
     meson-parameters:
       - --prefix=/usr
