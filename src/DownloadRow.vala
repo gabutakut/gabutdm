@@ -320,7 +320,7 @@ namespace Gabut {
                 valign = Gtk.Align.END,
                 icon_size = Gtk.IconSize.MENU
             };
-    
+
             var overlay = new Gtk.Overlay ();
             overlay.add_overlay (badge_img);
             overlay.add (imagefile);
