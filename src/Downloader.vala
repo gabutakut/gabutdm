@@ -31,12 +31,6 @@ namespace Gabut {
         private Gtk.Label linklabel;
         private Gtk.Label filesize;
         private Gtk.Label connectlabel;
-        private Gtk.Label peerid;
-        private Gtk.Label iplabel;
-        private Gtk.Label portlabel;
-        private Gtk.Label bitfield;
-        private Gtk.Label amchoking;
-        private Gtk.Label peerchoking;
         private Gtk.Label torrentmode;
         private Gtk.Label timecreation;
         private Gtk.SpinButton down_limit;
@@ -44,8 +38,10 @@ namespace Gabut {
         private Gtk.SpinButton bt_req_limit;
         private Gtk.ListStore torrstore;
         private Gtk.ListStore infostore;
+        private Gtk.ListStore peerstore;
         private Gtk.TreeView torrenttree;
         private Gtk.TreeView infotorrent;
+        private Gtk.TreeView peerstree;
         private Gtk.TextView commenttext;
         private Gtk.Revealer download_rev;
         private bool stoptimer;
@@ -324,69 +320,25 @@ namespace Gabut {
             torrentinfo.attach (new HeaderLabel (_("Comment:"), 250), 1, 1, 1, 1);
             torrentinfo.attach (comment, 1, 2, 1, 1);
 
-            peerid = new Gtk.Label (null) {
-                ellipsize = Pango.EllipsizeMode.END,
-                hexpand = true,
-                xalign = 0,
-                max_width_chars = 50,
-                width_request = 450
+            peerstore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
+            peerstree = new Gtk.TreeView () {
+                model = peerstore,
+                margin_bottom = 10
             };
+            peerstree.append_column (text_column (_("Host"), TorrentPeers.HOST));
+            peerstree.append_column (text_column (_("Client"), TorrentPeers.PEERID));
+            peerstree.append_column (text_column (_("Choking"), TorrentPeers.PEERCHOKING));
+            peerstree.append_column (text_column (_("D"), TorrentPeers.DOWNLOADSPEED));
+            peerstree.append_column (text_column (_("U"), TorrentPeers.UPLOADSPEED));
 
-            iplabel = new Gtk.Label (null) {
-                ellipsize = Pango.EllipsizeMode.END,
-                hexpand = true,
-                xalign = 0,
-                max_width_chars = 50,
-                width_request = 450
-            };
-
-            portlabel = new Gtk.Label (null) {
-                ellipsize = Pango.EllipsizeMode.END,
-                hexpand = true,
-                xalign = 0,
-                max_width_chars = 50,
-                width_request = 450
-            };
-            bitfield = new Gtk.Label (null) {
-                ellipsize = Pango.EllipsizeMode.END,
-                hexpand = true,
-                xalign = 0,
-                max_width_chars = 50,
-                width_request = 450
-            };
-            amchoking = new Gtk.Label (null) {
-                ellipsize = Pango.EllipsizeMode.END,
-                hexpand = true,
-                xalign = 0,
-                max_width_chars = 50,
-                width_request = 450
-            };
-            peerchoking = new Gtk.Label (null) {
-                ellipsize = Pango.EllipsizeMode.END,
-                hexpand = true,
-                xalign = 0,
-                max_width_chars = 50,
-                width_request = 450
-            };
-
-            var torrentstatus = new Gtk.Grid () {
+            var peerscrolled = new Gtk.ScrolledWindow (null, null) {
                 expand = true,
-                height_request = 150,
-                margin_bottom = 5
+                width_request = 550,
+                height_request = 140,
+                margin_bottom = 5,
+                margin_top = 5
             };
-            torrentstatus.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            torrentstatus.attach (new HeaderLabel (_("Peer Id"), 100), 0, 0, 1, 1);
-            torrentstatus.attach (peerid, 1, 0, 1, 1);
-            torrentstatus.attach (new HeaderLabel (_("IP"), 100), 0, 1, 1, 1);
-            torrentstatus.attach (iplabel, 1, 1, 1, 1);
-            torrentstatus.attach (new HeaderLabel (_("Port"), 100), 0, 2, 1, 1);
-            torrentstatus.attach (portlabel, 1, 2, 1, 1);
-            torrentstatus.attach (new HeaderLabel (_("Bitfield"), 100), 0, 3, 1, 1);
-            torrentstatus.attach (bitfield, 1, 3, 1, 1);
-            torrentstatus.attach (new HeaderLabel (_("am Choking"), 100), 0, 4, 1, 1);
-            torrentstatus.attach (amchoking, 1, 4, 1, 1);
-            torrentstatus.attach (new HeaderLabel (_("Peer Choking"), 100), 0, 5, 1, 1);
-            torrentstatus.attach (peerchoking, 1, 5, 1, 1);
+            peerscrolled.add (peerstree);
 
             torrstore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
             torrenttree = new Gtk.TreeView () {
@@ -402,19 +354,14 @@ namespace Gabut {
             torrenttree.append_column (text_column (_("Uris"), FileCol.URIS));
             torrenttree.set_tooltip_column (FileCol.FILEPATH);
 
-            var scrolled = new Gtk.ScrolledWindow (null, null) {
-                expand = true
-            };
-            scrolled.add (torrenttree);
-
-            var torrentlist = new Gtk.Frame (null) {
+            var torrscrolled = new Gtk.ScrolledWindow (null, null) {
+                expand = true,
                 width_request = 550,
                 height_request = 140,
                 margin_bottom = 5,
-                margin_top = 5,
-                expand = true
+                margin_top = 5
             };
-            torrentlist.add (scrolled);
+            torrscrolled.add (torrenttree);
 
             down_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
@@ -463,8 +410,8 @@ namespace Gabut {
             };
             stack.add_named (downstatusgrid, "downstatusgrid");
             stack.add_named (torrentinfo, "torrentinfo");
-            stack.add_named (torrentstatus, "torrentstatus");
-            stack.add_named (torrentlist, "torrentlist");
+            stack.add_named (peerscrolled, "peerscrolled");
+            stack.add_named (torrscrolled, "torrscrolled");
             stack.add_named (limitergrid, "limitergrid");
             stack.visible_child = downstatusgrid;
             stack.show_all ();
@@ -534,10 +481,10 @@ namespace Gabut {
                         stack.visible_child = torrentinfo;
                         break;
                     case 2:
-                        stack.visible_child = torrentstatus;
+                        stack.visible_child = peerscrolled;
                         break;
                     case 3:
-                        stack.visible_child = torrentlist;
+                        stack.visible_child = torrscrolled;
                         break;
                     case 4:
                         stack.visible_child = limitergrid;
@@ -710,12 +657,15 @@ namespace Gabut {
             transferrate = int.parse (aria_tell_status (ariagid, TellStatus.DOWNLOADSPEED));
             aconnection = int.parse (aria_tell_status (ariagid, TellStatus.CONNECTIONS));
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
-            peerid.label = aria_get_peers (TorrentPeers.PEERID, ariagid);
-            iplabel.label = aria_get_peers (TorrentPeers.IP, ariagid);
-            portlabel.label = aria_get_peers (TorrentPeers.PORT, ariagid);
-            bitfield.label = aria_get_peers (TorrentPeers.BITFIELD, ariagid);
-            amchoking.label = aria_get_peers (TorrentPeers.AMCHOKING, ariagid);
-            peerchoking.label = aria_get_peers (TorrentPeers.PEERCHOKING, ariagid);
+            peerstore.clear ();
+            aria_get_peers (ariagid).foreach ((model, path, iter) => {
+                string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
+                model.get (iter, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
+                Gtk.TreeIter iters;
+                peerstore.append (out iters);
+                peerstore.set (iters, TorrentPeers.HOST, host, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
+                return false;
+            });
             url = aria_geturis (ariagid);
             if (url == "") {
                 url = aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST);

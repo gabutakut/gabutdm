@@ -210,7 +210,7 @@ namespace Gabut {
             });
             headerbar.pack_start (add_button);
             var torrentbutton = new Gtk.Button.from_icon_name ("document-open", Gtk.IconSize.BUTTON) {
-                tooltip_text = _("Open .torrent file")
+                tooltip_text = _("Open .torrent .metalink file")
             };
             headerbar.pack_start (torrentbutton);
             torrentbutton.clicked.connect (()=> {

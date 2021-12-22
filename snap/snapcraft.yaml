@@ -86,6 +86,7 @@ parts:
         - libcanberra0
         - libqrencode4
         - aria2
+        - libhandy-1-0
   desktop-gnome-platform:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
     source-subdir: gtk
