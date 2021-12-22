@@ -580,30 +580,212 @@ namespace Gabut {
         }
     }
 
-    private enum TorrentPeers {
-        PEERID = 0,
-        IP = 1,
-        PORT = 2,
-        BITFIELD = 3,
-        AMCHOKING = 4,
-        PEERCHOKING = 5;
-
-        public string get_name () {
-            switch (this) {
-                case IP:
-                    return "ip";
-                case PORT:
-                    return "port";
-                case BITFIELD:
-                    return "bitfield";
-                case AMCHOKING:
-                    return "amChoking";
-                case PEERCHOKING:
-                    return "peerChoking";
-                default:
-                    return "peerId";
-            }
+    private string get_peerid (string mode) {
+        switch (mode) {
+            case "7T":
+                return "aTorrent for Android";
+            case "AB":
+                return "AnyEvent::BitTorrent";
+            case "AG":
+            case "A~":
+                return "Ares";
+            case "AR":
+                return "Arctic";
+            case "AV":
+                return "Avicora";
+            case "AT":
+                return "Artemis";
+            case "AX":
+                return "BitPump";
+            case "AZ":
+                return "Azureus";
+            case "BB":
+                return "BitBuddy";
+            case "BC":
+                return "BitComet";
+            case "BE":
+                return "Baretorrent";
+            case "BF":
+                return "Bitflu";
+            case "BG":
+                return "BTG (uses Rasterbar libtorrent)";
+            case "BL":
+                return "BitCometLite / BitBlinder";
+            case "BP":
+                return "BitTorrent";
+            case "BR":
+                return "BitRocket";
+            case "BS":
+                return "BTSlave";
+            case "BT":
+                return "BitTorrent";
+            case "Bt":
+                return "Bt";
+            case "BW":
+                return "BitWombat";
+            case "BX":
+                return "Bittorrent X";
+            case "CD":
+                return "Enhanced CTorrent";
+            case "CT":
+                return "CTorrent";
+            case "DE":
+                return "DelugeTorrent";
+            case "DP":
+                return "Propagate Data Client";
+            case "EB":
+                return "EBit";
+            case "ES":
+                return "electric sheep";
+            case "FC":
+                return "FileCroc";
+            case "FD":
+                return "Free Download Manager";
+            case "FT":
+                return "FoxTorrent";
+            case "FX":
+                return "Freebox BitTorrent";
+            case "GS":
+                return "GSTorrent";
+            case "HK":
+                return "Hekate";
+            case "HL":
+                return "Halite";
+            case "HM":
+                return "hMule";
+            case "HN":
+                return "Hydranode";
+            case "IL":
+                return "iLivid";
+            case "JS":
+                return "Justseed.it client";
+            case "JT":
+                return "JavaTorrent";
+            case "KG":
+                return "KGet";
+            case "KT":
+                return "KTorrent";
+            case "LC":
+                return "LeechCraft";
+            case "LH":
+                return "LH-ABC";
+            case "LP":
+                return "Lphant";
+            case "lt":
+            case "LT":
+                return "libtorrent";
+            case "LW":
+                return "LimeWire";
+            case "MK":
+                return "Meerkat";
+            case "MO":
+                return "MonoTorrent";
+            case "MP":
+                return "MooPolice";
+            case "MR":
+                return "Miro";
+            case "MT":
+                return "MoonlightTorrent";
+            case "NB":
+                return "Net::BitTorrent";
+            case "NX":
+                return "Net Transport";
+            case "OS":
+                return "OneSwarm";
+            case "OT":
+                return "OmegaTorrent";
+            case "PB":
+                return "Protocol::BitTorrent";
+            case "PD":
+                return "Pando";
+            case "PI":
+                return "PicoTorrent";
+            case "PT":
+                return "PHPTracker";
+            case "qB":
+                return "qBittorrent";
+            case "QD":
+                return "QQDownload";
+            case "QT":
+                return "Qt 4 Torrent example";
+            case "RT":
+                return "Retriever";
+            case "RZ":
+                return "RezTorrent";
+            case "S~":
+                return "Shareaza alpha/beta";
+            case "SB":
+                return "~Swiftbit";
+            case "SD":
+                return "Thunder";
+            case "SM":
+                return "SoMud";
+            case "SP":
+                return "BitSpirit";
+            case "SS":
+                return "SwarmScope";
+            case "ST":
+                return "SymTorrent";
+            case "st":
+                return "sharktorrent";
+            case "SZ":
+                return "Shareaza";
+            case "TB":
+                return "Torch";
+            case "TE":
+                return "terasaur Seed Bank";
+            case "TL":
+                return "Tribler";
+            case "TN":
+                return "TorrentDotNET";
+            case "TR":
+                return "Transmission";
+            case "TS":
+                return "Torrentstorm";
+            case "TT":
+                return "TuoTu";
+            case "UL":
+                return "uLeecher";
+            case "UM":
+            case "UT":
+                return "µTorrent";
+            case "VG":
+                return "Vagaa";
+            case "WD":
+                return "WebTorrent Desktop";
+            case "WT":
+                return "BitLet";
+            case "WW":
+                return "WebTorrent";
+            case "WY":
+                return "FireTorrent";
+            case "XF":
+                return "Xfplay";
+            case "XL":
+                return "Xunlei";
+            case "XS":
+                return "XSwifter";
+            case "XT":
+                return "XanTorrent";
+            case "XX":
+                return "Xtorrent";
+            case "ZT":
+                return "ZipTorrent";
+            default:
+                return "Unknow";
         }
+    }
+
+    private enum TorrentPeers {
+        HOST,
+        PEERID,
+        DOWNLOADSPEED,
+        UPLOADSPEED,
+        SEEDER,
+        BITFIELD,
+        AMCHOKING,
+        PEERCHOKING,
+        N_COLUMNS
     }
 
     private enum AriaGetfiles {
@@ -900,7 +1082,7 @@ namespace Gabut {
         var session = new Soup.Session ();
         var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
-        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"],{");
+        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
@@ -997,7 +1179,8 @@ namespace Gabut {
         return result_ret (result);
     }
 
-    private string aria_get_peers (TorrentPeers peers, string gid) {
+    private Gtk.ListStore aria_get_peers (string gid) {
+        var liststore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
         var session = new Soup.Session ();
         var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}";
@@ -1005,20 +1188,26 @@ namespace Gabut {
         session.send_message (message);
         string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
-            return "";
+            return liststore;
         }
-        try {
-            MatchInfo match_info;
-            Regex regex = new Regex (@"\"$(peers.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string tellpeers = match_info.fetch (1);
-            if (tellpeers != null) {
-                return tellpeers;
+        string regexstr = "{\"amChoking\":\"(.*?)\".*?\"bitfield\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"ip\":\"(.*?)\".*?\"peerChoking\":\"(.*?)\".*?\"peerId\":\"(.*?)\".*?\"port\":\"(.*?)\".*?\"seeder\":\"(.*?)\".*?\"uploadSpeed\":\"(.*?)\"}";
+        if (Regex.match_simple (regexstr, result)) {
+            try {
+                MatchInfo match_info;
+                Regex regex = new Regex (regexstr);
+                regex.match_full (result, -1, 0, 0, out match_info);
+                while (match_info.matches ()) {
+                    string peerid = Soup.URI.decode (match_info.fetch (6));
+                    Gtk.TreeIter iter;
+                    liststore.append (out iter);
+                    liststore.set (iter, TorrentPeers.HOST, @"$(match_info.fetch (4)):$(match_info.fetch (7))", TorrentPeers.PEERID, peerid != ""? get_peerid (peerid.slice (1, 3)) : "Unknow", TorrentPeers.DOWNLOADSPEED, format_size (int64.parse (match_info.fetch (3))), TorrentPeers.UPLOADSPEED, match_info.fetch (9), TorrentPeers.SEEDER, match_info.fetch (8), TorrentPeers.BITFIELD, match_info.fetch (2), TorrentPeers.AMCHOKING, match_info.fetch (1), TorrentPeers.PEERCHOKING, match_info.fetch (5));
+                    match_info.next ();
+                }
+            } catch (Error e) {
+                GLib.warning (e.message);
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
         }
-        return "";
+        return liststore;
     }
 
     private string aria_tell_status (string gid, TellStatus type) {

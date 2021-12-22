@@ -69,7 +69,7 @@ namespace Gabut {
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_TRIES))
             };
 
-            var numbconn = new Gtk.SpinButton.with_range (0, 16, 1) {
+            var numbconn = new Gtk.SpinButton.with_range (0, 64, 1) {
                 width_request = 220,
                 hexpand = true,
                 primary_icon_name = "network-wireless",
