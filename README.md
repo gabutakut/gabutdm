@@ -4,6 +4,7 @@
     <img src="data/icons/128/com.github.gabutakut.gabutdm.svg" alt="Gabut Download Manager">
 </h1>
 <h4 align="center">Simple and Faster Download Manager</h4>
+<h1 align="center">Support</h1>
 <p align="center">
     <a href="https://liberapay.com/GabutAkut"><img
             src="https://img.shields.io/liberapay/patrons/GabutAkut.svg?logo=liberapay" alt="GabutAkut on Liberapay"></a>
@@ -35,6 +36,7 @@ Made with love.
 ![screenshot](Screenshot4.png)
 ![screenshot](Screenshot5.png)
 ![screenshot](Screenshot6.png)
+![screenshot](Screenshot7.png)
 
 ## Build with meson:
 
