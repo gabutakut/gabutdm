@@ -32,7 +32,7 @@ namespace Gabut {
             }
             set {
                 _fileallocation = value;
-                allocate_button.label = _("File Allocation: %s").printf (_fileallocation.fileallocation.get_name ());
+                allocate_button.label = _fileallocation.fileallocation.get_name ();
             }
         }
 
@@ -52,7 +52,7 @@ namespace Gabut {
             view_mode.append_text (_("Default"));
             view_mode.append_text (_("BitTorrent"));
             view_mode.append_text (_("Folder"));
-            view_mode.append_text (_("RPC Option"));
+            view_mode.append_text (_("Option"));
             view_mode.append_text (_("System"));
             view_mode.selected = 0;
 
@@ -65,11 +65,11 @@ namespace Gabut {
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "view-refresh",
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_TRIES))
             };
 
-            var numbconn = new Gtk.SpinButton.with_range (0, 64, 1) {
+            var numbconn = new Gtk.SpinButton.with_range (0, 16, 1) {
                 width_request = 220,
                 hexpand = true,
                 primary_icon_name = "network-wireless",
@@ -106,6 +106,7 @@ namespace Gabut {
 
             var settings = new Gtk.Grid () {
                 expand = true,
+                column_homogeneous = true,
                 height_request = 150,
                 margin_bottom = 5,
                 column_spacing = 10,
@@ -128,33 +129,84 @@ namespace Gabut {
             var maxopfile = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "application-x-bittorrent",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_OPEN_FILES))
             };
 
             var maxpeers = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "avatar-default",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_PEERS))
             };
 
             var bt_timeout = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_TRACKER_TIMEOUT))
             };
 
             var bt_seedtime = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.SEED_TIME))
             };
 
+            var bt_upload = new Gtk.SpinButton.with_range (0, 99999, 1) {
+                width_request = 220,
+                hexpand = true,
+                primary_icon_name = "go-up",
+                value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT)) / 1024
+            };
+
+            var bt_download = new Gtk.SpinButton.with_range (0, 99999, 1) {
+                width_request = 220,
+                hexpand = true,
+                primary_icon_name = "go-down",
+                value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT)) / 1024
+            };
+            var bttrackertext = new Gtk.TextView ();
+            bttrackertext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
+            bttrackertext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress Key \"[CTRL]+A\" to be Format Tracker");
+            bttrackertext.buffer.text = aria_get_globalops (AriaOptions.BT_TRACKER).replace ("\\/", "/");
+            bttrackertext.select_all.connect (()=> {
+                bttrackertext.buffer.text = bttrackertext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
+                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
+                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
+                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
+                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+            });
+
+            var bttrackertextscr = new Gtk.ScrolledWindow (null, null) {
+                width_request = 220,
+                height_request = 100
+            };
+            bttrackertextscr.get_style_context ().add_class ("frame");
+            bttrackertextscr.add (bttrackertext);
+
+            var bttrackertextext = new Gtk.TextView ();
+            bttrackertextext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
+            bttrackertextext.buffer.text = aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
+            bttrackertextext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress Key \"[CTRL]+A\" to be Format Tracker");
+            bttrackertextext.select_all.connect (()=> {
+                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
+                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
+                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
+                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
+                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+            });
+            var bttrackertextscrext = new Gtk.ScrolledWindow (null, null) {
+                width_request = 220,
+                height_request = 100
+            };
+            bttrackertextscrext.get_style_context ().add_class ("frame");
+            bttrackertextscrext.add (bttrackertextext);
+
             var bittorrent = new Gtk.Grid () {
                 expand = true,
+                column_homogeneous = true,
                 height_request = 150,
                 margin_bottom = 5,
                 column_spacing = 10,
@@ -169,6 +221,14 @@ namespace Gabut {
             bittorrent.attach (bt_timeout, 1, 3, 1, 1);
             bittorrent.attach (new HeaderLabel (_("Seed Time (in Minutes):"), 220), 0, 2, 1, 1);
             bittorrent.attach (bt_seedtime, 0, 3, 1, 1);
+            bittorrent.attach (new HeaderLabel (_("Upload Limit (in Kb):"), 220), 1, 4, 1, 1);
+            bittorrent.attach (bt_upload, 1, 5, 1, 1);
+            bittorrent.attach (new HeaderLabel (_("Download Limit (in Kb):"), 220), 0, 4, 1, 1);
+            bittorrent.attach (bt_download, 0, 5, 1, 1);
+            bittorrent.attach (new HeaderLabel (_("BitTorrent Tracker Exclude:"), 220), 1, 6, 1, 1);
+            bittorrent.attach (bttrackertextscrext, 1, 7, 1, 1);
+            bittorrent.attach (new HeaderLabel (_("BitTorrent Tracker:"), 220), 0, 6, 1, 1);
+            bittorrent.attach (bttrackertextscr, 0, 7, 1, 1);
 
             var folder_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.SELECT_FOLDER);
             var filter_folder = new Gtk.FileFilter ();
@@ -189,15 +249,29 @@ namespace Gabut {
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "go-home",
                 value = double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
             };
 
             var local_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "go-home",
                 value = double.parse (get_dbsetting (DBSettings.PORTLOCAL))
+            };
+
+            var bt_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
+                width_request = 220,
+                hexpand = true,
+                primary_icon_name = "go-home",
+                value = double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
+            };
+
+            var dht_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
+                width_request = 220,
+                hexpand = true,
+                primary_icon_name = "go-home",
+                value = double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
             };
 
             var maxrequest = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
@@ -210,12 +284,10 @@ namespace Gabut {
             var diskcache = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
+                primary_icon_name = "drive-harddisk",
                 value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
             };
-            allocate_button = new Gtk.MenuButton () {
-                margin_top = 5
-            };
+            allocate_button = new Gtk.MenuButton ();
             var allocate_flow = new Gtk.FlowBox ();
             var allocate_popover = new Gtk.Popover (allocate_button);
             allocate_popover.position = Gtk.PositionType.TOP;
@@ -243,21 +315,27 @@ namespace Gabut {
 
             var moreoptions = new Gtk.Grid () {
                 expand = true,
+                column_homogeneous = true,
                 height_request = 150,
                 margin_bottom = 5,
                 column_spacing = 10,
                 halign = Gtk.Align.START
             };
             moreoptions.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            moreoptions.attach (new HeaderLabel (_("RPC Port:"), 220), 1, 0, 1, 1);
-            moreoptions.attach (rpc_port, 1, 1, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("Local Port:"), 220), 0, 0, 1, 1);
-            moreoptions.attach (local_port, 0, 1, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("RPC Max Request Size (in Byte):"), 220), 1, 2, 1, 1);
-            moreoptions.attach (maxrequest, 1, 3, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("Disk Cache (in Byte):"), 220), 1, 4, 1, 1);
-            moreoptions.attach (diskcache, 1, 5, 1, 1);
-            moreoptions.attach (allocate_button, 1, 6, 1, 1);
+            moreoptions.attach (new HeaderLabel (_("RPC Port:"), 220), 0, 0, 1, 1);
+            moreoptions.attach (rpc_port, 0, 1, 1, 1);
+            moreoptions.attach (new HeaderLabel (_("Local Port:"), 220), 0, 2, 1, 1);
+            moreoptions.attach (local_port, 0, 3, 1, 1);
+            moreoptions.attach (new HeaderLabel (_("BT Listen Port:"), 220), 0, 4, 1, 1);
+            moreoptions.attach (bt_listenport, 0, 5, 1, 1);
+            moreoptions.attach (new HeaderLabel (_("DHT Listen Port:"), 220), 0, 6, 1, 1);
+            moreoptions.attach (dht_listenport, 0, 7, 1, 1);
+            moreoptions.attach (new HeaderLabel (_("RPC Max Request Size (in Byte):"), 220), 1, 0, 1, 1);
+            moreoptions.attach (maxrequest, 1, 1, 1, 1);
+            moreoptions.attach (new HeaderLabel (_("Disk Cache (in Byte):"), 220), 1, 2, 1, 1);
+            moreoptions.attach (diskcache, 1, 3, 1, 1);
+            moreoptions.attach (new HeaderLabel (_("File Allocation:"), 220), 1, 4, 1, 1);
+            moreoptions.attach (allocate_button, 1, 5, 1, 1);
 
             var notifydia = new Gtk.Grid ();
             notifydia.add (new Gtk.Image.from_icon_name ("dialog-information", Gtk.IconSize.SMALL_TOOLBAR));
@@ -383,26 +461,28 @@ namespace Gabut {
                 aria_set_globalops (AriaOptions.SEED_TIME, set_dbsetting (DBSettings.SEEDTIME, bt_seedtime.value.to_string ()));
                 aria_set_globalops (AriaOptions.ALLOW_OVERWRITE, set_dbsetting (DBSettings.OVERWRITE, allowrepl.active.to_string ()));
                 aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, set_dbsetting (DBSettings.AUTORENAMING, autorename.active.to_string ()));
+                aria_set_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, set_dbsetting (DBSettings.UPLOADLIMIT, (bt_upload.value * 1024).to_string ()));
+                aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, set_dbsetting (DBSettings.DOWNLOADLIMIT, (bt_download.value * 1024).to_string ()));
+                aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, bttrackertext.buffer.text.replace ("/", "\\/")));
+                aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, bttrackertextext.buffer.text.replace ("/", "\\/")));
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
                 set_dbsetting (DBSettings.STARTUP, appstartup.active.to_string ());
+                set_dbsetting (DBSettings.RPCPORT, rpc_port.value.to_string ());
+                set_dbsetting (DBSettings.RPCSIZE, maxrequest.value.to_string ());
+                set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());
+                set_dbsetting (DBSettings.BTLISTENPORT, bt_listenport.value.to_string ());
+                set_dbsetting (DBSettings.DHTLISTENPORT, dht_listenport.value.to_string ());
                 if (maxcurrent.value != double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))) {
                     aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.MAXACTIVE, maxcurrent.value.to_string ()));
                     max_active ();
                 }
-                if (rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))) {
-                    set_dbsetting (DBSettings.RPCPORT, rpc_port.value.to_string ());
-                }
-                if (maxrequest.value != double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))) {
-                    set_dbsetting (DBSettings.RPCSIZE, maxrequest.value.to_string ());
-                }
-                if (maxrequest.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))) {
-                    set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());
-                }
                 if (diskcache.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
                 || maxrequest.value != double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))
                 || rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
+                || bt_listenport.value != double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
+                || dht_listenport.value != double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
                 || get_dbsetting (DBSettings.FILEALLOCATION) != fileallocation.fileallocation.get_name ()) {
                     set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.get_name ());
                     aria_shutdown ();
