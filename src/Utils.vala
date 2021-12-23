@@ -45,7 +45,13 @@ namespace Gabut {
         AUTORENAMING = 21,
         FILEALLOCATION = 22,
         STARTUP = 23,
-        STYLE = 24;
+        STYLE = 24,
+        UPLOADLIMIT = 25,
+        DOWNLOADLIMIT = 26,
+        BTLISTENPORT = 27,
+        DHTLISTENPORT = 28,
+        BTTRACKER = 29,
+        BTTRACKEREXC = 30;
 
         public string get_name () {
             switch (this) {
@@ -97,6 +103,18 @@ namespace Gabut {
                     return "startup";
                 case STYLE:
                     return "style";
+                case UPLOADLIMIT:
+                    return "uploadlimit";
+                case DOWNLOADLIMIT:
+                    return "downloadlimit";
+                case BTLISTENPORT:
+                    return "btlistenport";
+                case DHTLISTENPORT:
+                    return "dhtlistenport";
+                case BTTRACKER:
+                    return "bttracker";
+                case BTTRACKEREXC:
+                    return "bttrackerexc";
                 default:
                     return "id";
             }
@@ -315,7 +333,13 @@ namespace Gabut {
         SELECT_FILE = 89,
         HEADER = 90,
         SEED_TIME = 91,
-        CHECKSUM = 92;
+        CHECKSUM = 92,
+        MAX_OVERALL_UPLOAD_LIMIT = 93,
+        MAX_OVERALL_DOWNLOAD_LIMIT = 94,
+        LISTEN_PORT = 95,
+        DHT_LISTEN_PORT = 96,
+        BT_TRACKER = 97,
+        BT_EXCLUDE_TRACKER = 98;
 
         public string get_name () {
             switch (this) {
@@ -503,6 +527,18 @@ namespace Gabut {
                     return "seed-time";
                 case CHECKSUM:
                     return "checksum";
+                case MAX_OVERALL_UPLOAD_LIMIT:
+                    return "max-overall-upload-limit";
+                case MAX_OVERALL_DOWNLOAD_LIMIT:
+                    return "max-overall-download-limit";
+                case LISTEN_PORT:
+                    return "listen-port";
+                case DHT_LISTEN_PORT:
+                    return "dht-listen-port";
+                case BT_TRACKER:
+                    return "bt-tracker";
+                case BT_EXCLUDE_TRACKER:
+                    return "bt-exclude-tracker";
                 default:
                     return "allow-overwrite";
             }
@@ -1038,6 +1074,12 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"],{");
         uint hasempty = stringbuild.str.hash ();
+        if (options.has_key (AriaOptions.PROXY.get_name ()) && options.has_key (AriaOptions.PROXYPORT.get_name ())) {
+            var proxy = @"$(options.@get (AriaOptions.PROXY.get_name ())):$(options.@get (AriaOptions.PROXYPORT.get_name ()))";
+            stringbuild.append (@"\"$(AriaOptions.PROXY.get_name ())\" : \"$(proxy)\"");
+            options.unset (AriaOptions.PROXY.get_name ());
+            options.unset (AriaOptions.PROXYPORT.get_name ());
+        }
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
@@ -1061,6 +1103,12 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
+        if (options.has_key (AriaOptions.PROXY.get_name ()) && options.has_key (AriaOptions.PROXYPORT.get_name ())) {
+            var proxy = @"$(options.@get (AriaOptions.PROXY.get_name ())):$(options.@get (AriaOptions.PROXYPORT.get_name ()))";
+            stringbuild.append (@"\"$(AriaOptions.PROXY.get_name ())\" : \"$(proxy)\"");
+            options.unset (AriaOptions.PROXY.get_name ());
+            options.unset (AriaOptions.PROXYPORT.get_name ());
+        }
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
@@ -1084,6 +1132,12 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
+        if (options.has_key (AriaOptions.PROXY.get_name ()) && options.has_key (AriaOptions.PROXYPORT.get_name ())) {
+            var proxy = @"$(options.@get (AriaOptions.PROXY.get_name ())):$(options.@get (AriaOptions.PROXYPORT.get_name ()))";
+            stringbuild.append (@"\"$(AriaOptions.PROXY.get_name ())\" : \"$(proxy)\"");
+            options.unset (AriaOptions.PROXY.get_name ());
+            options.unset (AriaOptions.PROXYPORT.get_name ());
+        }
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
@@ -1515,7 +1569,9 @@ namespace Gabut {
         string size_req = get_dbsetting (DBSettings.RPCSIZE);
         string cache = get_dbsetting (DBSettings.DISKCACHE);
         string allocate = get_dbsetting (DBSettings.FILEALLOCATION);
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--disk-cache=$(cache)", @"--file-allocation=$(allocate.down ())", "--quiet=true"};
+        string btport = get_dbsetting (DBSettings.BTLISTENPORT);
+        string dhtport = get_dbsetting (DBSettings.DHTLISTENPORT);
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--listen-port=$(btport)", @"--dht-listen-port=$(dhtport)", @"--disk-cache=$(cache)", @"--file-allocation=$(allocate.down ())", "--quiet=true"};
         GLib.SubprocessFlags flags = GLib.SubprocessFlags.STDIN_INHERIT | GLib.SubprocessFlags.STDOUT_SILENCE | GLib.SubprocessFlags.STDERR_MERGE;
         GLib.Subprocess subprocess = new GLib.Subprocess.newv (exec, flags);
         if (yield subprocess.wait_check_async ()) {
@@ -1569,6 +1625,18 @@ namespace Gabut {
         do {
             aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, get_dbsetting (DBSettings.AUTORENAMING));
         } while (get_dbsetting (DBSettings.AUTORENAMING) != aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING));
+        do {
+            aria_set_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, get_dbsetting (DBSettings.UPLOADLIMIT));
+        } while (get_dbsetting (DBSettings.UPLOADLIMIT) != aria_get_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT));
+        do {
+            aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, get_dbsetting (DBSettings.DOWNLOADLIMIT));
+        } while (get_dbsetting (DBSettings.DOWNLOADLIMIT) != aria_get_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT));
+        do {
+            aria_set_globalops (AriaOptions.BT_TRACKER, get_dbsetting (DBSettings.BTTRACKER));
+        } while (get_dbsetting (DBSettings.BTTRACKER) != aria_get_globalops (AriaOptions.BT_TRACKER));
+        do {
+            aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, get_dbsetting (DBSettings.BTTRACKEREXC));
+        } while (get_dbsetting (DBSettings.BTTRACKEREXC) != aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER));
     }
 
     private async void get_css_online (string url, string filename) throws Error {
@@ -1845,13 +1913,19 @@ namespace Gabut {
             autorenaming   TEXT    NOT NULL,
             allocation     TEXT    NOT NULL,
             startup        TEXT    NOT NULL,
-            style          TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\");");
+            style          TEXT    NOT NULL,
+            uploadlimit    TEXT    NOT NULL,
+            downloadlimit  TEXT    NOT NULL,
+            btlistenport   TEXT    NOT NULL,
+            dhtlistenport  TEXT    NOT NULL,
+            bttracker      TEXT    NOT NULL,
+            bttrackerexc   TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\");");
     }
 
     private void check_table () {
-        if ((db_table ("settings") - 1) != DBSettings.STYLE) {
+        if ((db_table ("settings") - 1) != DBSettings.BTTRACKEREXC) {
             if (db_table ("settings") > 0) {
                 GabutApp.db.exec ("DROP TABLE settings;");
             }

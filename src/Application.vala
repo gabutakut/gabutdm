@@ -73,6 +73,7 @@ namespace Gabut {
                     notify_app (_("Database Error"),
                                 _("Can't open database: %s\n").printf (db.errmsg ()), new ThemedIcon ("office-database"));
                 }
+                check_table ();
                 if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
                     return;
                 }
@@ -144,7 +145,6 @@ namespace Gabut {
                 start ();
                 perform_key_event ("<Control>v", true, 100);
                 perform_key_event ("<Control>v", false, 0);
-                check_table ();
                 pantheon_theme.begin ();
                 gabutwindow.load_dowanload ();
             } else {

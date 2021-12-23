@@ -32,7 +32,7 @@ namespace Gabut {
         private MediaEntry link_entry;
         private MediaEntry name_entry;
         private MediaEntry proxy_entry;
-        private MediaEntry port_entry;
+        private Gtk.SpinButton port_entry;
         private MediaEntry user_entry;
         private MediaEntry pass_entry;
         private MediaEntry loguser_entry;
@@ -192,9 +192,9 @@ namespace Gabut {
                 placeholder_text = _("Address")
             };
 
-            port_entry = new MediaEntry ("dialog-information", "edit-paste") {
+            port_entry = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 100,
-                placeholder_text = _("Port")
+                primary_icon_name = "dialog-information"
             };
 
             user_entry = new MediaEntry ("avatar-default", "edit-paste") {
@@ -458,14 +458,11 @@ namespace Gabut {
             if (proxy_entry.text != "") {
                 hashoptions[AriaOptions.PROXY.get_name ()] = proxy_entry.text.strip ();
                 if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.PROXY, proxy_entry.text.to_string ());
+                    aria_set_option (row.ariagid, AriaOptions.PROXY, @"$(proxy_entry.text):$(port_entry.value))");
                 }
             }
-            if (port_entry.text != "") {
-                hashoptions[AriaOptions.PROXYPORT.get_name ()] = port_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.PROXYPORT, port_entry.text.to_string ());
-                }
+            if (port_entry.value != 0) {
+                hashoptions[AriaOptions.PROXYPORT.get_name ()] = port_entry.value.to_string ();
             }
             if (user_entry.text != "") {
                 hashoptions[AriaOptions.PROXYUSERNAME.get_name ()] = user_entry.text.strip ();
@@ -582,10 +579,10 @@ namespace Gabut {
             status_image.gicon = row.imagefile.gicon;
             sizelabel.label = GLib.format_size (row.totalsize);
             if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
-                proxy_entry.text = hashoptions.@get (AriaOptions.PROXY.get_name ());
+                proxy_entry.text = hashoptions.@get (AriaOptions.PROXY.get_name ().replace (@":$(hashoptions.@get (AriaOptions.PROXYPORT.get_name ()))", ""));
             }
             if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
-                port_entry.text = hashoptions.@get (AriaOptions.PROXYPORT.get_name ());
+                port_entry.value = double.parse (hashoptions.@get (AriaOptions.PROXYPORT.get_name ()));
             }
             if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
                 user_entry.text = hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ());

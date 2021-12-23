@@ -366,19 +366,19 @@ namespace Gabut {
             down_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
                 hexpand = true,
-                primary_icon_name = "dialog-information"
+                primary_icon_name = "go-down"
             };
 
             up_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
                 hexpand = true,
-                primary_icon_name = "dialog-information"
+                primary_icon_name = "go-up"
             };
 
             bt_req_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
                 hexpand = true,
-                primary_icon_name = "dialog-information"
+                primary_icon_name = "application-x-bittorrent"
             };
 
             var limitergrid = new Gtk.Grid () {
@@ -668,7 +668,7 @@ namespace Gabut {
             });
             url = aria_geturis (ariagid);
             if (url == "") {
-                url = aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST);
+                url = aria_tell_status (ariagid, TellStatus.INFOHASH);
             }
             aria_files_store (ariagid).foreach ((model, path, iter) => {
                 bool select;
