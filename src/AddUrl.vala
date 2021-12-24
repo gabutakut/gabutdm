@@ -43,10 +43,15 @@ namespace Gabut {
         private Gtk.CheckButton save_meta;
         private Gtk.FlowBox method_flow;
         private Gtk.FlowBox checksums_flow;
+        private Gtk.FlowBox encrypt_flow;
+        private Gtk.FlowBox login_flow;
         private Gtk.MenuButton prometh_button;
         private Gtk.MenuButton checksum_button;
+        private Gtk.MenuButton encrypt_button;
+        private Gtk.MenuButton login_button;
         private Gtk.CheckButton usecookie;
         private Gtk.CheckButton usefolder;
+        private Gtk.CheckButton encrypt;
         private Gtk.FileChooserButton folder_location;
         private Gtk.FileChooserButton cookie_location;
         public DialogType dialogtype { get; construct; }
@@ -73,6 +78,28 @@ namespace Gabut {
                 _checksumtype = value;
                 checksum_button.label = _("%s").printf (_checksumtype.checksums.get_name ().up ().replace ("=", "").replace ("-", ""));
                 checksum_entry.sensitive = checksumtype.checksums.get_name () == "none"? false : true;
+            }
+        }
+
+        BTEncrypt _btencrypt = null;
+        BTEncrypt btencrypt {
+            get {
+                return _btencrypt;
+            }
+            set {
+                _btencrypt = value;
+                encrypt_button.label = _btencrypt.btencrypt.get_name ();
+            }
+        }
+
+        LoginUser _loginuser = null;
+        LoginUser loginuser {
+            get {
+                return _loginuser;
+            }
+            set {
+                _loginuser = value;
+                login_button.label = _loginuser.loginuser.get_name ();
             }
         }
 
@@ -105,6 +132,7 @@ namespace Gabut {
             view_mode.append_text (_("Option"));
             view_mode.append_text (_("Folder"));
             view_mode.append_text (_("Checksum"));
+            view_mode.append_text (_("Encrypt"));
             view_mode.selected = 0;
 
             var header = get_header_bar ();
@@ -165,10 +193,14 @@ namespace Gabut {
 
             prometh_button = new Gtk.MenuButton ();
             method_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+                margin = 10
             };
-            var method_popover = new Gtk.Popover (prometh_button);
-            method_popover.position = Gtk.PositionType.TOP;
+            var method_popover = new Gtk.Popover (prometh_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 70
+            };
             method_popover.add (method_flow);
             method_popover.show.connect (() => {
                 if (proxymethod != null) {
@@ -223,6 +255,35 @@ namespace Gabut {
             proxygrid.attach (new HeaderLabel (_("Password:"), 100), 1, 4, 1, 1);
             proxygrid.attach (pass_entry, 1, 5, 1, 1);
 
+            login_button = new Gtk.MenuButton ();
+            login_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+                margin = 10
+            };
+            var login_popover = new Gtk.Popover (login_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 140
+            };
+            login_popover.add (login_flow);
+            login_popover.show.connect (() => {
+                if (loginuser != null) {
+                    login_flow.select_child (loginuser);
+                    loginuser.grab_focus ();
+                }
+            });
+            login_button.popover = login_popover;
+            foreach (var logn in LoginUsers.get_all ()) {
+                login_flow.add (new LoginUser (logn));
+            }
+            login_flow.show_all ();
+
+            login_flow.child_activated.connect ((logn)=> {
+                loginuser = logn as LoginUser;
+                login_popover.hide ();
+            });
+            loginuser = login_flow.get_children ().nth_data (0) as LoginUser;
+
             loguser_entry = new MediaEntry ("avatar-default", "edit-paste") {
                 width_request = 300,
                 placeholder_text = _("User")
@@ -239,10 +300,11 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER
             };
             logingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            logingrid.attach (new HeaderLabel (_("User:"), 300), 1, 0, 1, 1);
-            logingrid.attach (loguser_entry, 1, 1, 1, 1);
-            logingrid.attach (new HeaderLabel (_("Password:"), 300), 1, 2, 1, 1);
-            logingrid.attach (logpass_entry, 1, 3, 1, 1);
+            logingrid.attach (login_button, 1, 0, 1, 1);
+            logingrid.attach (new HeaderLabel (_("User:"), 300), 1, 1, 1, 1);
+            logingrid.attach (loguser_entry, 1, 2, 1, 1);
+            logingrid.attach (new HeaderLabel (_("Password:"), 300), 1, 3, 1, 1);
+            logingrid.attach (logpass_entry, 1, 4, 1, 1);
 
             useragent_entry = new MediaEntry ("avatar-default", "edit-paste") {
                 width_request = 300,
@@ -309,12 +371,16 @@ namespace Gabut {
 
             checksum_button = new Gtk.MenuButton ();
             checksums_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL
+                orientation = Gtk.Orientation.HORIZONTAL,
+                margin = 10
             };
-            var checksums_popover = new Gtk.Popover (checksum_button);
-            checksums_popover.position = Gtk.PositionType.TOP;
+            var checksums_popover = new Gtk.Popover (checksum_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 200
+            };
             checksums_popover.add (checksums_flow);
             checksums_popover.show.connect (() => {
+                checksums_popover.width_request = checksum_button.get_allocated_width ();
                 if (checksumtype != null) {
                     checksums_flow.select_child (checksumtype);
                     checksumtype.grab_focus ();
@@ -347,6 +413,55 @@ namespace Gabut {
             checksumgrid.attach (new HeaderLabel (_("Hash:"), 300), 1, 2, 1, 1);
             checksumgrid.attach (checksum_entry, 1, 3, 1, 1);
 
+            encrypt_button = new Gtk.MenuButton ();
+            encrypt_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+                margin = 10
+            };
+            var encrypt_popover = new Gtk.Popover (encrypt_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 150
+            };
+            encrypt_popover.add (encrypt_flow);
+            encrypt_popover.show.connect (() => {
+                if (btencrypt != null) {
+                    encrypt_flow.select_child (btencrypt);
+                    btencrypt.grab_focus ();
+                }
+            });
+            encrypt_button.popover = encrypt_popover;
+            foreach (var encrp in BTEncrypts.get_all ()) {
+                encrypt_flow.add (new BTEncrypt (encrp));
+            }
+            encrypt_flow.show_all ();
+
+            encrypt_flow.child_activated.connect ((encrp)=> {
+                btencrypt = encrp as BTEncrypt;
+                encrypt_popover.hide ();
+            });
+            btencrypt = encrypt_flow.get_children ().nth_data (0) as BTEncrypt;
+
+            encrypt = new Gtk.CheckButton.with_label (_("BT Require Crypto")) {
+                width_request = 300,
+                margin_top = 5,
+                margin_bottom = 5
+            };
+            encrypt.toggled.connect (()=> {
+                encrypt_button.sensitive = encrypt.active;
+            });
+            encrypt_button.sensitive = encrypt.active;
+
+            var encryptgrid = new Gtk.Grid () {
+                expand = true,
+                height_request = 130,
+                halign = Gtk.Align.CENTER
+            };
+            encryptgrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
+            encryptgrid.attach (new HeaderLabel (_("BitTorrent Encryption:"), 300), 1, 0, 1, 1);
+            encryptgrid.attach (encrypt, 1, 1, 1, 1);
+            encryptgrid.attach (encrypt_button, 1, 2, 1, 1);
+
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
                 transition_duration = 500
@@ -357,6 +472,7 @@ namespace Gabut {
             stack.add_named (moregrid, "moregrid");
             stack.add_named (foldergrid, "foldergrid");
             stack.add_named (checksumgrid, "checksumgrid");
+            stack.add_named (encryptgrid, "encryptgrid");
             stack.visible_child = alllink;
             stack.show_all ();
 
@@ -447,6 +563,9 @@ namespace Gabut {
                     case 5:
                         stack.visible_child = checksumgrid;
                         break;
+                    case 6:
+                        stack.visible_child = encryptgrid;
+                        break;
                     default:
                         stack.visible_child = alllink;
                         break;
@@ -455,82 +574,120 @@ namespace Gabut {
         }
 
         private void set_option (bool save = false) {
-            if (proxy_entry.text != "") {
+            if (proxy_entry.text.strip () != "") {
                 hashoptions[AriaOptions.PROXY.get_name ()] = proxy_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.PROXY, @"$(proxy_entry.text):$(port_entry.value))");
+            } else {
+                if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
+                    hashoptions.unset (AriaOptions.PROXY.get_name ());
                 }
             }
             if (port_entry.value != 0) {
                 hashoptions[AriaOptions.PROXYPORT.get_name ()] = port_entry.value.to_string ();
+            } else {
+                if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
+                    hashoptions.unset (AriaOptions.PROXYPORT.get_name ());
+                }
             }
-            if (user_entry.text != "") {
+            if (user_entry.text.strip () != "") {
                 hashoptions[AriaOptions.PROXYUSERNAME.get_name ()] = user_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text.to_string ());
+            } else {
+                if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
+                    hashoptions.unset (AriaOptions.PROXYUSERNAME.get_name ());
                 }
             }
-            if (pass_entry.text != "") {
+            if (pass_entry.text.strip () != "") {
                 hashoptions[AriaOptions.PROXYPASSWORD.get_name ()] = pass_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, pass_entry.text.to_string ());
+            } else {
+                if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
+                    hashoptions.unset (AriaOptions.PROXYPASSWORD.get_name ());
                 }
             }
-            if (loguser_entry.text != "") {
+            if (loguser_entry.text.strip () != "") {
                 hashoptions[AriaOptions.USERNAME.get_name ()] = loguser_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.USERNAME, loguser_entry.text.to_string ());
+            } else {
+                if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
+                    hashoptions.unset (AriaOptions.USERNAME.get_name ());
                 }
             }
-            if (logpass_entry.text != "") {
+            if (logpass_entry.text.strip () != "") {
                 hashoptions[AriaOptions.PASSWORD.get_name ()] = logpass_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.PASSWORD, logpass_entry.text.to_string ());
+            } else {
+                if (hashoptions.has_key (AriaOptions.PASSWORD.get_name ())) {
+                    hashoptions.unset (AriaOptions.PASSWORD.get_name ());
                 }
             }
             if (usefolder.active) {
                 hashoptions[AriaOptions.DIR.get_name ()] = folder_location.get_file ().get_path ().replace ("/", "\\/");
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.DIR, folder_location.get_file ().get_path ().replace ("/", "\\/"));
+            } else {
+                if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
+                    hashoptions.unset (AriaOptions.DIR.get_name ());
                 }
             }
             if (usecookie.active) {
                 hashoptions[AriaOptions.COOKIE.get_name ()] = cookie_location.get_file ().get_path ().replace ("/", "\\/");
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.COOKIE, cookie_location.get_file ().get_path ().replace ("/", "\\/"));
+            } else {
+                if (hashoptions.has_key (AriaOptions.COOKIE.get_name ())) {
+                    hashoptions.unset (AriaOptions.COOKIE.get_name ());
                 }
             }
-            if (refer_entry.text != "") {
+            if (refer_entry.text.strip () != "") {
                 hashoptions[AriaOptions.REFERER.get_name ()] = refer_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text.to_string ());
+            } else {
+                if (hashoptions.has_key (AriaOptions.REFERER.get_name ())) {
+                    hashoptions.unset (AriaOptions.REFERER.get_name ());
                 }
             }
-            if (name_entry.text != "") {
+            if (name_entry.text.strip () != "") {
                 hashoptions[AriaOptions.OUT.get_name ()] = name_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text.to_string ());
+            } else {
+                if (hashoptions.has_key (AriaOptions.OUT.get_name ())) {
+                    hashoptions.unset (AriaOptions.OUT.get_name ());
                 }
             }
-            if (useragent_entry.text != "") {
+            if (useragent_entry.text.strip () != "") {
                 hashoptions[AriaOptions.USER_AGENT.get_name ()] = useragent_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.USER_AGENT, useragent_entry.text.strip ());
+            } else {
+                if (hashoptions.has_key (AriaOptions.USER_AGENT.get_name ())) {
+                    hashoptions.unset (AriaOptions.USER_AGENT.get_name ());
                 }
             }
-            if (checksum_entry.text != "") {
-                hashoptions[AriaOptions.CHECKSUM.get_name ()] = checksumtype.checksums.get_name () + checksum_entry.text.strip ();
-                if (save) {
-                    aria_set_option (row.ariagid, AriaOptions.CHECKSUM, checksumtype.checksums.get_name () + checksum_entry.text.strip ());
+            if (checksumtype.checksums.get_name ().down () != "none") {
+                if (checksum_entry.text != "") {
+                    hashoptions[AriaOptions.CHECKSUM.get_name ()] = checksumtype.checksums.get_name () + checksum_entry.text.strip ();
+                }
+            } else {
+                if (hashoptions.has_key (AriaOptions.CHECKSUM.get_name ())) {
+                    hashoptions.unset (AriaOptions.CHECKSUM.get_name ());
                 }
             }
             hashoptions[AriaOptions.BT_SAVE_METADATA.get_name ()] = save_meta.active.to_string ();
             hashoptions[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = save_meta.active.to_string ();
             hashoptions[AriaOptions.PROXY_METHOD.get_name ()] = proxymethod.method.get_name ().down ();
+            hashoptions[AriaOptions.BT_REQUIRE_CRYPTO.get_name ()] = encrypt.active.to_string ();
+            hashoptions[AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ()] = btencrypt.btencrypt.get_name ().down ();
             if (save) {
+                if (checksumtype.checksums.get_name ().down () != "none") {
+                    aria_set_option (row.ariagid, AriaOptions.CHECKSUM, checksumtype.checksums.get_name () + checksum_entry.text.strip ());
+                } else {
+                    aria_set_option (row.ariagid, AriaOptions.CHECKSUM, "");
+                }
+                aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text);
+                aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, pass_entry.text);
+                aria_set_option (row.ariagid, AriaOptions.USERNAME, loguser_entry.text);
+                aria_set_option (row.ariagid, AriaOptions.PASSWORD, logpass_entry.text);
+                aria_set_option (row.ariagid, AriaOptions.COOKIE, usecookie.active? cookie_location.get_file ().get_path ().replace ("/", "\\/") : "");
+                aria_set_option (row.ariagid, AriaOptions.DIR, usefolder.active? folder_location.get_file ().get_path ().replace ("/", "\\/") : get_dbsetting (DBSettings.DIR));
+                aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text);
+                if (name_entry.text.strip () != "") {
+                    aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text);
+                }
+                aria_set_option (row.ariagid, AriaOptions.USER_AGENT, useragent_entry.text.strip ());
+                aria_set_option (row.ariagid, AriaOptions.PROXY, proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value))" : "");
                 aria_set_option (row.ariagid, AriaOptions.BT_SAVE_METADATA, save_meta.active.to_string ());
                 aria_set_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA, save_meta.active.to_string ());
                 aria_set_option (row.ariagid, AriaOptions.PROXY_METHOD, proxymethod.method.get_name ().down ());
+                aria_set_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO, encrypt.active.to_string ());
+                aria_set_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL, btencrypt.btencrypt.get_name ().down ());
             }
         }
 
@@ -596,10 +753,12 @@ namespace Gabut {
             if (hashoptions.has_key (AriaOptions.PASSWORD.get_name ())) {
                 logpass_entry.text = hashoptions.@get (AriaOptions.PASSWORD.get_name ());
             }
-            if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
+            usefolder.active = hashoptions.has_key (AriaOptions.DIR.get_name ());
+            if (usefolder.active) {
                 folder_location.set_uri (File.new_for_path (hashoptions.@get (AriaOptions.DIR.get_name ()).replace ("\\/", "/")).get_uri ());
             }
-            if (hashoptions.has_key (AriaOptions.COOKIE.get_name ())) {
+            usecookie.active = hashoptions.has_key (AriaOptions.COOKIE.get_name ());
+            if (usecookie.active) {
                 cookie_location.set_uri (File.new_for_path (hashoptions.@get (AriaOptions.COOKIE.get_name ()).replace ("\\/", "/")).get_uri ());
             }
             if (hashoptions.has_key (AriaOptions.REFERER.get_name ())) {
@@ -610,6 +769,9 @@ namespace Gabut {
             }
             if (hashoptions.has_key (AriaOptions.OUT.get_name ())) {
                 name_entry.text = hashoptions.@get (AriaOptions.OUT.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.BT_REQUIRE_CRYPTO.get_name ())) {
+                encrypt.active = bool.parse (hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.get_name ()));
             }
             if (hashoptions.has_key (AriaOptions.PROXY_METHOD.get_name ())) {
                 foreach (var method in method_flow.get_children ()) {
@@ -623,6 +785,13 @@ namespace Gabut {
                     if (hashoptions.@get (AriaOptions.CHECKSUM.get_name ()).contains (((ChecksumType) checksum).checksums.get_name ())) {
                         checksumtype = checksum as ChecksumType;
                         checksum_entry.text = hashoptions.@get (AriaOptions.CHECKSUM.get_name ()).split ("=")[1];
+                    }
+                };
+            }
+            if (hashoptions.has_key (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ())) {
+                foreach (var encrp in encrypt_flow.get_children ()) {
+                    if (hashoptions.@get (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ()).contains (((BTEncrypt) encrp).btencrypt.get_name ().down ())) {
+                        btencrypt = encrp as BTEncrypt;
                     }
                 };
             }

@@ -21,5 +21,7 @@ sources = files (
     'ServerCss.vala',
     'FileAllocation.vala',
     'ProxyMethod.vala',
-    'ChecksumType.vala'
+    'ChecksumType.vala',
+    'BTEncrypt.vala',
+    'LoginUser.vala'
 )

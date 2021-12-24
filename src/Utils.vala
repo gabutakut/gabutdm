@@ -906,7 +906,9 @@ namespace Gabut {
         OUT = 14,
         PROXYMETHOD = 15,
         SELECTFILE = 16,
-        CHECKSUM = 17;
+        CHECKSUM = 17,
+        CRYPTOLVL = 18,
+        REQUIRECRYP = 19;
 
         public string get_name () {
             switch (this) {
@@ -944,6 +946,10 @@ namespace Gabut {
                     return "selectfile";
                 case CHECKSUM:
                     return "checksum";
+                case CRYPTOLVL:
+                    return "cryptolvl";
+                case REQUIRECRYP:
+                    return "requirecryp";
                 default:
                     return "id";
             }
@@ -1013,6 +1019,42 @@ namespace Gabut {
 
         public static ProxyMethods [] get_all () {
             return { GET, TUNNEL };
+        }
+    }
+
+    public enum BTEncrypts {
+        PLAIN = 0,
+        ARC4 = 1;
+
+        public string get_name () {
+            switch (this) {
+                case ARC4:
+                    return "Arc4";
+                default:
+                    return "Plain";
+            }
+        }
+
+        public static BTEncrypts [] get_all () {
+            return { PLAIN, ARC4 };
+        }
+    }
+
+    public enum LoginUsers {
+        HTTP = 0,
+        FTP = 1;
+
+        public string get_name () {
+            switch (this) {
+                case FTP:
+                    return "FTP";
+                default:
+                    return "HTTP";
+            }
+        }
+
+        public static LoginUsers [] get_all () {
+            return { HTTP, FTP };
         }
     }
 
@@ -1883,7 +1925,9 @@ namespace Gabut {
             out            TEXT    NOT NULL,
             proxymethod    TEXT    NOT NULL,
             selectfile     TEXT    NOT NULL,
-            checksum       TEXT    NOT NULL);");
+            checksum       TEXT    NOT NULL,
+            cryptolvl      TEXT    NOT NULL,
+            requirecryp    TEXT    NOT NULL);");
     }
 
     private int table_settings (Sqlite.Database db) {
@@ -1940,7 +1984,7 @@ namespace Gabut {
             }
             table_download (GabutApp.db);
         }
-        if ((db_table ("options") - 1) != DBOption.CHECKSUM) {
+        if ((db_table ("options") - 1) != DBOption.REQUIRECRYP) {
             if (db_table ("options") > 0) {
                 GabutApp.db.exec ("DROP TABLE options;");
             }
@@ -2186,6 +2230,14 @@ namespace Gabut {
             if (checksums != "") {
                 hashoption[AriaOptions.CHECKSUM.get_name ()] = checksums;
             }
+            string cryptlvl = stmt.column_text (DBOption.CRYPTOLVL);
+            if (cryptlvl != "") {
+                hashoption[AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ()] = cryptlvl;
+            }
+            string requirecrtp = stmt.column_text (DBOption.REQUIRECRYP);
+            if (requirecrtp != "") {
+                hashoption[AriaOptions.BT_REQUIRE_CRYPTO.get_name ()] = requirecrtp;
+            }
         }
         stmt.reset ();
         return hashoption;
@@ -2193,7 +2245,7 @@ namespace Gabut {
 
     private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
         Sqlite.Statement stmt;
-        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, port, username, usernamepass, user, userpass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, port, username, usernamepass, user, userpass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBOption.URL, url);
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
@@ -2275,6 +2327,16 @@ namespace Gabut {
             res = stmt.bind_text (DBOption.CHECKSUM, hashoptions.@get (AriaOptions.CHECKSUM.get_name ()));
         } else {
             res = stmt.bind_text (DBOption.CHECKSUM, "");
+        }
+        if (hashoptions.has_key (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ())) {
+            res = stmt.bind_text (DBOption.CRYPTOLVL, hashoptions.@get (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ()));
+        } else {
+            res = stmt.bind_text (DBOption.CRYPTOLVL, "");
+        }
+        if (hashoptions.has_key (AriaOptions.BT_REQUIRE_CRYPTO.get_name ())) {
+            res = stmt.bind_text (DBOption.REQUIRECRYP, hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.get_name ()));
+        } else {
+            res = stmt.bind_text (DBOption.REQUIRECRYP, "");
         }
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
@@ -2440,6 +2502,24 @@ namespace Gabut {
                 string checksums = hashoptions.@get (AriaOptions.CHECKSUM.get_name ());
                 if (stmt.column_text (DBOption.CHECKSUM) != checksums) {
                     buildstr.append (@" $(DBOption.CHECKSUM.get_name ()) = \"$(checksums)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ())) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                string cryplvl = hashoptions.@get (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ());
+                if (stmt.column_text (DBOption.CRYPTOLVL) != cryplvl) {
+                    buildstr.append (@" $(DBOption.CRYPTOLVL.get_name ()) = \"$(cryplvl)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.BT_REQUIRE_CRYPTO.get_name ())) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                string reqcrypt = hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.get_name ());
+                if (stmt.column_text (DBOption.REQUIRECRYP) != reqcrypt) {
+                    buildstr.append (@" $(DBOption.REQUIRECRYP.get_name ()) = \"$(reqcrypt)\"");
                 }
             }
             if (buildstr.str.hash () == empty_hash) {
