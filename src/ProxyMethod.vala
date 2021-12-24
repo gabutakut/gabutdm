@@ -27,7 +27,7 @@ namespace Gabut {
         construct {
             content = new Gtk.Grid () {
                 row_spacing = 12,
-                valign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
             };
             add (content);
         }
@@ -35,6 +35,7 @@ namespace Gabut {
         public ProxyMethod (ProxyMethods method) {
             this.method = method;
             var title = new Gtk.Label (method.get_name ()) {
+                halign = Gtk.Align.CENTER,
                 margin_top = 6,
                 margin_bottom = 6,
                 margin_start = 12,

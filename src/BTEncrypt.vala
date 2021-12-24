@@ -20,9 +20,9 @@
 */
 
 namespace Gabut {
-    public class ChecksumType : Gtk.FlowBoxChild {
+    public class BTEncrypt : Gtk.FlowBoxChild {
         private Gtk.Grid content;
-        public AriaChecksumTypes checksums { get; private set; }
+        public BTEncrypts btencrypt { get; private set; }
 
         construct {
             content = new Gtk.Grid () {
@@ -32,9 +32,9 @@ namespace Gabut {
             add (content);
         }
 
-        public ChecksumType (AriaChecksumTypes checksums) {
-            this.checksums = checksums;
-            var title = new Gtk.Label (checksums.get_name ().up ().replace ("=", "").replace ("-", "")) {
+        public BTEncrypt (BTEncrypts btencrypt) {
+            this.btencrypt = btencrypt;
+            var title = new Gtk.Label (btencrypt.get_name ()) {
                 halign = Gtk.Align.CENTER,
                 margin_top = 6,
                 margin_bottom = 6,

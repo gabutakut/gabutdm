@@ -121,7 +121,7 @@ namespace Gabut {
             settings.attach (maxcurrent, 1, 3, 1, 1);
             settings.attach (new HeaderLabel (_("Time out (in Secconds):"), 220), 0, 2, 1, 1);
             settings.attach (timeout, 0, 3, 1, 1);
-            settings.attach (new HeaderLabel (_("Retry Wait:"), 220), 1, 4, 1, 1);
+            settings.attach (new HeaderLabel (_("Retry Wait (in Secconds):"), 220), 1, 4, 1, 1);
             settings.attach (retry, 1, 5, 1, 1);
             settings.attach (new HeaderLabel (_("Split:"), 220), 0, 4, 1, 1);
             settings.attach (split, 0, 5, 1, 1);
@@ -169,7 +169,7 @@ namespace Gabut {
             };
             var bttrackertext = new Gtk.TextView ();
             bttrackertext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
-            bttrackertext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress Key \"[CTRL]+A\" to be Format Tracker");
+            bttrackertext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress \"[CTRL]+A\" to be Format Tracker");
             bttrackertext.buffer.text = aria_get_globalops (AriaOptions.BT_TRACKER).replace ("\\/", "/");
             bttrackertext.select_all.connect (()=> {
                 bttrackertext.buffer.text = bttrackertext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
@@ -189,7 +189,7 @@ namespace Gabut {
             var bttrackertextext = new Gtk.TextView ();
             bttrackertextext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
             bttrackertextext.buffer.text = aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
-            bttrackertextext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress Key \"[CTRL]+A\" to be Format Tracker");
+            bttrackertextext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress \"[CTRL]+A\" to be Format Tracker");
             bttrackertextext.select_all.connect (()=> {
                 bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
                 bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
@@ -288,9 +288,15 @@ namespace Gabut {
                 value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
             };
             allocate_button = new Gtk.MenuButton ();
-            var allocate_flow = new Gtk.FlowBox ();
-            var allocate_popover = new Gtk.Popover (allocate_button);
-            allocate_popover.position = Gtk.PositionType.TOP;
+            var allocate_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+                margin = 10
+            };
+            var allocate_popover = new Gtk.Popover (allocate_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 70
+            };
             allocate_popover.add (allocate_flow);
             allocate_popover.show.connect (() => {
                 if (fileallocation != null) {
