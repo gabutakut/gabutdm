@@ -31,6 +31,9 @@ namespace Gabut {
                 <style>
                     $(get_css(create_folder (".bootstrap.min.css")));
                 </style>
+                <style>
+                    $(get_css(create_folder (".dropzone.min.css")));
+                </style>
                     <title>Share File To Computer</title>
                 </head>
                 <body>
@@ -53,25 +56,13 @@ namespace Gabut {
                         <div class=\"container\">
                             <div class=\"starting\">
                                 <div class=\"row\">
-                                    <div class=\"col-md-6\">
-                                        <div id=\"imgdata\"></div>
-                                        <div id=\"videodata\"></div>
-                                        <div id=\"audiodata\"></div>
-                                        <div id=\"pdfdata\"></div>
-                                        <div class=\"banner-text\"></div>
-                                    </div>
-                                    <div class=\"col-md-6\">
-                                        <div class=\"banner-text\">
-                                        <h2><div class=\"fadeInLeft animated\" id=\"labelsend\">Send File to Gabut</div></h2>
-                                        <form class=\"files fadeInLeft animated\"  action=\"/Upload\" method=\"post\" enctype=\"multipart/form-data\">
-                                            <input class=\"form-control\" type=\"file\" id=\"uploader\" name=\"file[]\"/>
-                                            <button class=\"btn btn-primary btn-lg active\">Send</button>
-                                        </form>
-                                        <div id=\"prgdata\"></div>
-                                        <label id=\"progresslabel\" for=\"progress\"></label>
-                                        <div id=\"metadata\"></div>
-                                        <div class=\"banner-text\">
-                                    </div>
+                                    <div class=\"banner-text\">
+                                    <div id=\"labelsend\"><h2>Send Multiple File</h2></div>
+                                    <form action=\"/Upload\" class=\"dropzone fadeInLeft animated\">
+                                        <div class=\"fallback\">
+                                            <input name=\"file\" type=\"file\" multiple />
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -81,12 +72,36 @@ namespace Gabut {
                     <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close Overlay\">x</span>
                     <div class=\"overlay-content\">
                         <nav>
-                        <ul>
-                            <li class=\"hideit\"><a href=\"/\">Home</a></li>
-                        </ul>
+                        <section id=\"header\" class=\"header\">
+                        <div class=\"top-bar\">
+                            <div class=\"container\">
+                                <div class=\"starting\">
+                                    <div class=\"row\">
+                                        <div class=\"col-md-6\">
+                                            <div class=\"col-xs-5\" id=\"imgdata\"></div>
+                                            <div id=\"videodata\"></div>
+                                            <div id=\"audiodata\"></div>
+                                            <div id=\"pdfdata\"></div>
+                                        </div>
+                                        <div class=\"col-md-6\">
+                                            <form class=\"files\" action=\"/Upload\" method=\"post\" enctype=\"multipart/form-data\">
+                                                <label id=\"labelsend\">Send Single File</label>
+                                                <input class=\"form-control\" type=\"file\" id=\"uploader\" name=\"file[]\"/>
+                                                <button class=\"btn btn-primary btn-lg active\">Send</button>
+                                            </form>
+                                            <div id=\"prgdata\"></div>
+                                            <div id=\"metadata\"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </nav>
                     </div>
                 </div>
+                <script>
+                    $(get_css(create_folder (".dropzone.min.js")));
+                </script>
                 <script>
                     const fileUploader = document.getElementById(\"uploader\");
                     fileUploader.addEventListener(\"change\", (event) => {
@@ -108,7 +123,6 @@ namespace Gabut {
                             if (event.loaded && event.total) {
                                 const percent = (event.loaded / event.total) * 100;
                                 progress.value = percent;
-                                document.getElementById(\"progresslabel\").innerHTML = Math.round(percent) + \"%\";
                                 if (percent === 100) {
                                     for (const file of files) {
                                         const name = file.name;
@@ -124,12 +138,12 @@ namespace Gabut {
                                         removeAllChildNodes(videodata);
                                         removeAllChildNodes(audiodata);
                                         removeAllChildNodes(pdfdata);
-                                        if (file.type == 'image/png' || file.type == 'image/jpeg') {
+                                        if (file.type == 'image/png' || file.type == 'image/jpeg' || file.type == 'image/svg+xml') {
                                             const img = document.createElement('img');
                                             imgdata.appendChild(img);
                                             img.src = URL.createObjectURL(file);
                                             img.alt = file.name;
-                                            img.className = \"img-rounded\";
+                                            img.className = \"img-rounded center-block\";
                                         }
                                         if (file.type == 'video/mp4' || file.type == 'video/mpeg' || file.type == 'video/x-matroska' || file.type == 'video/x-flv' || file.type == 'video/webm') {
                                             const vdo = document.createElement('video');

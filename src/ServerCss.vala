@@ -73,12 +73,8 @@ namespace Gabut {
             }
             #metadata {
                 color: white;
-            }
-            #progresslabel {
-                color: white;
-            }
-            #labelsend {
-                color: white;
+                font-size: 20px;
+                text-align: start;
             }
             h1{
                 font-weight: 100;
@@ -234,6 +230,9 @@ namespace Gabut {
             }
             .starting video{
                 margin-top: 50px;
+            }
+            #imgdata {
+                margin-left: 25%;
             }
             .starting audio{
                 margin-top: 110px;
