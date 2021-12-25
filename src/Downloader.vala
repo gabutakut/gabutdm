@@ -363,13 +363,13 @@ namespace Gabut {
             };
             torrscrolled.add (torrenttree);
 
-            down_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
+            down_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
                 hexpand = true,
                 primary_icon_name = "go-down"
             };
 
-            up_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
+            up_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
                 hexpand = true,
                 primary_icon_name = "go-up"

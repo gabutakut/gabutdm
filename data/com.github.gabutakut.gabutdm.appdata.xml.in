@@ -28,6 +28,16 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.6.5" date="2021-12-25">
+      <description>
+        <p>Fix Proxy</p>
+        <p>Encryption</p>
+        <p>Bittorent Tracker</p>
+        <p>View Bittorent Peers</p>
+        <p>Multiple Transfer</p>
+        <p>Open Link</p>
+      </description>
+    </release>
     <release version="1.6.1" date="2021-12-16">
       <description>
         <p>Add style</p>

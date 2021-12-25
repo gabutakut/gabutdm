@@ -349,7 +349,7 @@ namespace Gabut {
             folder_location.set_filter (filter_folder);
             folder_location.set_uri (File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/")).get_uri ());
 
-            usefolder = new Gtk.CheckButton.with_label (_("Folder")) {
+            usefolder = new Gtk.CheckButton.with_label (_("Save to Folder")) {
                 width_request = 300,
                 margin_top = 5,
                 margin_bottom = 5

@@ -81,6 +81,12 @@ namespace Gabut {
                 if (!GLib.FileUtils.test (create_folder (".bootstrap.min.css"), GLib.FileTest.EXISTS)) {
                     get_css_online.begin ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", create_folder (".bootstrap.min.css"));
                 }
+                if (!GLib.FileUtils.test (create_folder (".dropzone.min.js"), GLib.FileTest.EXISTS)) {
+                    get_css_online.begin ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", create_folder (".dropzone.min.js"));
+                }
+                if (!GLib.FileUtils.test (create_folder (".dropzone.min.css"), GLib.FileTest.EXISTS)) {
+                    get_css_online.begin ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", create_folder (".dropzone.min.css"));
+                }
                 var gabutserver = new GabutServer ();
                 gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 gabutserver.send_post_data.connect (dialog_server);
