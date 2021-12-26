@@ -27,7 +27,7 @@ namespace Gabut {
         construct {
             content = new Gtk.Grid () {
                 row_spacing = 12,
-                halign = Gtk.Align.CENTER,
+                halign = Gtk.Align.CENTER
             };
             add (content);
         }
