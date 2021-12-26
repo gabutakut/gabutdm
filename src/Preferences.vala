@@ -154,17 +154,19 @@ namespace Gabut {
                 value = double.parse (aria_get_globalops (AriaOptions.SEED_TIME))
             };
 
-            var bt_upload = new Gtk.SpinButton.with_range (0, 99999, 1) {
+            var bt_upload = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 220,
                 hexpand = true,
                 primary_icon_name = "go-up",
+                primary_icon_tooltip_text = _("0 Means Unlimited"),
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT)) / 1024
             };
 
-            var bt_download = new Gtk.SpinButton.with_range (0, 99999, 1) {
+            var bt_download = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 220,
                 hexpand = true,
                 primary_icon_name = "go-down",
+                primary_icon_tooltip_text = _("0 Means Unlimited"),
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT)) / 1024
             };
             var bttrackertext = new Gtk.TextView ();

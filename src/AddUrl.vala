@@ -174,9 +174,14 @@ namespace Gabut {
                 placeholder_text = _("Follow source name")
             };
 
-            save_meta = new Gtk.CheckButton.with_label (_("Backup Magnet, Torrent, Metalink to File")) {
+            var save_metadt = new Gtk.Grid ();
+            save_metadt.add (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.SMALL_TOOLBAR));
+            save_metadt.add (new Gtk.Label (_("Backup Magnet, Torrent, Metalink to File")));
+
+            save_meta = new Gtk.CheckButton () {
                 margin_top = 5
             };
+            save_meta.add (save_metadt);
 
             var alllink = new Gtk.Grid () {
                 expand = true,
@@ -333,11 +338,16 @@ namespace Gabut {
             all_file.add_pattern ("*");
             cookie_location.set_filter (all_file);
 
-            usecookie = new Gtk.CheckButton.with_label (_("Cookie")) {
+            var open_cook = new Gtk.Grid ();
+            open_cook.add (new Gtk.Image.from_icon_name ("document-open", Gtk.IconSize.SMALL_TOOLBAR));
+            open_cook.add (new Gtk.Label (_("Cookie")));
+
+            usecookie = new Gtk.CheckButton () {
                 width_request = 300,
                 margin_top = 5,
                 margin_bottom = 5
             };
+            usecookie.add (open_cook);
             usecookie.toggled.connect (()=> {
                 cookie_location.sensitive = usecookie.active;
             });
@@ -349,11 +359,17 @@ namespace Gabut {
             folder_location.set_filter (filter_folder);
             folder_location.set_uri (File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/")).get_uri ());
 
-            usefolder = new Gtk.CheckButton.with_label (_("Save to Folder")) {
+            var folder_used = new Gtk.Grid ();
+            folder_used.add (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.SMALL_TOOLBAR));
+            folder_used.add (new Gtk.Label (_("Save to Folder")));
+
+            usefolder = new Gtk.CheckButton () {
                 width_request = 300,
                 margin_top = 5,
                 margin_bottom = 5
             };
+            usefolder.add (folder_used);
+
             usefolder.toggled.connect (()=> {
                 folder_location.sensitive = usefolder.active;
             });
@@ -442,11 +458,15 @@ namespace Gabut {
             });
             btencrypt = encrypt_flow.get_children ().nth_data (0) as BTEncrypt;
 
-            encrypt = new Gtk.CheckButton.with_label (_("BT Require Crypto")) {
+            var encryptimg = new Gtk.Grid ();
+            encryptimg.add (new Gtk.Image.from_icon_name ("channel-secure", Gtk.IconSize.SMALL_TOOLBAR));
+            encryptimg.add (new Gtk.Label (_("BT Require Crypto")));
+
+            encrypt = new Gtk.CheckButton () {
                 width_request = 300,
-                margin_top = 5,
                 margin_bottom = 5
             };
+            encrypt.add (encryptimg);
             encrypt.toggled.connect (()=> {
                 encrypt_button.sensitive = encrypt.active;
             });

@@ -116,10 +116,10 @@ slots:
     bus: session
     name: com.github.gabutakut.gabutdm
 plugs:
-  gnome-3-38-2004:
+  gnome-3-36-1804:
     interface: content
     target: $SNAP/gnome-platform
-    default-provider: gnome-3-38-2004
+    default-provider: gnome-3-36-1804
   gtk-3-themes:
     interface: content
     target: $SNAP/data-dir/themes
