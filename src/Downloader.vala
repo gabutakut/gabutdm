@@ -175,7 +175,7 @@ namespace Gabut {
             view_mode.append_text (_("Download Status"));
             view_mode.append_text (_("Torrent Info"));
             view_mode.append_text (_("Torrent Peers"));
-            view_mode.append_text (_("File List"));
+            view_mode.append_text (_("Files"));
             view_mode.append_text (_("Speed Limiter"));
             view_mode.selected = 0;
             var header = get_header_bar ();
@@ -265,7 +265,7 @@ namespace Gabut {
                 hexpand = true,
                 use_markup = true,
                 xalign = 0,
-                max_width_chars = 50,
+                max_width_chars = 30,
                 width_request = 200
             };
             torrentmode.get_style_context ().add_class ("h4");
@@ -275,7 +275,7 @@ namespace Gabut {
                 hexpand = true,
                 use_markup = true,
                 xalign = 0,
-                max_width_chars = 50,
+                max_width_chars = 30,
                 width_request = 200
             };
             timecreation.get_style_context ().add_class ("h4");
@@ -291,7 +291,6 @@ namespace Gabut {
             var infoscr = new Gtk.ScrolledWindow (null, null) {
                 height_request = 120
             };
-            infoscr.get_style_context ().add_class ("frame");
             infoscr.add (infotorrent);
 
             commenttext = new Gtk.TextView ();
@@ -300,13 +299,14 @@ namespace Gabut {
 
             var comment = new Gtk.ScrolledWindow (null, null) {
                 width_request = 250,
-                height_request = 120
+                height_request = 120,
+                margin_bottom = 10
             };
-            comment.get_style_context ().add_class ("frame");
             comment.add (commenttext);
 
             var torrentinfo = new Gtk.Grid () {
                 expand = true,
+                column_homogeneous = true,
                 height_request = 140,
                 column_spacing = 10,
                 margin_bottom = 5,
@@ -366,12 +366,14 @@ namespace Gabut {
             down_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
                 hexpand = true,
+                primary_icon_tooltip_text = _("0 Means Unlimited"),
                 primary_icon_name = "go-down"
             };
 
             up_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
                 hexpand = true,
+                primary_icon_tooltip_text = _("0 Means Unlimited"),
                 primary_icon_name = "go-up"
             };
 
