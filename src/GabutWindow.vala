@@ -33,7 +33,6 @@ namespace Gabut {
         private Gtk.SearchEntry search_entry;
         private ModeButton view_mode;
         private AlertView nodown_alert;
-        private int64 statusactive = 0;
         private GLib.List<AddUrl> properties;
 
         public GabutWindow (Gtk.Application application) {
@@ -91,7 +90,7 @@ namespace Gabut {
             });
 
             Timeout.add (500, ()=> {
-                bool statact = statusactive > 0;
+                bool statact = int.parse (aria_globalstat (GlobalStat.NUMACTIVE)) > 0;
                 set_progress_visible.begin (!is_active && statact);
                 set_badge_visible.begin (!is_active && statact);
                 return true;
@@ -181,8 +180,8 @@ namespace Gabut {
                         property.show_all ();
                         properties.append (property);
                         property.property (row);
-                        property.saveproperty.connect ((hashoption)=> {
-                            row.hashoption = hashoption;
+                        property.save_button.clicked.connect (()=> {
+                            row = property.row;
                         });
                         property.destroy.connect (()=> {
                             properties.foreach ((proper)=> {
@@ -252,7 +251,6 @@ namespace Gabut {
 
         public override void destroy () {
             base.destroy ();
-            check_optdown ();
             var downloads = new GLib.List<DownloadRow> ();
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).url == "") {
@@ -297,7 +295,7 @@ namespace Gabut {
                     }
                 }
             });
-            get_active ();
+            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         private Hdy.HeaderBar mode_headerbar () {
@@ -353,7 +351,7 @@ namespace Gabut {
                     ((DownloadRow) row).add_timeout ();
                 }
             }
-            get_active ();
+            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         public void fast_respond (string ariagid) {
@@ -362,19 +360,7 @@ namespace Gabut {
                     ((DownloadRow) row).update_progress ();
                 }
             }
-            get_active ();
-        }
-
-        private bool get_active () {
-            statusactive = 0;
-            foreach (var row in list_box.get_children ()) {
-                if (((DownloadRow) row).status == StatusMode.ACTIVE) {
-                    statusactive++;
-                }
-            }
-            set_badge.begin (statusactive);
-            remove_time = 0;
-            return false;
+            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         public void remove_all () {
@@ -405,7 +391,7 @@ namespace Gabut {
             }
             if (!later) {
                 row.download ();
-                get_active ();
+                set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             }
         }
 
@@ -419,7 +405,6 @@ namespace Gabut {
             return linkexist;
         }
 
-        private uint remove_time = 0U;
         private void start_all () {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).status != StatusMode.COMPLETE) {
@@ -428,11 +413,7 @@ namespace Gabut {
                 }
             }
             view_status ();
-            if (remove_time > 0) {
-                Source.remove (remove_time);
-            }
-            remove_time = 0;
-            remove_time = Timeout.add (50, get_active);
+            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         private void stop_all () {
@@ -444,11 +425,7 @@ namespace Gabut {
                 }
             }
             view_status ();
-            if (remove_time > 0) {
-                Source.remove (remove_time);
-            }
-            remove_time = 0;
-            remove_time = Timeout.add (50, get_active);
+            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         public string set_selected (string ariagid, string selected) {

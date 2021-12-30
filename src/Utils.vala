@@ -51,7 +51,11 @@ namespace Gabut {
         BTLISTENPORT = 27,
         DHTLISTENPORT = 28,
         BTTRACKER = 29,
-        BTTRACKEREXC = 30;
+        BTTRACKEREXC = 30,
+        SPLITSIZE = 31,
+        LOWESTSPEED = 32,
+        URISELECTOR = 33,
+        PIECESELECTOR = 34;
 
         public string get_name () {
             switch (this) {
@@ -115,6 +119,14 @@ namespace Gabut {
                     return "bttracker";
                 case BTTRACKEREXC:
                     return "bttrackerexc";
+                case SPLITSIZE:
+                    return "splitsize";
+                case LOWESTSPEED:
+                    return "lowestspeed";
+                case URISELECTOR:
+                    return "uriselector";
+                case PIECESELECTOR:
+                    return "pieceselector";
                 default:
                     return "id";
             }
@@ -325,21 +337,24 @@ namespace Gabut {
         PROXYPORT = 81,
         PROXYUSERNAME = 82,
         PROXYPASSWORD = 83,
-        USERNAME = 84,
-        PASSWORD = 85,
-        MAX_CONCURRENT_DOWNLOADS = 86,
-        DISK_CACHE = 87,
-        BT_MAX_OPEN_FILES = 88,
-        SELECT_FILE = 89,
-        HEADER = 90,
-        SEED_TIME = 91,
-        CHECKSUM = 92,
-        MAX_OVERALL_UPLOAD_LIMIT = 93,
-        MAX_OVERALL_DOWNLOAD_LIMIT = 94,
-        LISTEN_PORT = 95,
-        DHT_LISTEN_PORT = 96,
-        BT_TRACKER = 97,
-        BT_EXCLUDE_TRACKER = 98;
+        MAX_CONCURRENT_DOWNLOADS = 84,
+        DISK_CACHE = 85,
+        BT_MAX_OPEN_FILES = 86,
+        SELECT_FILE = 87,
+        HEADER = 88,
+        SEED_TIME = 89,
+        CHECKSUM = 90,
+        MAX_OVERALL_UPLOAD_LIMIT = 91,
+        MAX_OVERALL_DOWNLOAD_LIMIT = 92,
+        LISTEN_PORT = 93,
+        DHT_LISTEN_PORT = 94,
+        BT_TRACKER = 95,
+        BT_EXCLUDE_TRACKER = 96,
+        PEER_AGENT = 97,
+        HTTP_USER = 98,
+        HTTP_PASSWD = 99,
+        FTP_USER = 100,
+        FTP_PASSWD = 101;
 
         public string get_name () {
             switch (this) {
@@ -509,10 +524,6 @@ namespace Gabut {
                     return "all-proxy-user";
                 case PROXYPASSWORD:
                     return "all-proxy-passwd";
-                case USERNAME:
-                    return "user";
-                case PASSWORD:
-                    return "passwd";
                 case MAX_CONCURRENT_DOWNLOADS:
                     return "max-concurrent-downloads";
                 case DISK_CACHE:
@@ -539,6 +550,16 @@ namespace Gabut {
                     return "bt-tracker";
                 case BT_EXCLUDE_TRACKER:
                     return "bt-exclude-tracker";
+                case PEER_AGENT:
+                    return "peer-agent";
+                case HTTP_USER:
+                    return "http-user";
+                case HTTP_PASSWD:
+                    return "http-passwd";
+                case FTP_USER:
+                    return "ftp-user";
+                case FTP_PASSWD:
+                    return "ftp-passwd";
                 default:
                     return "allow-overwrite";
             }
@@ -888,6 +909,29 @@ namespace Gabut {
         }
     }
 
+    private enum GlobalStat {
+        DOWNLOADSPEED = 0,
+        NUMACTIVE = 1,
+        NUMSTOPPED = 2,
+        NUMWAITING = 3,
+        UPLOADSPEED = 4;
+
+        public string get_name () {
+            switch (this) {
+                case NUMACTIVE:
+                    return "numActive";
+                case NUMSTOPPED:
+                    return "numStopped";
+                case NUMWAITING:
+                    return "numWaiting";
+                case UPLOADSPEED:
+                    return "uploadSpeed";
+                default:
+                    return "downloadSpeed";
+            }
+        }
+    }
+
     private enum DBOption {
         ID = 0,
         URL = 1,
@@ -897,18 +941,22 @@ namespace Gabut {
         PROXYPORT = 5,
         PROXYUSERNAME = 6,
         PROXYPASSWORD = 7,
-        USER = 8,
-        USERPASS = 9,
-        DIR = 10,
-        COOKIE = 11,
-        REFERER = 12,
-        USERAGENT = 13,
-        OUT = 14,
-        PROXYMETHOD = 15,
-        SELECTFILE = 16,
-        CHECKSUM = 17,
-        CRYPTOLVL = 18,
-        REQUIRECRYP = 19;
+        HTTPUSR = 8,
+        HTTPPASS = 9,
+        FTPUSR = 10,
+        FTPPASS = 11,
+        DIR = 12,
+        COOKIE = 13,
+        REFERER = 14,
+        USERAGENT = 15,
+        OUT = 16,
+        PROXYMETHOD = 17,
+        SELECTFILE = 18,
+        CHECKSUM = 19,
+        CRYPTOLVL = 20,
+        REQUIRECRYP = 21,
+        INTEGRITY = 22,
+        UNVERIFIED = 23;
 
         public string get_name () {
             switch (this) {
@@ -926,10 +974,14 @@ namespace Gabut {
                     return "username";
                 case PROXYPASSWORD:
                     return "usernamepass";
-                case USER:
-                    return "user";
-                case USERPASS:
-                    return "userpass";
+                case HTTPUSR:
+                    return "httpusr";
+                case HTTPPASS:
+                    return "httppass";
+                case FTPUSR:
+                    return "ftpusr";
+                case FTPPASS:
+                    return "ftppass";
                 case DIR:
                     return "dir";
                 case COOKIE:
@@ -950,6 +1002,10 @@ namespace Gabut {
                     return "cryptolvl";
                 case REQUIRECRYP:
                     return "requirecryp";
+                case INTEGRITY:
+                    return "integrity";
+                case UNVERIFIED:
+                    return "unverified";
                 default:
                     return "id";
             }
@@ -1055,6 +1111,51 @@ namespace Gabut {
 
         public static LoginUsers [] get_all () {
             return { HTTP, FTP };
+        }
+    }
+
+    public enum PieceSelectors {
+        DEFAULT = 0,
+        INORDER = 1,
+        RANDOM = 2,
+        GEOM = 3;
+
+        public string get_name () {
+            switch (this) {
+                case INORDER:
+                    return "Inorder";
+                case RANDOM:
+                    return "Random";
+                case GEOM:
+                    return "Geom";
+                default:
+                    return "Default";
+            }
+        }
+
+        public static PieceSelectors [] get_all () {
+            return { DEFAULT, INORDER, RANDOM, GEOM };
+        }
+    }
+
+    public enum UriSelectors {
+        FEEDBACK = 0,
+        INORDER = 1,
+        ADAPTIVE = 2;
+
+        public string get_name () {
+            switch (this) {
+                case INORDER:
+                    return "Inorder";
+                case ADAPTIVE:
+                    return "Adaptive";
+                default:
+                    return "Feedback";
+            }
+        }
+
+        public static UriSelectors [] get_all () {
+            return { FEEDBACK, INORDER, ADAPTIVE };
         }
     }
 
@@ -1457,7 +1558,7 @@ namespace Gabut {
                     Gtk.TreeIter iter;
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
                     liststore.append (out iter);
-                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? uris.replace ("\\/", "/") : uris);
+                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? Soup.URI.decode (uris.replace ("\\/", "/")) : uris);
                     match_info.next ();
                 }
             } catch (Error e) {
@@ -1481,7 +1582,10 @@ namespace Gabut {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(option.get_name ())\":\"(.*?)\"");
             regex.match_full (result, -1, 0, 0, out match_info);
-            return match_info.fetch (1);
+            string ariaopt = match_info.fetch (1);
+            if (ariaopt != null) {
+                return ariaopt;
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1566,6 +1670,27 @@ namespace Gabut {
             if (statusuris != null) {
                 return statusuris.replace ("\\/", "/");
             }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "";
+    }
+
+    private string aria_globalstat (GlobalStat stat) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
+        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}";
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
+        if (!result.down ().contains ("result") || result == null) {
+            return "";
+        }
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex (@"\"$(stat.get_name ())\":\"(.*?)\"");
+            regex.match_full (result, -1, 0, 0, out match_info);
+            return match_info.fetch (1);
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1679,6 +1804,18 @@ namespace Gabut {
         do {
             aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, get_dbsetting (DBSettings.BTTRACKEREXC));
         } while (get_dbsetting (DBSettings.BTTRACKEREXC) != aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER));
+        do {
+            aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, get_dbsetting (DBSettings.SPLITSIZE));
+        } while (get_dbsetting (DBSettings.SPLITSIZE) != aria_get_globalops (AriaOptions.MIN_SPLIT_SIZE));
+        do {
+            aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, get_dbsetting (DBSettings.LOWESTSPEED));
+        } while (get_dbsetting (DBSettings.LOWESTSPEED) != aria_get_globalops (AriaOptions.LOWEST_SPEED_LIMIT));
+        do {
+            aria_set_globalops (AriaOptions.URI_SELECTOR, get_dbsetting (DBSettings.URISELECTOR));
+        } while (get_dbsetting (DBSettings.URISELECTOR) != aria_get_globalops (AriaOptions.URI_SELECTOR));
+        do {
+            aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, get_dbsetting (DBSettings.PIECESELECTOR));
+        } while (get_dbsetting (DBSettings.PIECESELECTOR) != aria_get_globalops (AriaOptions.STREAM_PIECE_SELECTOR));
     }
 
     private async void get_css_online (string url, string filename) throws Error {
@@ -1916,8 +2053,10 @@ namespace Gabut {
             port           TEXT    NOT NULL,
             username       TEXT    NOT NULL,
             usernamepass   TEXT    NOT NULL,
-            user           TEXT    NOT NULL,
-            userpass       TEXT    NOT NULL,
+            httpusr        TEXT    NOT NULL,
+            httppass       TEXT    NOT NULL,
+            ftpusr         TEXT    NOT NULL,
+            ftppass        TEXT    NOT NULL,
             dir            TEXT    NOT NULL,
             cookie         TEXT    NOT NULL,
             referer        TEXT    NOT NULL,
@@ -1927,7 +2066,9 @@ namespace Gabut {
             selectfile     TEXT    NOT NULL,
             checksum       TEXT    NOT NULL,
             cryptolvl      TEXT    NOT NULL,
-            requirecryp    TEXT    NOT NULL);");
+            requirecryp    TEXT    NOT NULL,
+            integrity      TEXT    NOT NULL,
+            unverified     TEXT    NOT NULL);");
     }
 
     private int table_settings (Sqlite.Database db) {
@@ -1963,32 +2104,32 @@ namespace Gabut {
             btlistenport   TEXT    NOT NULL,
             dhtlistenport  TEXT    NOT NULL,
             bttracker      TEXT    NOT NULL,
-            bttrackerexc   TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\");");
+            bttrackerexc   TEXT    NOT NULL,
+            splitsize      TEXT    NOT NULL,
+            lowestspeed    TEXT    NOT NULL,
+            uriselector    TEXT    NOT NULL,
+            pieceselector  TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\");");
     }
 
     private void check_table () {
-        if ((db_table ("settings") - 1) != DBSettings.BTTRACKEREXC) {
-            if (db_table ("settings") > 0) {
-                GabutApp.db.exec ("DROP TABLE settings;");
-            }
+        if ((db_table ("settings") - 1) != DBSettings.PIECESELECTOR) {
+            GabutApp.db.exec ("DROP TABLE settings;");
             table_settings (GabutApp.db);
         }
     }
 
     private void check_optdown () {
+        Sqlite.Database db;
+        Sqlite.Database.open (create_folder (".db"), out db);
         if ((db_table ("download") - 1) != DBDownload.FILEORDIR) {
-            if (db_table ("download") > 0) {
-                GabutApp.db.exec ("DROP TABLE download;");
-            }
-            table_download (GabutApp.db);
+            db.exec ("DROP TABLE download;");
+            table_download (db);
         }
-        if ((db_table ("options") - 1) != DBOption.REQUIRECRYP) {
-            if (db_table ("options") > 0) {
-                GabutApp.db.exec ("DROP TABLE options;");
-            }
-            table_options (GabutApp.db);
+        if ((db_table ("options") - 1) != DBOption.UNVERIFIED) {
+            db.exec ("DROP TABLE options;");
+            table_options (db);
         }
     }
 
@@ -2202,13 +2343,21 @@ namespace Gabut {
             if (usernamepass != "") {
                 hashoption[AriaOptions.PROXYPASSWORD.get_name ()] = usernamepass;
             }
-            string user = stmt.column_text (DBOption.USER);
-            if (user != "") {
-                hashoption[AriaOptions.USERNAME.get_name ()] = user;
+            string httpuser = stmt.column_text (DBOption.HTTPUSR);
+            if (httpuser != "") {
+                hashoption[AriaOptions.HTTP_USER.get_name ()] = httpuser;
             }
-            string usernpass = stmt.column_text (DBOption.USERPASS);
-            if (usernpass != "") {
-                hashoption[AriaOptions.PASSWORD.get_name ()] = usernpass;
+            string httppass = stmt.column_text (DBOption.HTTPPASS);
+            if (httppass != "") {
+                hashoption[AriaOptions.HTTP_PASSWD.get_name ()] = httppass;
+            }
+            string ftpuser = stmt.column_text (DBOption.FTPUSR);
+            if (ftpuser != "") {
+                hashoption[AriaOptions.FTP_USER.get_name ()] = ftpuser;
+            }
+            string ftppass = stmt.column_text (DBOption.FTPPASS);
+            if (ftppass != "") {
+                hashoption[AriaOptions.FTP_PASSWD.get_name ()] = ftppass;
             }
             string usernpagent = stmt.column_text (DBOption.USERAGENT);
             if (usernpagent != "") {
@@ -2238,6 +2387,14 @@ namespace Gabut {
             if (requirecrtp != "") {
                 hashoption[AriaOptions.BT_REQUIRE_CRYPTO.get_name ()] = requirecrtp;
             }
+            string integrity = stmt.column_text (DBOption.INTEGRITY);
+            if (integrity != "") {
+                hashoption[AriaOptions.CHECK_INTEGRITY.get_name ()] = integrity;
+            }
+            string unverify = stmt.column_text (DBOption.UNVERIFIED);
+            if (unverify != "") {
+                hashoption[AriaOptions.BT_SEED_UNVERIFIED.get_name ()] = unverify;
+            }
         }
         stmt.reset ();
         return hashoption;
@@ -2245,7 +2402,7 @@ namespace Gabut {
 
     private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
         Sqlite.Statement stmt;
-        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, port, username, usernamepass, user, userpass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, port, username, usernamepass, httpusr, httppass, ftpusr, ftppass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp, integrity, unverified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBOption.URL, url);
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
@@ -2278,15 +2435,25 @@ namespace Gabut {
         } else {
             res = stmt.bind_text (DBOption.PROXYPASSWORD, "");
         }
-        if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
-            res = stmt.bind_text (DBOption.USER, hashoptions.@get (AriaOptions.USERNAME.get_name ()));
+        if (hashoptions.has_key (AriaOptions.HTTP_USER.get_name ())) {
+            res = stmt.bind_text (DBOption.HTTPUSR, hashoptions.@get (AriaOptions.HTTP_USER.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.USER, "");
+            res = stmt.bind_text (DBOption.HTTPUSR, "");
         }
-        if (hashoptions.has_key (AriaOptions.PASSWORD.get_name ())) {
-            res = stmt.bind_text (DBOption.USERPASS, hashoptions.@get (AriaOptions.PASSWORD.get_name ()));
+        if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.get_name ())) {
+            res = stmt.bind_text (DBOption.HTTPPASS, hashoptions.@get (AriaOptions.HTTP_PASSWD.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.USERPASS, "");
+            res = stmt.bind_text (DBOption.HTTPPASS, "");
+        }
+        if (hashoptions.has_key (AriaOptions.FTP_USER.get_name ())) {
+            res = stmt.bind_text (DBOption.FTPUSR, hashoptions.@get (AriaOptions.FTP_USER.get_name ()));
+        } else {
+            res = stmt.bind_text (DBOption.FTPUSR, "");
+        }
+        if (hashoptions.has_key (AriaOptions.FTP_PASSWD.get_name ())) {
+            res = stmt.bind_text (DBOption.FTPPASS, hashoptions.@get (AriaOptions.FTP_PASSWD.get_name ()));
+        } else {
+            res = stmt.bind_text (DBOption.FTPPASS, "");
         }
         if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
             res = stmt.bind_text (DBOption.DIR, hashoptions.@get (AriaOptions.DIR.get_name ()));
@@ -2337,6 +2504,16 @@ namespace Gabut {
             res = stmt.bind_text (DBOption.REQUIRECRYP, hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.get_name ()));
         } else {
             res = stmt.bind_text (DBOption.REQUIRECRYP, "");
+        }
+        if (hashoptions.has_key (AriaOptions.CHECK_INTEGRITY.get_name ())) {
+            res = stmt.bind_text (DBOption.INTEGRITY, hashoptions.@get (AriaOptions.CHECK_INTEGRITY.get_name ()));
+        } else {
+            res = stmt.bind_text (DBOption.INTEGRITY, "");
+        }
+        if (hashoptions.has_key (AriaOptions.BT_SEED_UNVERIFIED.get_name ())) {
+            res = stmt.bind_text (DBOption.UNVERIFIED, hashoptions.@get (AriaOptions.BT_SEED_UNVERIFIED.get_name ()));
+        } else {
+            res = stmt.bind_text (DBOption.UNVERIFIED, "");
         }
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
@@ -2414,22 +2591,40 @@ namespace Gabut {
                     buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"$(passwd)\"");
                 }
             }
-            if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
+            if (hashoptions.has_key (AriaOptions.HTTP_USER.get_name ())) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
-                string user = hashoptions.@get (AriaOptions.USERNAME.get_name ());
-                if (stmt.column_text (DBOption.USER) != user) {
-                    buildstr.append (@" $(DBOption.USER.get_name ()) = \"$(user)\"");
+                string httpuser = hashoptions.@get (AriaOptions.HTTP_USER.get_name ());
+                if (stmt.column_text (DBOption.HTTPUSR) != httpuser) {
+                    buildstr.append (@" $(DBOption.HTTPUSR.get_name ()) = \"$(httpuser)\"");
                 }
             }
-            if (hashoptions.has_key (AriaOptions.PASSWORD.get_name ())) {
+            if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.get_name ())) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
-                string userpass = hashoptions.@get (AriaOptions.PASSWORD.get_name ());
-                if (stmt.column_text (DBOption.USERPASS) != userpass) {
-                    buildstr.append (@" $(DBOption.USERPASS.get_name ()) = \"$(userpass)\"");
+                string httppass = hashoptions.@get (AriaOptions.HTTP_PASSWD.get_name ());
+                if (stmt.column_text (DBOption.HTTPPASS) != httppass) {
+                    buildstr.append (@" $(DBOption.HTTPPASS.get_name ()) = \"$(httppass)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.FTP_USER.get_name ())) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                string ftpuser = hashoptions.@get (AriaOptions.FTP_USER.get_name ());
+                if (stmt.column_text (DBOption.FTPUSR) != ftpuser) {
+                    buildstr.append (@" $(DBOption.FTPUSR.get_name ()) = \"$(ftpuser)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.FTP_PASSWD.get_name ())) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                string ftppass = hashoptions.@get (AriaOptions.FTP_PASSWD.get_name ());
+                if (stmt.column_text (DBOption.FTPPASS) != ftppass) {
+                    buildstr.append (@" $(DBOption.FTPPASS.get_name ()) = \"$(ftppass)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
@@ -2520,6 +2715,24 @@ namespace Gabut {
                 string reqcrypt = hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.get_name ());
                 if (stmt.column_text (DBOption.REQUIRECRYP) != reqcrypt) {
                     buildstr.append (@" $(DBOption.REQUIRECRYP.get_name ()) = \"$(reqcrypt)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.CHECK_INTEGRITY.get_name ())) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                string integ = hashoptions.@get (AriaOptions.CHECK_INTEGRITY.get_name ());
+                if (stmt.column_text (DBOption.INTEGRITY) != integ) {
+                    buildstr.append (@" $(DBOption.INTEGRITY.get_name ()) = \"$(integ)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.BT_SEED_UNVERIFIED.get_name ())) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                string unver = hashoptions.@get (AriaOptions.BT_SEED_UNVERIFIED.get_name ());
+                if (stmt.column_text (DBOption.UNVERIFIED) != unver) {
+                    buildstr.append (@" $(DBOption.UNVERIFIED.get_name ()) = \"$(unver)\"");
                 }
             }
             if (buildstr.str.hash () == empty_hash) {

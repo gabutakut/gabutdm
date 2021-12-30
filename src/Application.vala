@@ -153,6 +153,7 @@ namespace Gabut {
                 perform_key_event ("<Control>v", false, 0);
                 pantheon_theme.begin ();
                 gabutwindow.load_dowanload ();
+                check_optdown ();
             } else {
                 if (startingup) {
                     gabutwindow.show_all ();

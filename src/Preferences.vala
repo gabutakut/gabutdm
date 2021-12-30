@@ -24,6 +24,8 @@ namespace Gabut {
         public signal void restart_server ();
         public signal void max_active ();
         private Gtk.MenuButton allocate_button;
+        private Gtk.MenuButton piecesel_button;
+        private Gtk.MenuButton urisel_button;
 
         FileAllocation _fileallocation = null;
         FileAllocation fileallocation {
@@ -33,6 +35,28 @@ namespace Gabut {
             set {
                 _fileallocation = value;
                 allocate_button.label = _fileallocation.fileallocation.get_name ();
+            }
+        }
+
+        PieceSelector _PieceSelector = null;
+        PieceSelector pieceselector {
+            get {
+                return _PieceSelector;
+            }
+            set {
+                _PieceSelector = value;
+                piecesel_button.label = _PieceSelector.selector.get_name ();
+            }
+        }
+
+        UriSelector _uriselector = null;
+        UriSelector uriselector {
+            get {
+                return _uriselector;
+            }
+            set {
+                _uriselector = value;
+                urisel_button.label = _uriselector.selector.get_name ();
             }
         }
 
@@ -76,7 +100,7 @@ namespace Gabut {
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER))
             };
 
-            var maxcurrent = new Gtk.SpinButton.with_range (1, 20, 1) {
+            var maxcurrent = new Gtk.SpinButton.with_range (1, 50, 1) {
                 width_request = 220,
                 hexpand = true,
                 primary_icon_name = "media-playback-start",
@@ -97,11 +121,90 @@ namespace Gabut {
                 value = double.parse (aria_get_globalops (AriaOptions.RETRY_WAIT))
             };
 
-            var split = new Gtk.SpinButton.with_range (0, 100, 1) {
+            var split = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
                 hexpand = true,
                 primary_icon_name = "edit-cut",
                 value = double.parse (aria_get_globalops (AriaOptions.SPLIT))
+            };
+
+            var splitsize = new Gtk.SpinButton.with_range (0, 9999999, 1) {
+                width_request = 220,
+                hexpand = true,
+                primary_icon_name = "drive-harddisk",
+                value = double.parse (aria_get_globalops (AriaOptions.MIN_SPLIT_SIZE)) / 1024
+            };
+
+            var lowestspd = new Gtk.SpinButton.with_range (0, 9999999, 1) {
+                width_request = 220,
+                hexpand = true,
+                primary_icon_name = "go-down",
+                primary_icon_tooltip_text = _("0 Means Unrestricted"),
+                value = double.parse (aria_get_globalops (AriaOptions.LOWEST_SPEED_LIMIT)) / 1024
+            };
+
+            piecesel_button = new Gtk.MenuButton ();
+            var stream_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+                margin = 10
+            };
+            var stream_popover = new Gtk.Popover (piecesel_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 70
+            };
+            stream_popover.add (stream_flow);
+            stream_popover.show.connect (() => {
+                if (pieceselector != null) {
+                    stream_flow.select_child (pieceselector);
+                    pieceselector.grab_focus ();
+                }
+            });
+            piecesel_button.popover = stream_popover;
+            foreach (var piecesel in PieceSelectors.get_all ()) {
+                stream_flow.add (new PieceSelector (piecesel));
+            }
+            stream_flow.show_all ();
+            stream_flow.child_activated.connect ((piecesel)=> {
+                pieceselector = piecesel as PieceSelector;
+                stream_popover.hide ();
+            });
+            foreach (var piecesel in stream_flow.get_children ()) {
+                if (((PieceSelector) piecesel).selector.get_name ().down () == aria_get_globalops (AriaOptions.STREAM_PIECE_SELECTOR)) {
+                    pieceselector = piecesel as PieceSelector;
+                }
+            };
+
+            urisel_button = new Gtk.MenuButton ();
+            var urisel_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+                margin = 10
+            };
+            var urisel_popover = new Gtk.Popover (urisel_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 70
+            };
+            urisel_popover.add (urisel_flow);
+            urisel_popover.show.connect (() => {
+                if (uriselector != null) {
+                    urisel_flow.select_child (uriselector);
+                    uriselector.grab_focus ();
+                }
+            });
+            urisel_button.popover = urisel_popover;
+            foreach (var urisel in UriSelectors.get_all ()) {
+                urisel_flow.add (new UriSelector (urisel));
+            }
+            urisel_flow.show_all ();
+            urisel_flow.child_activated.connect ((urisel)=> {
+                uriselector = urisel as UriSelector;
+                urisel_popover.hide ();
+            });
+            foreach (var urisel in urisel_flow.get_children ()) {
+                if (((UriSelector) urisel).selector.get_name ().down () == aria_get_globalops (AriaOptions.URI_SELECTOR)) {
+                    uriselector = urisel as UriSelector;
+                }
             };
 
             var settings = new Gtk.Grid () {
@@ -125,6 +228,14 @@ namespace Gabut {
             settings.attach (retry, 1, 5, 1, 1);
             settings.attach (new HeaderLabel (_("Split:"), 220), 0, 4, 1, 1);
             settings.attach (split, 0, 5, 1, 1);
+            settings.attach (new HeaderLabel (_("Lowest Speed (in Kb):"), 220), 1, 6, 1, 1);
+            settings.attach (lowestspd, 1, 7, 1, 1);
+            settings.attach (new HeaderLabel (_("Split Size (in Kb):"), 220), 0, 6, 1, 1);
+            settings.attach (splitsize, 0, 7, 1, 1);
+            settings.attach (new HeaderLabel (_("Piece Selector:"), 220), 1, 8, 1, 1);
+            settings.attach (piecesel_button, 1, 9, 1, 1);
+            settings.attach (new HeaderLabel (_("Uri Selector:"), 220), 0, 8, 1, 1);
+            settings.attach (urisel_button, 0, 9, 1, 1);
 
             var maxopfile = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
@@ -245,7 +356,7 @@ namespace Gabut {
                 halign = Gtk.Align.START
             };
             folderopt.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            folderopt.attach (new HeaderLabel (_("Folder:"), 450), 1, 0, 1, 1);
+            folderopt.attach (new HeaderLabel (_("Save to Folder:"), 450), 1, 0, 1, 1);
             folderopt.attach (folder_location, 1, 1, 1, 1);
 
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
@@ -316,7 +427,7 @@ namespace Gabut {
                 allocate_popover.hide ();
             });
             foreach (var allocate in allocate_flow.get_children ()) {
-                if (((FileAllocation) allocate).fileallocation.get_name () == get_dbsetting (DBSettings.FILEALLOCATION)) {
+                if (((FileAllocation) allocate).fileallocation.get_name ().down () == aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
                     fileallocation = allocate as FileAllocation;
                 }
             };
@@ -473,6 +584,10 @@ namespace Gabut {
                 aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, set_dbsetting (DBSettings.DOWNLOADLIMIT, (bt_download.value * 1024).to_string ()));
                 aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, bttrackertext.buffer.text.replace ("/", "\\/")));
                 aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, bttrackertextext.buffer.text.replace ("/", "\\/")));
+                aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, set_dbsetting (DBSettings.SPLITSIZE, (splitsize.value * 1024).to_string ()));
+                aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
+                aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
+                aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.get_name ().down ()));
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
@@ -482,6 +597,7 @@ namespace Gabut {
                 set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());
                 set_dbsetting (DBSettings.BTLISTENPORT, bt_listenport.value.to_string ());
                 set_dbsetting (DBSettings.DHTLISTENPORT, dht_listenport.value.to_string ());
+                set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.get_name ());
                 if (maxcurrent.value != double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))) {
                     aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.MAXACTIVE, maxcurrent.value.to_string ()));
                     max_active ();
@@ -491,8 +607,7 @@ namespace Gabut {
                 || rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
                 || bt_listenport.value != double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
                 || dht_listenport.value != double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
-                || get_dbsetting (DBSettings.FILEALLOCATION) != fileallocation.fileallocation.get_name ()) {
-                    set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.get_name ());
+                || fileallocation.fileallocation.get_name ().down () != aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
                     aria_shutdown ();
                     do {
                     } while (aria_getverion ());
