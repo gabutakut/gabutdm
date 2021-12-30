@@ -58,7 +58,7 @@ namespace Gabut {
                                 <div class=\"row\">
                                     <div class=\"banner-text\">
                                     <div id=\"labelsend\"><h2>Send Multiple File</h2></div>
-                                    <form action=\"/Upload\" class=\"dropzone fadeInLeft animated\">
+                                    <form id=\"gabut-dropzone\" action=\"/Upload\" class=\"dropzone fadeInLeft animated\">
                                         <div class=\"fallback\">
                                             <input name=\"file\" type=\"file\" multiple />
                                         </div>
@@ -101,6 +101,12 @@ namespace Gabut {
                 </div>
                 <script>
                     $(get_css(create_folder (".dropzone.min.js")));
+                </script>
+                <script>
+                    Dropzone.options.gabutDropzone = {
+                        maxFilesize: 50000,
+                        dictDefaultMessage: \"Drop files here to send\"
+                    }
                 </script>
                 <script>
                     const fileUploader = document.getElementById(\"uploader\");

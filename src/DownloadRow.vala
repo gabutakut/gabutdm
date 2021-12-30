@@ -29,7 +29,6 @@ namespace Gabut {
         public Gtk.Image imagefile;
         public Gtk.Image badge_img;
         private bool stoptimer;
-        private uint completedl = 0U;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
 
         private int _linkmode;
@@ -88,28 +87,26 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     case StatusMode.COMPLETE:
-                        ((Gtk.Image) start_button.image).icon_name = "process-completed";
-                        start_button.tooltip_text = _("Complete");
+                        if (ariagid != null) {
+                            if (aria_tell_status (ariagid, TellStatus.SEEDER) == "true") {
+                                ((Gtk.Image) start_button.image).icon_name = "com.github.gabutakut.gabutdm.seed";
+                                start_button.tooltip_text = _("Seeding");
+                                return;
+                            } else {
+                                ((Gtk.Image) start_button.image).icon_name = "process-completed";
+                                start_button.tooltip_text = _("Complete");
+                            }
+                        }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
-                                if (completedl != 0) {
-                                    Source.remove (completedl);
-                                    completedl = 0;
+                                GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
+                                notify_app (_("Download Complete"), filename, imagefile.gicon);
+                                if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
+                                    send_dialog ();
                                 }
-                                completedl = Timeout.add (50, ()=> {
-                                    if (timeout_id == 0) {
-                                        GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
-                                        notify_app (_("Download Complete"), filename, imagefile.gicon);
-                                        if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
-                                            send_dialog ();
-                                        }
-                                    }
-                                    if (db_download_exist (url)) {
-                                        update_download (this);
-                                    }
-                                    completedl = 0;
-                                    return false;
-                                });
+                                if (db_download_exist (url)) {
+                                    update_download (this);
+                                }
                             }
                         } else {
                             bool foundgid = false;
@@ -276,8 +273,8 @@ namespace Gabut {
 
         public DownloadRow (Sqlite.Statement stmt) {
             linkmode = stmt.column_int (DBDownload.LINKMODE);
-            status = stmt.column_int (DBDownload.STATUS);
             ariagid = stmt.column_text (DBDownload.ARIAGID);
+            status = stmt.column_int (DBDownload.STATUS);
             transferrate = stmt.column_int (DBDownload.TRANSFERRATE);
             totalsize = stmt.column_int64 (DBDownload.TOTALSIZE);
             transferred = stmt.column_int64 (DBDownload.TRANSFERRED);
@@ -520,7 +517,7 @@ namespace Gabut {
             return stoptimer;
         }
 
-        private int status_aria (string input) {
+        public int status_aria (string input) {
             switch (input) {
                 case "paused":
                     return StatusMode.PAUSED;

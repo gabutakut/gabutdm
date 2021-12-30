@@ -23,5 +23,7 @@ sources = files (
     'ProxyMethod.vala',
     'ChecksumType.vala',
     'BTEncrypt.vala',
-    'LoginUser.vala'
+    'LoginUser.vala',
+    'PieceSelector.vala',
+    'UriSelector.vala',
 )

@@ -26,7 +26,7 @@ namespace Gabut {
             PROPERTY
         }
         public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
-        public signal void saveproperty (Gee.HashMap<string, string> options);
+        public Gtk.Button save_button;
         private Gtk.Image status_image;
         private Gtk.Label sizelabel;
         private MediaEntry link_entry;
@@ -52,6 +52,8 @@ namespace Gabut {
         private Gtk.CheckButton usecookie;
         private Gtk.CheckButton usefolder;
         private Gtk.CheckButton encrypt;
+        private Gtk.CheckButton integrity;
+        private Gtk.CheckButton unverified;
         private Gtk.FileChooserButton folder_location;
         private Gtk.FileChooserButton cookie_location;
         public DialogType dialogtype { get; construct; }
@@ -132,7 +134,7 @@ namespace Gabut {
             view_mode.append_text (_("Option"));
             view_mode.append_text (_("Folder"));
             view_mode.append_text (_("Checksum"));
-            view_mode.append_text (_("Encrypt"));
+            view_mode.append_text (_("Torrent"));
             view_mode.selected = 0;
 
             var header = get_header_bar ();
@@ -186,7 +188,8 @@ namespace Gabut {
             var alllink = new Gtk.Grid () {
                 expand = true,
                 height_request = 130,
-                halign = Gtk.Align.START
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             alllink.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             alllink.attach (overlay, 0, 0, 1, 5);
@@ -302,7 +305,8 @@ namespace Gabut {
             var logingrid = new Gtk.Grid () {
                 expand = true,
                 height_request = 130,
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             logingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             logingrid.attach (login_button, 1, 0, 1, 1);
@@ -324,7 +328,8 @@ namespace Gabut {
             var moregrid = new Gtk.Grid () {
                 expand = true,
                 height_request = 130,
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             moregrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             moregrid.attach (new HeaderLabel (_("User Agent:"), 300), 1, 0, 1, 1);
@@ -377,7 +382,8 @@ namespace Gabut {
             var foldergrid = new Gtk.Grid () {
                 expand = true,
                 height_request = 130,
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             foldergrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             foldergrid.attach (usecookie, 1, 0, 1, 1);
@@ -421,13 +427,32 @@ namespace Gabut {
             var checksumgrid = new Gtk.Grid () {
                 expand = true,
                 height_request = 130,
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             checksumgrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             checksumgrid.attach (new HeaderLabel (_("Type:"), 300), 1, 0, 1, 1);
             checksumgrid.attach (checksum_button, 1, 1, 1, 1);
             checksumgrid.attach (new HeaderLabel (_("Hash:"), 300), 1, 2, 1, 1);
             checksumgrid.attach (checksum_entry, 1, 3, 1, 1);
+
+            var integimg = new Gtk.Grid ();
+            integimg.add (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.seed", Gtk.IconSize.SMALL_TOOLBAR));
+            integimg.add (new Gtk.Label (_("BT Seed")));
+
+            integrity = new Gtk.CheckButton () {
+                width_request = 300,
+                margin_bottom = 5
+            };
+            integrity.add (integimg);
+
+            var unveimg = new Gtk.Grid ();
+            unveimg.add (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.seed", Gtk.IconSize.SMALL_TOOLBAR));
+            unveimg.add (new Gtk.Label (_("BT Seed Unverified")));
+            unverified = new Gtk.CheckButton () {
+                width_request = 300
+            };
+            unverified.add (unveimg);
 
             encrypt_button = new Gtk.MenuButton ();
             encrypt_flow = new Gtk.FlowBox () {
@@ -475,12 +500,16 @@ namespace Gabut {
             var encryptgrid = new Gtk.Grid () {
                 expand = true,
                 height_request = 130,
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             encryptgrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
-            encryptgrid.attach (new HeaderLabel (_("BitTorrent Encryption:"), 300), 1, 0, 1, 1);
-            encryptgrid.attach (encrypt, 1, 1, 1, 1);
-            encryptgrid.attach (encrypt_button, 1, 2, 1, 1);
+            encryptgrid.attach (new HeaderLabel (_("BitTorrent Seed:"), 300), 1, 0, 1, 1);
+            encryptgrid.attach (integrity, 1, 1, 1, 1);
+            encryptgrid.attach (unverified, 1, 2, 1, 1);
+            encryptgrid.attach (new HeaderLabel (_("BitTorrent Encryption:"), 300), 1, 3, 1, 1);
+            encryptgrid.attach (encrypt, 1, 4, 1, 1);
+            encryptgrid.attach (encrypt_button, 1, 5, 1, 1);
 
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
@@ -524,14 +553,13 @@ namespace Gabut {
                 destroy ();
             });
 
-            var save_button = new Gtk.Button.with_label (_("Save")) {
+            save_button = new Gtk.Button.with_label (_("Save")) {
                 width_request = 120,
                 height_request = 25
             };
             save_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             save_button.clicked.connect (()=> {
                 set_option (true);
-                saveproperty (hashoptions);
                 destroy ();
             });
             var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
@@ -622,18 +650,35 @@ namespace Gabut {
                     hashoptions.unset (AriaOptions.PROXYPASSWORD.get_name ());
                 }
             }
-            if (loguser_entry.text.strip () != "") {
-                hashoptions[AriaOptions.USERNAME.get_name ()] = loguser_entry.text.strip ();
-            } else {
-                if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
-                    hashoptions.unset (AriaOptions.USERNAME.get_name ());
+            if (loginuser.loginuser.get_name ().down () == "http") {
+                if (loguser_entry.text.strip () != "") {
+                    hashoptions[AriaOptions.HTTP_USER.get_name ()] = loguser_entry.text.strip ();
+                } else {
+                    if (hashoptions.has_key (AriaOptions.HTTP_USER.get_name ())) {
+                        hashoptions.unset (AriaOptions.HTTP_USER.get_name ());
+                    }
                 }
-            }
-            if (logpass_entry.text.strip () != "") {
-                hashoptions[AriaOptions.PASSWORD.get_name ()] = logpass_entry.text.strip ();
+                if (logpass_entry.text.strip () != "") {
+                    hashoptions[AriaOptions.HTTP_PASSWD.get_name ()] = logpass_entry.text.strip ();
+                } else {
+                    if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.get_name ())) {
+                        hashoptions.unset (AriaOptions.HTTP_PASSWD.get_name ());
+                    }
+                }
             } else {
-                if (hashoptions.has_key (AriaOptions.PASSWORD.get_name ())) {
-                    hashoptions.unset (AriaOptions.PASSWORD.get_name ());
+                if (loguser_entry.text.strip () != "") {
+                    hashoptions[AriaOptions.FTP_USER.get_name ()] = loguser_entry.text.strip ();
+                } else {
+                    if (hashoptions.has_key (AriaOptions.FTP_USER.get_name ())) {
+                        hashoptions.unset (AriaOptions.FTP_USER.get_name ());
+                    }
+                }
+                if (logpass_entry.text.strip () != "") {
+                    hashoptions[AriaOptions.FTP_PASSWD.get_name ()] = logpass_entry.text.strip ();
+                } else {
+                    if (hashoptions.has_key (AriaOptions.FTP_PASSWD.get_name ())) {
+                        hashoptions.unset (AriaOptions.FTP_PASSWD.get_name ());
+                    }
                 }
             }
             if (usefolder.active) {
@@ -680,34 +725,80 @@ namespace Gabut {
                     hashoptions.unset (AriaOptions.CHECKSUM.get_name ());
                 }
             }
+            hashoptions[AriaOptions.BT_SEED_UNVERIFIED.get_name ()] = unverified.active.to_string ();
+            hashoptions[AriaOptions.CHECK_INTEGRITY.get_name ()] = integrity.active.to_string ();
             hashoptions[AriaOptions.BT_SAVE_METADATA.get_name ()] = save_meta.active.to_string ();
             hashoptions[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = save_meta.active.to_string ();
             hashoptions[AriaOptions.PROXY_METHOD.get_name ()] = proxymethod.method.get_name ().down ();
             hashoptions[AriaOptions.BT_REQUIRE_CRYPTO.get_name ()] = encrypt.active.to_string ();
             hashoptions[AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ()] = btencrypt.btencrypt.get_name ().down ();
+            if (!integrity.active && !unverified.active) {
+                hashoptions[AriaOptions.SEED_TIME.get_name ()] = "0";
+            } else {
+                hashoptions[AriaOptions.SEED_TIME.get_name ()] = get_dbsetting (DBSettings.SEEDTIME);
+            }
             if (save) {
-                if (checksumtype.checksums.get_name ().down () != "none") {
-                    aria_set_option (row.ariagid, AriaOptions.CHECKSUM, checksumtype.checksums.get_name () + checksum_entry.text.strip ());
-                } else {
-                    aria_set_option (row.ariagid, AriaOptions.CHECKSUM, "");
-                }
-                aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text);
-                aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, pass_entry.text);
-                aria_set_option (row.ariagid, AriaOptions.USERNAME, loguser_entry.text);
-                aria_set_option (row.ariagid, AriaOptions.PASSWORD, logpass_entry.text);
                 aria_set_option (row.ariagid, AriaOptions.COOKIE, usecookie.active? cookie_location.get_file ().get_path ().replace ("/", "\\/") : "");
                 aria_set_option (row.ariagid, AriaOptions.DIR, usefolder.active? folder_location.get_file ().get_path ().replace ("/", "\\/") : get_dbsetting (DBSettings.DIR));
                 aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text);
                 if (name_entry.text.strip () != "") {
                     aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text);
                 }
-                aria_set_option (row.ariagid, AriaOptions.USER_AGENT, useragent_entry.text.strip ());
-                aria_set_option (row.ariagid, AriaOptions.PROXY, proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value))" : "");
-                aria_set_option (row.ariagid, AriaOptions.BT_SAVE_METADATA, save_meta.active.to_string ());
-                aria_set_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA, save_meta.active.to_string ());
                 aria_set_option (row.ariagid, AriaOptions.PROXY_METHOD, proxymethod.method.get_name ().down ());
-                aria_set_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO, encrypt.active.to_string ());
-                aria_set_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL, btencrypt.btencrypt.get_name ().down ());
+                aria_set_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED, unverified.active.to_string ());
+                aria_set_option (row.ariagid, AriaOptions.CHECK_INTEGRITY, integrity.active.to_string ());
+                if (row.status == StatusMode.ACTIVE) {
+                    aria_pause (row.ariagid);
+                    set_options ();
+                    aria_unpause (row.ariagid);
+                } else {
+                    set_options ();
+                }
+                if (checksumtype.checksums.get_name () + checksum_entry.text.strip () != aria_get_option (row.ariagid, AriaOptions.CHECKSUM)
+                    || save_meta.active != bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SAVE_METADATA))) {
+                    aria_remove (row.ariagid);
+                    if (row.linkmode == LinkMode.TORRENT) {
+                        if (row.url.has_prefix ("magnet:?")) {
+                            row.linkmode = LinkMode.MAGNETLINK;
+                            row.ariagid = aria_url (row.url, hashoptions);
+                        } else {
+                            row.ariagid = aria_torrent (row.url, hashoptions);
+                        }
+                    } else if (row.linkmode == LinkMode.METALINK) {
+                        row.ariagid = aria_metalink (row.url, hashoptions);
+                    } else if (row.linkmode == LinkMode.URL) {
+                        if (row.url.has_prefix ("magnet:?")) {
+                            row.linkmode = LinkMode.MAGNETLINK;
+                            row.ariagid = aria_url (row.url, hashoptions);
+                        } else {
+                            row.linkmode = LinkMode.URL;
+                            row.ariagid = aria_url (row.url, hashoptions);
+                        }
+                    }
+                }
+                row.status = row.status_aria (aria_tell_status (row.ariagid, TellStatus.STATUS));
+                row.filepath = aria_str_files (AriaGetfiles.PATH, row.ariagid);
+                if (!integrity.active && !unverified.active) {
+                    aria_set_option (row.ariagid, AriaOptions.SEED_TIME, "0");
+                } else {
+                    aria_set_option (row.ariagid, AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
+                }
+            }
+        }
+
+        private void set_options () {
+            aria_set_option (row.ariagid, AriaOptions.PROXY, proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value))" : "");
+            aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text);
+            aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, pass_entry.text);
+            aria_set_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO, encrypt.active.to_string ());
+            aria_set_option (row.ariagid, AriaOptions.USER_AGENT, useragent_entry.text.strip ());
+            aria_set_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL, btencrypt.btencrypt.get_name ().down ());
+            if (loginuser.loginuser.get_name ().down () == "http") {
+                aria_set_option (row.ariagid, AriaOptions.HTTP_USER, loguser_entry.text);
+                aria_set_option (row.ariagid, AriaOptions.HTTP_PASSWD, logpass_entry.text);
+            } else {
+                aria_set_option (row.ariagid, AriaOptions.FTP_USER, loguser_entry.text);
+                aria_set_option (row.ariagid, AriaOptions.FTP_PASSWD, logpass_entry.text);
             }
         }
 
@@ -755,23 +846,26 @@ namespace Gabut {
             this.hashoptions = row.hashoption;
             status_image.gicon = row.imagefile.gicon;
             sizelabel.label = GLib.format_size (row.totalsize);
-            if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
-                proxy_entry.text = hashoptions.@get (AriaOptions.PROXY.get_name ().replace (@":$(hashoptions.@get (AriaOptions.PROXYPORT.get_name ()))", ""));
+            string myproxy = aria_get_option (row.ariagid, AriaOptions.PROXY);
+            if (myproxy != "") {
+                int lastprox = myproxy.last_index_of (":");
+                string proxytext = myproxy.slice (0, lastprox);
+                proxy_entry.text = proxytext.contains ("\\/")? proxytext.replace ("\\/", "/") : proxytext;
+                port_entry.value = double.parse (myproxy.slice (lastprox + 1, myproxy.length - 1));
             }
-            if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
-                port_entry.value = double.parse (hashoptions.@get (AriaOptions.PROXYPORT.get_name ()));
+            user_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYUSERNAME);
+            pass_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYPASSWORD);
+            string httpusr = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
+            if (httpusr != "") {
+                loginuser = login_flow.get_children ().nth_data (0) as LoginUser;
+                loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
+                logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PASSWD);
             }
-            if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
-                user_entry.text = hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ());
-            }
-            if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
-                pass_entry.text = hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ());
-            }
-            if (hashoptions.has_key (AriaOptions.USERNAME.get_name ())) {
-                loguser_entry.text = hashoptions.@get (AriaOptions.USERNAME.get_name ());
-            }
-            if (hashoptions.has_key (AriaOptions.PASSWORD.get_name ())) {
-                logpass_entry.text = hashoptions.@get (AriaOptions.PASSWORD.get_name ());
+            string ftpusr = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
+            if (ftpusr != "") {
+                loginuser = login_flow.get_children ().nth_data (1) as LoginUser;
+                loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
+                logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PASSWD);
             }
             usefolder.active = hashoptions.has_key (AriaOptions.DIR.get_name ());
             if (usefolder.active) {
@@ -781,41 +875,37 @@ namespace Gabut {
             if (usecookie.active) {
                 cookie_location.set_uri (File.new_for_path (hashoptions.@get (AriaOptions.COOKIE.get_name ()).replace ("\\/", "/")).get_uri ());
             }
-            if (hashoptions.has_key (AriaOptions.REFERER.get_name ())) {
-                refer_entry.text = hashoptions.@get (AriaOptions.REFERER.get_name ());
+            string reffer = aria_get_option (row.ariagid, AriaOptions.REFERER);
+            if (reffer != "") {
+                refer_entry.text = reffer.contains ("\\/")? reffer.replace ("\\/", "/") : reffer;
             }
-            if (hashoptions.has_key (AriaOptions.USER_AGENT.get_name ())) {
-                useragent_entry.text = hashoptions.@get (AriaOptions.USER_AGENT.get_name ());
+            string agntusr = aria_get_option (row.ariagid, AriaOptions.USER_AGENT);
+            if (agntusr != "") {
+                useragent_entry.text = agntusr.contains ("\\/")? agntusr.replace ("\\/", "/") : agntusr;
             }
-            if (hashoptions.has_key (AriaOptions.OUT.get_name ())) {
-                name_entry.text = hashoptions.@get (AriaOptions.OUT.get_name ());
-            }
-            if (hashoptions.has_key (AriaOptions.BT_REQUIRE_CRYPTO.get_name ())) {
-                encrypt.active = bool.parse (hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.get_name ()));
-            }
-            if (hashoptions.has_key (AriaOptions.PROXY_METHOD.get_name ())) {
-                foreach (var method in method_flow.get_children ()) {
-                    if (((ProxyMethod) method).method.get_name ().down () == hashoptions.@get (AriaOptions.PROXY_METHOD.get_name ())) {
-                        proxymethod = method as ProxyMethod;
-                    }
-                };
-            }
-            if (hashoptions.has_key (AriaOptions.CHECKSUM.get_name ())) {
-                foreach (var checksum in checksums_flow.get_children ()) {
-                    if (hashoptions.@get (AriaOptions.CHECKSUM.get_name ()).contains (((ChecksumType) checksum).checksums.get_name ())) {
-                        checksumtype = checksum as ChecksumType;
-                        checksum_entry.text = hashoptions.@get (AriaOptions.CHECKSUM.get_name ()).split ("=")[1];
-                    }
-                };
-            }
-            if (hashoptions.has_key (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ())) {
+            name_entry.text = aria_get_option (row.ariagid, AriaOptions.OUT);
+            encrypt.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO));
+            integrity.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.CHECK_INTEGRITY));
+            unverified.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED));
+            foreach (var method in method_flow.get_children ()) {
+                if (((ProxyMethod) method).method.get_name ().down () == aria_get_option (row.ariagid, AriaOptions.PROXY_METHOD).down ()) {
+                    proxymethod = method as ProxyMethod;
+                }
+            };
+            foreach (var checksum in checksums_flow.get_children ()) {
+                if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksum).checksums.get_name ())) {
+                    checksumtype = checksum as ChecksumType;
+                    checksum_entry.text = aria_get_option (row.ariagid, AriaOptions.CHECKSUM).split ("=")[1];
+                }
+            };
+            if (encrypt.active) {
                 foreach (var encrp in encrypt_flow.get_children ()) {
-                    if (hashoptions.@get (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ()).contains (((BTEncrypt) encrp).btencrypt.get_name ().down ())) {
+                    if (aria_get_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL).contains (((BTEncrypt) encrp).btencrypt.get_name ().down ())) {
                         btencrypt = encrp as BTEncrypt;
                     }
                 };
             }
-            save_meta.active = bool.parse (hashoptions.get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ())) | bool.parse (hashoptions.get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()));
+            save_meta.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA)) | bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA));
         }
     }
 }

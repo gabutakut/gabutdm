@@ -605,7 +605,8 @@ namespace Gabut {
                     infostore.set (iters, 0, announce);
                 }
             }
-            commenttext.buffer.text = aria_tell_bittorent (ariagid, TellBittorrent.COMMENT);
+            var commenttorrent = aria_tell_bittorent (ariagid, TellBittorrent.COMMENT);
+            commenttext.buffer.text = commenttorrent.contains ("\\/")? Soup.URI.decode (commenttorrent.replace ("\\/", "/")) : commenttorrent;
         }
 
         private uint timeout_id = 0;
