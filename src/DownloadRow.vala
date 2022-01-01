@@ -141,8 +141,11 @@ namespace Gabut {
                         ((Gtk.Image) start_button.image).icon_name = "dialog-error";
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null) {
-                            filename = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
-                            notify_app (_("Download Error"), filename, imagefile.gicon);
+                            filepath = aria_str_files (AriaGetfiles.PATH, ariagid);
+                            labeltransfer = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
+                            if (filename != null) {
+                                notify_app (_("Download Error"), filename, imagefile.gicon);
+                            }
                             aria_remove (ariagid);
                         }
                         if (timeout_id != 0) {
@@ -271,6 +274,17 @@ namespace Gabut {
             }
         }
 
+        private string _labeltransfer;
+        public string labeltransfer {
+            get {
+                return _labeltransfer;
+            }
+            set {
+                _labeltransfer = value;
+                transfer_rate.label = _labeltransfer;
+            }
+        }
+
         public DownloadRow (Sqlite.Statement stmt) {
             linkmode = stmt.column_int (DBDownload.LINKMODE);
             ariagid = stmt.column_text (DBDownload.ARIAGID);
@@ -282,7 +296,7 @@ namespace Gabut {
             filename = stmt.column_text (DBDownload.FILENAME);
             url = stmt.column_text (DBDownload.URL);
             fileordir = stmt.column_text (DBDownload.FILEORDIR);
-            transfer_rate.label = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
+            labeltransfer = stmt.column_text (DBDownload.LABELTRANSFER);
             hashoption = get_dboptions (url);
         }
 
@@ -300,6 +314,7 @@ namespace Gabut {
             } else if (linkmode == LinkMode.MAGNETLINK || linkmode == LinkMode.URL) {
                 ariagid = aria_url (url, hashoption);
                 notify_app (_("Starting"), url, imagefile.gicon);
+                filename = url;
             }
             this.url = url;
             if (later) {
@@ -513,7 +528,9 @@ namespace Gabut {
                 uint64 remaining_time = (totalsize - transferred) / transferrate;
                 timedownload = @"- $(format_time ((int) remaining_time))";
             }
-            transfer_rate.label = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize)) $(duprate) $(downrate) $(timedownload)";
+            if (status != StatusMode.ERROR) {
+                labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize)) $(duprate) $(downrate) $(timedownload)";
+            }
             return stoptimer;
         }
 

@@ -45,10 +45,12 @@ namespace Gabut {
         private Gtk.FlowBox checksums_flow;
         private Gtk.FlowBox encrypt_flow;
         private Gtk.FlowBox login_flow;
+        private Gtk.FlowBox type_flow;
         private Gtk.MenuButton prometh_button;
         private Gtk.MenuButton checksum_button;
         private Gtk.MenuButton encrypt_button;
         private Gtk.MenuButton login_button;
+        private Gtk.MenuButton type_button;
         private Gtk.CheckButton usecookie;
         private Gtk.CheckButton usefolder;
         private Gtk.CheckButton encrypt;
@@ -102,6 +104,17 @@ namespace Gabut {
             set {
                 _loginuser = value;
                 login_button.label = _loginuser.loginuser.get_name ();
+            }
+        }
+
+        ProxyType _proxytype = null;
+        ProxyType proxytype {
+            get {
+                return _proxytype;
+            }
+            set {
+                _proxytype = value;
+                type_button.label = _proxytype.proxytype.get_name ();
             }
         }
 
@@ -227,12 +240,40 @@ namespace Gabut {
             });
             proxymethod = method_flow.get_children ().nth_data (0) as ProxyMethod;
 
+            type_button = new Gtk.MenuButton ();
+            type_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+                margin = 10
+            };
+            var type_popover = new Gtk.Popover (type_button) {
+                position = Gtk.PositionType.TOP,
+                width_request = 70
+            };
+            type_popover.add (type_flow);
+            type_popover.show.connect (() => {
+                if (proxytype != null) {
+                    type_flow.select_child (proxytype);
+                    proxytype.grab_focus ();
+                }
+            });
+            type_button.popover = type_popover;
+            foreach (var typepr in ProxyTypes.get_all ()) {
+                type_flow.add (new ProxyType (typepr));
+            }
+            type_flow.show_all ();
+            type_flow.child_activated.connect ((typepr)=> {
+                proxytype = typepr as ProxyType;
+                type_popover.hide ();
+            });
+            proxytype = type_flow.get_children ().nth_data (0) as ProxyType;
+
             proxy_entry = new MediaEntry ("user-home", "edit-paste") {
                 width_request = 100,
                 placeholder_text = _("Address")
             };
 
-            port_entry = new Gtk.SpinButton.with_range (0, 99999, 1) {
+            port_entry = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 100,
                 primary_icon_name = "dialog-information"
             };
@@ -254,6 +295,7 @@ namespace Gabut {
             };
             proxygrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             proxygrid.attach (prometh_button, 0, 1, 1, 1);
+            proxygrid.attach (type_button, 1, 1, 1, 1);
             proxygrid.attach (new HeaderLabel (_("Host:"), 100), 0, 2, 1, 1);
             proxygrid.attach (proxy_entry, 0, 3, 1, 1);
             proxygrid.attach (new HeaderLabel (_("Port:"), 100), 1, 2, 1, 1);
@@ -622,63 +664,55 @@ namespace Gabut {
         }
 
         private void set_option (bool save = false) {
+            clear_opts ();
             if (proxy_entry.text.strip () != "") {
-                hashoptions[AriaOptions.PROXY.get_name ()] = proxy_entry.text.strip ();
-            } else {
-                if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
-                    hashoptions.unset (AriaOptions.PROXY.get_name ());
-                }
-            }
-            if (port_entry.value != 0) {
-                hashoptions[AriaOptions.PROXYPORT.get_name ()] = port_entry.value.to_string ();
-            } else {
-                if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
-                    hashoptions.unset (AriaOptions.PROXYPORT.get_name ());
-                }
-            }
-            if (user_entry.text.strip () != "") {
-                hashoptions[AriaOptions.PROXYUSERNAME.get_name ()] = user_entry.text.strip ();
-            } else {
-                if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
-                    hashoptions.unset (AriaOptions.PROXYUSERNAME.get_name ());
-                }
-            }
-            if (pass_entry.text.strip () != "") {
-                hashoptions[AriaOptions.PROXYPASSWORD.get_name ()] = pass_entry.text.strip ();
-            } else {
-                if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
-                    hashoptions.unset (AriaOptions.PROXYPASSWORD.get_name ());
+                if (proxytype.proxytype.get_name () == "ALL") {
+                    hashoptions[AriaOptions.PROXY.get_name ()] = @"$(proxy_entry.text.strip ()):$(port_entry.value)";
+                    if (user_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.PROXYUSER.get_name ()] = user_entry.text.strip ();
+                    }
+                    if (pass_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.PROXYPASSWORD.get_name ()] = pass_entry.text.strip ();
+                    }
+                } else if (proxytype.proxytype.get_name () == "FTP") {
+                    hashoptions[AriaOptions.FTP_PROXY.get_name ()] = @"$(proxy_entry.text.strip ()):$(port_entry.value)";
+                    if (user_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.FTP_PROXY_USER.get_name ()] = user_entry.text.strip ();
+                    }
+                    if (pass_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.FTP_PROXY_PASSWD.get_name ()] = pass_entry.text.strip ();
+                    }
+                } if (proxytype.proxytype.get_name () == "HTTP") {
+                    hashoptions[AriaOptions.HTTP_PROXY.get_name ()] = @"$(proxy_entry.text.strip ()):$(port_entry.value)";
+                    if (user_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.HTTP_PROXY_USER.get_name ()] = user_entry.text.strip ();
+                    }
+                    if (pass_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.HTTP_PROXY_PASSWD.get_name ()] = pass_entry.text.strip ();
+                    }
+                } else if (proxytype.proxytype.get_name () == "HTTPS") {
+                    hashoptions[AriaOptions.HTTPS_PROXY.get_name ()] = @"$(proxy_entry.text.strip ()):$(port_entry.value)";
+                    if (user_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.HTTPS_PROXY_USER.get_name ()] = user_entry.text.strip ();
+                    }
+                    if (pass_entry.text.strip () != "") {
+                        hashoptions[AriaOptions.HTTPS_PROXY_PASSWD.get_name ()] = pass_entry.text.strip ();
+                    }
                 }
             }
             if (loginuser.loginuser.get_name ().down () == "http") {
                 if (loguser_entry.text.strip () != "") {
                     hashoptions[AriaOptions.HTTP_USER.get_name ()] = loguser_entry.text.strip ();
-                } else {
-                    if (hashoptions.has_key (AriaOptions.HTTP_USER.get_name ())) {
-                        hashoptions.unset (AriaOptions.HTTP_USER.get_name ());
-                    }
                 }
                 if (logpass_entry.text.strip () != "") {
                     hashoptions[AriaOptions.HTTP_PASSWD.get_name ()] = logpass_entry.text.strip ();
-                } else {
-                    if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.get_name ())) {
-                        hashoptions.unset (AriaOptions.HTTP_PASSWD.get_name ());
-                    }
                 }
             } else {
                 if (loguser_entry.text.strip () != "") {
                     hashoptions[AriaOptions.FTP_USER.get_name ()] = loguser_entry.text.strip ();
-                } else {
-                    if (hashoptions.has_key (AriaOptions.FTP_USER.get_name ())) {
-                        hashoptions.unset (AriaOptions.FTP_USER.get_name ());
-                    }
                 }
                 if (logpass_entry.text.strip () != "") {
                     hashoptions[AriaOptions.FTP_PASSWD.get_name ()] = logpass_entry.text.strip ();
-                } else {
-                    if (hashoptions.has_key (AriaOptions.FTP_PASSWD.get_name ())) {
-                        hashoptions.unset (AriaOptions.FTP_PASSWD.get_name ());
-                    }
                 }
             }
             if (usefolder.active) {
@@ -786,10 +820,70 @@ namespace Gabut {
             }
         }
 
+        private void clear_opts () {
+            if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
+                hashoptions.unset (AriaOptions.PROXY.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.PROXYUSER.get_name ())) {
+                hashoptions.unset (AriaOptions.PROXYUSER.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
+                hashoptions.unset (AriaOptions.PROXYPASSWORD.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.FTP_PROXY.get_name ())) {
+                hashoptions.unset (AriaOptions.FTP_PROXY.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.FTP_PROXY_USER.get_name ())) {
+                hashoptions.unset (AriaOptions.FTP_PROXY_USER.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.FTP_PROXY_PASSWD.get_name ())) {
+                hashoptions.unset (AriaOptions.FTP_PROXY_PASSWD.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTP_PROXY.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTP_PROXY.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTP_PROXY_USER.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTP_PROXY_USER.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTP_PROXY_PASSWD.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTP_PROXY_PASSWD.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTPS_PROXY.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTPS_PROXY.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_USER.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTPS_PROXY_USER.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_PASSWD.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTPS_PROXY_PASSWD.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.FTP_USER.get_name ())) {
+                hashoptions.unset (AriaOptions.FTP_USER.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.FTP_PASSWD.get_name ())) {
+                hashoptions.unset (AriaOptions.FTP_PASSWD.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTP_USER.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTP_USER.get_name ());
+            }
+            if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.get_name ())) {
+                hashoptions.unset (AriaOptions.HTTP_PASSWD.get_name ());
+            }
+        }
+
         private void set_options () {
-            aria_set_option (row.ariagid, AriaOptions.PROXY, proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value))" : "");
-            aria_set_option (row.ariagid, AriaOptions.PROXYUSERNAME, user_entry.text);
-            aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, pass_entry.text);
+            aria_set_option (row.ariagid, AriaOptions.PROXY, proxytype.proxytype.get_name ().down () == "all"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.PROXYUSER, proxytype.proxytype.get_name ().down () == "all"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, proxytype.proxytype.get_name ().down () == "all"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.FTP_PROXY, proxytype.proxytype.get_name ().down () == "ftp"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.FTP_PROXY_USER, proxytype.proxytype.get_name ().down () == "ftp"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.FTP_PROXY_PASSWD, proxytype.proxytype.get_name ().down () == "ftp"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.HTTP_PROXY, proxytype.proxytype.get_name ().down () == "http"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.HTTP_PROXY_USER, proxytype.proxytype.get_name ().down () == "http"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.HTTP_PROXY_PASSWD, proxytype.proxytype.get_name ().down () == "http"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.HTTPS_PROXY, proxytype.proxytype.get_name ().down () == "https"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.HTTPS_PROXY_USER, proxytype.proxytype.get_name ().down () == "https"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
+            aria_set_option (row.ariagid, AriaOptions.HTTPS_PROXY_PASSWD, proxytype.proxytype.get_name ().down () == "https"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
             aria_set_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO, encrypt.active.to_string ());
             aria_set_option (row.ariagid, AriaOptions.USER_AGENT, useragent_entry.text.strip ());
             aria_set_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL, btencrypt.btencrypt.get_name ().down ());
@@ -847,14 +941,42 @@ namespace Gabut {
             status_image.gicon = row.imagefile.gicon;
             sizelabel.label = GLib.format_size (row.totalsize);
             string myproxy = aria_get_option (row.ariagid, AriaOptions.PROXY);
+            string ftpproxy = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY);
+            string httpproxy = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY);
+            string hsproxy = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY);
             if (myproxy != "") {
+                proxytype = type_flow.get_children ().nth_data (0) as ProxyType;
                 int lastprox = myproxy.last_index_of (":");
                 string proxytext = myproxy.slice (0, lastprox);
                 proxy_entry.text = proxytext.contains ("\\/")? proxytext.replace ("\\/", "/") : proxytext;
-                port_entry.value = double.parse (myproxy.slice (lastprox + 1, myproxy.length - 1));
+                port_entry.value = int.parse (myproxy.slice (lastprox + 1, myproxy.length));
+                user_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYUSER);
+                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYPASSWORD);
+            } else if (ftpproxy != "") {
+                proxytype = type_flow.get_children ().nth_data (3) as ProxyType;
+                int flastprox = ftpproxy.last_index_of (":");
+                string fproxytext = ftpproxy.slice (0, flastprox);
+                proxy_entry.text = fproxytext.contains ("\\/")? fproxytext.replace ("\\/", "/") : fproxytext;
+                port_entry.value = int.parse (ftpproxy.slice (flastprox + 1, ftpproxy.length));
+                user_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_USER);
+                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_PASSWD);
+            } else if (httpproxy != "") {
+                proxytype = type_flow.get_children ().nth_data (1) as ProxyType;
+                int hlastprox = httpproxy.last_index_of (":");
+                string hproxytext = httpproxy.slice (0, hlastprox);
+                proxy_entry.text = hproxytext.contains ("\\/")? hproxytext.replace ("\\/", "/") : hproxytext;
+                port_entry.value = int.parse (httpproxy.slice (hlastprox + 1, httpproxy.length));
+                user_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_USER);
+                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_PASSWD);
+            } else if (hsproxy != "") {
+                proxytype = type_flow.get_children ().nth_data (2) as ProxyType;
+                int hslastprox = hsproxy.last_index_of (":");
+                string hsproxytext = hsproxy.slice (0, hslastprox);
+                proxy_entry.text = hsproxytext.contains ("\\/")? hsproxytext.replace ("\\/", "/") : hsproxytext;
+                port_entry.value = int.parse (hsproxy.slice (hslastprox + 1, hsproxy.length));
+                user_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY_USER);
+                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY_PASSWD);
             }
-            user_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYUSERNAME);
-            pass_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYPASSWORD);
             string httpusr = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
             if (httpusr != "") {
                 loginuser = login_flow.get_children ().nth_data (0) as LoginUser;
