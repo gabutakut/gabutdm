@@ -71,7 +71,7 @@ namespace Gabut {
                         headers.get_content_disposition (null, out params);
                         string filename = params.get ("filename");
                         if (filename != null && filename != "") {
-                            File filed = File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/") + "/" + filename);
+                            File filed = File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/") + GLib.Path.DIR_SEPARATOR_S + filename);
                             if (!filed.query_exists ()) {
                                 FileOutputStream out_stream = filed.create (FileCreateFlags.REPLACE_DESTINATION);
                                 out_stream.write (body.get_as_bytes ().get_data ());

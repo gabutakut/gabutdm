@@ -334,27 +334,35 @@ namespace Gabut {
         COOKIE = 78,
         REFERER = 79,
         PROXY = 80,
-        PROXYPORT = 81,
-        PROXYUSERNAME = 82,
-        PROXYPASSWORD = 83,
-        MAX_CONCURRENT_DOWNLOADS = 84,
-        DISK_CACHE = 85,
-        BT_MAX_OPEN_FILES = 86,
-        SELECT_FILE = 87,
-        HEADER = 88,
-        SEED_TIME = 89,
-        CHECKSUM = 90,
-        MAX_OVERALL_UPLOAD_LIMIT = 91,
-        MAX_OVERALL_DOWNLOAD_LIMIT = 92,
-        LISTEN_PORT = 93,
-        DHT_LISTEN_PORT = 94,
-        BT_TRACKER = 95,
-        BT_EXCLUDE_TRACKER = 96,
-        PEER_AGENT = 97,
-        HTTP_USER = 98,
-        HTTP_PASSWD = 99,
-        FTP_USER = 100,
-        FTP_PASSWD = 101;
+        PROXYUSER = 81,
+        PROXYPASSWORD = 82,
+        MAX_CONCURRENT_DOWNLOADS = 83,
+        DISK_CACHE = 84,
+        BT_MAX_OPEN_FILES = 85,
+        SELECT_FILE = 86,
+        HEADER = 87,
+        SEED_TIME = 88,
+        CHECKSUM = 89,
+        MAX_OVERALL_UPLOAD_LIMIT = 90,
+        MAX_OVERALL_DOWNLOAD_LIMIT = 91,
+        LISTEN_PORT = 92,
+        DHT_LISTEN_PORT = 93,
+        BT_TRACKER = 94,
+        BT_EXCLUDE_TRACKER = 95,
+        PEER_AGENT = 96,
+        HTTP_USER = 97,
+        HTTP_PASSWD = 98,
+        FTP_USER = 99,
+        FTP_PASSWD = 100,
+        FTP_PROXY = 101,
+        FTP_PROXY_USER = 102,
+        FTP_PROXY_PASSWD = 103,
+        HTTP_PROXY = 104,
+        HTTP_PROXY_USER = 105,
+        HTTP_PROXY_PASSWD = 106,
+        HTTPS_PROXY = 107,
+        HTTPS_PROXY_USER = 108,
+        HTTPS_PROXY_PASSWD = 109;
 
         public string get_name () {
             switch (this) {
@@ -518,9 +526,7 @@ namespace Gabut {
                     return "referer";
                 case PROXY:
                     return "all-proxy";
-                case PROXYPORT:
-                    return "all-proxy-port";
-                case PROXYUSERNAME:
+                case PROXYUSER:
                     return "all-proxy-user";
                 case PROXYPASSWORD:
                     return "all-proxy-passwd";
@@ -560,6 +566,24 @@ namespace Gabut {
                     return "ftp-user";
                 case FTP_PASSWD:
                     return "ftp-passwd";
+                case FTP_PROXY:
+                    return "ftp-proxy";
+                case FTP_PROXY_USER:
+                    return "ftp-proxy-user";
+                case FTP_PROXY_PASSWD:
+                    return "ftp-proxy-passwd";
+                case HTTP_PROXY:
+                    return "http-proxy";
+                case HTTP_PROXY_USER:
+                    return "http-proxy-user";
+                case HTTP_PROXY_PASSWD:
+                    return "http-proxy-passwd";
+                case HTTPS_PROXY:
+                    return "https-proxy";
+                case HTTPS_PROXY_USER:
+                    return "https-proxy-user";
+                case HTTPS_PROXY_PASSWD:
+                    return "https-proxy-passwd";
                 default:
                     return "allow-overwrite";
             }
@@ -879,7 +903,8 @@ namespace Gabut {
         TRANSFERRATE = 7,
         TRANSFERRED = 8,
         LINKMODE = 9,
-        FILEORDIR = 10;
+        FILEORDIR = 10,
+        LABELTRANSFER = 11;
 
         public string get_name () {
             switch (this) {
@@ -903,6 +928,8 @@ namespace Gabut {
                     return "linkmode";
                 case FILEORDIR:
                     return "fileordir";
+                case LABELTRANSFER:
+                    return "labeltransfer";
                 default:
                     return "id";
             }
@@ -938,25 +965,25 @@ namespace Gabut {
         MAGNETBACKUP = 2,
         TORRENTBACKUP = 3,
         PROXY = 4,
-        PROXYPORT = 5,
-        PROXYUSERNAME = 6,
-        PROXYPASSWORD = 7,
-        HTTPUSR = 8,
-        HTTPPASS = 9,
-        FTPUSR = 10,
-        FTPPASS = 11,
-        DIR = 12,
-        COOKIE = 13,
-        REFERER = 14,
-        USERAGENT = 15,
-        OUT = 16,
-        PROXYMETHOD = 17,
-        SELECTFILE = 18,
-        CHECKSUM = 19,
-        CRYPTOLVL = 20,
-        REQUIRECRYP = 21,
-        INTEGRITY = 22,
-        UNVERIFIED = 23;
+        PROXYUSER = 5,
+        PROXYPASSWORD = 6,
+        HTTPUSR = 7,
+        HTTPPASS = 8,
+        FTPUSR = 9,
+        FTPPASS = 10,
+        DIR = 11,
+        COOKIE = 12,
+        REFERER = 13,
+        USERAGENT = 14,
+        OUT = 15,
+        PROXYMETHOD = 16,
+        SELECTFILE = 17,
+        CHECKSUM = 18,
+        CRYPTOLVL = 19,
+        REQUIRECRYP = 20,
+        INTEGRITY = 21,
+        UNVERIFIED = 22,
+        PROXYTYPE = 23;
 
         public string get_name () {
             switch (this) {
@@ -968,12 +995,10 @@ namespace Gabut {
                     return "torrentbackup";
                 case PROXY:
                     return "proxy";
-                case PROXYPORT:
-                    return "port";
-                case PROXYUSERNAME:
-                    return "username";
+                case PROXYUSER:
+                    return "proxyusr";
                 case PROXYPASSWORD:
-                    return "usernamepass";
+                    return "proxypass";
                 case HTTPUSR:
                     return "httpusr";
                 case HTTPPASS:
@@ -1006,6 +1031,8 @@ namespace Gabut {
                     return "integrity";
                 case UNVERIFIED:
                     return "unverified";
+                case PROXYTYPE:
+                    return "proxytype";
                 default:
                     return "id";
             }
@@ -1189,6 +1216,30 @@ namespace Gabut {
         }
     }
 
+    public enum ProxyTypes {
+        All = 0,
+        HTTP = 1,
+        HTTPS = 2,
+        FTP = 3;
+
+        public string get_name () {
+            switch (this) {
+                case HTTP:
+                    return "HTTP";
+                case HTTPS:
+                    return "HTTPS";
+                case FTP:
+                    return "FTP";
+                default:
+                    return "ALL";
+            }
+        }
+
+        public static ProxyTypes [] get_all () {
+            return { All, HTTP, HTTPS, FTP };
+        }
+    }
+
     private enum Target {
         STRING,
         URILIST
@@ -1215,14 +1266,8 @@ namespace Gabut {
         var session = new Soup.Session ();
         var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
-        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"],{");
+        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
         uint hasempty = stringbuild.str.hash ();
-        if (options.has_key (AriaOptions.PROXY.get_name ()) && options.has_key (AriaOptions.PROXYPORT.get_name ())) {
-            var proxy = @"$(options.@get (AriaOptions.PROXY.get_name ())):$(options.@get (AriaOptions.PROXYPORT.get_name ()))";
-            stringbuild.append (@"\"$(AriaOptions.PROXY.get_name ())\" : \"$(proxy)\"");
-            options.unset (AriaOptions.PROXY.get_name ());
-            options.unset (AriaOptions.PROXYPORT.get_name ());
-        }
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
@@ -1246,12 +1291,6 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
-        if (options.has_key (AriaOptions.PROXY.get_name ()) && options.has_key (AriaOptions.PROXYPORT.get_name ())) {
-            var proxy = @"$(options.@get (AriaOptions.PROXY.get_name ())):$(options.@get (AriaOptions.PROXYPORT.get_name ()))";
-            stringbuild.append (@"\"$(AriaOptions.PROXY.get_name ())\" : \"$(proxy)\"");
-            options.unset (AriaOptions.PROXY.get_name ());
-            options.unset (AriaOptions.PROXYPORT.get_name ());
-        }
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
@@ -1275,12 +1314,6 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
-        if (options.has_key (AriaOptions.PROXY.get_name ()) && options.has_key (AriaOptions.PROXYPORT.get_name ())) {
-            var proxy = @"$(options.@get (AriaOptions.PROXY.get_name ())):$(options.@get (AriaOptions.PROXYPORT.get_name ()))";
-            stringbuild.append (@"\"$(AriaOptions.PROXY.get_name ())\" : \"$(proxy)\"");
-            options.unset (AriaOptions.PROXY.get_name ());
-            options.unset (AriaOptions.PROXYPORT.get_name ());
-        }
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
@@ -1516,15 +1549,10 @@ namespace Gabut {
         }
         try {
             MatchInfo match_info;
-            if (files != AriaGetfiles.PATH) {
-                Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                return match_info.fetch (1);
-            } else {
-                Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                return match_info.fetch (1).replace ("\\/", "/");
-            }
+            Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
+            regex.match_full (result, -1, 0, 0, out match_info);
+            string getfile = match_info.fetch (1);
+            return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1558,7 +1586,7 @@ namespace Gabut {
                     Gtk.TreeIter iter;
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
                     liststore.append (out iter);
-                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? Soup.URI.decode (uris.replace ("\\/", "/")) : uris);
+                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? Soup.URI.decode (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
                     match_info.next ();
                 }
             } catch (Error e) {
@@ -2040,7 +2068,8 @@ namespace Gabut {
             transferrate   INT     NOT NULL,
             transferred    INT64   NOT NULL,
             linkmode       INT     NOT NULL,
-            fileordir      TEXT    NOT NULL);");
+            fileordir      TEXT    NOT NULL,
+            labeltransfer  TEXT    NOT NULL);");
     }
 
     private int table_options (Sqlite.Database db) {
@@ -2050,9 +2079,8 @@ namespace Gabut {
             magnetbackup   TEXT    NOT NULL,
             torrentbackup  TEXT    NOT NULL,
             proxy          TEXT    NOT NULL,
-            port           TEXT    NOT NULL,
-            username       TEXT    NOT NULL,
-            usernamepass   TEXT    NOT NULL,
+            proxyusr       TEXT    NOT NULL,
+            proxypass      TEXT    NOT NULL,
             httpusr        TEXT    NOT NULL,
             httppass       TEXT    NOT NULL,
             ftpusr         TEXT    NOT NULL,
@@ -2068,7 +2096,8 @@ namespace Gabut {
             cryptolvl      TEXT    NOT NULL,
             requirecryp    TEXT    NOT NULL,
             integrity      TEXT    NOT NULL,
-            unverified     TEXT    NOT NULL);");
+            unverified     TEXT    NOT NULL,
+            proxytype      TEXT    NOT NULL);");
     }
 
     private int table_settings (Sqlite.Database db) {
@@ -2123,7 +2152,7 @@ namespace Gabut {
     private void check_optdown () {
         Sqlite.Database db;
         Sqlite.Database.open (create_folder (".db"), out db);
-        if ((db_table ("download") - 1) != DBDownload.FILEORDIR) {
+        if ((db_table ("download") - 1) != DBDownload.LABELTRANSFER) {
             db.exec ("DROP TABLE download;");
             table_download (db);
         }
@@ -2172,7 +2201,7 @@ namespace Gabut {
                 return;
             }
             Sqlite.Statement stmt;
-            string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+            string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
             int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
             res = stmt.bind_text (DBDownload.URL, download.url);
             res = stmt.bind_int (DBDownload.STATUS, download.status);
@@ -2184,6 +2213,7 @@ namespace Gabut {
             res = stmt.bind_int64 (DBDownload.TRANSFERRED, download.transferred);
             res = stmt.bind_int (DBDownload.LINKMODE, download.linkmode);
             res = stmt.bind_text (DBDownload.FILEORDIR, download.fileordir == null? "" : download.fileordir);
+            res = stmt.bind_text (DBDownload.LABELTRANSFER, download.labeltransfer);
             if ((res = stmt.step ()) != Sqlite.DONE) {
                 warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
             }
@@ -2250,6 +2280,12 @@ namespace Gabut {
                 }
                 buildstr.append (@" $(DBDownload.FILEORDIR.get_name ()) = \"$(download.fileordir)\"");
             }
+            if (stmt.column_text (DBDownload.LABELTRANSFER) != download.labeltransfer) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                buildstr.append (@" $(DBDownload.LABELTRANSFER.get_name ()) = \"$(download.labeltransfer)\"");
+            }
             if (buildstr.str.hash () == empty_hash) {
                 return;
             }
@@ -2277,7 +2313,7 @@ namespace Gabut {
     private GLib.List<DownloadRow> get_download () {
         var downloads = new GLib.List<DownloadRow> ();
         Sqlite.Statement stmt;
-        int res = GabutApp.db.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir FROM download ORDER BY url;", -1, out stmt);
+        int res = GabutApp.db.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer FROM download ORDER BY url;", -1, out stmt);
         if (res != Sqlite.OK) {
             warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
         }
@@ -2327,36 +2363,61 @@ namespace Gabut {
             if (torrent != "") {
                 hashoption[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = torrent;
             }
-            string proxy = stmt.column_text (DBOption.PROXY);
-            if (proxy != "") {
-                hashoption[AriaOptions.PROXYUSERNAME.get_name ()] = proxy;
-            }
-            string port = stmt.column_text (DBOption.PROXYPORT);
-            if (port != "") {
-                hashoption[AriaOptions.PROXYPORT.get_name ()] = port;
-            }
-            string username = stmt.column_text (DBOption.PROXYUSERNAME);
-            if (username != "") {
-                hashoption[AriaOptions.PROXYUSERNAME.get_name ()] = username;
-            }
-            string usernamepass = stmt.column_text (DBOption.PROXYPASSWORD);
-            if (usernamepass != "") {
-                hashoption[AriaOptions.PROXYPASSWORD.get_name ()] = usernamepass;
+            string proxytype = stmt.column_text (DBOption.PROXYTYPE);
+            if (proxytype != "" && proxytype != "NOTSET") {
+                string proxy = stmt.column_text (DBOption.PROXY);
+                string proxuser = stmt.column_text (DBOption.PROXYUSER);
+                string proxypass = stmt.column_text (DBOption.PROXYPASSWORD);
+                if (proxytype.down () == "all") {
+                    if (proxy != "NOTSET" && proxy != "") {
+                        hashoption[AriaOptions.PROXY.get_name ()] = proxy;
+                        if (proxuser != "NOTSET" && proxuser != "") {
+                            hashoption[AriaOptions.PROXYUSER.get_name ()] = proxuser;
+                        }
+                        if (proxypass != "NOTSET" && proxypass != "") {
+                            hashoption[AriaOptions.PROXYPASSWORD.get_name ()] = proxypass;
+                        }
+                    }
+                } else if (proxytype.down () == "ftp") {
+                    hashoption[AriaOptions.FTP_PROXY.get_name ()] = proxy;
+                    if (proxuser != "NOTSET" && proxuser != "") {
+                        hashoption[AriaOptions.FTP_PROXY_USER.get_name ()] = proxuser;
+                    }
+                    if (proxypass != "NOTSET" && proxypass != "") {
+                        hashoption[AriaOptions.FTP_PROXY_PASSWD.get_name ()] = proxypass;
+                    }
+                } else if (proxytype.down () == "http") {
+                    hashoption[AriaOptions.HTTP_PROXY.get_name ()] = proxy;
+                    if (proxuser != "NOTSET" && proxuser != "") {
+                        hashoption[AriaOptions.HTTP_PROXY_USER.get_name ()] = proxuser;
+                    }
+                    if (proxypass != "NOTSET" && proxypass != "") {
+                        hashoption[AriaOptions.HTTP_PROXY_PASSWD.get_name ()] = proxypass;
+                    }
+                } else if (proxytype.down () == "https") {
+                    hashoption[AriaOptions.HTTPS_PROXY.get_name ()] = proxy;
+                    if (proxuser != "NOTSET" && proxuser != "") {
+                        hashoption[AriaOptions.HTTPS_PROXY_USER.get_name ()] = proxuser;
+                    }
+                    if (proxypass != "NOTSET" && proxypass != "") {
+                        hashoption[AriaOptions.HTTPS_PROXY_PASSWD.get_name ()] = proxypass;
+                    }
+                }
             }
             string httpuser = stmt.column_text (DBOption.HTTPUSR);
-            if (httpuser != "") {
+            if (httpuser != "NOTSET" && httpuser != "") {
                 hashoption[AriaOptions.HTTP_USER.get_name ()] = httpuser;
             }
             string httppass = stmt.column_text (DBOption.HTTPPASS);
-            if (httppass != "") {
+            if (httppass != "NOTSET" && httppass != "") {
                 hashoption[AriaOptions.HTTP_PASSWD.get_name ()] = httppass;
             }
             string ftpuser = stmt.column_text (DBOption.FTPUSR);
-            if (ftpuser != "") {
+            if (ftpuser != "NOTSET" && ftpuser != "") {
                 hashoption[AriaOptions.FTP_USER.get_name ()] = ftpuser;
             }
             string ftppass = stmt.column_text (DBOption.FTPPASS);
-            if (ftppass != "") {
+            if (ftppass != "NOTSET" && ftppass != "") {
                 hashoption[AriaOptions.FTP_PASSWD.get_name ()] = ftppass;
             }
             string usernpagent = stmt.column_text (DBOption.USERAGENT);
@@ -2402,7 +2463,7 @@ namespace Gabut {
 
     private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
         Sqlite.Statement stmt;
-        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, port, username, usernamepass, httpusr, httppass, ftpusr, ftppass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp, integrity, unverified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, proxyusr, proxypass, httpusr, httppass, ftpusr, ftppass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp, integrity, unverified, proxytype) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBOption.URL, url);
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
@@ -2417,43 +2478,61 @@ namespace Gabut {
         }
         if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
             res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.PROXY.get_name ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE, "all");
+        } else if (hashoptions.has_key (AriaOptions.FTP_PROXY.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.FTP_PROXY.get_name ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE, "ftp");
+        } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.HTTP_PROXY.get_name ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE, "http");
+        } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.HTTPS_PROXY.get_name ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE, "https");
         } else {
-            res = stmt.bind_text (DBOption.PROXY, "");
+            res = stmt.bind_text (DBOption.PROXY, "NOTSET");
+            res = stmt.bind_text (DBOption.PROXYTYPE, "NOTSET");
         }
-        if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
-            res = stmt.bind_text (DBOption.PROXYPORT, hashoptions.@get (AriaOptions.PROXYPORT.get_name ()));
+        if (hashoptions.has_key (AriaOptions.PROXYUSER.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXYUSER, hashoptions.@get (AriaOptions.PROXYUSER.get_name ()));
+        } else if (hashoptions.has_key (AriaOptions.FTP_PROXY_USER.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXYUSER, hashoptions.@get (AriaOptions.FTP_PROXY_USER.get_name ()));
+        } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY_USER.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXYUSER, hashoptions.@get (AriaOptions.HTTP_PROXY_USER.get_name ()));
+        } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_PASSWD.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.HTTPS_PROXY_PASSWD.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.PROXYPORT, "");
-        }
-        if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
-            res = stmt.bind_text (DBOption.PROXYUSERNAME, hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ()));
-        } else {
-            res = stmt.bind_text (DBOption.PROXYUSERNAME, "");
+            res = stmt.bind_text (DBOption.PROXYUSER, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
             res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ()));
+        } else if (hashoptions.has_key (AriaOptions.FTP_PROXY_PASSWD.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.FTP_PROXY_PASSWD.get_name ()));
+        } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY_PASSWD.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.HTTP_PROXY_PASSWD.get_name ()));
+        } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_PASSWD.get_name ())) {
+            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.HTTPS_PROXY_PASSWD.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.PROXYPASSWORD, "");
+            res = stmt.bind_text (DBOption.PROXYPASSWORD, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.HTTP_USER.get_name ())) {
             res = stmt.bind_text (DBOption.HTTPUSR, hashoptions.@get (AriaOptions.HTTP_USER.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.HTTPUSR, "");
+            res = stmt.bind_text (DBOption.HTTPUSR, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.get_name ())) {
             res = stmt.bind_text (DBOption.HTTPPASS, hashoptions.@get (AriaOptions.HTTP_PASSWD.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.HTTPPASS, "");
+            res = stmt.bind_text (DBOption.HTTPPASS, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.FTP_USER.get_name ())) {
             res = stmt.bind_text (DBOption.FTPUSR, hashoptions.@get (AriaOptions.FTP_USER.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.FTPUSR, "");
+            res = stmt.bind_text (DBOption.FTPUSR, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.FTP_PASSWD.get_name ())) {
             res = stmt.bind_text (DBOption.FTPPASS, hashoptions.@get (AriaOptions.FTP_PASSWD.get_name ()));
         } else {
-            res = stmt.bind_text (DBOption.FTPPASS, "");
+            res = stmt.bind_text (DBOption.FTPPASS, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
             res = stmt.bind_text (DBOption.DIR, hashoptions.@get (AriaOptions.DIR.get_name ()));
@@ -2547,191 +2626,333 @@ namespace Gabut {
                 }
             }
             if (hashoptions.has_key (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string torrentbackup = hashoptions.@get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ());
                 if (stmt.column_text (DBOption.TORRENTBACKUP) != torrentbackup) {
-                    buildstr.append (@" $(DBOption.TORRENTBACKUP.get_name ()) = $(torrentbackup)");
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.TORRENTBACKUP.get_name ()) = \"$(torrentbackup)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXY.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
+                string prox = hashoptions.@get (AriaOptions.PROXY.get_name ());
+                if (stmt.column_text (DBOption.PROXY) != prox) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXY.get_name ()) = \"$(prox)\"");
                 }
-                string proxy = hashoptions.@get (AriaOptions.PROXY.get_name ());
-                if (stmt.column_text (DBOption.PROXY) != proxy) {
-                    buildstr.append (@" $(DBOption.PROXY.get_name ()) = \"$(proxy)\"");
+                if (stmt.column_text (DBOption.PROXYTYPE) != "all") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYTYPE.get_name ()) = \"all\"");
+                }
+            } else if (hashoptions.has_key (AriaOptions.FTP_PROXY.get_name ())) {
+                string ftpro = hashoptions.@get (AriaOptions.FTP_PROXY.get_name ());
+                if (stmt.column_text (DBOption.PROXY) != ftpro) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXY.get_name ()) = \"$(ftpro)\"");
+                }
+                if (stmt.column_text (DBOption.PROXYTYPE) != "ftp") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYTYPE.get_name ()) = \"ftp\"");
+                }
+            } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY.get_name ())) {
+                string htprox = hashoptions.@get (AriaOptions.HTTP_PROXY.get_name ());
+                if (stmt.column_text (DBOption.PROXY) != htprox) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXY.get_name ()) = \"$(htprox)\"");
+                }
+                if (stmt.column_text (DBOption.PROXYTYPE) != "http") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYTYPE.get_name ()) = \"http\"");
+                }
+            } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY.get_name ())) {
+                string htsprox = hashoptions.@get (AriaOptions.HTTPS_PROXY.get_name ());
+                if (stmt.column_text (DBOption.PROXY) != htsprox) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXY.get_name ()) = \"$(htsprox)\"");
+                }
+                if (stmt.column_text (DBOption.PROXYTYPE) != "https") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYTYPE.get_name ()) = \"https\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.PROXY) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXY.get_name ()) = \"NOTSET\"");
+                }
+                if (stmt.column_text (DBOption.PROXYTYPE) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYTYPE.get_name ()) = \"NOTSET\"");
                 }
             }
-            if (hashoptions.has_key (AriaOptions.PROXYPORT.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
+            if (hashoptions.has_key (AriaOptions.PROXYUSER.get_name ())) {
+                string proxus = hashoptions.@get (AriaOptions.PROXYUSER.get_name ());
+                if (stmt.column_text (DBOption.PROXYUSER) != proxus) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYUSER.get_name ()) = \"$(proxus)\"");
                 }
-                string port = hashoptions.@get (AriaOptions.PROXYPORT.get_name ());
-                if (stmt.column_text (DBOption.PROXYPORT) != port) {
-                    buildstr.append (@" $(DBOption.PROXYPORT.get_name ()) = \"$(port)\"");
+            } else if (hashoptions.has_key (AriaOptions.FTP_PROXY_USER.get_name ())) {
+                string ftprus = hashoptions.@get (AriaOptions.FTP_PROXY_USER.get_name ());
+                if (stmt.column_text (DBOption.PROXYUSER) != ftprus) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYUSER.get_name ()) = \"$(ftprus)\"");
                 }
-            }
-            if (hashoptions.has_key (AriaOptions.PROXYUSERNAME.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
+            } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY_USER.get_name ())) {
+                string htus = hashoptions.@get (AriaOptions.HTTP_PROXY_USER.get_name ());
+                if (stmt.column_text (DBOption.PROXYUSER) != htus) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYUSER.get_name ()) = \"$(htus)\"");
                 }
-                string username = hashoptions.@get (AriaOptions.PROXYUSERNAME.get_name ());
-                if (stmt.column_text (DBOption.PROXYUSERNAME) != username) {
-                    buildstr.append (@" $(DBOption.PROXYUSERNAME.get_name ()) = \"$(username)\"");
+            } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_USER.get_name ())) {
+                string htsprus = hashoptions.@get (AriaOptions.HTTPS_PROXY_USER.get_name ());
+                if (stmt.column_text (DBOption.PROXYUSER) != htsprus) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYUSER.get_name ()) = \"$(htsprus)\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.PROXYUSER) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYUSER.get_name ()) = \"NOTSET\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
+                string proxpas = hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ());
+                if (stmt.column_text (DBOption.PROXYPASSWORD) != proxpas) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"$(proxpas)\"");
                 }
-                string passwd = hashoptions.@get (AriaOptions.PROXYPASSWORD.get_name ());
-                if (stmt.column_text (DBOption.PROXYPASSWORD) != passwd) {
-                    buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"$(passwd)\"");
+            } else if (hashoptions.has_key (AriaOptions.FTP_PROXY_PASSWD.get_name ())) {
+                string ftprops = hashoptions.@get (AriaOptions.FTP_PROXY_PASSWD.get_name ());
+                if (stmt.column_text (DBOption.PROXYPASSWORD) != ftprops) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"$(ftprops)\"");
+                }
+            } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY_PASSWD.get_name ())) {
+                string htpas = hashoptions.@get (AriaOptions.HTTP_PROXY_PASSWD.get_name ());
+                if (stmt.column_text (DBOption.PROXYPASSWORD) != htpas) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"$(htpas)\"");
+                }
+            } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_PASSWD.get_name ())) {
+                string htspas = hashoptions.@get (AriaOptions.HTTPS_PROXY_PASSWD.get_name ());
+                if (stmt.column_text (DBOption.PROXYPASSWORD) != htspas) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"$(htspas)\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.PROXYPASSWORD) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.PROXYPASSWORD.get_name ()) = \"NOTSET\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.HTTP_USER.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string httpuser = hashoptions.@get (AriaOptions.HTTP_USER.get_name ());
                 if (stmt.column_text (DBOption.HTTPUSR) != httpuser) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.HTTPUSR.get_name ()) = \"$(httpuser)\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.HTTPUSR) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.HTTPUSR.get_name ()) = \"NOTSET\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string httppass = hashoptions.@get (AriaOptions.HTTP_PASSWD.get_name ());
                 if (stmt.column_text (DBOption.HTTPPASS) != httppass) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.HTTPPASS.get_name ()) = \"$(httppass)\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.HTTPPASS) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.HTTPPASS.get_name ()) = \"NOTSET\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.FTP_USER.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string ftpuser = hashoptions.@get (AriaOptions.FTP_USER.get_name ());
                 if (stmt.column_text (DBOption.FTPUSR) != ftpuser) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.FTPUSR.get_name ()) = \"$(ftpuser)\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.FTPUSR) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.FTPUSR.get_name ()) = \"NOTSET\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.FTP_PASSWD.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string ftppass = hashoptions.@get (AriaOptions.FTP_PASSWD.get_name ());
                 if (stmt.column_text (DBOption.FTPPASS) != ftppass) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.FTPPASS.get_name ()) = \"$(ftppass)\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.FTPPASS) != "NOTSET") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.FTPPASS.get_name ()) = \"NOTSET\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string dir = hashoptions.@get (AriaOptions.DIR.get_name ());
                 if (stmt.column_text (DBOption.DIR) != dir) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.DIR.get_name ()) = \"$(dir)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.COOKIE.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string cookie = hashoptions.@get (AriaOptions.COOKIE.get_name ());
                 if (stmt.column_text (DBOption.COOKIE) != cookie) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.COOKIE.get_name ()) = \"$(cookie)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.REFERER.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string referer = hashoptions.@get (AriaOptions.REFERER.get_name ());
                 if (stmt.column_text (DBOption.REFERER) != referer) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.REFERER.get_name ()) = \"$(referer)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.USER_AGENT.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string useragent = hashoptions.@get (AriaOptions.USER_AGENT.get_name ());
                 if (stmt.column_text (DBOption.USERAGENT) != useragent) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.USERAGENT.get_name ()) = \"$(useragent)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.OUT.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string outf = hashoptions.@get (AriaOptions.OUT.get_name ());
                 if (stmt.column_text (DBOption.OUT) != outf) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.OUT.get_name ()) = \"$(outf)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.PROXY_METHOD.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string proxymethod = hashoptions.@get (AriaOptions.PROXY_METHOD.get_name ());
                 if (stmt.column_text (DBOption.PROXYMETHOD) != proxymethod) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.PROXYMETHOD.get_name ()) = \"$(proxymethod)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.SELECT_FILE.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string selectfile = hashoptions.@get (AriaOptions.SELECT_FILE.get_name ());
                 if (stmt.column_text (DBOption.SELECTFILE) != selectfile) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.SELECTFILE.get_name ()) = \"$(selectfile)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.CHECKSUM.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string checksums = hashoptions.@get (AriaOptions.CHECKSUM.get_name ());
                 if (stmt.column_text (DBOption.CHECKSUM) != checksums) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.CHECKSUM.get_name ()) = \"$(checksums)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string cryplvl = hashoptions.@get (AriaOptions.BT_MIN_CRYPTO_LEVEL.get_name ());
                 if (stmt.column_text (DBOption.CRYPTOLVL) != cryplvl) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.CRYPTOLVL.get_name ()) = \"$(cryplvl)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.BT_REQUIRE_CRYPTO.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string reqcrypt = hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.get_name ());
                 if (stmt.column_text (DBOption.REQUIRECRYP) != reqcrypt) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.REQUIRECRYP.get_name ()) = \"$(reqcrypt)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.CHECK_INTEGRITY.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string integ = hashoptions.@get (AriaOptions.CHECK_INTEGRITY.get_name ());
                 if (stmt.column_text (DBOption.INTEGRITY) != integ) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.INTEGRITY.get_name ()) = \"$(integ)\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.BT_SEED_UNVERIFIED.get_name ())) {
-                if (buildstr.str.hash () != empty_hash) {
-                    buildstr.append (",");
-                }
                 string unver = hashoptions.@get (AriaOptions.BT_SEED_UNVERIFIED.get_name ());
                 if (stmt.column_text (DBOption.UNVERIFIED) != unver) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
                     buildstr.append (@" $(DBOption.UNVERIFIED.get_name ()) = \"$(unver)\"");
                 }
             }

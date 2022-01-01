@@ -26,4 +26,5 @@ sources = files (
     'LoginUser.vala',
     'PieceSelector.vala',
     'UriSelector.vala',
+    'ProxyType.vala'
 )
