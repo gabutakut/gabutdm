@@ -10,6 +10,7 @@ finish-args:
   - '--share=network'
   - '--talk-name=com.canonical.Unity.LauncherEntry'
   - '--talk-name=org.freedesktop.portal.Desktop'
+  - '--system-talk-name=org.freedesktop.NetworkManager'
   - '--share=ipc'
   - '--socket=fallback-x11'
   - '--socket=wayland'

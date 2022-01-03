@@ -1217,7 +1217,7 @@ namespace Gabut {
     }
 
     public enum ProxyTypes {
-        All = 0,
+        ALL = 0,
         HTTP = 1,
         HTTPS = 2,
         FTP = 3;
@@ -1236,7 +1236,7 @@ namespace Gabut {
         }
 
         public static ProxyTypes [] get_all () {
-            return { All, HTTP, HTTPS, FTP };
+            return { ALL, HTTP, HTTPS, FTP };
         }
     }
 
@@ -1707,7 +1707,7 @@ namespace Gabut {
     private string aria_globalstat (GlobalStat stat) {
         var session = new Soup.Session ();
         var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}";
+        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}";
         message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
         session.send_message (message);
         string result = (string) message.response_body.flatten ().data;
@@ -2981,10 +2981,55 @@ namespace Gabut {
         return false;
     }
 
+    [DBus (name = "org.freedesktop.DBus.Properties")]
+    private interface DBusProerties : Object {
+        public abstract Variant get (string interface, string name) throws DBusError, IOError;
+    }
+
     [DBus (name = "org.freedesktop.portal.Settings")]
     private interface PortalSettings : Object {
         public abstract Variant read (string namespace, string key) throws DBusError, IOError;
         public signal void setting_changed (string namespace, string key, Variant value);
+    }
+
+    private string get_local_address () {
+        try {
+            DBusProerties networkmanager = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager");
+            if (networkmanager != null) {
+                Variant nmconn = networkmanager.get ("org.freedesktop.NetworkManager", "PrimaryConnection");
+                if (nmconn != null) {
+                    DBusProerties nmactive = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", nmconn.get_string (null));
+                    Variant activetype = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Type");
+                    if (activetype.get_string (null) != "vpn") {
+                        Variant pathip4 = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config");
+                        return ipv4address (pathip4.get_string (null));
+                    } else {
+                        Variant objspcific = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "SpecificObject");
+                        DBusProerties nmactivevpn = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", objspcific.get_string (null));
+                        Variant pathip4vpn = nmactivevpn.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config");
+                        return ipv4address (pathip4vpn.get_string (null));
+                    }
+                }
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "0.0.0.0";
+    }
+
+    private string ipv4address (string path) {
+        try {
+            DBusProerties ip4conf = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", path);
+            Variant addressdata = ip4conf.get ("org.freedesktop.NetworkManager.IP4Config", "AddressData");
+            string addressstr = addressdata.print (true);
+            MatchInfo match_info;
+            Regex regex = new Regex ("<'(.*?)'>");
+            regex.match_full (addressstr, -1, 0, 0, out match_info);
+            return match_info.fetch (1);
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "0.0.0.0";
     }
 
     private SourceFunc themecall;

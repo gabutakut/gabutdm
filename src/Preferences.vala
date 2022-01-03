@@ -38,14 +38,14 @@ namespace Gabut {
             }
         }
 
-        PieceSelector _PieceSelector = null;
+        PieceSelector _pieceselector = null;
         PieceSelector pieceselector {
             get {
-                return _PieceSelector;
+                return _pieceselector;
             }
             set {
-                _PieceSelector = value;
-                piecesel_button.label = _PieceSelector.selector.get_name ();
+                _pieceselector = value;
+                piecesel_button.label = _pieceselector.selector.get_name ();
             }
         }
 
