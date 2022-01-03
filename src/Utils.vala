@@ -3001,13 +3001,11 @@ namespace Gabut {
                     DBusProerties nmactive = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", nmconn.get_string (null));
                     Variant activetype = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Type");
                     if (activetype.get_string (null) != "vpn") {
-                        Variant pathip4 = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config");
-                        return ipv4address (pathip4.get_string (null));
+                        return ipv4address (nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config"));
                     } else {
                         Variant objspcific = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "SpecificObject");
                         DBusProerties nmactivevpn = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", objspcific.get_string (null));
-                        Variant pathip4vpn = nmactivevpn.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config");
-                        return ipv4address (pathip4vpn.get_string (null));
+                        return ipv4address (nmactivevpn.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config"));
                     }
                 }
             }
@@ -3017,9 +3015,9 @@ namespace Gabut {
         return "0.0.0.0";
     }
 
-    private string ipv4address (string path) {
+    private string ipv4address (Variant pathip4) {
         try {
-            DBusProerties ip4conf = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", path);
+            DBusProerties ip4conf = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", pathip4.get_string (null));
             Variant addressdata = ip4conf.get ("org.freedesktop.NetworkManager.IP4Config", "AddressData");
             string addressstr = addressdata.print (true);
             MatchInfo match_info;
