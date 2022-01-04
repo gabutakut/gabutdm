@@ -512,7 +512,7 @@ namespace Gabut {
             allowrepl.add (replacegrid);
 
             var autorengrid = new Gtk.Grid ();
-            autorengrid.add (new Gtk.Image.from_icon_name ("edit", Gtk.IconSize.SMALL_TOOLBAR));
+            autorengrid.add (new Gtk.Image.from_icon_name ("edit-copy", Gtk.IconSize.SMALL_TOOLBAR));
             autorengrid.add (new Gtk.Label (_("Auto Rename")));
 
             var autorename = new Gtk.CheckButton () {

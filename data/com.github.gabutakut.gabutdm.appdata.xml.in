@@ -9,10 +9,10 @@
   <description>
     <p>Download whatever you want.</p>
       <p>
-        Gabut Download Manager application that can download Link URIs Metallink Magnetlink Torrents using Aria2c and,
+        Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
         an application that has a local server service interface.
         can also accept file transfers from smartphones.
-        Made with love.:D
+
       </p>
       <p>Features:</p>
       <ul>
@@ -28,6 +28,16 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.6.6" date="2022-1-4">
+      <description>
+        <p>Fix Proxy</p>
+        <p>Encryption</p>
+        <p>Bittorent Tracker</p>
+        <p>View Bittorent Peers</p>
+        <p>Multiple Transfer</p>
+        <p>Open Link</p>
+      </description>
+    </release>
     <release version="1.6.5" date="2021-12-25">
       <description>
         <p>Fix Proxy</p>
@@ -85,6 +95,9 @@
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot6.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot7.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1">
