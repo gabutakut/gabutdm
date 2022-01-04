@@ -118,7 +118,6 @@ apps:
         - ACLOCAL_PATH: /snap/gnome-3-38-2004-sdk/current/usr/share/aclocal${ACLOCAL_PATH:+:$ACLOCAL_PATH}
         - PYTHONPATH: /snap/gnome-3-38-2004-sdk/current/usr/lib/python3.8:/snap/gnome-3-38-2004-sdk/current/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}
     environment:
-      GSETTINGS_SCHEMA_DIR: $SNAP/share/glib-2.0/schemas
       GTK_USE_PORTAL: '1'
       SNAP_DESKTOP_RUNTIME: $SNAP/gnome-platform
     layout:
