@@ -230,7 +230,7 @@ namespace Gabut {
             headerbar.pack_start (stopall_button);
             stopall_button.clicked.connect (stop_all);
 
-            var removeall_button = new Gtk.Button.from_icon_name ("edit-clear", Gtk.IconSize.BUTTON) {
+            var removeall_button = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.BUTTON) {
                 tooltip_text = _("Remove All")
             };
             headerbar.pack_start (removeall_button);

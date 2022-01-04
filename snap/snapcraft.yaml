@@ -4,10 +4,9 @@ grade: stable
 base: core20
 summary: Simple and Faster Download Manager
 description: |
-    Gabut Download Manager application that can download Metallink Magnetlink Torrents URIs using Aria2c and
+    Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
     an application that has a local server service interface.
     can also accept file transfers from smartphones.
-    Made with love.
 
 confinement: strict
 package-repositories:
@@ -109,12 +108,7 @@ apps:
       - x11
       - network
       - home
-    slots: [ dbus-gabutdm ]
-slots:
-  dbus-gabutdm:
-    interface: dbus
-    bus: session
-    name: com.github.gabutakut.gabutdm
+
 plugs:
   gnome-3-38-2004:
     default-provider: gnome-3-38-2004
