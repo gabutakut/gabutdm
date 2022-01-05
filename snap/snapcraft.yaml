@@ -108,9 +108,6 @@ apps:
       - x11
       - network
       - home
-    environment:
-      GTK_USE_PORTAL: '1'
-      SNAP_DESKTOP_RUNTIME: $SNAP/gnome-platform
     slots: [ dbus-gabutdm ]
 slots:
   dbus-gabutdm:
@@ -134,3 +131,6 @@ plugs:
     default-provider: gtk-common-themes
     interface: content
     target: $SNAP/data-dir/sounds
+environment:
+  GTK_USE_PORTAL: '1'
+  SNAP_DESKTOP_RUNTIME: $SNAP/gnome-platform
