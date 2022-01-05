@@ -75,7 +75,7 @@ namespace Qrencode {
         public QRinputStruct splitQRinputToStruct ();
         [CCode (cname = "QRinput_setFNC1First")]
         public int setFNC1First ();
-        [CCode (cname = "QRinput_setFNC1First")]
+        [CCode (cname = "QRinput_setFNC1Second")]
         public int setFNC1Second(string appid);
     }
 
