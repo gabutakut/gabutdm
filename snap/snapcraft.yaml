@@ -108,10 +108,10 @@ apps:
       - x11
       - network
       - home
+    slots: [ dbus-gabutdm ]
     environment:
       GTK_USE_PORTAL: '1'
       SNAP_DESKTOP_RUNTIME: $SNAP/gnome-platform
-    slots: [ dbus-gabutdm ]
 slots:
   dbus-gabutdm:
     interface: dbus
