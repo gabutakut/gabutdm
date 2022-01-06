@@ -101,6 +101,7 @@ apps:
   gabutdm:
     command: usr/bin/com.github.gabutakut.gabutdm
     desktop: usr/share/applications/com.github.gabutakut.gabutdm.desktop
+    extensions: [gnome-3-38]
     plugs:
       - desktop
       - desktop-legacy
