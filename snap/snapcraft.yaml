@@ -108,6 +108,7 @@ apps:
       - opengl
       - x11
       - network
+      - network-manager
       - home
     slots: [ dbus-gabutdm ]
 slots:
