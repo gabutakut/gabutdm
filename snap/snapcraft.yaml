@@ -109,6 +109,7 @@ apps:
       - x11
       - network
       - network-manager
+      - unity7
       - home
     slots: [ dbus-gabutdm ]
 slots:

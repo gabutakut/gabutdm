@@ -57,22 +57,24 @@ namespace Gabut {
                 max_width_chars = 45,
                 use_markup = true,
                 wrap = true,
-                xalign = 0
+                xalign = 0,
+                attributes = set_attribute (Pango.Weight.BOLD, 1.6)
             };
-            primarylabel.get_style_context ().add_class ("primary");
 
             filesizelabel = new Gtk.Label (null) {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 45,
                 use_markup = true,
                 wrap = true,
-                xalign = 0
+                xalign = 0,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD, 1.1)
             };
-            filesizelabel.get_style_context ().add_class ("secondary");
 
             var header_grid = new Gtk.Grid () {
                 column_spacing = 0,
-                width_request = 250
+                width_request = 250,
+                margin_start = 4,
+                margin_top = 4
             };
             header_grid.attach (overlay, 0, 0, 1, 2);
             header_grid.attach (primarylabel, 1, 0, 1, 1);
@@ -81,7 +83,6 @@ namespace Gabut {
             var header = get_header_bar ();
             header.has_subtitle = false;
             header.show_close_button = false;
-            header.get_style_context ().add_class (Gtk.STYLE_CLASS_HEADER);
             header.pack_start (header_grid);
 
             address = new MediaEntry ("insert-link", "process-completed") {
@@ -100,11 +101,14 @@ namespace Gabut {
                 sensitive = false
             };
 
-            var dontshow = new Gtk.CheckButton.with_label (_("Don't open this dialog when download complete")) {
-                margin_top = 10,
-                margin_bottom = 10,
+            var succeshow = new Gtk.Grid ();
+            succeshow.add (new Gtk.Image.from_icon_name ("process-completed", Gtk.IconSize.SMALL_TOOLBAR));
+            succeshow.add (new HeaderLabel (_("Don't open this dialog when download complete"), 200));
+
+            var dontshow = new Gtk.CheckButton () {
                 active = !bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))
             };
+            dontshow.add (succeshow);
             dontshow.toggled.connect (()=> {
                 set_dbsetting (DBSettings.DIALOGNOTIF, (!dontshow.active).to_string ());
             });
@@ -114,7 +118,6 @@ namespace Gabut {
                 width_request = 450,
                 halign = Gtk.Align.START
             };
-            dialogmain.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             dialogmain.attach (new HeaderLabel (_("Address:"), 300), 1, 1, 1, 1);
             dialogmain.attach (address, 1, 2, 1, 1);
             dialogmain.attach (new HeaderLabel (_("Directory:"), 300), 1, 3, 1, 1);
@@ -158,7 +161,6 @@ namespace Gabut {
                 margin_bottom = 10,
                 hexpand = true
             };
-            box_action.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             box_action.pack_start (open_file, false, false, 0);
             box_action.pack_start (open_folder, false, false, 0);
             box_action.pack_end (close_button, false, false, 0);
@@ -169,7 +171,6 @@ namespace Gabut {
                 margin_start = 10,
                 margin_end = 10
             };
-            maingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             maingrid.add (dialogmain);
             maingrid.add (box_action);
             get_content_area ().add (maingrid);

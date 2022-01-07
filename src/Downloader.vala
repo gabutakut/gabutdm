@@ -181,7 +181,6 @@ namespace Gabut {
             var header = get_header_bar ();
             header.has_subtitle = false;
             header.show_close_button = false;
-            header.get_style_context ().add_class (Gtk.STYLE_CLASS_HEADER);
             header.set_custom_title (view_mode);
 
             progressbar = new Gtk.ProgressBar () {
@@ -246,7 +245,6 @@ namespace Gabut {
                 height_request = 150,
                 margin_bottom = 5
             };
-            downstatusgrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             downstatusgrid.attach (new HeaderLabel (_("Status"), 100), 0, 0, 1, 1);
             downstatusgrid.attach (statuslabel, 1, 0, 1, 1);
             downstatusgrid.attach (new HeaderLabel (_("File Size"), 100), 0, 1, 1, 1);
@@ -266,9 +264,9 @@ namespace Gabut {
                 use_markup = true,
                 xalign = 0,
                 max_width_chars = 30,
-                width_request = 200
+                width_request = 200,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
-            torrentmode.get_style_context ().add_class ("h4");
 
             timecreation = new Gtk.Label (null) {
                 ellipsize = Pango.EllipsizeMode.END,
@@ -276,9 +274,9 @@ namespace Gabut {
                 use_markup = true,
                 xalign = 0,
                 max_width_chars = 30,
-                width_request = 200
+                width_request = 200,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
-            timecreation.get_style_context ().add_class ("h4");
 
             infostore = new Gtk.ListStore (1, typeof (string));
             infotorrent = new Gtk.TreeView () {
@@ -294,7 +292,6 @@ namespace Gabut {
             infoscr.add (infotorrent);
 
             commenttext = new Gtk.TextView ();
-            commenttext.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             commenttext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
 
             var comment = new Gtk.ScrolledWindow (null, null) {
@@ -312,7 +309,6 @@ namespace Gabut {
                 margin_bottom = 5,
                 width_request = 550
             };
-            torrentinfo.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             torrentinfo.attach (torrentmode, 0, 0, 1, 1);
             torrentinfo.attach (new HeaderLabel (_("Announce:"), 250), 0, 1, 1, 1);
             torrentinfo.attach (infoscr, 0, 2, 1, 1);
@@ -387,7 +383,6 @@ namespace Gabut {
                 expand = true,
                 height_request = 150
             };
-            limitergrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             limitergrid.attach (new HeaderLabel (_("Max Download Limit (in Kb):"), 550), 0, 0, 1, 1);
             limitergrid.attach (down_limit, 0, 1, 1, 1);
             limitergrid.attach (new HeaderLabel (_("Max Upload Limit (in Kb):"), 550), 0, 2, 1, 1);
@@ -422,7 +417,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 orientation = Gtk.Orientation.VERTICAL
             };
-            boxstatus.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             boxstatus.add (linklabel);
             boxstatus.add (stack);
             boxstatus.add (progressbar);
@@ -460,7 +454,6 @@ namespace Gabut {
                 margin_top = 10,
                 margin_bottom = 10
             };
-            box_action.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             box_action.pack_start (download_rev, false, false, 0);
             box_action.pack_end (close_button, false, false, 0);
             box_action.pack_end (start_button, false, false, 5);
@@ -471,7 +464,6 @@ namespace Gabut {
                 margin_start = 10,
                 margin_end = 10
             };
-            maingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             maingrid.add (boxstatus);
             maingrid.add (box_action);
 

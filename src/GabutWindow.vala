@@ -81,7 +81,6 @@ namespace Gabut {
                 orientation = Gtk.Orientation.VERTICAL,
                 expand = true
             };
-            mainwindow.get_style_context ().add_class ("rounded");
             mainwindow.add (frame_header);
             mainwindow.add (scrolled);
             add (mainwindow);
@@ -115,7 +114,6 @@ namespace Gabut {
                 decoration_layout = "close:maximize"
             };
             move_widget (headerbar);
-            headerbar.get_style_context ().add_class ("default-decoration");
             var menu_button = new Gtk.Button.from_icon_name ("open-menu", Gtk.IconSize.BUTTON) {
                 tooltip_text = _("Open Settings")
             };
@@ -304,10 +302,8 @@ namespace Gabut {
                 show_close_button = false,
                 hexpand = true
             };
-            headerbar.get_style_context ().add_class ("default-decoration");
             view_mode = new ModeButton () {
-                hexpand = false,
-                margin = 2
+                hexpand = false
             };
             view_mode.append_text (_("All"));
             view_mode.append_text (_("Downloading"));
@@ -327,10 +323,8 @@ namespace Gabut {
                 show_close_button = false,
                 hexpand = true
             };
-            box_s.get_style_context ().add_class ("default-decoration");
             search_entry = new Gtk.SearchEntry () {
-                placeholder_text = _("Find Here"),
-                margin = 2
+                placeholder_text = _("Find Here")
             };
             search_entry.search_changed.connect (view_status);
             box_s.set_custom_title (search_entry);

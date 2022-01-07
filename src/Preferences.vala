@@ -83,7 +83,6 @@ namespace Gabut {
             var header = get_header_bar ();
             header.has_subtitle = false;
             header.show_close_button = false;
-            header.get_style_context ().add_class (Gtk.STYLE_CLASS_HEADER);
             header.set_custom_title (view_mode);
 
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
@@ -215,7 +214,6 @@ namespace Gabut {
                 column_spacing = 10,
                 halign = Gtk.Align.START
             };
-            settings.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             settings.attach (new HeaderLabel (_("Number of Tries:"), 220), 1, 0, 1, 1);
             settings.attach (numbtries, 1, 1, 1, 1);
             settings.attach (new HeaderLabel (_("Connection:"), 220), 0, 0, 1, 1);
@@ -296,7 +294,6 @@ namespace Gabut {
                 width_request = 220,
                 height_request = 100
             };
-            bttrackertextscr.get_style_context ().add_class ("frame");
             bttrackertextscr.add (bttrackertext);
 
             var bttrackertextext = new Gtk.TextView ();
@@ -314,7 +311,6 @@ namespace Gabut {
                 width_request = 220,
                 height_request = 100
             };
-            bttrackertextscrext.get_style_context ().add_class ("frame");
             bttrackertextscrext.add (bttrackertextext);
 
             var bittorrent = new Gtk.Grid () {
@@ -325,7 +321,6 @@ namespace Gabut {
                 column_spacing = 10,
                 halign = Gtk.Align.START
             };
-            bittorrent.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             bittorrent.attach (new HeaderLabel (_("Max Open File:"), 220), 1, 0, 1, 1);
             bittorrent.attach (maxopfile, 1, 1, 1, 1);
             bittorrent.attach (new HeaderLabel (_("Bittorent Max Peers:"), 220), 0, 0, 1, 1);
@@ -355,7 +350,6 @@ namespace Gabut {
                 margin_bottom = 5,
                 halign = Gtk.Align.START
             };
-            folderopt.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             folderopt.attach (new HeaderLabel (_("Save to Folder:"), 450), 1, 0, 1, 1);
             folderopt.attach (folder_location, 1, 1, 1, 1);
 
@@ -440,7 +434,6 @@ namespace Gabut {
                 column_spacing = 10,
                 halign = Gtk.Align.START
             };
-            moreoptions.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             moreoptions.attach (new HeaderLabel (_("RPC Port:"), 220), 0, 0, 1, 1);
             moreoptions.attach (rpc_port, 0, 1, 1, 1);
             moreoptions.attach (new HeaderLabel (_("Local Port:"), 220), 0, 2, 1, 1);
@@ -535,7 +528,6 @@ namespace Gabut {
                 expand = true,
                 height_request = 190
             };
-            notifyopt.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             notifyopt.attach (new HeaderLabel (_("Style:"), 450), 0, 0, 1, 1);
             notifyopt.attach (style_mode, 0, 1, 1, 1);
             notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 2, 1, 1);
@@ -631,7 +623,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 orientation = Gtk.Orientation.HORIZONTAL
             };
-            box_action.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             box_action.add (save_button);
             box_action.add (close_button);
 
@@ -641,7 +632,6 @@ namespace Gabut {
                 margin_start = 10,
                 margin_end = 10
             };
-            maingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             maingrid.add (stack);
             maingrid.add (box_action);
 

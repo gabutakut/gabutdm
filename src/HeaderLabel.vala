@@ -29,9 +29,11 @@ namespace Gabut {
         }
 
         construct {
+            attributes = set_attribute (Pango.Weight.SEMIBOLD);
             halign = Gtk.Align.START;
             xalign = 0;
-            get_style_context ().add_class ("h4");
+            margin_top = 8;
+            margin_bottom = 8;
         }
     }
 }

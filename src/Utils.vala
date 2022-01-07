@@ -2981,6 +2981,16 @@ namespace Gabut {
         return false;
     }
 
+    private Pango.AttrList set_attribute (Pango.Weight weight, double scale = 0) {
+        Pango.AttrList attrlist = new Pango.AttrList ();
+        Pango.Attribute attr = Pango.attr_weight_new (weight);
+        if (scale != 0) {
+            attr = Pango.attr_scale_new (scale);
+        }
+        attrlist.change ((owned) attr);
+        return attrlist;
+    }
+
     [DBus (name = "org.freedesktop.DBus.Properties")]
     private interface DBusProerties : Object {
         public abstract Variant get (string interface, string name) throws DBusError, IOError;

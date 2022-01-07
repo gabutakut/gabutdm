@@ -153,7 +153,6 @@ namespace Gabut {
             var header = get_header_bar ();
             header.has_subtitle = false;
             header.show_close_button = false;
-            header.get_style_context ().add_class (Gtk.STYLE_CLASS_HEADER);
             header.set_custom_title (view_mode);
 
             status_image = new Gtk.Image () {
@@ -169,9 +168,9 @@ namespace Gabut {
                 wrap = true,
                 xalign = 0,
                 valign = Gtk.Align.END,
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
-            sizelabel.get_style_context ().add_class ("h4");
 
             var overlay = new Gtk.Overlay ();
             overlay.add (status_image);
@@ -191,7 +190,7 @@ namespace Gabut {
 
             var save_metadt = new Gtk.Grid ();
             save_metadt.add (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.SMALL_TOOLBAR));
-            save_metadt.add (new Gtk.Label (_("Backup Magnet, Torrent, Metalink to File")));
+            save_metadt.add (new HeaderLabel (_("Backup Magnet, Torrent, Metalink to File"), 200));
 
             save_meta = new Gtk.CheckButton () {
                 margin_top = 5
@@ -204,7 +203,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            alllink.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             alllink.attach (overlay, 0, 0, 1, 5);
             alllink.attach (new HeaderLabel (_("Address:"), 340), 1, 1, 1, 1);
             alllink.attach (link_entry, 1, 2, 1, 1);
@@ -293,7 +291,6 @@ namespace Gabut {
                 height_request = 130,
                 column_spacing = 10
             };
-            proxygrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             proxygrid.attach (prometh_button, 0, 1, 1, 1);
             proxygrid.attach (type_button, 1, 1, 1, 1);
             proxygrid.attach (new HeaderLabel (_("Host:"), 100), 0, 2, 1, 1);
@@ -350,7 +347,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            logingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             logingrid.attach (login_button, 1, 0, 1, 1);
             logingrid.attach (new HeaderLabel (_("User:"), 300), 1, 1, 1, 1);
             logingrid.attach (loguser_entry, 1, 2, 1, 1);
@@ -373,7 +369,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            moregrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             moregrid.attach (new HeaderLabel (_("User Agent:"), 300), 1, 0, 1, 1);
             moregrid.attach (useragent_entry, 1, 1, 1, 1);
             moregrid.attach (new HeaderLabel (_("Referer:"), 300), 1, 2, 1, 1);
@@ -387,12 +382,10 @@ namespace Gabut {
 
             var open_cook = new Gtk.Grid ();
             open_cook.add (new Gtk.Image.from_icon_name ("document-open", Gtk.IconSize.SMALL_TOOLBAR));
-            open_cook.add (new Gtk.Label (_("Cookie")));
+            open_cook.add (new HeaderLabel (_("Cookie"), 200));
 
             usecookie = new Gtk.CheckButton () {
-                width_request = 300,
-                margin_top = 5,
-                margin_bottom = 5
+                width_request = 300
             };
             usecookie.add (open_cook);
             usecookie.toggled.connect (()=> {
@@ -408,12 +401,10 @@ namespace Gabut {
 
             var folder_used = new Gtk.Grid ();
             folder_used.add (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.SMALL_TOOLBAR));
-            folder_used.add (new Gtk.Label (_("Save to Folder")));
+            folder_used.add (new HeaderLabel (_("Save to Folder"), 200));
 
             usefolder = new Gtk.CheckButton () {
-                width_request = 300,
-                margin_top = 5,
-                margin_bottom = 5
+                width_request = 300
             };
             usefolder.add (folder_used);
 
@@ -427,7 +418,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            foldergrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             foldergrid.attach (usecookie, 1, 0, 1, 1);
             foldergrid.attach (cookie_location, 1, 1, 1, 1);
             foldergrid.attach (usefolder, 1, 2, 1, 1);
@@ -472,7 +462,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            checksumgrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             checksumgrid.attach (new HeaderLabel (_("Type:"), 300), 1, 0, 1, 1);
             checksumgrid.attach (checksum_button, 1, 1, 1, 1);
             checksumgrid.attach (new HeaderLabel (_("Hash:"), 300), 1, 2, 1, 1);
@@ -545,7 +534,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            encryptgrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             encryptgrid.attach (new HeaderLabel (_("BitTorrent Seed:"), 300), 1, 0, 1, 1);
             encryptgrid.attach (integrity, 1, 1, 1, 1);
             encryptgrid.attach (unverified, 1, 2, 1, 1);
@@ -599,7 +587,6 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
-            save_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             save_button.clicked.connect (()=> {
                 set_option (true);
                 destroy ();
@@ -608,7 +595,6 @@ namespace Gabut {
                 margin_top = 10,
                 margin_bottom = 10
             };
-            box_action.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
 
             switch (dialogtype) {
                 case DialogType.PROPERTY:
@@ -622,7 +608,6 @@ namespace Gabut {
                     break;
             }
 
-
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
@@ -630,7 +615,6 @@ namespace Gabut {
                 margin_end = 10,
                 expand = true
             };
-            maingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             maingrid.add (stack);
             maingrid.add (box_action);
 

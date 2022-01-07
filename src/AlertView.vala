@@ -43,35 +43,37 @@ namespace Gabut {
         }
 
         construct {
-            get_style_context ().add_class (Gtk.STYLE_CLASS_VIEW);
+            title_label = new Gtk.Label (null) {
+                max_width_chars = 75,
+                wrap = true,
+                hexpand = true,
+                wrap_mode = Pango.WrapMode.WORD_CHAR,
+                xalign = 0,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD, 2)
+            };
 
-            title_label = new Gtk.Label (null);
-            title_label.hexpand = true;
-            title_label.get_style_context ().add_class ("h2");
-            title_label.max_width_chars = 75;
-            title_label.wrap = true;
-            title_label.wrap_mode = Pango.WrapMode.WORD_CHAR;
-            title_label.xalign = 0;
+            description_label = new Gtk.Label (null) {
+                hexpand = true,
+                max_width_chars = 75,
+                wrap = true,
+                use_markup = true,
+                xalign = 0,
+                valign = Gtk.Align.START
+            };
 
-            description_label = new Gtk.Label (null);
-            description_label.hexpand = true;
-            description_label.max_width_chars = 75;
-            description_label.wrap = true;
-            description_label.use_markup = true;
-            description_label.xalign = 0;
-            description_label.valign = Gtk.Align.START;
+            image = new Gtk.Image () {
+                margin_top = 6,
+                valign = Gtk.Align.START
+            };
 
-            image = new Gtk.Image ();
-            image.margin_top = 6;
-            image.valign = Gtk.Align.START;
-
-            var layout = new Gtk.Grid ();
-            layout.column_spacing = 12;
-            layout.row_spacing = 6;
-            layout.halign = Gtk.Align.CENTER;
-            layout.valign = Gtk.Align.CENTER;
-            layout.vexpand = true;
-            layout.margin = 24;
+            var layout = new Gtk.Grid () {
+                column_spacing = 12,
+                row_spacing = 6,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
+                vexpand = true,
+                margin = 24
+            };
 
             layout.attach (image, 1, 1, 1, 2);
             layout.attach (title_label, 2, 1, 1, 1);
