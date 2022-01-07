@@ -341,7 +341,6 @@ namespace Gabut {
                 focus_on_click = false,
                 tooltip_text = _("Open Details")
             };
-            openimage.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             openimage.add (overlay);
             openimage.clicked.connect (download);
 
@@ -381,7 +380,7 @@ namespace Gabut {
                 statuschange (ariagid);
             });
 
-            var remove_button = new Gtk.Button.from_icon_name ("edit-clear", Gtk.IconSize.SMALL_TOOLBAR) {
+            var remove_button = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.SMALL_TOOLBAR) {
                 valign = Gtk.Align.CENTER,
                 tooltip_text = _("Remove")
             };

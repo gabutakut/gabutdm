@@ -58,23 +58,24 @@ namespace Gabut {
                 max_width_chars = 35,
                 use_markup = true,
                 wrap = true,
-                xalign = 0
+                xalign = 0,
+                attributes = set_attribute (Pango.Weight.BOLD, 1.6)
             };
-
-            primary.get_style_context ().add_class ("primary");
 
             var secondary = new Gtk.Label ("Host Gabut Server") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 35,
                 use_markup = true,
                 wrap = true,
-                xalign = 0
+                xalign = 0,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD, 1.1)
             };
-            secondary.get_style_context ().add_class ("secondary");
 
             var header_grid = new Gtk.Grid () {
                 column_spacing = 0,
-                width_request = 150
+                width_request = 150,
+                margin_start = 4,
+                margin_top = 4
             };
             header_grid.attach (overlay, 0, 0, 1, 2);
             header_grid.attach (primary, 1, 0, 1, 1);
@@ -83,7 +84,6 @@ namespace Gabut {
             var header = get_header_bar ();
             header.has_subtitle = false;
             header.show_close_button = false;
-            header.get_style_context ().add_class (Gtk.STYLE_CLASS_HEADER);
             header.pack_start (header_grid);
 
             imageqr = new Gtk.Image ();
@@ -93,7 +93,6 @@ namespace Gabut {
                 margin_top = 10,
                 margin_bottom = 10
             };
-            link_box.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             link_box.set_center_widget (linkbutton);
 
             var close_button = new Gtk.Button.with_label (_("Close"));
@@ -113,7 +112,6 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 orientation = Gtk.Orientation.HORIZONTAL
             };
-            box_action.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             box_action.add (host_button);
             box_action.add (close_button);
 
@@ -123,7 +121,6 @@ namespace Gabut {
                 margin_start = 10,
                 margin_end = 10
             };
-            maingrid.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             maingrid.add (imageqr);
             maingrid.add (link_box);
             maingrid.add (box_action);

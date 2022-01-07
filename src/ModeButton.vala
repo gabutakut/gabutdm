@@ -50,12 +50,7 @@ namespace Gabut {
         construct {
             homogeneous = true;
             spacing = 0;
-
             item_map = new Gee.HashMap<int, Item> ();
-
-            var style = get_style_context ();
-            style.add_class (Gtk.STYLE_CLASS_LINKED);
-            style.add_class ("raised"); // needed for toolbars
         }
 
         /**
