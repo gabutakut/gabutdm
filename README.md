@@ -23,9 +23,7 @@
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
 
-Gabut Download Manager a application that can download link URIs metallink magnetlink Torrents using Aria2c and an application that has a local server service interface, can also accept file transfers from smartphones.
-
-Made with love.
+Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and, an application that has a local server service interface. also file transfers from smartphones. This application prioritizes convenience, full of features and an attractive appearance.
 
 ## Preview
 
@@ -38,9 +36,7 @@ Made with love.
 ![screenshot](Screenshot6.png)
 ![screenshot](Screenshot7.png)
 
-## Build with meson:
-
-## Dependencies:
+## Dependencies of Gabut DM:
 
 * aria2
 * meson
@@ -57,39 +53,5 @@ Made with love.
 * libqrencode
 * gdk-pixbuf-2.0
 * cairo
+* libhandy
 
-Install `Dependency`  with command
-
-    sudo apt install aria2 meson debhelper valac libgtk-3-dev libsqlite3-dev libcanberra-dev libxtst-dev libx11-dev libsoup2.4-dev libgee-0.8-dev libjson-glib-dev libqrencode-dev libgdk-pixbuf2.0-dev libcairo2-dev
-
-Run `meson` to configure the build environment and then `ninja` to build and run automated tests
-
-    meson build --prefix=/usr
-    cd build
-    ninja
-
-To install, use `ninja install`
-
-    sudo ninja install
-
-Then execute with `com.github.gabutakut.gabutdm`
-
-## Repository
-
-key server
-
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 2B067CC53533F081B664BF72F6CBED8742796C8E
-
-add repo with Simple method
-
-    sudo sh -c 'echo "deb http://ppa.launchpad.net/torik-habib/bionic/ubuntu bionic main" > /etc/apt/sources.list.d/gabutdm.list'
-    sudo apt-get update
-
-or With `add-apt-repository`
-
-    sudo add-apt-repository ppa:torik-habib/gabutdm
-    sudo apt-get update
-
-Repo intall
-
-    sudo apt install com.github.gabutakut.gabutdm

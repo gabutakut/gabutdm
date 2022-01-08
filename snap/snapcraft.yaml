@@ -5,8 +5,8 @@ base: core20
 summary: Simple and Faster Download Manager
 description: |
     Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
-    an application that has a local server service interface.
-    can also accept file transfers from smartphones.
+    an application that has a local server service interface. also file transfers from smartphones.
+    This application prioritizes convenience, full of features and an attractive appearance.
 
 confinement: strict
 package-repositories:
