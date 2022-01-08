@@ -9,11 +9,12 @@
 
 namespace Gabut {
     public class ModeButton : Gtk.Box {
-
         private class Item : Gtk.ToggleButton {
             public int index { get; construct; }
             public Item (int index) {
                 Object (index: index);
+            }
+            construct {
                 add_events (Gdk.EventMask.SCROLL_MASK);
             }
         }
@@ -22,30 +23,23 @@ namespace Gabut {
         public signal void mode_removed (int index, Gtk.Widget widget);
         public signal void mode_changed (Gtk.Widget widget);
 
-        /**
-         * Index of currently selected item.
-         */
-        public int selected {
-            get { return _selected; }
-            set { set_active (value); }
-        }
-
-        /**
-         * Read-only length of current ModeButton
-         */
-        public uint n_items {
-            get { return item_map.size; }
-        }
-
         private int _selected = -1;
-        private Gee.HashMap<int, Item> item_map;
-
-        /**
-         * Makes new ModeButton
-         */
-        public ModeButton () {
-
+        public int selected {
+            get {
+                return _selected;
+            }
+            set {
+                set_active (value);
+            }
         }
+
+        public uint n_items {
+            get {
+                return item_map.size;
+            }
+        }
+
+        private Gee.HashMap<int, Item> item_map;
 
         construct {
             homogeneous = true;
@@ -53,42 +47,18 @@ namespace Gabut {
             item_map = new Gee.HashMap<int, Item> ();
         }
 
-        /**
-         * Appends Pixbuf to ModeButton
-         *
-         * @param pixbuf Gdk.Pixbuf to append to ModeButton
-         */
         public int append_pixbuf (Gdk.Pixbuf pixbuf) {
             return append (new Gtk.Image.from_pixbuf (pixbuf));
         }
 
-        /**
-         * Appends text to ModeButton
-         *
-         * @param text text to append to ModeButton
-         * @return index of new item
-         */
         public int append_text (string text) {
             return append (new Gtk.Label (text));
         }
 
-        /**
-         * Appends icon to ModeButton
-         *
-         * @param icon_name name of icon to append
-         * @param size desired size of icon
-         * @return index of appended item
-         */
         public int append_icon (string icon_name, Gtk.IconSize size) {
             return append (new Gtk.Image.from_icon_name (icon_name, size));
         }
 
-        /**
-         * Appends given widget to ModeButton
-         *
-         * @param w widget to add to ModeButton
-         * @return index of new item
-         */
         public int append (Gtk.Widget w) {
             int index;
             for (index = item_map.size; item_map.has_key (index); index++);
@@ -102,30 +72,17 @@ namespace Gabut {
                 if (item.active) {
                     selected = item.index;
                 } else if (selected == item.index) {
-                    // If the selected index still references this item, then it
-                    // was toggled by the user, not programmatically.
-                    // -> Reactivate the item to prevent an empty selection.
                     item.active = true;
                 }
             });
-
             item_map[index] = item;
-
             add (item);
             item.show_all ();
-
             mode_added (index, w);
-
             return index;
         }
 
-        /**
-         * Clear selected items
-         */
         private void clear_selected () {
-            // Update _selected before deactivating the selected item to let it
-            // know that it is being deactivated programmatically, not by the
-            // user.
             _selected = -1;
 
             foreach (var item in item_map.values) {
@@ -135,11 +92,6 @@ namespace Gabut {
             }
         }
 
-        /**
-         * Sets item of given index's activity
-         *
-         * @param new_active_index index of changed item
-         */
         public void set_active (int new_active_index) {
             if (new_active_index <= -1) {
                 clear_selected ();
@@ -156,29 +108,16 @@ namespace Gabut {
                 if (_selected == new_active_index) {
                     return;
                 }
-
-                // Unselect the previous item
                 var old_item = item_map[_selected] as Item;
-
-                // Update _selected before deactivating the selected item to let
-                // it know that it is being deactivated programmatically, not by
-                // the user.
                 _selected = new_active_index;
 
                 if (old_item != null) {
                     old_item.set_active (false);
                 }
-
                 mode_changed (new_item.get_child ());
             }
         }
 
-        /**
-         * Changes visibility of item of given index
-         *
-         * @param index index of item to be modified
-         * @param val value to change the visiblity to
-         */
         public void set_item_visible (int index, bool val) {
             return_if_fail (item_map.has_key (index));
             var item = item_map[index] as Item;
@@ -190,11 +129,6 @@ namespace Gabut {
             }
         }
 
-        /**
-         * Removes item at given index
-         *
-         * @param index index of item to remove
-         */
         public new void remove (int index) {
             return_if_fail (item_map.has_key (index));
             var item = item_map[index] as Item;
@@ -207,9 +141,6 @@ namespace Gabut {
             }
         }
 
-        /**
-         * Clears all children
-         */
         public void clear_children () {
             foreach (weak Gtk.Widget button in get_children ()) {
                 button.hide ();
@@ -217,15 +148,12 @@ namespace Gabut {
                     base.remove (button);
                 }
             }
-
             item_map.clear ();
-
             _selected = -1;
         }
 
         private bool on_scroll_event (Gtk.Widget widget, Gdk.EventScroll ev) {
             int offset;
-
             switch (ev.direction) {
                 case Gdk.ScrollDirection.DOWN:
                 case Gdk.ScrollDirection.RIGHT:
@@ -239,9 +167,6 @@ namespace Gabut {
                     return false;
             }
 
-            // Try to find a valid item, since there could be invisible items in
-            // the middle and those shouldn't be selected. We use the children list
-            // instead of item_map because order matters here.
             var children = get_children ();
             uint n_children = children.length ();
 
@@ -249,12 +174,10 @@ namespace Gabut {
             if (selected_item == null) {
                 return false;
             }
-
             int new_item = children.index (selected_item);
             if (new_item < 0) {
                 return false;
             }
-
             do {
                 new_item += offset;
                 var item = children.nth_data (new_item) as Item;
@@ -264,7 +187,6 @@ namespace Gabut {
                     break;
                 }
             } while (new_item >= 0 && new_item < n_children);
-
             return false;
         }
     }

@@ -126,7 +126,7 @@ namespace Gabut {
                     });
                     preferences.show_all ();
                     preferences.max_active.connect (()=> {
-                        resume_progress ();
+                        next_download ();
                     });
                     preferences.destroy.connect (()=> {
                         preferences = null;
@@ -211,9 +211,9 @@ namespace Gabut {
             };
             headerbar.pack_start (torrentbutton);
             torrentbutton.clicked.connect (()=> {
-                var file = run_open_file (this, false);
-                if (file != null) {
-                    send_file (file[0].get_uri ());
+                var files = run_open_file (this, true);
+                foreach (var file in files) {
+                    send_file (file.get_uri ());
                 }
             });
             var resumeall_button = new Gtk.Button.from_icon_name ("media-playback-start", Gtk.IconSize.BUTTON) {
@@ -274,19 +274,40 @@ namespace Gabut {
             return strlist;
         }
 
+        private int openmode = StatusMode.NOTHING;
+        private int openact = 0;
         public void load_dowanload () {
             get_download ().foreach ((row)=> {
                 if (!get_exist (row.url)) {
                     list_box.add (row);
                     row.notify_property ("status");
-                    row.statuschange.connect ((ariagid)=> {
-                        resume_progress (ariagid);
+                    row.notify["status"].connect (()=> {
+                        switch (((DownloadRow) row).status) {
+                            case StatusMode.PAUSED:
+                                next_download ();
+                                break;
+                            case StatusMode.COMPLETE:
+                                next_download ();
+                                break;
+                            case StatusMode.WAIT:
+                            case StatusMode.ERROR:
+                            case StatusMode.NOTHING:
+                                break;
+                            case StatusMode.ACTIVE:
+                                if (openmode == StatusMode.ACTIVE) {
+                                    if (openact > int.parse (aria_globalstat (GlobalStat.NUMACTIVE))) {
+                                        openact = 0;
+                                        view_status ();
+                                    }
+                                    openact++;
+                                    return;
+                                }
+                                break;
+                        }
+                        openmode = ((DownloadRow) row).status;
                         view_status ();
                     });
-                    row.destroy.connect (()=> {
-                        resume_progress ();
-                        view_status ();
-                    });
+                    row.destroy.connect (view_status);
                     if (list_box.get_selected_row () == null) {
                         list_box.select_row (row);
                         list_box.row_activated (row);
@@ -331,18 +352,11 @@ namespace Gabut {
             return box_s;
         }
 
-        public void resume_progress (string ariagid = "") {
-            foreach (var row in list_box.get_children ()) {
-                if (((DownloadRow) row).ariagid == ariagid) {
-                    if (((DownloadRow) row).status != StatusMode.COMPLETE) {
-                        ((DownloadRow) row).add_timeout ();
-                    }
-                }
-            }
+        private void next_download () {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).status == StatusMode.WAIT) {
                     aria_unpause (((DownloadRow) row).ariagid);
-                    ((DownloadRow) row).add_timeout ();
+                    ((DownloadRow) row).update_progress ();
                 }
             }
             set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
@@ -364,21 +378,41 @@ namespace Gabut {
             aria_purge_all ();
         }
 
+        private int addmode = StatusMode.NOTHING;
+        private int addact = 0;
         public void add_url_box (string url, Gee.HashMap<string, string> options, bool later, int linkmode) {
             if (get_exist (url)) {
                 return;
             }
-
             var row = new DownloadRow.Url (url, options, later, linkmode);
             list_box.add (row);
-            row.statuschange.connect ((ariagid)=> {
-                resume_progress (ariagid);
+            row.notify["status"].connect (()=> {
+                switch (((DownloadRow) row).status) {
+                    case StatusMode.PAUSED:
+                        next_download ();
+                        break;
+                    case StatusMode.COMPLETE:
+                        next_download ();
+                        break;
+                    case StatusMode.WAIT:
+                    case StatusMode.ERROR:
+                    case StatusMode.NOTHING:
+                        break;
+                    case StatusMode.ACTIVE:
+                        if (addmode == StatusMode.ACTIVE) {
+                            if (addact > int.parse (aria_globalstat (GlobalStat.NUMACTIVE))) {
+                                addact = 0;
+                                view_status ();
+                            }
+                            addact++;
+                            return;
+                        }
+                        break;
+                }
+                addmode = ((DownloadRow) row).status;
                 view_status ();
             });
-            row.destroy.connect (()=> {
-                resume_progress ();
-                view_status ();
-            });
+            row.destroy.connect (view_status);
             if (list_box.get_selected_row () == null) {
                 list_box.select_row (row);
                 list_box.row_activated (row);
@@ -401,7 +435,7 @@ namespace Gabut {
 
         private void start_all () {
             foreach (var row in list_box.get_children ()) {
-                if (((DownloadRow) row).status != StatusMode.COMPLETE) {
+                if (((DownloadRow) row).status != StatusMode.COMPLETE && ((DownloadRow) row).status != StatusMode.ERROR) {
                     aria_unpause (((DownloadRow) row).ariagid);
                     ((DownloadRow) row).update_progress ();
                 }
@@ -413,7 +447,7 @@ namespace Gabut {
         private void stop_all () {
             aria_pause_all ();
             foreach (var row in list_box.get_children ()) {
-                if (((DownloadRow) row).status != StatusMode.COMPLETE) {
+                if (((DownloadRow) row).status != StatusMode.COMPLETE && ((DownloadRow) row).status != StatusMode.ERROR) {
                     aria_pause (((DownloadRow) row).ariagid);
                     ((DownloadRow) row).update_progress ();
                 }
