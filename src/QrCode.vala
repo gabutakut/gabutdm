@@ -59,10 +59,10 @@ namespace Gabut {
                 use_markup = true,
                 wrap = true,
                 xalign = 0,
-                attributes = set_attribute (Pango.Weight.BOLD, 1.6)
+                attributes = set_attribute (Pango.Weight.ULTRABOLD, 1.6)
             };
 
-            var secondary = new Gtk.Label ("Host Gabut Server") {
+            var secondary = new Gtk.Label ("Address Gabut Server") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 35,
                 use_markup = true,
@@ -104,12 +104,13 @@ namespace Gabut {
             host_button.clicked.connect (share_server);
 
             var box_action = new Gtk.Grid () {
-                width_request = 200,
+                width_request = 210,
                 margin_top = 10,
                 margin_bottom = 10,
                 column_spacing = 10,
                 column_homogeneous = true,
                 halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
                 orientation = Gtk.Orientation.HORIZONTAL
             };
             box_action.add (host_button);
@@ -118,8 +119,11 @@ namespace Gabut {
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
                 margin_start = 10,
-                margin_end = 10
+                margin_end = 10,
+                width_request = 210,
+                height_request = 200
             };
             maingrid.add (imageqr);
             maingrid.add (link_box);
@@ -145,9 +149,9 @@ namespace Gabut {
 
         private bool load_host (bool reboot) {
             if (local_server) {
-                host_button.label =_("Share Host");
+                host_button.label =_("Share Address");
             } else {
-                host_button.label = _("Local Host");
+                host_button.label = _("Local Address");
             }
             string host = get_host (reboot);
             create_qrcode (host);

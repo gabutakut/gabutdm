@@ -58,7 +58,7 @@ namespace Gabut {
                 use_markup = true,
                 wrap = true,
                 xalign = 0,
-                attributes = set_attribute (Pango.Weight.BOLD, 1.6)
+                attributes = set_attribute (Pango.Weight.ULTRABOLD, 1.6)
             };
 
             filesizelabel = new Gtk.Label (null) {
