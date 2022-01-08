@@ -403,7 +403,8 @@ namespace Gabut {
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
                 transition_duration = 500,
-                hhomogeneous = false
+                hhomogeneous = false,
+                margin_bottom = 2
             };
             stack.add_named (downstatusgrid, "downstatusgrid");
             stack.add_named (torrentinfo, "torrentinfo");
