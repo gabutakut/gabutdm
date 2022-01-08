@@ -21,7 +21,6 @@
 
 namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
-        public signal void statuschange (string ariagid);
         private Gtk.Button start_button;
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
@@ -124,17 +123,11 @@ namespace Gabut {
                                 break;
                             }
                         }
-                        if (timeout_id != 0) {
-                            statuschange (ariagid);
-                        }
                         remove_timeout ();
                         break;
                     case StatusMode.WAIT:
                         ((Gtk.Image) start_button.image).icon_name = "preferences-system-time";
                         start_button.tooltip_text = _("Waiting");
-                        if (timeout_id != 0) {
-                            statuschange (ariagid);
-                        }
                         remove_timeout ();
                         break;
                     case StatusMode.ERROR:
@@ -148,17 +141,11 @@ namespace Gabut {
                             }
                             aria_remove (ariagid);
                         }
-                        if (timeout_id != 0) {
-                            statuschange (ariagid);
-                        }
                         remove_timeout ();
                         break;
                     default:
                         ((Gtk.Image) start_button.image).icon_name = "media-playback-start";
                         start_button.tooltip_text = _("Downloading");
-                        if (timeout_id == 0) {
-                            statuschange (ariagid);
-                        }
                         add_timeout ();
                         break;
                 }
@@ -377,7 +364,6 @@ namespace Gabut {
                         status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
                     }
                 }
-                statuschange (ariagid);
             });
 
             var remove_button = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.SMALL_TOOLBAR) {

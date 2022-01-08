@@ -49,7 +49,7 @@ namespace Gabut {
                 hexpand = true,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 xalign = 0,
-                attributes = set_attribute (Pango.Weight.SEMIBOLD, 2)
+                attributes = set_attribute (Pango.Weight.BOLD, 2)
             };
 
             description_label = new Gtk.Label (null) {
@@ -58,7 +58,8 @@ namespace Gabut {
                 wrap = true,
                 use_markup = true,
                 xalign = 0,
-                valign = Gtk.Align.START
+                valign = Gtk.Align.START,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD, 1.1)
             };
 
             image = new Gtk.Image () {
