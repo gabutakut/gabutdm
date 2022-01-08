@@ -86,12 +86,15 @@ namespace Gabut {
             header.show_close_button = false;
             header.pack_start (header_grid);
 
-            imageqr = new Gtk.Image ();
-            linkbutton = new Gtk.LinkButton ("");
-
-            var link_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+            imageqr = new Gtk.Image () {
                 margin_top = 10,
-                margin_bottom = 10
+                margin_bottom = 5
+            };
+
+            linkbutton = new Gtk.LinkButton ("");
+            var link_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                margin_top = 5,
+                margin_bottom = 5
             };
             link_box.set_center_widget (linkbutton);
 

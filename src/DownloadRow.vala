@@ -343,7 +343,8 @@ namespace Gabut {
             filename_label = new Gtk.Label (filename) {
                 ellipsize = Pango.EllipsizeMode.END,
                 hexpand = true,
-                xalign = 0
+                xalign = 0,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
 
             start_button = new Gtk.Button.from_icon_name ("media-playback-start", Gtk.IconSize.SMALL_TOOLBAR) {

@@ -32,8 +32,8 @@ namespace Gabut {
             attributes = set_attribute (Pango.Weight.SEMIBOLD);
             halign = Gtk.Align.START;
             xalign = 0;
-            margin_top = 8;
-            margin_bottom = 8;
+            margin_top = 7;
+            margin_bottom = 7;
         }
     }
 }
