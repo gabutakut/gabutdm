@@ -23,11 +23,13 @@
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
 
+🤖
 Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
 an application that has a local server service interface. also file transfers from smartphones.
 This application prioritizes convenience, full of features and an attractive appearance.
+🤖
 
-## Preview
+## Preview 🙈
 
 ![screenshot](Screenshot0.png)
 ![screenshot](Screenshot1.png)
@@ -38,22 +40,22 @@ This application prioritizes convenience, full of features and an attractive app
 ![screenshot](Screenshot6.png)
 ![screenshot](Screenshot7.png)
 
-## Dependencies of Gabut DM:
+## About Gabutdm 🧞
 
-* aria2
-* meson
-* glib-2.0
-* gtk+-3.0
-* sqlite3
-* libcanberra
-* gdk-x11-3.0
-* xtst
-* x11
-* libsoup-2.4
-* gee-0.8
-* json-glib-1.0
-* libqrencode
-* gdk-pixbuf-2.0
-* cairo
+Made for peoples all needed download manager
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 * libhandy
 
