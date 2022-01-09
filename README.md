@@ -1,9 +1,9 @@
-<h1 align="center">Gabut Download Manager</h1>
+<h1 align="center">🇮🇩 Gabut Download Manager 🇮🇩</h1>
 <h1 align="center">
     <br>
     <img src="data/icons/128/com.github.gabutakut.gabutdm.svg" alt="Gabut Download Manager">
 </h1>
-<h4 align="center">🌟Simple and Faster Download Manager 💫</h4>
+<h4 align="center">🌟 Simple and Faster Download Manager 💫</h4>
 <h1 align="center">🥳 Support 🎉</h1>
 <p align="center">
     <a href="https://liberapay.com/GabutAkut"><img
@@ -23,39 +23,46 @@
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
 
-🤖
+
+
+<h1 align="center">🤖 Statement of GabutDM 🤖</h1>
+<p align="center">
 Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
 an application that has a local server service interface. also file transfers from smartphones.
 This application prioritizes convenience, full of features and an attractive appearance.
-🤖
+</p>
 
-## 🤓 Preview 🙈
+<h1 align="center">🤩 Appearance of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot0.png" alt="Home">
+</p>
+<h1 align="center">🚅 Proggress status of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot1.png" alt="Home">
+</p>
+<h1 align="center">🧩 Proggress Select File of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot2.png" alt="Home">
+</p>
+<h1 align="center">👦 Proggress Torrent Peers of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot3.png" alt="Home">
+</p><h1 align="center">😘 Download Succes of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot4.png" alt="Home">
+</p><h1 align="center">🕺 Add Address File Torrent Etc. of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot5.png" alt="Home">
+</p><h1 align="center">🎛️ Settings of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot6.png" alt="Home">
+</p>
+<h1 align="center">🏡 Gabut Sharing of GabutDM 🙈</h1>
+<p align="center">
+    <img src="Screenshot7.png" alt="Home">
+</p>
 
-![screenshot](Screenshot0.png)
-![screenshot](Screenshot1.png)
-![screenshot](Screenshot2.png)
-![screenshot](Screenshot3.png)
-![screenshot](Screenshot4.png)
-![screenshot](Screenshot5.png)
-![screenshot](Screenshot6.png)
-![screenshot](Screenshot7.png)
-
-## 🧚 About Gabutdm 🧞
-
+<h1 align="center">🧚 About Gabutdm 🧞</h1>
+<p align="center">
 Made for peoples all needed download manager
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+</p>

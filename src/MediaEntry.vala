@@ -38,7 +38,7 @@ namespace Gabut {
             secondary_icon_tooltip_text = _("Paste");
             hexpand = true;
             icon_press.connect ((pos, event) => {
-                Gtk.Clipboard clipboard = Gtk.Clipboard.get_for_display (get_display (), Gdk.SELECTION_CLIPBOARD);
+                Gtk.Clipboard clipboard = get_clipboard (Gdk.SELECTION_CLIPBOARD);
                 if (pos == Gtk.EntryIconPosition.PRIMARY) {
                     clipboard.set_text (text, text.length);
                 }

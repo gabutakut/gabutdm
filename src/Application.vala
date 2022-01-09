@@ -23,10 +23,10 @@ namespace Gabut {
     public class GabutApp : Gtk.Application {
         public static GabutWindow gabutwindow = null;
         public static Sqlite.Database db;
-        private Gtk.Clipboard clipboard;
+        private static Gtk.Clipboard clipboard;
+        private static Gtk.TargetEntry [] target_list;
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
-        private static Gtk.TargetEntry [] target_list;
         private bool startingup = false;
 
         public GabutApp () {
@@ -73,7 +73,7 @@ namespace Gabut {
                     notify_app (_("Database Error"),
                                 _("Can't open database: %s\n").printf (db.errmsg ()), new ThemedIcon ("office-database"));
                 }
-                check_table ();
+                settings_table ();
                 if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
                     return;
                 }
@@ -153,7 +153,7 @@ namespace Gabut {
                 perform_key_event ("<Control>v", false, 0);
                 pantheon_theme.begin ();
                 gabutwindow.load_dowanload ();
-                check_optdown ();
+                download_table ();
             } else {
                 if (startingup) {
                     gabutwindow.show_all ();
