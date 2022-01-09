@@ -3,15 +3,15 @@
     <br>
     <img src="data/icons/128/com.github.gabutakut.gabutdm.svg" alt="Gabut Download Manager">
 </h1>
-<h4 align="center">Simple and Faster Download Manager</h4>
-<h1 align="center">Support</h1>
+<h4 align="center">🌟Simple and Faster Download Manager 💫</h4>
+<h1 align="center">🥳 Support 🎉</h1>
 <p align="center">
     <a href="https://liberapay.com/GabutAkut"><img
             src="https://img.shields.io/liberapay/patrons/GabutAkut.svg?logo=liberapay" alt="GabutAkut on Liberapay"></a>
     <a href="https://patreon.com/gabutakut"><img
             src="https://img.shields.io/badge/patreon-donate-orange.svg?logo=patreon" alt="GabutAkut on Patreon"></a>
 </p>
-<h1 align="center">Release on</h1>
+<h1 align="center">🚀 Release on ✈️</h1>
 <p align="center">
     <a href="https://snapcraft.io/gabutdm"><img
             alt="Get it from the Snap Store" src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" /></a>
@@ -29,7 +29,7 @@ an application that has a local server service interface. also file transfers fr
 This application prioritizes convenience, full of features and an attractive appearance.
 🤖
 
-## Preview 🙈
+## 🤓 Preview 🙈
 
 ![screenshot](Screenshot0.png)
 ![screenshot](Screenshot1.png)
@@ -40,7 +40,7 @@ This application prioritizes convenience, full of features and an attractive app
 ![screenshot](Screenshot6.png)
 ![screenshot](Screenshot7.png)
 
-## About Gabutdm 🧞
+## 🧚 About Gabutdm 🧞
 
 Made for peoples all needed download manager
 
@@ -57,5 +57,5 @@ Made for peoples all needed download manager
 
 
 
-* libhandy
+
 
