@@ -2142,23 +2142,21 @@ namespace Gabut {
             VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\");");
     }
 
-    private void check_table () {
+    private void settings_table () {
         if ((db_table ("settings") - 1) != DBSettings.PIECESELECTOR) {
             GabutApp.db.exec ("DROP TABLE settings;");
             table_settings (GabutApp.db);
         }
     }
 
-    private void check_optdown () {
-        Sqlite.Database db;
-        Sqlite.Database.open (create_folder (".db"), out db);
+    private void download_table () {
         if ((db_table ("download") - 1) != DBDownload.LABELTRANSFER) {
-            db.exec ("DROP TABLE download;");
-            table_download (db);
+            GabutApp.db.exec ("DROP TABLE download;");
+            table_download (GabutApp.db);
         }
         if ((db_table ("options") - 1) != DBOption.UNVERIFIED) {
-            db.exec ("DROP TABLE options;");
-            table_options (db);
+            GabutApp.db.exec ("DROP TABLE options;");
+            table_options (GabutApp.db);
         }
     }
 

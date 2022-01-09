@@ -154,7 +154,7 @@ namespace Gabut {
             if (local_server) {
                 host_button.label =_("Share Address");
             } else {
-                host_button.label = _("Local Address");
+                host_button.label = _("Stop Share");
             }
             string host = get_host (reboot);
             create_qrcode (host);
