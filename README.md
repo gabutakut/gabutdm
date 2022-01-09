@@ -40,11 +40,11 @@ This application prioritizes convenience, full of features and an attractive app
 <p align="center">
     <img src="Screenshot1.png" alt="Home">
 </p>
-<h1 align="center">🧩 Proggress Select File of GabutDM 🙈</h1>
+<h1 align="center">🧩 Select File of GabutDM 🙈</h1>
 <p align="center">
     <img src="Screenshot2.png" alt="Home">
 </p>
-<h1 align="center">👦 Proggress Torrent Peers of GabutDM 🙈</h1>
+<h1 align="center">👦 Torrent Peers of GabutDM 🙈</h1>
 <p align="center">
     <img src="Screenshot3.png" alt="Home">
 </p><h1 align="center">😘 Download Succes of GabutDM 🙈</h1>
