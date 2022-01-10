@@ -20,18 +20,19 @@
 namespace Gabut {
     [DBus (name = "com.canonical.Unity.LauncherEntry")]
     private class UnityLauncherEntry : GLib.Object {
+        public signal void update (string app_uri, GLib.HashTable<string, GLib.Variant> properties);
+        private GLib.HashTable<string, GLib.Variant> properties;
         private static string app_uri = "application://%s.desktop".printf (Environment.get_application_name ());
         private static uint removebus = 0;
         private static UnityLauncherEntry instance;
 
         internal static async unowned UnityLauncherEntry get_instance () throws GLib.Error {
             var local_instance = new UnityLauncherEntry ();
-            var object_path = new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf (app_uri.hash ()));
             var session_connection = yield GLib.Bus.@get (GLib.BusType.SESSION);
             if (removebus != 0) {
                 session_connection.unregister_object (removebus);
             }
-            removebus = session_connection.register_object (object_path, local_instance);
+            removebus = session_connection.register_object (new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf (app_uri.hash ())), local_instance);
             instance = local_instance;
             return instance;
         }
@@ -45,16 +46,12 @@ namespace Gabut {
             properties["progress-visible"] = new GLib.Variant.boolean (false);
         }
 
-        private GLib.HashTable<string, GLib.Variant> properties;
-
         internal void set_app_property (string property, GLib.Variant var) {
             var updated_properties = new GLib.HashTable<string,GLib.Variant> (str_hash, str_equal);
             updated_properties[property] = var;
             properties[property] = var;
             update (app_uri, updated_properties);
         }
-
-        public signal void update (string app_uri, GLib.HashTable<string, GLib.Variant> properties);
 
         public GLib.HashTable<string, Variant> query () throws GLib.Error {
             return properties;
