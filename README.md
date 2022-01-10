@@ -25,7 +25,7 @@
 
 
 
-<h1 align="center">🤖 Statement of GabutDM 🤖</h1>
+<h1 align="center">🤖 GabutDM 🤖</h1>
 <p align="center">
 Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
 an application that has a local server service interface. also file transfers from smartphones.
