@@ -314,7 +314,6 @@ namespace Gabut {
                     }
                 }
             });
-            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         private Hdy.HeaderBar mode_headerbar () {
@@ -359,7 +358,6 @@ namespace Gabut {
                     ((DownloadRow) row).update_progress ();
                 }
             }
-            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         public void fast_respond (string ariagid) {
@@ -368,7 +366,6 @@ namespace Gabut {
                     ((DownloadRow) row).update_progress ();
                 }
             }
-            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         public void remove_all () {
@@ -419,7 +416,6 @@ namespace Gabut {
             }
             if (!later) {
                 row.download ();
-                set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             }
         }
 
@@ -441,7 +437,6 @@ namespace Gabut {
                 }
             }
             view_status ();
-            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         private void stop_all () {
@@ -453,7 +448,6 @@ namespace Gabut {
                 }
             }
             view_status ();
-            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
         }
 
         public string set_selected (string ariagid, string selected) {
@@ -476,6 +470,7 @@ namespace Gabut {
         }
 
         public void view_status () {
+            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             if (headerstack.visible_child_name == "search") {
                 if (search_entry.text.strip () == "") {
                     list_box.set_filter_func ((item) => {

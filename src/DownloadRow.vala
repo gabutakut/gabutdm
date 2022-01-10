@@ -440,6 +440,7 @@ namespace Gabut {
                         ariagid = aria_url (url, hashoption);
                     }
                 }
+                add_timeout ();
             }
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
         }

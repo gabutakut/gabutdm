@@ -1899,6 +1899,7 @@ namespace Gabut {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("count-visible", new GLib.Variant.boolean (visible));
     }
+
     private async void set_progress (double progress) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("progress", new GLib.Variant.double (progress));
@@ -1908,6 +1909,7 @@ namespace Gabut {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("progress-visible", new GLib.Variant.boolean (visible));
     }
+
     private string get_mime_type (File fileinput) {
         if (!fileinput.query_exists ()) {
             return "";
