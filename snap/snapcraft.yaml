@@ -41,6 +41,7 @@ parts:
         - libjson-glib-dev
         - libgdk-pixbuf2.0-dev
         - libhandy-1-dev
+        - libdbusmenu-glib-dev
     stage-packages:
         - libx11-dev
         - libxau-dev
