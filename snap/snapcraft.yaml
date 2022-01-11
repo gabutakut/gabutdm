@@ -1,4 +1,4 @@
-name: com.github.gabutakut.gabutdm
+name: gabutdm
 version: "1.6.5"
 grade: stable
 base: core20
@@ -16,7 +16,7 @@ package-repositories:
     key-id: 2B067CC53533F081B664BF72F6CBED8742796C8E
     url: http://ppa.launchpad.net/torik-habib/gabutdm/ubuntu
 parts:
-  com.github.gabutakut.gabutdm:
+  gabutdm:
     after: [desktop-gnome-platform]
     plugin: meson
     meson-parameters:
@@ -99,7 +99,7 @@ parts:
       snapcraftctl build
       mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
 apps:
-  com.github.gabutakut.gabutdm:
+  gabutdm:
     command: usr/bin/com.github.gabutakut.gabutdm
     desktop: usr/share/applications/com.github.gabutakut.gabutdm.desktop
     extensions: [gnome-3-38]
