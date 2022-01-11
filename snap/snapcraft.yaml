@@ -1,4 +1,4 @@
-name: gabutdm
+name: com.github.gabutakut.gabutdm
 version: "1.6.5"
 grade: stable
 base: core20
