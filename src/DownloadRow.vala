@@ -27,6 +27,9 @@ namespace Gabut {
         private Gtk.Label filename_label;
         public Gtk.Image imagefile;
         public Gtk.Image badge_img;
+#if HAVE_DBUSMENU
+        public Dbusmenu.Menuitem rowbus;
+#endif
         private bool stoptimer;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
 
@@ -58,6 +61,9 @@ namespace Gabut {
                 _fileordir = value;
                 if (value != "") {
                     imagefile.gicon = GLib.ContentType.get_icon (value);
+#if HAVE_DBUSMENU
+                    rowbus.property_set (Dbusmenu.MENUITEM_PROP_ICON_NAME, GLib.ContentType.get_generic_icon_name (value));
+#endif
                 }
             }
         }
@@ -211,6 +217,9 @@ namespace Gabut {
             set {
                 _filename = value;
                 filename_label.label = _filename;
+#if HAVE_DBUSMENU
+                rowbus.property_set (Dbusmenu.MENUITEM_PROP_LABEL, _filename);
+#endif
             }
         }
 
@@ -310,6 +319,10 @@ namespace Gabut {
         }
 
         construct {
+#if HAVE_DBUSMENU
+            rowbus = new Dbusmenu.Menuitem ();
+            rowbus.item_activated.connect (download);
+#endif
             imagefile = new Gtk.Image () {
                 icon_size = Gtk.IconSize.DND
             };

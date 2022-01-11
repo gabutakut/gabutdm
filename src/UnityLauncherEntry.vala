@@ -23,6 +23,7 @@ namespace Gabut {
         public signal void update (string app_uri, GLib.HashTable<string, GLib.Variant> properties);
         private GLib.HashTable<string, GLib.Variant> properties;
         private static string app_uri = "application://%s.desktop".printf (Environment.get_application_name ());
+        public GLib.ObjectPath objpath = new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf (app_uri.hash ()));
         private static uint removebus = 0;
         private static UnityLauncherEntry instance;
 
@@ -32,7 +33,7 @@ namespace Gabut {
             if (removebus != 0) {
                 session_connection.unregister_object (removebus);
             }
-            removebus = session_connection.register_object (new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf (app_uri.hash ())), local_instance);
+            removebus = session_connection.register_object (local_instance.objpath, local_instance);
             instance = local_instance;
             return instance;
         }
@@ -44,10 +45,11 @@ namespace Gabut {
             properties["count-visible"] = new GLib.Variant.boolean (false);
             properties["progress"] = new GLib.Variant.double (0.0);
             properties["progress-visible"] = new GLib.Variant.boolean (false);
+            properties["quicklist"] = new GLib.Variant.string ("");
         }
 
         internal void set_app_property (string property, GLib.Variant var) {
-            var updated_properties = new GLib.HashTable<string,GLib.Variant> (str_hash, str_equal);
+            var updated_properties = new GLib.HashTable<string, GLib.Variant> (str_hash, str_equal);
             updated_properties[property] = var;
             properties[property] = var;
             update (app_uri, updated_properties);

@@ -1910,6 +1910,19 @@ namespace Gabut {
         instance.set_app_property ("progress-visible", new GLib.Variant.boolean (visible));
     }
 
+#if HAVE_DBUSMENU
+    private SourceFunc quicksource;
+    private async void open_quicklist (Dbusmenu.Server dbusserver, Dbusmenu.Menuitem menuitem) throws GLib.Error {
+        if (quicksource != null) {
+            Idle.add ((owned)quicksource);
+        }
+        quicksource = open_quicklist.callback;
+        unowned UnityLauncherEntry entrydbus = yield UnityLauncherEntry.get_instance ();
+        dbusserver.set_root (menuitem);
+        entrydbus.set_app_property ("quicklist", new GLib.Variant.string (dbusserver.dbus_object));
+        yield;
+    }
+#endif
     private string get_mime_type (File fileinput) {
         if (!fileinput.query_exists ()) {
             return "";
