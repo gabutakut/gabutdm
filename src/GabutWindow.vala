@@ -48,7 +48,7 @@ namespace Gabut {
         construct {
 #if HAVE_DBUSMENU
             openmenu = new Dbusmenu.Menuitem ();
-            openmenu.property_set (Dbusmenu.MENUITEM_PROP_LABEL, _("GabutDM"));
+            openmenu.property_set (Dbusmenu.MENUITEM_PROP_LABEL, _("Gabut Download Manager"));
             openmenu.property_set (Dbusmenu.MENUITEM_PROP_ICON_NAME, "com.github.gabutakut.gabutdm");
             openmenu.property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, true);
             openmenu.item_activated.connect (()=> {
@@ -380,11 +380,6 @@ namespace Gabut {
                     row.notify["status"].connect (()=> {
                         switch (((DownloadRow) row).status) {
                             case StatusMode.PAUSED:
-                                next_download ();
-#if HAVE_DBUSMENU
-                                remove_dbus.begin (((DownloadRow) row).rowbus);
-#endif
-                                break;
                             case StatusMode.COMPLETE:
                                 next_download ();
 #if HAVE_DBUSMENU
@@ -435,11 +430,6 @@ namespace Gabut {
             row.notify["status"].connect (()=> {
                 switch (((DownloadRow) row).status) {
                     case StatusMode.PAUSED:
-                        next_download ();
-#if HAVE_DBUSMENU
-                            remove_dbus.begin (((DownloadRow) row).rowbus);
-#endif
-                        break;
                     case StatusMode.COMPLETE:
                         next_download ();
 #if HAVE_DBUSMENU
@@ -657,7 +647,7 @@ namespace Gabut {
                     if (!has_visible_children ()) {
                         list_box.set_placeholder (nodown_alert);
                     }
-                    break;
+                    return;
             }
         }
     }

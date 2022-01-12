@@ -177,13 +177,13 @@ namespace Gabut {
             overlay.add_overlay (sizelabel);
 
             link_entry = new MediaEntry ("insert-link", "edit-paste") {
-                width_request = 340,
+                width_request = 380,
                 margin_end = 74,
                 placeholder_text = _("Url or Magnet")
             };
 
             name_entry = new MediaEntry ("dialog-information", "edit-paste") {
-                width_request = 340,
+                width_request = 380,
                 margin_end = 74,
                 placeholder_text = _("Follow source name")
             };
@@ -204,9 +204,9 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             alllink.attach (overlay, 0, 0, 1, 5);
-            alllink.attach (new HeaderLabel (_("Address:"), 340), 1, 1, 1, 1);
+            alllink.attach (new HeaderLabel (_("Address:"), 380), 1, 1, 1, 1);
             alllink.attach (link_entry, 1, 2, 1, 1);
-            alllink.attach (new HeaderLabel (_("Filename:"), 340), 1, 3, 1, 1);
+            alllink.attach (new HeaderLabel (_("Filename:"), 380), 1, 3, 1, 1);
             alllink.attach (name_entry, 1, 4, 1, 1);
             alllink.attach (save_meta, 1, 5, 1, 1);
 
@@ -267,22 +267,22 @@ namespace Gabut {
             proxytype = type_flow.get_children ().nth_data (0) as ProxyType;
 
             proxy_entry = new MediaEntry ("user-home", "edit-paste") {
-                width_request = 100,
+                width_request = 140,
                 placeholder_text = _("Address")
             };
 
             port_entry = new Gtk.SpinButton.with_range (0, 999999, 1) {
-                width_request = 100,
+                width_request = 140,
                 primary_icon_name = "dialog-information"
             };
 
             user_entry = new MediaEntry ("avatar-default", "edit-paste") {
-                width_request = 100,
+                width_request = 140,
                 placeholder_text = _("Username")
             };
 
             pass_entry = new MediaEntry ("dialog-password", "edit-paste") {
-                width_request = 100,
+                width_request = 140,
                 placeholder_text = _("Password")
             };
 
@@ -293,13 +293,13 @@ namespace Gabut {
             };
             proxygrid.attach (prometh_button, 0, 1, 1, 1);
             proxygrid.attach (type_button, 1, 1, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Host:"), 100), 0, 2, 1, 1);
+            proxygrid.attach (new HeaderLabel (_("Host:"), 140), 0, 2, 1, 1);
             proxygrid.attach (proxy_entry, 0, 3, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Port:"), 100), 1, 2, 1, 1);
+            proxygrid.attach (new HeaderLabel (_("Port:"), 140), 1, 2, 1, 1);
             proxygrid.attach (port_entry, 1, 3, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Username:"), 100), 0, 4, 1, 1);
+            proxygrid.attach (new HeaderLabel (_("Username:"), 140), 0, 4, 1, 1);
             proxygrid.attach (user_entry, 0, 5, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Password:"), 100), 1, 4, 1, 1);
+            proxygrid.attach (new HeaderLabel (_("Password:"), 140), 1, 4, 1, 1);
             proxygrid.attach (pass_entry, 1, 5, 1, 1);
 
             login_button = new Gtk.MenuButton ();
@@ -332,12 +332,12 @@ namespace Gabut {
             loginuser = login_flow.get_children ().nth_data (0) as LoginUser;
 
             loguser_entry = new MediaEntry ("avatar-default", "edit-paste") {
-                width_request = 300,
+                width_request = 310,
                 placeholder_text = _("User")
             };
 
             logpass_entry = new MediaEntry ("dialog-password", "edit-paste") {
-                width_request = 300,
+                width_request = 310,
                 placeholder_text = _("Password")
             };
 
@@ -348,9 +348,9 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             logingrid.attach (login_button, 1, 0, 1, 1);
-            logingrid.attach (new HeaderLabel (_("User:"), 300), 1, 1, 1, 1);
+            logingrid.attach (new HeaderLabel (_("User:"), 310), 1, 1, 1, 1);
             logingrid.attach (loguser_entry, 1, 2, 1, 1);
-            logingrid.attach (new HeaderLabel (_("Password:"), 300), 1, 3, 1, 1);
+            logingrid.attach (new HeaderLabel (_("Password:"), 310), 1, 3, 1, 1);
             logingrid.attach (logpass_entry, 1, 4, 1, 1);
 
             useragent_entry = new MediaEntry ("avatar-default", "edit-paste") {
