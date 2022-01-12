@@ -28,7 +28,6 @@ dependencies = [
     dependency ('libhandy-1'),
     dbusmenu_glib_dep,
 
-    meson.get_compiler ('vala').find_library ('Dbusmenu-0.4', required : false),
     meson.get_compiler ('vala').find_library ('posix'),
 ]
 
