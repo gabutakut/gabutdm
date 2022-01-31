@@ -27,9 +27,7 @@ namespace Gabut {
         private Gtk.Label filename_label;
         public Gtk.Image imagefile;
         public Gtk.Image badge_img;
-#if HAVE_DBUSMENU
-        public Dbusmenu.Menuitem rowbus;
-#endif
+        public DbusmenuItem rowbus;
         private bool stoptimer;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
 
@@ -61,9 +59,7 @@ namespace Gabut {
                 _fileordir = value;
                 if (value != "") {
                     imagefile.gicon = GLib.ContentType.get_icon (value);
-#if HAVE_DBUSMENU
-                    rowbus.property_set (Dbusmenu.MENUITEM_PROP_ICON_NAME, GLib.ContentType.get_generic_icon_name (value));
-#endif
+                    rowbus.property_set (MenuItem.ICON_NAME.get_name (), GLib.ContentType.get_generic_icon_name (value));
                 }
             }
         }
@@ -90,6 +86,9 @@ namespace Gabut {
                         ((Gtk.Image) start_button.image).icon_name = "media-playback-pause";
                         start_button.tooltip_text = _("Paused");
                         remove_timeout ();
+                        if (url != null && db_download_exist (url)) {
+                            update_download (this);
+                        }
                         break;
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
@@ -135,6 +134,9 @@ namespace Gabut {
                         ((Gtk.Image) start_button.image).icon_name = "preferences-system-time";
                         start_button.tooltip_text = _("Waiting");
                         remove_timeout ();
+                        if (url != null && db_download_exist (url)) {
+                            update_download (this);
+                        }
                         break;
                     case StatusMode.ERROR:
                         ((Gtk.Image) start_button.image).icon_name = "dialog-error";
@@ -148,6 +150,9 @@ namespace Gabut {
                             aria_remove (ariagid);
                         }
                         remove_timeout ();
+                        if (url != null && db_download_exist (url)) {
+                            update_download (this);
+                        }
                         break;
                     default:
                         ((Gtk.Image) start_button.image).icon_name = "media-playback-start";
@@ -217,9 +222,7 @@ namespace Gabut {
             set {
                 _filename = value;
                 filename_label.label = _filename;
-#if HAVE_DBUSMENU
-                rowbus.property_set (Dbusmenu.MENUITEM_PROP_LABEL, _filename);
-#endif
+                rowbus.property_set (MenuItem.LABEL.get_name (), _filename);
             }
         }
 
@@ -316,13 +319,12 @@ namespace Gabut {
             if (later) {
                 aria_pause (ariagid);
             }
+            add_db_download (this);
         }
 
         construct {
-#if HAVE_DBUSMENU
-            rowbus = new Dbusmenu.Menuitem ();
+            rowbus = new DbusmenuItem ();
             rowbus.item_activated.connect (download);
-#endif
             imagefile = new Gtk.Image () {
                 icon_size = Gtk.IconSize.DND
             };

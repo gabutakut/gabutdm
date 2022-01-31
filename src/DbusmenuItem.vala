@@ -1,0 +1,176 @@
+/*
+* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation; either
+* version 2 of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public
+* License along with this program; if not, write to the
+* Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+* Boston, MA 02110-1301 USA
+*
+* Authored by: torikulhabib <torik.habib@Gmail.com>
+*/
+
+namespace Gabut {
+    public class DbusmenuItem : GLib.Object {
+        public signal void item_activated ();
+
+        public int _id = 0;
+        public int id {
+            get {
+                return _id;
+            }
+            set {
+                _id = value;
+            }
+        }
+
+        public GLib.List<DbusmenuItem> menuchildren = null;
+        public GLib.HashTable<string, Variant> properties = new GLib.HashTable <string, Variant> (str_hash, str_equal);
+
+        public DbusmenuItem () {
+            properties = new GLib.HashTable<string, GLib.Variant> (str_hash, str_equal);
+            properties["label"] = v_s ("Label Empty");
+            properties["enabled"] = v_b (true);
+            properties["visible"] = v_b (true);
+        }
+
+        internal Variant v_s (string data) {
+            return new Variant.string (data);
+        }
+
+        internal Variant v_b (bool data) {
+            return new Variant.boolean (data);
+        }
+
+        public int get_position (DbusmenuItem children) {
+            if (menuchildren == null) {
+                return 0;
+            }
+            for (int count = 0; count < menuchildren.length (); count++) {
+                if (menuchildren.nth_data (count) == children) {
+                    return count;
+                }
+            }
+            return 0;
+        }
+
+        public string? property_get (string property) {
+            Variant variant = property_get_variant (property);
+            if (variant == null) {
+                return "";
+            }
+            return variant.print (true);
+        }
+
+        private Variant property_get_variant (string property) {
+            return properties.lookup (property);
+        }
+
+        public bool property_set (string property, string value) {
+            Variant variant = null;
+            if (value != null) {
+                variant = new GLib.Variant.string (value);
+            }
+            return property_set_variant (property, variant);
+        }
+
+        public bool property_set_bool (string property, bool value) {
+            Variant variant = new Variant.boolean (value);
+            return property_set_variant (property, variant);
+        }
+
+        public void child_reorder (DbusmenuItem child, int position) {
+            var childrens = new List<DbusmenuItem> ();
+            menuchildren.foreach ((item)=> {
+                childrens.append (item);
+                child_delete (item);
+            });
+            int count = 1;
+            childrens.foreach ((item)=> {
+                if (child == item && position != item.id) {
+                    child.id = position;
+                    menuchildren.insert (child, position - 1);
+                } else {
+                    item.id = count;
+                    menuchildren.insert (item, count);
+                }
+                count++;
+            });
+            menuchildren.foreach ((item)=> {
+                if (child != item && position == item.id) {
+                    child.id = (int) childrens.length ();
+                    menuchildren.insert (item, (int) childrens.length ());
+                }
+                count++;
+            });
+        }
+
+        private bool property_set_variant (string property, Variant value) {
+            string hash_key;
+            Variant hash_variant = null;
+            bool inhash = properties.lookup_extended (property, out hash_key, out hash_variant);
+            if (value != null) {
+                if (!inhash || (hash_variant != null && !hash_variant.equal (value))) {
+                    properties.replace (property.dup (), value);
+                }
+            } else {
+                if (inhash) {
+                    properties[property] = value;
+                }
+            }
+            return true;
+        }
+
+        public bool get_exist (DbusmenuItem children) {
+            if (menuchildren == null) {
+                return false;
+            }
+            for (int count = 0; count < menuchildren.length (); count++) {
+                if (menuchildren.nth_data (count) == children) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool child_append (DbusmenuItem child) {
+            if (menuchildren == null) {
+                menuchildren = new GLib.List<DbusmenuItem> ();
+                properties["children-display"] = v_s ("submenu");
+            }
+            if (!get_exist (child)) {
+                int i = 1;
+                menuchildren.foreach ((item)=> {
+                    i++;
+                });
+                child.id = i;
+                menuchildren.append (child);
+            }
+            return true;
+        }
+
+        public bool child_delete (DbusmenuItem child) {
+            if (get_exist (child)) {
+                menuchildren.remove_link (menuchildren.find (child));
+            }
+            return true;
+        }
+
+        public void signal_send (int mid) {
+            menuchildren.foreach ((item)=> {
+                if (mid == item.id) {
+                    item.item_activated ();
+                }
+            });
+        }
+    }
+}

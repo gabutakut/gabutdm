@@ -1,15 +1,10 @@
-project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.6.9')
+project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.7.1')
 
 i18n = import ('i18n')
 
 vapi = join_paths (meson.current_source_dir (), 'vapi')
 add_project_arguments ('-DGETTEXT_PACKAGE="' + meson.project_name () + '"'.format (meson.project_name ()), language:'c')
 add_project_arguments (['--vapidir', vapi], language: 'vala')
-
-dbusmenu_glib_dep = dependency ('dbusmenu-glib-0.4', required: false)
-if dbusmenu_glib_dep.found ()
-    add_project_arguments ('--define', 'HAVE_DBUSMENU', language: 'vala')
-endif
 
 dependencies = [
     dependency ('glib-2.0'),
@@ -26,7 +21,6 @@ dependencies = [
     dependency ('gdk-pixbuf-2.0'),
     dependency ('cairo'),
     dependency ('libhandy-1'),
-    dbusmenu_glib_dep,
 
     meson.get_compiler ('vala').find_library ('posix'),
 ]
