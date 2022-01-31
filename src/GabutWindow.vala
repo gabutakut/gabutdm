@@ -109,8 +109,9 @@ namespace Gabut {
             mainwindow.add (frame_header);
             mainwindow.add (scrolled);
             add (mainwindow);
-            list_box.remove.connect ((wid)=> {
+            list_box.remove.connect ((row)=> {
                 view_status ();
+                remove_dbus.begin (((DownloadRow) row).rowbus);
             });
 
             Timeout.add (500, ()=> {
@@ -364,6 +365,7 @@ namespace Gabut {
         public void remove_all () {
             foreach (var row in list_box.get_children ()) {
                 ((DownloadRow) row).remove_down ();
+                remove_dbus.begin (((DownloadRow) row).rowbus);
             }
             aria_purge_all ();
         }
