@@ -26,5 +26,7 @@ sources = files (
     'LoginUser.vala',
     'PieceSelector.vala',
     'UriSelector.vala',
-    'ProxyType.vala'
+    'ProxyType.vala',
+    'CanonicalDbusmenu.vala',
+    'DbusmenuItem.vala',
 )

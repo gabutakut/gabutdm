@@ -1245,6 +1245,70 @@ namespace Gabut {
         URILIST
     }
 
+    public enum MenuItem {
+        VISIBLE = 0,
+        ENABLED = 1,
+        LABEL = 2,
+        ICON_NAME = 3,
+        ICON_DATA = 4,
+        TOGGLE_TYPE = 5,
+        TOGGLE_STATE = 6,
+        SHORTCUT = 7,
+        CHILD_DISPLAY = 8,
+        DISPOSITION = 9,
+        ACCESSIBLE_DESC = 10,
+        SUBMENU = 11;
+
+        public string get_name () {
+            switch (this) {
+                case ENABLED:
+                    return "enabled";
+                case LABEL:
+                    return "label";
+                case ICON_NAME:
+                    return "icon-name";
+                case ICON_DATA:
+                    return "icon-data";
+                case TOGGLE_TYPE:
+                    return "toggle-type";
+                case TOGGLE_STATE:
+                    return "toggle-state";
+                case SHORTCUT:
+                    return "shortcut";
+                case CHILD_DISPLAY:
+                    return "children-display";
+                case DISPOSITION:
+                    return "disposition";
+                case ACCESSIBLE_DESC:
+                    return "accessible-desc";
+                case SUBMENU:
+                    return "submenu";
+                default:
+                    return "visible";
+            }
+        }
+    }
+
+    private struct DbusmenuMenuitem {
+        public int id {get; set;}
+        public GLib.HashTable<string, GLib.Variant> properties {get; set;}
+    }
+    private struct MenuItemLayout {
+        public int id {get; set;}
+        public GLib.HashTable<string, GLib.Variant> properties {get; set;}
+        public Variant[] children {get; set;}
+    }
+    private struct MenuItemPropertyDescriptor {
+        public int id {get; set;}
+        public string[] properties {get; set;}
+    }
+    private struct MenuEvent {
+        public int id {get; set;}
+        public string eventid {get; set;}
+        public Variant data {get; set;}
+        public uint timestamp {get; set;}
+    }
+
     private string aria_listent;
 
     private void setjsonrpchost () {
@@ -1910,9 +1974,8 @@ namespace Gabut {
         instance.set_app_property ("progress-visible", new GLib.Variant.boolean (visible));
     }
 
-#if HAVE_DBUSMENU
     private SourceFunc quicksource;
-    private async void open_quicklist (Dbusmenu.Server dbusserver, Dbusmenu.Menuitem menuitem) throws GLib.Error {
+    private async void open_quicklist (CanonicalDbusmenu dbusserver, DbusmenuItem menuitem) throws GLib.Error {
         if (quicksource != null) {
             Idle.add ((owned)quicksource);
         }
@@ -1922,7 +1985,7 @@ namespace Gabut {
         entrydbus.set_app_property ("quicklist", new GLib.Variant.string (dbusserver.dbus_object));
         yield;
     }
-#endif
+
     private string get_mime_type (File fileinput) {
         if (!fileinput.query_exists ()) {
             return "";
@@ -2213,25 +2276,29 @@ namespace Gabut {
                 update_download (download);
                 return;
             }
-            Sqlite.Statement stmt;
-            string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-            int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
-            res = stmt.bind_text (DBDownload.URL, download.url);
-            res = stmt.bind_int (DBDownload.STATUS, download.status);
-            res = stmt.bind_text (DBDownload.ARIAGID, download.ariagid);
-            res = stmt.bind_text (DBDownload.FILEPATH, download.filepath);
-            res = stmt.bind_text (DBDownload.FILENAME, download.filename);
-            res = stmt.bind_int64 (DBDownload.TOTALSIZE, download.totalsize);
-            res = stmt.bind_int (DBDownload.TRANSFERRATE, download.transferrate);
-            res = stmt.bind_int64 (DBDownload.TRANSFERRED, download.transferred);
-            res = stmt.bind_int (DBDownload.LINKMODE, download.linkmode);
-            res = stmt.bind_text (DBDownload.FILEORDIR, download.fileordir == null? "" : download.fileordir);
-            res = stmt.bind_text (DBDownload.LABELTRANSFER, download.labeltransfer);
-            if ((res = stmt.step ()) != Sqlite.DONE) {
-                warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
-            }
-            stmt.reset ();
+            add_db_download (download);
         });
+    }
+
+    private void add_db_download (DownloadRow download) {
+        Sqlite.Statement stmt;
+        string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        res = stmt.bind_text (DBDownload.URL, download.url);
+        res = stmt.bind_int (DBDownload.STATUS, download.status);
+        res = stmt.bind_text (DBDownload.ARIAGID, download.ariagid);
+        res = stmt.bind_text (DBDownload.FILEPATH, download.filepath == null? "" : download.filepath);
+        res = stmt.bind_text (DBDownload.FILENAME, download.filename == null? "" : download.filename);
+        res = stmt.bind_int64 (DBDownload.TOTALSIZE, download.totalsize);
+        res = stmt.bind_int (DBDownload.TRANSFERRATE, download.transferrate);
+        res = stmt.bind_int64 (DBDownload.TRANSFERRED, download.transferred);
+        res = stmt.bind_int (DBDownload.LINKMODE, download.linkmode);
+        res = stmt.bind_text (DBDownload.FILEORDIR, download.fileordir == null? "" : download.fileordir);
+        res = stmt.bind_text (DBDownload.LABELTRANSFER, download.labeltransfer == null? "" : download.labeltransfer);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+        }
+        stmt.reset ();
     }
 
     private void update_download (DownloadRow download) {
@@ -3020,7 +3087,7 @@ namespace Gabut {
             DBusProerties networkmanager = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager");
             if (networkmanager != null) {
                 Variant nmconn = networkmanager.get ("org.freedesktop.NetworkManager", "PrimaryConnection");
-                if (nmconn != null) {
+                if (nmconn != null && nmconn.get_string (null) != "/") {
                     DBusProerties nmactive = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", nmconn.get_string (null));
                     Variant activetype = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Type");
                     if (activetype.get_string (null) != "vpn") {

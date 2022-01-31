@@ -34,42 +34,37 @@ namespace Gabut {
         private ModeButton view_mode;
         private AlertView nodown_alert;
         private GLib.List<AddUrl> properties;
-#if HAVE_DBUSMENU
-        public Dbusmenu.Menuitem menudbus;
-        public Dbusmenu.Menuitem openmenu;
-        public Dbusmenu.Menuitem startmenu;
-        public Dbusmenu.Menuitem pausemenu;
-        public Dbusmenu.Server dbusserver;
-#endif
+        private DbusmenuItem menudbus;
+        private DbusmenuItem openmenu;
+        private DbusmenuItem startmenu;
+        private DbusmenuItem pausemenu;
+        private CanonicalDbusmenu dbusserver;
+
         public GabutWindow (Gtk.Application application) {
             Object (application: application);
         }
 
         construct {
-#if HAVE_DBUSMENU
-            openmenu = new Dbusmenu.Menuitem ();
-            openmenu.property_set (Dbusmenu.MENUITEM_PROP_LABEL, _("Gabut Download Manager"));
-            openmenu.property_set (Dbusmenu.MENUITEM_PROP_ICON_NAME, "com.github.gabutakut.gabutdm");
-            openmenu.property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, true);
-            openmenu.item_activated.connect (()=> {
-                present ();
-            });
+            dbusserver = new CanonicalDbusmenu ();
+            openmenu = new DbusmenuItem ();
+            openmenu.property_set (MenuItem.LABEL.get_name (), _("Gabut Download Manager"));
+            openmenu.property_set (MenuItem.ICON_NAME.get_name (), "com.github.gabutakut.gabutdm");
+            openmenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
+            openmenu.item_activated.connect (present);
 
-            startmenu = new Dbusmenu.Menuitem ();
-            startmenu.property_set (Dbusmenu.MENUITEM_PROP_LABEL, _("Start All"));
-            startmenu.property_set (Dbusmenu.MENUITEM_PROP_ICON_NAME, "media-playback-start");
-            startmenu.property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, true);
+            startmenu = new DbusmenuItem ();
+            startmenu.property_set (MenuItem.LABEL.get_name (), _("Start All"));
+            startmenu.property_set (MenuItem.ICON_NAME.get_name (), "media-playback-start");
+            startmenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
             startmenu.item_activated.connect (start_all);
 
-            pausemenu = new Dbusmenu.Menuitem ();
-            pausemenu.property_set (Dbusmenu.MENUITEM_PROP_LABEL, _("Pause All"));
-            pausemenu.property_set (Dbusmenu.MENUITEM_PROP_ICON_NAME, "media-playback-pause");
-            pausemenu.property_set_bool (Dbusmenu.MENUITEM_PROP_VISIBLE, true);
+            pausemenu = new DbusmenuItem ();
+            pausemenu.property_set (MenuItem.LABEL.get_name (), _("Pause All"));
+            pausemenu.property_set (MenuItem.ICON_NAME.get_name (), "media-playback-pause");
+            pausemenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
             pausemenu.item_activated.connect (stop_all);
+            menudbus = new DbusmenuItem ();
 
-            menudbus = new Dbusmenu.Menuitem ();
-            dbusserver = new Dbusmenu.Server (new UnityLauncherEntry ().objpath);
-#endif
             nodown_alert = new AlertView (
                 _("No File Download"),
                 _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
@@ -117,6 +112,7 @@ namespace Gabut {
             list_box.remove.connect ((wid)=> {
                 view_status ();
             });
+
             Timeout.add (500, ()=> {
                 bool statact = int.parse (aria_globalstat (GlobalStat.NUMACTIVE)) > 0;
                 set_progress_visible.begin (!is_active && statact);
@@ -125,14 +121,12 @@ namespace Gabut {
             });
             delete_event.connect (() => {
                 if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
-#if HAVE_DBUSMENU
                     append_dbus.begin (openmenu);
                     append_dbus.begin (startmenu);
                     append_dbus.begin (pausemenu);
-                    menudbus.child_reorder (openmenu, 0);
-                    menudbus.child_reorder (startmenu, 1);
-                    menudbus.child_reorder (pausemenu, 2);
-#endif
+                    menudbus.child_reorder (openmenu, 1);
+                    menudbus.child_reorder (startmenu, 2);
+                    menudbus.child_reorder (pausemenu, 3);
                     return hide_on_delete ();
                 } else {
                     stop_server ();
@@ -286,6 +280,10 @@ namespace Gabut {
 
         public override void destroy () {
             base.destroy ();
+            save_all_download ();
+        }
+
+        public void save_all_download () {
             var downloads = new GLib.List<DownloadRow> ();
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).url == "") {
@@ -311,11 +309,11 @@ namespace Gabut {
             return strlist;
         }
 
-        private Hdy.HeaderBar mode_headerbar () {
-            var headerbar = new Hdy.HeaderBar () {
-                has_subtitle = false,
-                show_close_button = false,
-                hexpand = true
+        private Gtk.Box mode_headerbar () {
+            var headerbar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                hexpand = true,
+                margin_top = 4,
+                margin_bottom = 4
             };
             view_mode = new ModeButton () {
                 hexpand = false
@@ -327,23 +325,23 @@ namespace Gabut {
             view_mode.append_text (_("Waiting"));
             view_mode.append_text (_("Error"));
             view_mode.selected = 0;
-            headerbar.set_custom_title (view_mode);
+            headerbar.set_center_widget (view_mode);
             view_mode.notify["selected"].connect (view_status);
             return headerbar;
         }
 
-        private Hdy.HeaderBar saarch_headerbar () {
-            var box_s = new Hdy.HeaderBar () {
-                has_subtitle = false,
-                show_close_button = false,
-                hexpand = true
+        private Gtk.Box saarch_headerbar () {
+            var headerbar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                hexpand = true,
+                margin_top = 4,
+                margin_bottom = 4
             };
             search_entry = new Gtk.SearchEntry () {
                 placeholder_text = _("Find Here")
             };
             search_entry.search_changed.connect (view_status);
-            box_s.set_custom_title (search_entry);
-            return box_s;
+            headerbar.set_center_widget (search_entry);
+            return headerbar;
         }
 
         private void next_download () {
@@ -382,16 +380,12 @@ namespace Gabut {
                             case StatusMode.PAUSED:
                             case StatusMode.COMPLETE:
                                 next_download ();
-#if HAVE_DBUSMENU
-                                    remove_dbus.begin (((DownloadRow) row).rowbus);
-#endif
+                                remove_dbus.begin (((DownloadRow) row).rowbus);
                                 break;
                             case StatusMode.WAIT:
                             case StatusMode.ERROR:
                             case StatusMode.NOTHING:
-#if HAVE_DBUSMENU
-                                    remove_dbus.begin (((DownloadRow) row).rowbus);
-#endif
+                                remove_dbus.begin (((DownloadRow) row).rowbus);
                                 break;
                             case StatusMode.ACTIVE:
                                 if (openmode == StatusMode.ACTIVE) {
@@ -400,9 +394,7 @@ namespace Gabut {
                                         view_status ();
                                     }
                                     openact++;
-#if HAVE_DBUSMENU
-                                        append_dbus.begin (((DownloadRow) row).rowbus);
-#endif
+                                    append_dbus.begin (((DownloadRow) row).rowbus);
                                     return;
                                 }
                                 break;
@@ -432,16 +424,12 @@ namespace Gabut {
                     case StatusMode.PAUSED:
                     case StatusMode.COMPLETE:
                         next_download ();
-#if HAVE_DBUSMENU
-                            remove_dbus.begin (((DownloadRow) row).rowbus);
-#endif
+                        remove_dbus.begin (((DownloadRow) row).rowbus);
                         break;
                     case StatusMode.WAIT:
                     case StatusMode.ERROR:
                     case StatusMode.NOTHING:
-#if HAVE_DBUSMENU
-                            remove_dbus.begin (((DownloadRow) row).rowbus);
-#endif
+                        remove_dbus.begin (((DownloadRow) row).rowbus);
                         break;
                     case StatusMode.ACTIVE:
                         if (addmode == StatusMode.ACTIVE) {
@@ -450,9 +438,7 @@ namespace Gabut {
                                 view_status ();
                             }
                             addact++;
-#if HAVE_DBUSMENU
-                                append_dbus.begin (((DownloadRow) row).rowbus);
-#endif
+                            append_dbus.begin (((DownloadRow) row).rowbus);
                             return;
                         }
                         break;
@@ -469,31 +455,28 @@ namespace Gabut {
                 row.download ();
             }
         }
-#if HAVE_DBUSMENU
-        private async void append_dbus (Dbusmenu.Menuitem rowbus) throws GLib.Error {
-            var menuofdbus = menudbus.find_id (rowbus.get_id ());
-            if (menuofdbus != rowbus && rowbus.property_get (Dbusmenu.MENUITEM_PROP_ICON_NAME) != null) {
+
+        private async void append_dbus (DbusmenuItem rowbus) throws GLib.Error {
+            if (!menudbus.get_exist (rowbus)) {
                 menudbus.child_append (rowbus);
-                yield open_quicklist (dbusserver, menudbus);
             }
+            yield open_quicklist (dbusserver, menudbus);
         }
 
-        private async void remove_dbus (Dbusmenu.Menuitem rowbus) throws GLib.Error {
-            if (menudbus.find_id (rowbus.get_id ()) == rowbus) {
+        private async void remove_dbus (DbusmenuItem rowbus) throws GLib.Error {
+            if (menudbus.get_exist (rowbus)) {
                 menudbus.child_delete (rowbus);
-                yield open_quicklist (dbusserver, menudbus);
             }
+            yield open_quicklist (dbusserver, menudbus);
         }
-#endif
+
         public override void show () {
             base.show ();
-#if HAVE_DBUSMENU
             remove_dbus.begin (openmenu);
             append_dbus.begin (startmenu);
             append_dbus.begin (pausemenu);
-            menudbus.child_reorder (startmenu, 0);
-            menudbus.child_reorder (pausemenu, 1);
-#endif
+            menudbus.child_reorder (startmenu, 1);
+            menudbus.child_reorder (pausemenu, 2);
         }
 
         private bool get_exist (string url) {
