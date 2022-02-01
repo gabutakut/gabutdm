@@ -532,7 +532,7 @@ namespace Gabut {
         }
 
         public void view_status () {
-            set_badge.begin (int.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
+            set_badge.begin (int64.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             if (headerstack.visible_child_name == "search") {
                 if (search_entry.text.strip () == "") {
                     list_box.set_filter_func ((item) => {

@@ -37,30 +37,9 @@ namespace Gabut {
         public GLib.HashTable<string, Variant> properties = new GLib.HashTable <string, Variant> (str_hash, str_equal);
 
         public DbusmenuItem () {
-            properties = new GLib.HashTable<string, GLib.Variant> (str_hash, str_equal);
             properties["label"] = v_s ("Label Empty");
             properties["enabled"] = v_b (true);
             properties["visible"] = v_b (true);
-        }
-
-        internal Variant v_s (string data) {
-            return new Variant.string (data);
-        }
-
-        internal Variant v_b (bool data) {
-            return new Variant.boolean (data);
-        }
-
-        public int get_position (DbusmenuItem children) {
-            if (menuchildren == null) {
-                return 0;
-            }
-            for (int count = 0; count < menuchildren.length (); count++) {
-                if (menuchildren.nth_data (count) == children) {
-                    return count;
-                }
-            }
-            return 0;
         }
 
         public string? property_get (string property) {
@@ -114,7 +93,7 @@ namespace Gabut {
             });
         }
 
-        private bool property_set_variant (string property, Variant value) {
+        public bool property_set_variant (string property, Variant value) {
             string hash_key;
             Variant hash_variant = null;
             bool inhash = properties.lookup_extended (property, out hash_key, out hash_variant);
