@@ -126,8 +126,6 @@ namespace Gabut {
                     append_dbus.begin (startmenu);
                     append_dbus.begin (pausemenu);
                     menudbus.child_reorder (openmenu, 1);
-                    menudbus.child_reorder (startmenu, 2);
-                    menudbus.child_reorder (pausemenu, 3);
                     return hide_on_delete ();
                 } else {
                     stop_server ();
@@ -477,8 +475,6 @@ namespace Gabut {
             remove_dbus.begin (openmenu);
             append_dbus.begin (startmenu);
             append_dbus.begin (pausemenu);
-            menudbus.child_reorder (startmenu, 1);
-            menudbus.child_reorder (pausemenu, 2);
         }
 
         private bool get_exist (string url) {

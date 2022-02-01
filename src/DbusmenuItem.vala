@@ -86,10 +86,9 @@ namespace Gabut {
             });
             menuchildren.foreach ((item)=> {
                 if (child != item && position == item.id) {
-                    child.id = (int) childrens.length ();
+                    item.id = (int) childrens.length ();
                     menuchildren.insert (item, (int) childrens.length ());
                 }
-                count++;
             });
         }
 
