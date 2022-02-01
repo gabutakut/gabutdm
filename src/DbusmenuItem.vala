@@ -23,7 +23,7 @@ namespace Gabut {
     public class DbusmenuItem : GLib.Object {
         public signal void item_activated ();
 
-        public int _id = 0;
+        private int _id = 0;
         public int id {
             get {
                 return _id;
@@ -34,9 +34,10 @@ namespace Gabut {
         }
 
         public GLib.List<DbusmenuItem> menuchildren = null;
-        public GLib.HashTable<string, Variant> properties = new GLib.HashTable <string, Variant> (str_hash, str_equal);
+        public GLib.HashTable<string, Variant> properties;
 
         public DbusmenuItem () {
+            properties = new GLib.HashTable <string, Variant> (str_hash, str_equal);
             properties["label"] = v_s ("Label Empty");
             properties["enabled"] = v_b (true);
             properties["visible"] = v_b (true);
@@ -54,17 +55,17 @@ namespace Gabut {
             return properties.lookup (property);
         }
 
-        public bool property_set (string property, string value) {
+        public void property_set (string property, string value) {
             Variant variant = null;
             if (value != null) {
                 variant = new GLib.Variant.string (value);
             }
-            return property_set_variant (property, variant);
+            property_set_variant (property, variant);
         }
 
-        public bool property_set_bool (string property, bool value) {
+        public void property_set_bool (string property, bool value) {
             Variant variant = new Variant.boolean (value);
-            return property_set_variant (property, variant);
+            property_set_variant (property, variant);
         }
 
         public void child_reorder (DbusmenuItem child, int position) {
@@ -92,9 +93,9 @@ namespace Gabut {
             });
         }
 
-        public bool property_set_variant (string property, Variant value) {
+        public void property_set_variant (string property, Variant value) {
             string hash_key;
-            Variant hash_variant = null;
+            Variant hash_variant;
             bool inhash = properties.lookup_extended (property, out hash_key, out hash_variant);
             if (value != null) {
                 if (!inhash || (hash_variant != null && !hash_variant.equal (value))) {
@@ -102,10 +103,9 @@ namespace Gabut {
                 }
             } else {
                 if (inhash) {
-                    properties[property] = value;
+                    properties[property.dup ()] = value;
                 }
             }
-            return true;
         }
 
         public bool get_exist (DbusmenuItem children) {
@@ -120,27 +120,21 @@ namespace Gabut {
             return false;
         }
 
-        public bool child_append (DbusmenuItem child) {
+        public void child_append (DbusmenuItem child) {
             if (menuchildren == null) {
                 menuchildren = new GLib.List<DbusmenuItem> ();
                 properties["children-display"] = v_s ("submenu");
             }
             if (!get_exist (child)) {
-                int i = 1;
-                menuchildren.foreach ((item)=> {
-                    i++;
-                });
-                child.id = i;
+                child.id = (int) menuchildren.length () + 1;
                 menuchildren.append (child);
             }
-            return true;
         }
 
-        public bool child_delete (DbusmenuItem child) {
+        public void child_delete (DbusmenuItem child) {
             if (get_exist (child)) {
                 menuchildren.remove_link (menuchildren.find (child));
             }
-            return true;
         }
 
         public void signal_send (int mid) {
