@@ -68,15 +68,10 @@ namespace Gabut {
                 count++;
             });
             this.revision = this.revision + count;
-            layout_updated (revision, 0);
+            layout_updated (revision, root.id);
             items_properties_updated ({set_item (root.id, set_item_prop ({"children-display"}, {v_s ("submenu")}))}, {});
         }
-        internal Variant v_s (string data) {
-            return new Variant.string (data);
-        }
-        internal Variant v_b (bool data) {
-            return new Variant.boolean (data);
-        }
+
         internal MenuItemLayout set_layouts (int id, GLib.HashTable<string, GLib.Variant> menu, Variant[] variant) {
             var menuitemlayout = MenuItemLayout ();
             menuitemlayout.id = id;
@@ -133,7 +128,7 @@ namespace Gabut {
         }
         public void get_layout (int parent_id, int recursion_depth, string[] property_names, out uint revision, out MenuItemLayout layout) throws GLib.Error {
             revision = this.revision;
-            layout = set_layouts (0, root.properties, children);
+            layout = set_layouts (root.id, root.properties, children);
         }
         public void get_group_properties (int[] ids, string[] property_names, out DbusmenuMenuitem[] properties) throws GLib.Error {
             properties = dbusmenumenuitem;

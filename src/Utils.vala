@@ -1954,6 +1954,13 @@ namespace Gabut {
         return ngettext ("approximately %'d hour", "approximately %'d hours  left", hours).printf (hours);
     }
 
+    private Variant v_s (string data) {
+        return new Variant.string (data);
+    }
+    private Variant v_b (bool data) {
+        return new Variant.boolean (data);
+    }
+
     private async void set_badge (int64 count) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("count", new GLib.Variant.int64 (count));
