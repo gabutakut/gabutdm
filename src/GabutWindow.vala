@@ -123,8 +123,6 @@ namespace Gabut {
             delete_event.connect (() => {
                 if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
                     append_dbus.begin (openmenu);
-                    append_dbus.begin (startmenu);
-                    append_dbus.begin (pausemenu);
                     menudbus.child_reorder (openmenu, 1);
                     return hide_on_delete ();
                 } else {
@@ -363,7 +361,6 @@ namespace Gabut {
         public void remove_all () {
             foreach (var row in list_box.get_children ()) {
                 ((DownloadRow) row).remove_down ();
-                remove_dbus.begin (((DownloadRow) row).rowbus);
             }
             aria_purge_all ();
         }

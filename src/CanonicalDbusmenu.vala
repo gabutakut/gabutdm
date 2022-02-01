@@ -61,14 +61,12 @@ namespace Gabut {
             this.root = root;
             children = {};
             dbusmenumenuitem = {};
-            int count = 0;
+            this.revision = this.revision + root.menuchildren.length ();
+            layout_updated (revision, root.id);
             root.menuchildren.foreach ((menuitem)=> {
                 children += set_layouts (menuitem.id, menuitem.properties, {});
                 dbusmenumenuitem += set_item (menuitem.id, menuitem.properties);
-                count++;
             });
-            this.revision = this.revision + count;
-            layout_updated (revision, root.id);
             items_properties_updated ({set_item (root.id, set_item_prop ({"children-display"}, {v_s ("submenu")}))}, {});
         }
 
@@ -86,17 +84,7 @@ namespace Gabut {
             dbusitem.properties = make;
             return dbusitem;
         }
-        internal MenuItemPropertyDescriptor set_menuitempropert (int id, string[] make) {
-            var menuitempropertydescriptor = MenuItemPropertyDescriptor ();
-            menuitempropertydescriptor.id = id;
-            menuitempropertydescriptor.properties = make;
-            return menuitempropertydescriptor;
-        }
-        internal GLib.Variant set_item_variant (MenuItemLayout layout) {
-            var builder = new VariantBuilder (new VariantType ("a(ia{sv}av)"));
-            builder.add ("a(ia{sv}av)", layout);
-            return builder.end ();
-        }
+
         internal GLib.HashTable<string, GLib.Variant> set_item_prop (string[] prop, Variant[] variant) {
             var properties = new GLib.HashTable<string, GLib.Variant> (str_hash, str_equal);
             for (int i = 0; i < prop.length; i++) {
