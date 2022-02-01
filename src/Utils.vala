@@ -1257,7 +1257,8 @@ namespace Gabut {
         CHILD_DISPLAY = 8,
         DISPOSITION = 9,
         ACCESSIBLE_DESC = 10,
-        SUBMENU = 11;
+        SUBMENU = 11,
+        TYPE = 12;
 
         public string get_name () {
             switch (this) {
@@ -1283,6 +1284,8 @@ namespace Gabut {
                     return "accessible-desc";
                 case SUBMENU:
                     return "submenu";
+                case TYPE:
+                    return "type";
                 default:
                     return "visible";
             }
