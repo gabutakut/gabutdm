@@ -74,16 +74,14 @@ namespace Gabut {
                 childrens.append (item);
                 child_delete (item);
             });
-            int count = 1;
             childrens.foreach ((item)=> {
                 if (child == item && position != item.id) {
                     child.id = position;
                     menuchildren.insert (child, position - 1);
                 } else {
-                    item.id = count;
-                    menuchildren.insert (item, count);
+                    item.id = (int) menuchildren.length () + 1;
+                    menuchildren.insert (item, item.id);
                 }
-                count++;
             });
             menuchildren.foreach ((item)=> {
                 if (child != item && position == item.id) {

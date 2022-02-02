@@ -28,7 +28,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="1.7.1" date="2022-1-31">
+    <release version="1.7.2" date="2022-2-1">
       <description>
         <p>Dbus Menu</p>
         <p>Fix Save to db</p>
