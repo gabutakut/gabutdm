@@ -39,6 +39,7 @@ namespace Gabut {
         private DbusmenuItem startmenu;
         private DbusmenuItem pausemenu;
         private CanonicalDbusmenu dbusserver;
+        private int64 globalactive = 0;
 
         public GabutWindow (Gtk.Application application) {
             Object (application: application);
@@ -114,11 +115,8 @@ namespace Gabut {
                 remove_dbus.begin (((DownloadRow) row).rowbus);
             });
 
-            Timeout.add (500, ()=> {
-                bool statact = int.parse (aria_globalstat (GlobalStat.NUMACTIVE)) > 0;
-                set_progress_visible.begin (!is_active && statact);
-                set_badge_visible.begin (!is_active && statact);
-                return true;
+            notify["is-active"].connect (()=> {
+                set_badge.begin (globalactive);
             });
             delete_event.connect (() => {
                 if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
@@ -130,6 +128,15 @@ namespace Gabut {
                     return false;
                 }
             });
+            Timeout.add (500,set_menulauncher);
+        }
+
+        private bool set_menulauncher () {
+            globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
+            bool statact = globalactive > 0;
+            set_progress_visible.begin (!is_active && statact);
+            set_badge_visible.begin (!is_active && statact);
+            return true;
         }
 
         private Hdy.HeaderBar build_headerbar () {
@@ -385,19 +392,17 @@ namespace Gabut {
                                 remove_dbus.begin (((DownloadRow) row).rowbus);
                                 break;
                             case StatusMode.ACTIVE:
-                                if (openmode == StatusMode.ACTIVE) {
-                                    if (openact > int.parse (aria_globalstat (GlobalStat.NUMACTIVE))) {
-                                        openact = 0;
-                                        view_status ();
-                                    }
-                                    openact++;
-                                    append_dbus.begin (((DownloadRow) row).rowbus);
-                                    return;
+                                if (openact > globalactive) {
+                                    openact = 0;
+                                    view_status ();
                                 }
-                                break;
+                                openact++;
+                                append_dbus.begin (((DownloadRow) row).rowbus);
+                                return;
                         }
                         openmode = ((DownloadRow) row).status;
                         view_status ();
+                        set_badge.begin (globalactive);
                     });
                     row.destroy.connect (view_status);
                     if (list_box.get_selected_row () == null) {
@@ -429,19 +434,17 @@ namespace Gabut {
                         remove_dbus.begin (((DownloadRow) row).rowbus);
                         break;
                     case StatusMode.ACTIVE:
-                        if (addmode == StatusMode.ACTIVE) {
-                            if (addact > int.parse (aria_globalstat (GlobalStat.NUMACTIVE))) {
-                                addact = 0;
-                                view_status ();
-                            }
-                            addact++;
-                            append_dbus.begin (((DownloadRow) row).rowbus);
-                            return;
+                        if (addact > globalactive) {
+                            addact = 0;
+                            view_status ();
                         }
-                        break;
+                        addact++;
+                        append_dbus.begin (((DownloadRow) row).rowbus);
+                        return;
                 }
                 addmode = ((DownloadRow) row).status;
                 view_status ();
+                set_badge.begin (globalactive);
             });
             row.destroy.connect (view_status);
             if (list_box.get_selected_row () == null) {
@@ -525,7 +528,6 @@ namespace Gabut {
         }
 
         public void view_status () {
-            set_badge.begin (int64.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             if (headerstack.visible_child_name == "search") {
                 if (search_entry.text.strip () == "") {
                     list_box.set_filter_func ((item) => {
