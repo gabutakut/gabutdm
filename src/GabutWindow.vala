@@ -397,7 +397,9 @@ namespace Gabut {
                                     view_status ();
                                 }
                                 openact++;
-                                append_dbus.begin (((DownloadRow) row).rowbus);
+                                if (!menudbus.get_exist (((DownloadRow) row).rowbus)) {
+                                    append_dbus.begin (((DownloadRow) row).rowbus);
+                                }
                                 return;
                         }
                         openmode = ((DownloadRow) row).status;
@@ -439,7 +441,9 @@ namespace Gabut {
                             view_status ();
                         }
                         addact++;
-                        append_dbus.begin (((DownloadRow) row).rowbus);
+                        if (!menudbus.get_exist (((DownloadRow) row).rowbus)) {
+                            append_dbus.begin (((DownloadRow) row).rowbus);
+                        }
                         return;
                 }
                 addmode = ((DownloadRow) row).status;

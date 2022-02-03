@@ -69,25 +69,11 @@ namespace Gabut {
         }
 
         public void child_reorder (DbusmenuItem child, int position) {
-            var childrens = new List<DbusmenuItem> ();
+            child_delete (child);
+            child.id = position;
+            menuchildren.insert (child, position - 1);
             menuchildren.foreach ((item)=> {
-                childrens.append (item);
-                child_delete (item);
-            });
-            childrens.foreach ((item)=> {
-                if (child == item && position != item.id) {
-                    child.id = position;
-                    menuchildren.insert (child, position - 1);
-                } else {
-                    item.id = (int) menuchildren.length () + 1;
-                    menuchildren.insert (item, item.id);
-                }
-            });
-            menuchildren.foreach ((item)=> {
-                if (child != item && position == item.id) {
-                    item.id = (int) childrens.length ();
-                    menuchildren.insert (item, (int) childrens.length ());
-                }
+                item.id = menuchildren.index (item) + 1;
             });
         }
 
@@ -124,6 +110,9 @@ namespace Gabut {
                 properties["children-display"] = v_s ("submenu");
             }
             if (!get_exist (child)) {
+                menuchildren.foreach ((item)=> {
+                    item.id = menuchildren.index (item) + 1;
+                });
                 child.id = (int) menuchildren.length () + 1;
                 menuchildren.append (child);
             }
@@ -132,12 +121,15 @@ namespace Gabut {
         public void child_delete (DbusmenuItem child) {
             if (get_exist (child)) {
                 menuchildren.remove_link (menuchildren.find (child));
+                menuchildren.foreach ((item)=> {
+                    item.id = menuchildren.index (item) + 1;
+                });
             }
         }
 
-        public void signal_send (int mid) {
+        public void signal_send (int mid, Variant name) {
             menuchildren.foreach ((item)=> {
-                if (mid == item.id) {
+                if (mid == item.id && name == item.properties.@get ("label")) {
                     item.item_activated ();
                 }
             });
