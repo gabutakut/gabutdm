@@ -96,7 +96,9 @@ namespace Gabut {
         public void event (int id, string event_id, Variant data, uint timestamp) throws GLib.Error {
             if (event_id == "clicked") {
                 if (root != null) {
-                    root.signal_send (id);
+                    Variant name;
+                    GetProperty (id, "label", out name);
+                    root.signal_send (id, name);
                 }
             }
         }
