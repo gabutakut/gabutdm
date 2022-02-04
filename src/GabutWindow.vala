@@ -352,7 +352,7 @@ namespace Gabut {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).status == StatusMode.WAIT) {
                     aria_unpause (((DownloadRow) row).ariagid);
-                    ((DownloadRow) row).update_progress ();
+                    ((DownloadRow) row).idle_progress ();
                 }
             }
         }
@@ -360,7 +360,7 @@ namespace Gabut {
         public void fast_respond (string ariagid) {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).ariagid == ariagid) {
-                    ((DownloadRow) row).update_progress ();
+                    ((DownloadRow) row).idle_progress ();
                 }
             }
         }
@@ -495,7 +495,7 @@ namespace Gabut {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).status != StatusMode.COMPLETE && ((DownloadRow) row).status != StatusMode.ERROR) {
                     aria_unpause (((DownloadRow) row).ariagid);
-                    ((DownloadRow) row).update_progress ();
+                    ((DownloadRow) row).idle_progress ();
                 }
             }
             view_status ();
@@ -506,7 +506,7 @@ namespace Gabut {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).status != StatusMode.COMPLETE && ((DownloadRow) row).status != StatusMode.ERROR) {
                     aria_pause (((DownloadRow) row).ariagid);
-                    ((DownloadRow) row).update_progress ();
+                    ((DownloadRow) row).idle_progress ();
                 }
             }
             view_status ();
