@@ -60,7 +60,7 @@ This application prioritizes convenience, full of features and an attractive app
 <p align="center">
     <img src="Screenshot7.png" alt="Home">
 </p>
-<h1 align="center">🏡 Dbusmenu progress 🙈</h1>
+<h1 align="center">📂 Dbusmenu progress 🙈</h1>
 <p align="center">
     <img src="Screenshot8.png" alt="Home">
 </p>
