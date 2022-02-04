@@ -490,6 +490,7 @@ namespace Gabut {
                 }
             });
             add_timeout ();
+            Idle.add (()=> { update_progress (); return false; });
         }
 
         private Gtk.TreeViewColumn text_column (string title, int column) {
@@ -606,7 +607,7 @@ namespace Gabut {
         public void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = true;
-                timeout_id = Timeout.add_seconds (1, update_progress);
+                timeout_id = Timeout.add (500, update_progress);
             }
         }
 

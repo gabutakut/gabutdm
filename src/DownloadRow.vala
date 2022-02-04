@@ -402,7 +402,12 @@ namespace Gabut {
             grid.attach (start_button, 6, 0, 1, 4);
             add (grid);
             show_all ();
+            idle_progress ();
             add_timeout ();
+        }
+
+        public void idle_progress () {
+            Idle.add (()=> { update_progress (); return false; });
         }
 
         private void action_dowload () {
@@ -516,7 +521,7 @@ namespace Gabut {
             stoptimer = false;
         }
 
-        public bool update_progress () {
+        private bool update_progress () {
             totalsize = int64.parse (aria_tell_status (ariagid, TellStatus.TOTALLENGTH));
             transferred = int64.parse (aria_tell_status (ariagid, TellStatus.COMPELETEDLENGTH));
             transferrate = int.parse (aria_tell_status (ariagid, TellStatus.DOWNLOADSPEED));
