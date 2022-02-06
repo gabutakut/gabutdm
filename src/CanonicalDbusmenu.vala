@@ -46,8 +46,7 @@ namespace Gabut {
             }
         }
 
-        private static string app_uri = "application://%s.desktop".printf (Environment.get_application_name ());
-        internal GLib.ObjectPath dbus_object = new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf (app_uri.hash ()));
+        internal GLib.ObjectPath dbus_object = new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf (get_app_id ().hash ()));
         public CanonicalDbusmenu () {
             register_dbus.begin ();
         }

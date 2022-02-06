@@ -1810,6 +1810,19 @@ namespace Gabut {
         return Base64.encode (byte.get_data ());
     }
 
+    private string get_app_id () {
+        string app_id = "";
+        AppInfo.get_all ().foreach ((app)=> {
+            if (app.get_id () == "com.github.gabutakut.gabutdm.desktop") {
+                app_id = @"application://$(app.get_id ())";
+            }
+        });
+        if (app_id == "") {
+            app_id = "application://gabutdm_gabutdm.desktop";
+        }
+        return app_id;
+    }
+
     private int max_exec = 1000;
     private void exec_aria () {
         setjsonrpchost ();

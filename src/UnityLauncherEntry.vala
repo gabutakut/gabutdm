@@ -22,7 +22,7 @@ namespace Gabut {
     private class UnityLauncherEntry : GLib.Object {
         public signal void update (string app_uri, GLib.HashTable<string, GLib.Variant> properties);
         private GLib.HashTable<string, GLib.Variant> properties;
-        private static string app_uri = "application://%s.desktop".printf (Environment.get_application_name ());
+        private static string app_uri = get_app_id ();
         private static uint removebus = 0;
         private static UnityLauncherEntry instance;
 
