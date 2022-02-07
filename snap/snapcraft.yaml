@@ -111,7 +111,7 @@ apps:
       - network-manager
       - unity7
       - home
-    slots: [ dbus-gabutdm, dbus-menu ]
+    slots: [ dbus-gabutdm, dbus-dbusmenu ]
 slots:
   dbus-gabutdm:
     interface: dbus
