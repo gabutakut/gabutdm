@@ -1811,7 +1811,7 @@ namespace Gabut {
     }
 
     private string get_app_id () {
-        return @"application://$(Environment.get_application_name ())";
+        return @"application://$(Environment.get_application_name ()).desktop";
     }
 
     private int max_exec = 1000;
