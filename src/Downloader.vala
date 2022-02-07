@@ -489,8 +489,12 @@ namespace Gabut {
                         break;
                 }
             });
-            add_timeout ();
-            Idle.add (()=> { update_progress (); return false; });
+
+            Idle.add (()=> {
+                update_progress ();
+                add_timeout ();
+                return false;
+            });
         }
 
         private Gtk.TreeViewColumn text_column (string title, int column) {
