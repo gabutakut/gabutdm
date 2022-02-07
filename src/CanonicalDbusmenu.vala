@@ -96,7 +96,7 @@ namespace Gabut {
             if (event_id == "clicked") {
                 if (root != null) {
                     Variant name;
-                    GetProperty (id, "label", out name);
+                    _get_property (id, "label", out name);
                     root.signal_send (id, name);
                 }
             }
@@ -106,7 +106,7 @@ namespace Gabut {
             id_errors = {};
         }
 
-        public void GetProperty (int id, string name, out Variant value) throws GLib.Error {
+        public void _get_property (int id, string name, out Variant value) throws GLib.Error {
             foreach (var menumenuitem in dbusmenumenuitem) {
                 if (menumenuitem.properties.contains (name) && menumenuitem.id == id) {
                     value = menumenuitem.properties.get (name);
