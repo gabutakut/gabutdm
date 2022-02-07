@@ -403,11 +403,14 @@ namespace Gabut {
             add (grid);
             show_all ();
             idle_progress ();
-            add_timeout ();
         }
 
         public void idle_progress () {
-            Idle.add (()=> { update_progress (); return false; });
+            Idle.add (()=> {
+                update_progress ();
+                add_timeout ();
+                return false;
+            });
         }
 
         private void action_dowload () {

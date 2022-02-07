@@ -1811,14 +1811,7 @@ namespace Gabut {
     }
 
     private string get_app_id () {
-        string app_id = "";
-        var file = File.new_for_path ("/var/lib/snapd/desktop/applications/gabutdm_gabutdm.desktop");
-        if (!file.query_exists ()) {
-            app_id = @"application://$(Environment.get_application_name ())";
-        } else {
-            app_id = "application://gabutdm_gabutdm.desktop";
-        }
-        return app_id;
+        return @"application://$(Environment.get_application_name ())";
     }
 
     private int max_exec = 1000;

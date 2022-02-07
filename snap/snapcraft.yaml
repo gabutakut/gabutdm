@@ -111,12 +111,16 @@ apps:
       - network-manager
       - unity7
       - home
-    slots: [ dbus-gabutdm ]
+    slots: [ dbus-gabutdm, dbus-menu ]
 slots:
   dbus-gabutdm:
     interface: dbus
     bus: session
     name: com.github.gabutakut.gabutdm
+  dbus-dbusmenu:
+    interface: dbus
+    bus: session
+    name: com.canonical.dbusmenu
 plugs:
   gnome-3-38-2004:
     default-provider: gnome-3-38-2004
