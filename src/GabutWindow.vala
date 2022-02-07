@@ -128,7 +128,7 @@ namespace Gabut {
                     return false;
                 }
             });
-            Timeout.add (500,set_menulauncher);
+            Timeout.add (500, set_menulauncher);
         }
 
         private bool set_menulauncher () {
