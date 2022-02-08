@@ -489,7 +489,11 @@ namespace Gabut {
                         break;
                 }
             });
+        }
 
+        public override void show () {
+            base.show ();
+            set_badge.begin (int64.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             Idle.add (()=> {
                 update_progress ();
                 add_timeout ();
