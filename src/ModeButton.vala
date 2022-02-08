@@ -52,7 +52,10 @@ namespace Gabut {
         }
 
         public int append_text (string text) {
-            return append (new Gtk.Label (text));
+            var label = new Gtk.Label (text) {
+                attributes = set_attribute (Pango.Weight.MEDIUM)
+            };
+            return append (label);
         }
 
         public int append_icon (string icon_name, Gtk.IconSize size) {
