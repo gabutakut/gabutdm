@@ -65,6 +65,8 @@ namespace Gabut {
             pausemenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
             pausemenu.item_activated.connect (stop_all);
             menudbus = new DbusmenuItem ();
+            append_dbus.begin (startmenu);
+            append_dbus.begin (pausemenu);
 
             nodown_alert = new AlertView (
                 _("No File Download"),
@@ -477,8 +479,6 @@ namespace Gabut {
         public override void show () {
             base.show ();
             remove_dbus.begin (openmenu);
-            append_dbus.begin (startmenu);
-            append_dbus.begin (pausemenu);
         }
 
         private bool get_exist (string url) {

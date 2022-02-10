@@ -320,6 +320,7 @@ namespace Gabut {
                 aria_pause (ariagid);
             }
             add_db_download (this);
+            idle_progress ();
         }
 
         construct {
@@ -402,7 +403,6 @@ namespace Gabut {
             grid.attach (start_button, 6, 0, 1, 4);
             add (grid);
             show_all ();
-            idle_progress ();
         }
 
         public void idle_progress () {
