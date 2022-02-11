@@ -297,6 +297,7 @@ namespace Gabut {
             fileordir = stmt.column_text (DBDownload.FILEORDIR);
             labeltransfer = stmt.column_text (DBDownload.LABELTRANSFER);
             hashoption = get_dboptions (url);
+            if_not_exist (ariagid, linkmode, status);
         }
 
         public DownloadRow.Url (string url, Gee.HashMap<string, string> options, bool later, int linkmode) {
@@ -405,6 +406,34 @@ namespace Gabut {
             show_all ();
         }
 
+        private void if_not_exist (string ariag, int linkm, int stats) {
+            if (stats == StatusMode.COMPLETE || stats == StatusMode.ERROR) {
+                return;
+            }
+            if (aria_tell_status (ariag, TellStatus.STATUS) == "") {
+                if (linkm == LinkMode.TORRENT) {
+                    if (url.has_prefix ("magnet:?")) {
+                        linkmode = LinkMode.MAGNETLINK;
+                        ariagid = aria_url (url, hashoption);
+                    } else {
+                        ariagid = aria_torrent (url, hashoption);
+                    }
+                } else if (linkm == LinkMode.METALINK) {
+                    ariagid = aria_metalink (url, hashoption);
+                } else if (linkm == LinkMode.URL) {
+                    if (url.has_prefix ("magnet:?")) {
+                        linkmode = LinkMode.MAGNETLINK;
+                        ariagid = aria_url (url, hashoption);
+                    } else {
+                        ariagid = aria_url (url, hashoption);
+                    }
+                }
+            }
+            if (stats == StatusMode.PAUSED) {
+                aria_pause (ariagid);
+            }
+        }
+
         public void idle_progress () {
             Idle.add (()=> {
                 update_progress ();
@@ -459,7 +488,6 @@ namespace Gabut {
                         linkmode = LinkMode.MAGNETLINK;
                         ariagid = aria_url (url, hashoption);
                     } else {
-                        linkmode = LinkMode.URL;
                         ariagid = aria_url (url, hashoption);
                     }
                 }

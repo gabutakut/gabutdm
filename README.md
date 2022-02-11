@@ -46,23 +46,9 @@ This application prioritizes convenience, full of features and an attractive app
 <h1 align="center">👦 Torrent Peers of GabutDM 🙈</h1>
 <p align="center">
     <img src="Screenshot3.png" alt="Home">
-</p><h1 align="center">😘 Download Succes of GabutDM 🙈</h1>
-<p align="center">
-    <img src="Screenshot4.png" alt="Home">
-</p><h1 align="center">🕺 Add Address File Torrent Etc. of GabutDM 🙈</h1>
-<p align="center">
-    <img src="Screenshot5.png" alt="Home">
-</p><h1 align="center">🎛️ Settings of GabutDM 🙈</h1>
-<p align="center">
-    <img src="Screenshot6.png" alt="Home">
-</p>
 <h1 align="center">🏡 Gabut Sharing of GabutDM 🙈</h1>
 <p align="center">
-    <img src="Screenshot7.png" alt="Home">
-</p>
-<h1 align="center">📂 Dbusmenu progress 🙈</h1>
-<p align="center">
-    <img src="Screenshot8.png" alt="Home">
+    <img src="Screenshot4.png" alt="Home">
 </p>
 <h1 align="center">🧚 About Gabutdm 🧞</h1>
 <p align="center">
