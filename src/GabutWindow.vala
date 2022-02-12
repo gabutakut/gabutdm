@@ -380,6 +380,7 @@ namespace Gabut {
             get_download ().foreach ((row)=> {
                 if (!get_exist (row.url)) {
                     list_box.add (row);
+                    row.show_all ();
                     row.notify_property ("status");
                     row.notify["status"].connect (()=> {
                         switch (((DownloadRow) row).status) {
@@ -423,8 +424,9 @@ namespace Gabut {
             if (get_exist (url)) {
                 return;
             }
-            var row = new DownloadRow.Url (url, options, later, linkmode);
+            var row = new DownloadRow.Url (url, options, linkmode);
             list_box.add (row);
+            row.show_all ();
             row.notify["status"].connect (()=> {
                 switch (((DownloadRow) row).status) {
                     case StatusMode.PAUSED:
@@ -459,6 +461,9 @@ namespace Gabut {
             }
             if (!later) {
                 row.download ();
+                row.start_notif ();
+            } else {
+                aria_pause (row.ariagid);
             }
         }
 

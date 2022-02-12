@@ -643,7 +643,7 @@ namespace Gabut {
                     if (ariagid != null) {
                         int statustorr = 0;
                         if (aria_tell_bittorent (ariagid, TellBittorrent.NAME) != "") {
-                            if (aria_tell_status (ariagid, TellStatus.SEEDER) == "true") {
+                            if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
                                 statustorr = StatusMode.COMPLETE;
                             } else {
                                 statustorr = StatusMode.ACTIVE;

@@ -2053,10 +2053,10 @@ namespace Gabut {
         yield outstartup.write_async ("NoDisplay=true\n".data);
         yield outstartup.write_async ("Icon=com.github.gabutakut.gabutdm\n".data);
         if (file.get_path ().contains (".var")) {
-            yield outstartup.write_async ("Exec=/usr/bin/flatpak run --branch=master --arch=x86_64 --command=com.github.gabutakut.gabutdm --file-forwarding com.github.gabutakut.gabutdm @@u --startingup @@\n".data);
+            yield outstartup.write_async ("Exec=/usr/bin/flatpak run --branch=master --arch=x86_64 --command=com.github.gabutakut.gabutdm --file-forwarding com.github.gabutakut.gabutdm @@u --s @@\n".data);
             yield outstartup.write_async ("X-Flatpak=com.github.gabutakut.gabutdm\n".data);
         } else {
-            yield outstartup.write_async ("Exec=com.github.gabutakut.gabutdm --startingup\n".data);
+            yield outstartup.write_async ("Exec=com.github.gabutakut.gabutdm --s\n".data);
         }
     }
 
@@ -2326,19 +2326,19 @@ namespace Gabut {
             if (stmt.column_int (DBDownload.STATUS) != download.status) {
                 buildstr.append (@" $(DBDownload.STATUS.get_name ()) = $(download.status)");
             }
-            if (stmt.column_text (DBDownload.ARIAGID) != download.ariagid) {
+            if (stmt.column_text (DBDownload.ARIAGID) != download.ariagid && download.ariagid != null) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
                 buildstr.append (@" $(DBDownload.ARIAGID.get_name ()) = \"$(download.ariagid)\"");
             }
-            if (stmt.column_text (DBDownload.FILEPATH) != download.filepath) {
+            if (stmt.column_text (DBDownload.FILEPATH) != download.filepath && download.filepath != null) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
                 buildstr.append (@" $(DBDownload.FILEPATH.get_name ()) = \"$(download.filepath)\"");
             }
-            if (stmt.column_text (DBDownload.FILENAME) != download.filename) {
+            if (stmt.column_text (DBDownload.FILENAME) != download.filename && download.filename != null) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
@@ -2368,13 +2368,13 @@ namespace Gabut {
                 }
                 buildstr.append (@" $(DBDownload.LINKMODE.get_name ()) = $(download.linkmode)");
             }
-            if (stmt.column_text (DBDownload.FILEORDIR) != download.fileordir) {
+            if (stmt.column_text (DBDownload.FILEORDIR) != download.fileordir && download.fileordir != null) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
                 buildstr.append (@" $(DBDownload.FILEORDIR.get_name ()) = \"$(download.fileordir)\"");
             }
-            if (stmt.column_text (DBDownload.LABELTRANSFER) != download.labeltransfer) {
+            if (stmt.column_text (DBDownload.LABELTRANSFER) != download.labeltransfer && download.labeltransfer != null) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }

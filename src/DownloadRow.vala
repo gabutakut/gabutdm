@@ -92,7 +92,7 @@ namespace Gabut {
                         break;
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
-                            if (aria_tell_status (ariagid, TellStatus.SEEDER) == "true") {
+                            if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
                                 ((Gtk.Image) start_button.image).icon_name = "com.github.gabutakut.gabutdm.seed";
                                 start_button.tooltip_text = _("Seeding");
                                 return;
@@ -300,26 +300,18 @@ namespace Gabut {
             if_not_exist (ariagid, linkmode, status);
         }
 
-        public DownloadRow.Url (string url, Gee.HashMap<string, string> options, bool later, int linkmode) {
+        public DownloadRow.Url (string url, Gee.HashMap<string, string> options, int linkmode) {
             this.hashoption = options;
             this.linkmode = linkmode;
             if (linkmode == LinkMode.TORRENT) {
                 ariagid = aria_torrent (url, hashoption);
-                notify_app (_("Starting"),
-                            _("Torrent"), imagefile.gicon);
             } else if (linkmode == LinkMode.METALINK) {
                 ariagid = aria_metalink (url, hashoption);
-                notify_app (_("Starting"),
-                            _("Metalink"), imagefile.gicon);
             } else if (linkmode == LinkMode.MAGNETLINK || linkmode == LinkMode.URL) {
                 ariagid = aria_url (url, hashoption);
-                notify_app (_("Starting"), url, imagefile.gicon);
                 filename = url;
             }
             this.url = url;
-            if (later) {
-                aria_pause (ariagid);
-            }
             add_db_download (this);
             idle_progress ();
         }
@@ -403,14 +395,13 @@ namespace Gabut {
             grid.attach (remove_button, 5, 0, 1, 4);
             grid.attach (start_button, 6, 0, 1, 4);
             add (grid);
-            show_all ();
         }
 
         private void if_not_exist (string ariag, int linkm, int stats) {
             if (stats == StatusMode.COMPLETE || stats == StatusMode.ERROR) {
                 return;
             }
-            if (aria_tell_status (ariag, TellStatus.STATUS) == "") {
+            if (status_aria (aria_tell_status (ariag, TellStatus.STATUS)) == StatusMode.NOTHING) {
                 if (linkm == LinkMode.TORRENT) {
                     if (url.has_prefix ("magnet:?")) {
                         linkmode = LinkMode.MAGNETLINK;
@@ -431,6 +422,18 @@ namespace Gabut {
             }
             if (stats == StatusMode.PAUSED) {
                 aria_pause (ariagid);
+            }
+        }
+
+        public void start_notif () {
+            if (linkmode == LinkMode.TORRENT) {
+                notify_app (_("Starting"),
+                            _("Torrent"), imagefile.gicon);
+            } else if (linkmode == LinkMode.METALINK) {
+                notify_app (_("Starting"),
+                            _("Metalink"), imagefile.gicon);
+            } else if (linkmode == LinkMode.MAGNETLINK || linkmode == LinkMode.URL) {
+                notify_app (_("Starting"), url, imagefile.gicon);
             }
         }
 
@@ -471,7 +474,7 @@ namespace Gabut {
             } else if (status == StatusMode.COMPLETE) {
                 remove_timeout ();
             } else if (status == StatusMode.WAIT) {
-                if (aria_pause (ariagid) == "") {}
+                aria_pause (ariagid);
                 add_timeout ();
             } else {
                 if (linkmode == LinkMode.TORRENT) {
@@ -582,9 +585,11 @@ namespace Gabut {
                     return StatusMode.WAIT;
                 case "error":
                     return StatusMode.ERROR;
+                case "":
+                    return StatusMode.NOTHING;
                 default:
                     if (linkmode != LinkMode.URL && ariagid != null) {
-                        if (aria_tell_status (ariagid, TellStatus.SEEDER) == "true") {
+                        if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
                             return StatusMode.COMPLETE;
                         } else {
                             return StatusMode.ACTIVE;
