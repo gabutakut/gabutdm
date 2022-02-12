@@ -42,7 +42,7 @@ namespace Gabut {
             target_list += string_entry;
             target_list += urilist_entry;
             GLib.OptionEntry [] options = new GLib.OptionEntry [3];
-            options [0] = { "startingup", 0, 0, OptionArg.NONE, null, null, "Run App on Startup" };
+            options [0] = { "startingup", 's', 0, OptionArg.NONE, null, null, "Run App on Startup" };
             options [1] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
             options [2] = { null };
             add_main_option_entries (options);
@@ -54,7 +54,6 @@ namespace Gabut {
                 startingup = true;
             }
             create_startup.begin ();
-            activate ();
             if (dict.contains (GLib.OPTION_REMAINING)) {
                 foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, VariantType.BYTESTRING_ARRAY).get_bytestring_array ()) {
                     if (GLib.FileUtils.test (arg_file, GLib.FileTest.EXISTS)) {
@@ -63,7 +62,11 @@ namespace Gabut {
                         dialog_url (arg_file);
                     }
                 }
+                if (gabutwindow != null) {
+                    return Posix.EXIT_SUCCESS;
+                }
             }
+            activate ();
             return Posix.EXIT_SUCCESS;
         }
 
