@@ -555,7 +555,7 @@ namespace Gabut {
             stoptimer = false;
         }
 
-        private bool update_progress () {
+        public bool update_progress () {
             totalsize = int64.parse (aria_tell_status (ariagid, TellStatus.TOTALLENGTH));
             transferred = int64.parse (aria_tell_status (ariagid, TellStatus.COMPELETEDLENGTH));
             transferrate = int.parse (aria_tell_status (ariagid, TellStatus.DOWNLOADSPEED));
