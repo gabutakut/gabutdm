@@ -212,6 +212,8 @@ namespace Gabut {
                 height_request = 150,
                 margin_bottom = 5,
                 column_spacing = 10,
+                margin_start = 2,
+                margin_end = 2,
                 halign = Gtk.Align.START
             };
             settings.attach (new HeaderLabel (_("Number of Tries:"), 220), 1, 0, 1, 1);
@@ -319,6 +321,8 @@ namespace Gabut {
                 height_request = 150,
                 margin_bottom = 5,
                 column_spacing = 10,
+                margin_start = 2,
+                margin_end = 2,
                 halign = Gtk.Align.START
             };
             bittorrent.attach (new HeaderLabel (_("Max Open File:"), 220), 1, 0, 1, 1);
@@ -348,6 +352,8 @@ namespace Gabut {
                 expand = true,
                 height_request = 150,
                 margin_bottom = 5,
+                margin_start = 2,
+                margin_end = 2,
                 halign = Gtk.Align.START
             };
             folderopt.attach (new HeaderLabel (_("Save to Folder:"), 450), 1, 0, 1, 1);
@@ -432,6 +438,8 @@ namespace Gabut {
                 height_request = 150,
                 margin_bottom = 5,
                 column_spacing = 10,
+                margin_start = 2,
+                margin_end = 2,
                 halign = Gtk.Align.START
             };
             moreoptions.attach (new HeaderLabel (_("RPC Port:"), 220), 0, 0, 1, 1);
@@ -515,21 +523,29 @@ namespace Gabut {
             };
             autorename.add (autorengrid);
 
-            var style_mode = new ModeButton ();
-            style_mode.append_icon ("com.github.gabutakut.gabutdm.auto-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
-            style_mode.append_icon ("display-brightness-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
-            style_mode.append_icon ("weather-clear-night-symbolic", Gtk.IconSize.SMALL_TOOLBAR);
-            style_mode.selected = int.parse (get_dbsetting (DBSettings.STYLE));
-            style_mode.notify["selected"].connect (() => {
-                set_dbsetting (DBSettings.STYLE, style_mode.selected.to_string ());
-                pantheon_theme.begin ();
-            });
+            var style_mode = new ModeTogle ();
+            var auto_mode = new ModeTogle ();
+            auto_mode.set_image_label ("com.github.gabutakut.gabutdm.auto-symbolic");
+            auto_mode.set_label (_("System Default"));
+            var light_mode = new ModeTogle ();
+            light_mode.set_image_label ("display-brightness-symbolic");
+            light_mode.set_label (_("Light"));
+            var dark_mode = new ModeTogle ();
+            dark_mode.set_image_label ("weather-clear-night-symbolic");
+            dark_mode.set_label (_("Dark"));
+            style_mode.add_item (auto_mode);
+            style_mode.add_item (light_mode);
+            style_mode.add_item (dark_mode);
+            style_mode.id = int.parse (get_dbsetting (DBSettings.STYLE));
+
             var notifyopt = new Gtk.Grid () {
                 expand = true,
+                margin_start = 2,
+                margin_end = 2,
                 height_request = 190
             };
             notifyopt.attach (new HeaderLabel (_("Style:"), 450), 0, 0, 1, 1);
-            notifyopt.attach (style_mode, 0, 1, 1, 1);
+            notifyopt.attach (style_mode.get_menu (), 0, 1, 1, 1);
             notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 2, 1, 1);
             notifyopt.attach (retonhide, 0, 3, 1, 1);
             notifyopt.attach (appstartup, 0, 4, 1, 1);
@@ -593,6 +609,10 @@ namespace Gabut {
                 if (maxcurrent.value != double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))) {
                     aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.MAXACTIVE, maxcurrent.value.to_string ()));
                     max_active ();
+                }
+                if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE))) {
+                    set_dbsetting (DBSettings.STYLE, style_mode.id.to_string ());
+                    pantheon_theme.begin ();
                 }
                 if (diskcache.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
                 || maxrequest.value != double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))

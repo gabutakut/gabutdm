@@ -113,8 +113,9 @@ namespace Gabut {
             mainwindow.add (scrolled);
             add (mainwindow);
             list_box.remove.connect ((row)=> {
-                view_status ();
                 remove_dbus.begin (((DownloadRow) row).rowbus);
+                next_download ();
+                view_status ();
             });
 
             notify["is-active"].connect (()=> {
@@ -374,8 +375,6 @@ namespace Gabut {
             aria_purge_all ();
         }
 
-        private int openmode = StatusMode.NOTHING;
-        private int openact = 0;
         public void load_dowanload () {
             get_download ().foreach ((row)=> {
                 if (!get_exist (row.url)) {
@@ -395,19 +394,13 @@ namespace Gabut {
                                 remove_dbus.begin (((DownloadRow) row).rowbus);
                                 break;
                             case StatusMode.ACTIVE:
-                                if (openact > globalactive) {
-                                    openact = 0;
-                                    view_status ();
-                                }
-                                openact++;
                                 if (!menudbus.get_exist (((DownloadRow) row).rowbus)) {
                                     append_dbus.begin (((DownloadRow) row).rowbus);
+                                    view_status ();
                                 }
                                 return;
                         }
-                        openmode = ((DownloadRow) row).status;
                         view_status ();
-                        set_badge.begin (globalactive);
                     });
                     row.destroy.connect (view_status);
                     if (list_box.get_selected_row () == null) {
@@ -418,8 +411,6 @@ namespace Gabut {
             });
         }
 
-        private int addmode = StatusMode.NOTHING;
-        private int addact = 0;
         public void add_url_box (string url, Gee.HashMap<string, string> options, bool later, int linkmode) {
             if (get_exist (url)) {
                 return;
@@ -440,19 +431,13 @@ namespace Gabut {
                         remove_dbus.begin (((DownloadRow) row).rowbus);
                         break;
                     case StatusMode.ACTIVE:
-                        if (addact > globalactive) {
-                            addact = 0;
-                            view_status ();
-                        }
-                        addact++;
                         if (!menudbus.get_exist (((DownloadRow) row).rowbus)) {
                             append_dbus.begin (((DownloadRow) row).rowbus);
+                            view_status ();
                         }
                         return;
                 }
-                addmode = ((DownloadRow) row).status;
                 view_status ();
-                set_badge.begin (globalactive);
             });
             row.destroy.connect (view_status);
             if (list_box.get_selected_row () == null) {
@@ -472,6 +457,7 @@ namespace Gabut {
                 menudbus.child_append (rowbus);
             }
             yield open_quicklist (dbusserver, menudbus);
+            set_badge.begin (globalactive);
         }
 
         private async void remove_dbus (DbusmenuItem rowbus) throws GLib.Error {
@@ -479,6 +465,7 @@ namespace Gabut {
                 menudbus.child_delete (rowbus);
             }
             yield open_quicklist (dbusserver, menudbus);
+            set_badge.begin (globalactive);
         }
 
         public override void show () {
@@ -511,7 +498,7 @@ namespace Gabut {
             foreach (var row in list_box.get_children ()) {
                 if (((DownloadRow) row).status != StatusMode.COMPLETE && ((DownloadRow) row).status != StatusMode.ERROR) {
                     aria_pause (((DownloadRow) row).ariagid);
-                    ((DownloadRow) row).idle_progress ();
+                    ((DownloadRow) row).update_progress ();
                 }
             }
             view_status ();
