@@ -2102,9 +2102,9 @@ namespace Gabut {
         return "$%s".printf (dollar);
     }
 
-    private File[] run_open_file (Gtk.Window window, bool multi) {
+    private File[] run_open_file (Gtk.Window window) {
         var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
-        filechooser.select_multiple = multi;
+        filechooser.select_multiple = true;
 
         var torrent = new Gtk.FileFilter ();
         torrent.set_filter_name (_("Torrent"));
@@ -2125,6 +2125,24 @@ namespace Gabut {
         }
         filechooser.destroy ();
         return files;
+    }
+
+    private File run_open_text (Gtk.Window window) {
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
+        filechooser.select_multiple = false;
+
+        var text_filter = new Gtk.FileFilter ();
+        text_filter.set_filter_name (_("Text"));
+        text_filter.add_mime_type ("text/*");
+
+        filechooser.add_filter (text_filter);
+
+        File file = null;
+        if (filechooser.run () == Gtk.ResponseType.ACCEPT) {
+            file = filechooser.get_files ().nth_data (0);
+        }
+        filechooser.destroy ();
+        return file;
     }
 
     private int open_database (out Sqlite.Database db) {

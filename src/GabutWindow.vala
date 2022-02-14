@@ -249,7 +249,7 @@ namespace Gabut {
             };
             headerbar.pack_start (torrentbutton);
             torrentbutton.clicked.connect (()=> {
-                var files = run_open_file (this, true);
+                var files = run_open_file (this);
                 foreach (var file in files) {
                     send_file (file.get_uri ());
                 }

@@ -280,40 +280,114 @@ namespace Gabut {
                 primary_icon_tooltip_text = _("0 Means Unlimited"),
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT)) / 1024
             };
-            var bttrackertext = new Gtk.TextView ();
-            bttrackertext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
-            bttrackertext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress \"[CTRL]+A\" to be Format Tracker");
-            bttrackertext.buffer.text = aria_get_globalops (AriaOptions.BT_TRACKER).replace ("\\/", "/");
-            bttrackertext.select_all.connect (()=> {
-                bttrackertext.buffer.text = bttrackertext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
-                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
-                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
-                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
-                bttrackertext.buffer.text = bttrackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
-            });
+            var trackertext = new Gtk.TextView () {
+                wrap_mode = Gtk.WrapMode.WORD_CHAR
+            };
+            trackertext.buffer.text = aria_get_globalops (AriaOptions.BT_TRACKER).replace ("\\/", "/");
 
-            var bttrackertextscr = new Gtk.ScrolledWindow (null, null) {
+            var trackerscr = new Gtk.ScrolledWindow (null, null) {
                 width_request = 220,
                 height_request = 100
             };
-            bttrackertextscr.add (bttrackertext);
+            trackerscr.add (trackertext);
 
-            var bttrackertextext = new Gtk.TextView ();
-            bttrackertextext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
-            bttrackertextext.buffer.text = aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
-            bttrackertextext.tooltip_text = _("Format Tracker is URL,URL,URL\nPress \"[CTRL]+A\" to be Format Tracker");
-            bttrackertextext.select_all.connect (()=> {
-                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
-                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
-                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
-                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
-                bttrackertextext.buffer.text = bttrackertextext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+            var load_tr = new Gtk.Button.from_icon_name ("document-open", Gtk.IconSize.BUTTON) {
+                tooltip_text = _("Open Text Tracker")
+            };
+            load_tr.clicked.connect (() => {
+                var file = run_open_text (this);
+                if (file != null) {
+                    try {
+                        trackertext.buffer.text = (string) file.load_bytes ().get_data ();
+                    } catch (Error e) {
+                        GLib.warning (e.message);
+                    }
+                }
             });
-            var bttrackertextscrext = new Gtk.ScrolledWindow (null, null) {
+
+            var fformat_tr = new Gtk.Button.from_icon_name ("view-refresh", Gtk.IconSize.BUTTON) {
+                tooltip_text = _("Fix to Tracker")
+            };
+            fformat_tr.clicked.connect (() => {
+                trackertext.buffer.text = trackertext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
+                trackertext.buffer.text = trackertext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
+                trackertext.buffer.text = trackertext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
+                trackertext.buffer.text = trackertext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
+                trackertext.buffer.text = trackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+            });
+
+            var clear_tr = new Gtk.Button.from_icon_name ("edit-clear", Gtk.IconSize.BUTTON) {
+                tooltip_text = _("Clear Text Tracker")
+            };
+            clear_tr.clicked.connect (() => {
+                trackertext.buffer.text = "";
+            });
+
+            var action_track = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                hexpand = true
+            };
+            action_track.pack_start (load_tr, false, false, 0);
+            action_track.pack_start (fformat_tr, false, false, 0);
+            action_track.pack_start (clear_tr, false, false, 0);
+
+            var layout_track = new Gtk.Grid () {
+                orientation = Gtk.Orientation.VERTICAL
+            };
+            layout_track.add (trackerscr);
+            layout_track.add (action_track);
+
+            var etrackertext = new Gtk.TextView () {
+                wrap_mode = Gtk.WrapMode.WORD_CHAR
+            };
+            etrackertext.buffer.text = aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
+
+            var etrackerscr = new Gtk.ScrolledWindow (null, null) {
                 width_request = 220,
                 height_request = 100
             };
-            bttrackertextscrext.add (bttrackertextext);
+            etrackerscr.add (etrackertext);
+
+            var load_etr = new Gtk.Button.from_icon_name ("document-open", Gtk.IconSize.BUTTON) {
+                tooltip_text = _("Open Text Tracker")
+            };
+            load_etr.clicked.connect (() => {
+                var file = run_open_text (this);
+                if (file != null) {
+                    try {
+                        etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
+                    } catch (Error e) {
+                        GLib.warning (e.message);
+                    }
+                }
+            });
+            var fformat_etr = new Gtk.Button.from_icon_name ("view-refresh", Gtk.IconSize.BUTTON) {
+                tooltip_text = _("Fix to Tracker")
+            };
+            fformat_etr.clicked.connect (() => {
+                etrackertext.buffer.text = etrackertext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
+                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
+                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
+                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
+                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+            });
+            var clear_etr = new Gtk.Button.from_icon_name ("edit-clear", Gtk.IconSize.BUTTON) {
+                tooltip_text = _("Clear Text Tracker")
+            };
+            clear_etr.clicked.connect (() => {
+                etrackertext.buffer.text = "";
+            });
+            var actionetr = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                hexpand = true
+            };
+            actionetr.pack_start (load_etr, false, false, 0);
+            actionetr.pack_start (fformat_etr, false, false, 0);
+            actionetr.pack_start (clear_etr, false, false, 0);
+
+            var layout_etrack = new Gtk.Grid () {
+                orientation = Gtk.Orientation.VERTICAL
+            };
+            layout_etrack.add (etrackerscr);
+            layout_etrack.add (actionetr);
 
             var bittorrent = new Gtk.Grid () {
                 expand = true,
@@ -338,9 +412,9 @@ namespace Gabut {
             bittorrent.attach (new HeaderLabel (_("Download Limit (in Kb):"), 220), 0, 4, 1, 1);
             bittorrent.attach (bt_download, 0, 5, 1, 1);
             bittorrent.attach (new HeaderLabel (_("BitTorrent Tracker Exclude:"), 220), 1, 6, 1, 1);
-            bittorrent.attach (bttrackertextscrext, 1, 7, 1, 1);
+            bittorrent.attach (layout_etrack, 1, 7, 1, 1);
             bittorrent.attach (new HeaderLabel (_("BitTorrent Tracker:"), 220), 0, 6, 1, 1);
-            bittorrent.attach (bttrackertextscr, 0, 7, 1, 1);
+            bittorrent.attach (layout_track, 0, 7, 1, 1);
 
             var folder_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.SELECT_FOLDER);
             var filter_folder = new Gtk.FileFilter ();
@@ -590,8 +664,8 @@ namespace Gabut {
                 aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, set_dbsetting (DBSettings.AUTORENAMING, autorename.active.to_string ()));
                 aria_set_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, set_dbsetting (DBSettings.UPLOADLIMIT, (bt_upload.value * 1024).to_string ()));
                 aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, set_dbsetting (DBSettings.DOWNLOADLIMIT, (bt_download.value * 1024).to_string ()));
-                aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, bttrackertext.buffer.text.replace ("/", "\\/")));
-                aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, bttrackertextext.buffer.text.replace ("/", "\\/")));
+                aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, trackertext.buffer.text.replace ("/", "\\/")));
+                aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, etrackertext.buffer.text.replace ("/", "\\/")));
                 aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, set_dbsetting (DBSettings.SPLITSIZE, (splitsize.value * 1024).to_string ()));
                 aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
                 aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
