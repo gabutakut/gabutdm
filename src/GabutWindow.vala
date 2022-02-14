@@ -162,10 +162,15 @@ namespace Gabut {
                     preferences.restart_server.connect (()=> {
                         restart_server ();
                     });
-                    preferences.show_all ();
+                    preferences.restart_process.connect (()=> {
+                        foreach (var row in list_box.get_children ()) {
+                            ((DownloadRow) row).if_not_exist (((DownloadRow) row).ariagid, ((DownloadRow) row).linkmode, ((DownloadRow) row).status);
+                        }
+                    });
                     preferences.max_active.connect (()=> {
                         next_download ();
                     });
+                    preferences.show_all ();
                     preferences.destroy.connect (()=> {
                         preferences = null;
                     });

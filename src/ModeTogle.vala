@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2019} torikulhabib (https://github.com/torikulhabib)
+* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public

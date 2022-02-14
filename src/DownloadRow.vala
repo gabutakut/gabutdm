@@ -397,7 +397,7 @@ namespace Gabut {
             add (grid);
         }
 
-        private void if_not_exist (string ariag, int linkm, int stats) {
+        public void if_not_exist (string ariag, int linkm, int stats) {
             if (stats == StatusMode.COMPLETE || stats == StatusMode.ERROR) {
                 return;
             }
