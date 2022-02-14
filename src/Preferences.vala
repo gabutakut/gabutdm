@@ -22,6 +22,7 @@
 namespace Gabut {
     public class Preferences : Gtk.Dialog {
         public signal void restart_server ();
+        public signal void restart_process ();
         public signal void max_active ();
         private Gtk.MenuButton allocate_button;
         private Gtk.MenuButton piecesel_button;
@@ -698,6 +699,7 @@ namespace Gabut {
                     do {
                     } while (aria_getverion ());
                     exec_aria ();
+                    restart_process ();
                     destroy ();
                 } else if (local_port.value.to_string () != get_dbsetting (DBSettings.PORTLOCAL)) {
                     set_dbsetting (DBSettings.PORTLOCAL, local_port.value.to_string ());
