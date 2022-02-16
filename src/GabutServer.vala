@@ -62,7 +62,7 @@ namespace Gabut {
             self.pause_message (msg);
             if (msg.method == "POST") {
                 try {
-                    if (msg.request_headers.get_content_type (null) == "multipart/form-data") {
+                    if (msg.request_headers.get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
                         var multipart = new Soup.Multipart.from_message (msg.request_headers , msg.request_body);
                         Soup.MessageHeaders headers;
                         unowned Soup.Buffer body;
@@ -156,7 +156,7 @@ namespace Gabut {
                         }
                     }
                     msg.set_status_full (200, "OK");
-                } else if (msg.request_headers.get_content_type (null) == "multipart/form-data") {
+                } else if (msg.request_headers.get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
                     var multipart = new Soup.Multipart.from_message (msg.request_headers , msg.request_body);
                     Soup.MessageHeaders headers;
                     unowned Soup.Buffer body;
