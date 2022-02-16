@@ -28,6 +28,12 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.7.3" date="2022-2-16">
+      <description>
+        <p>Modebutton to Radiobutton</p>
+        <p>Open tracker list</p>
+      </description>
+    </release>
     <release version="1.7.2" date="2022-2-1">
       <description>
         <p>Dbus Menu</p>
