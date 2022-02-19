@@ -3,13 +3,6 @@
     <img src="data/icons/128/com.github.gabutakut.gabutdm.svg" alt="Gabut Download Manager">
 </h1>
 <h4 align="center">🌟 Simple and Faster Download Manager 💫</h4>
-<h1 align="center">🥳 Support 🎉</h1>
-<p align="center">
-    <a href="https://liberapay.com/GabutAkut"><img
-            src="https://img.shields.io/liberapay/patrons/GabutAkut.svg?logo=liberapay" alt="GabutAkut on Liberapay"></a>
-    <a href="https://patreon.com/gabutakut"><img
-            src="https://img.shields.io/badge/patreon-donate-orange.svg?logo=patreon" alt="GabutAkut on Patreon"></a>
-</p>
 <h1 align="center">🚀 Release on ✈️</h1>
 <p align="center">
     <a href="https://snapcraft.io/gabutdm"><img
