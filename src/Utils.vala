@@ -1975,7 +1975,7 @@ namespace Gabut {
 
     private async void set_badge_visible (bool visible) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("count-visible", new GLib.Variant.boolean (visible));
+        instance.set_app_property ("count-visible", v_b (visible));
     }
 
     private async void set_progress (double progress) throws GLib.Error {
@@ -1985,7 +1985,7 @@ namespace Gabut {
 
     private async void set_progress_visible (bool visible) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("progress-visible", new GLib.Variant.boolean (visible));
+        instance.set_app_property ("progress-visible", v_b (visible));
     }
 
     private SourceFunc quicksource;
@@ -1996,7 +1996,7 @@ namespace Gabut {
         quicksource = open_quicklist.callback;
         unowned UnityLauncherEntry entrydbus = yield UnityLauncherEntry.get_instance ();
         dbusserver.set_root (menuitem);
-        entrydbus.set_app_property ("quicklist", new GLib.Variant.string (dbusserver.dbus_object));
+        entrydbus.set_app_property ("quicklist", v_s (dbusserver.dbus_object));
         yield;
     }
 
