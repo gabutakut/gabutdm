@@ -278,7 +278,7 @@ namespace Gabut {
         private string? textclip = null;
         private void on_clipboard_event (Gdk.EventOwnerChange event) {
             string? text = clipboard.wait_for_text ();
-            bool available = (text != null && text != "") || clipboard.wait_is_text_available ();
+            bool available = text != null && text != "" && clipboard.wait_is_text_available ();
             if (available) {
                 if (event.reason == Gdk.OwnerChange.NEW_OWNER) {
                     if (text != null && text != "") {
