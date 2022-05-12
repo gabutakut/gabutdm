@@ -1318,14 +1318,6 @@ namespace Gabut {
         aria_listent = @"http://localhost:$(get_dbsetting(DBSettings.RPCPORT))/jsonrpc";
     }
 
-    private string get_soupmess (string dats) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, dats.data);
-        session.send_message (message);
-        return (string) message.response_body.flatten ().data;
-    }
-
     private string result_ret (string result) {
         try {
             var parser = new Json.Parser ();
@@ -1338,6 +1330,8 @@ namespace Gabut {
     }
 
     private string aria_url (string url, Gee.HashMap<string, string> options) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1349,7 +1343,9 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        string result = get_soupmess (stringbuild.str);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1357,6 +1353,8 @@ namespace Gabut {
     }
 
     private string aria_torrent (string torr, Gee.HashMap<string, string> options) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1368,7 +1366,9 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        string result = get_soupmess (stringbuild.str);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1376,6 +1376,8 @@ namespace Gabut {
     }
 
     private string aria_metalink (string metal, Gee.HashMap<string, string> options) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1387,7 +1389,9 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        string result = get_soupmess (stringbuild.str);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1395,8 +1399,12 @@ namespace Gabut {
     }
 
     private string aria_remove (string gid) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forceRemove\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1404,8 +1412,12 @@ namespace Gabut {
     }
 
     private string aria_pause (string gid) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forcePause\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1413,8 +1425,12 @@ namespace Gabut {
     }
 
     private string aria_pause_all () {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1422,8 +1438,12 @@ namespace Gabut {
     }
 
     private string aria_purge_all () {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1431,8 +1451,12 @@ namespace Gabut {
     }
 
     private string aria_shutdown () {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1440,8 +1464,12 @@ namespace Gabut {
     }
 
     private string aria_unpause (string gid) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1450,8 +1478,12 @@ namespace Gabut {
 
     private Gtk.ListStore aria_get_peers (string gid) {
         var liststore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
@@ -1476,8 +1508,12 @@ namespace Gabut {
     }
 
     private string aria_tell_status (string gid, TellStatus type) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"$(type.get_name ())\"]]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1496,8 +1532,12 @@ namespace Gabut {
     }
 
     private string aria_tell_bittorent (string gid, TellBittorrent tellbit) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1538,8 +1578,12 @@ namespace Gabut {
 
     private GLib.List<string> aria_tell_active () {
         var listgid = new GLib.List<string> ();
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return listgid;
         }
@@ -1561,8 +1605,12 @@ namespace Gabut {
     }
 
     private string aria_str_files (AriaGetfiles files, string gid) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1580,8 +1628,12 @@ namespace Gabut {
 
     private Gtk.ListStore aria_files_store (string gid) {
         var liststore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
@@ -1612,8 +1664,12 @@ namespace Gabut {
     }
 
     private string aria_get_option (string gid, AriaOptions option) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getOption\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1632,8 +1688,12 @@ namespace Gabut {
     }
 
     private string aria_set_option (string gid, AriaOptions option, string value) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeOption\", \"params\":[\"$(gid)\", {\"$(option.get_name ())\":\"$(value)\"}]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1641,8 +1701,12 @@ namespace Gabut {
     }
 
     private string aria_get_globalops (AriaOptions option) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1658,8 +1722,12 @@ namespace Gabut {
     }
 
     private string aria_set_globalops (AriaOptions option, string value) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1667,8 +1735,12 @@ namespace Gabut {
     }
 
     private string aria_deleteresult (string gid) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1676,8 +1748,12 @@ namespace Gabut {
     }
 
     private string aria_geturis (string gid) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1696,8 +1772,12 @@ namespace Gabut {
     }
 
     private string aria_globalstat (GlobalStat stat) {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1713,8 +1793,12 @@ namespace Gabut {
     }
 
     private bool aria_getverion () {
+        var session = new Soup.Session ();
+        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}";
-        string result = get_soupmess (jsonrpc);
+        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
+        session.send_message (message);
+        string result = (string) message.response_body.flatten ().data;
         return result.down ().contains ("result");
     }
 
@@ -1969,10 +2053,10 @@ namespace Gabut {
         yield outstartup.write_async ("NoDisplay=true\n".data);
         yield outstartup.write_async ("Icon=com.github.gabutakut.gabutdm\n".data);
         if (file.get_path ().contains (".var")) {
-            yield outstartup.write_async ("Exec=/usr/bin/flatpak run --branch=master --arch=x86_64 --command=com.github.gabutakut.gabutdm --file-forwarding com.github.gabutakut.gabutdm -s\n".data);
+            yield outstartup.write_async ("Exec=/usr/bin/flatpak run --branch=master --arch=x86_64 --command=com.github.gabutakut.gabutdm --file-forwarding com.github.gabutakut.gabutdm @@u --s @@\n".data);
             yield outstartup.write_async ("X-Flatpak=com.github.gabutakut.gabutdm\n".data);
         } else {
-            yield outstartup.write_async ("Exec=com.github.gabutakut.gabutdm -s\n".data);
+            yield outstartup.write_async ("Exec=com.github.gabutakut.gabutdm --s\n".data);
         }
     }
 
