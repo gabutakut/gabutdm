@@ -393,11 +393,8 @@ namespace Gabut {
                                 next_download ();
                                 remove_dbus.begin (((DownloadRow) row).rowbus);
                                 break;
-                            case StatusMode.ERROR:
-                                next_download ();
-                                remove_dbus.begin (((DownloadRow) row).rowbus);
-                                break;
                             case StatusMode.WAIT:
+                            case StatusMode.ERROR:
                             case StatusMode.NOTHING:
                                 remove_dbus.begin (((DownloadRow) row).rowbus);
                                 break;
@@ -433,11 +430,8 @@ namespace Gabut {
                         next_download ();
                         remove_dbus.begin (((DownloadRow) row).rowbus);
                         break;
-                    case StatusMode.ERROR:
-                        next_download ();
-                        remove_dbus.begin (((DownloadRow) row).rowbus);
-                        break;
                     case StatusMode.WAIT:
+                    case StatusMode.ERROR:
                     case StatusMode.NOTHING:
                         remove_dbus.begin (((DownloadRow) row).rowbus);
                         break;
