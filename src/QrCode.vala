@@ -46,11 +46,11 @@ namespace Gabut {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
                 gicon = new ThemedIcon ("emblem-favorite"),
-                icon_size = Gtk.IconSize.LARGE_TOOLBAR
+                icon_size = Gtk.IconSize.LARGE
             };
 
             var overlay = new Gtk.Overlay ();
-            overlay.add (icon_image);
+            overlay.set_child (icon_image);
             overlay.add_overlay (icon_badge);
 
             var primary = new Gtk.Label ("Scan QR Code") {
@@ -72,68 +72,66 @@ namespace Gabut {
             };
 
             var header_grid = new Gtk.Grid () {
+                halign = Gtk.Align.START,
+                valign = Gtk.Align.CENTER,
                 column_spacing = 0,
-                width_request = 150,
-                margin_start = 4,
-                margin_top = 4
+                hexpand = true
             };
             header_grid.attach (overlay, 0, 0, 1, 2);
             header_grid.attach (primary, 1, 0, 1, 1);
             header_grid.attach (secondary, 1, 1, 1, 1);
 
             var header = get_header_bar ();
-            header.has_subtitle = false;
-            header.show_close_button = false;
-            header.pack_start (header_grid);
+            header.set_title_widget (header_grid);
+            header.decoration_layout = "none";
 
             imageqr = new Gtk.Image () {
-                margin_top = 10,
-                margin_bottom = 5
+                halign = Gtk.Align.START,
+                width_request = 250,
+                margin_bottom = 5,
+                pixel_size = 128
             };
 
             linkbutton = new Gtk.LinkButton ("");
             var link_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
                 margin_top = 5,
                 margin_bottom = 5
             };
-            link_box.set_center_widget (linkbutton);
+            link_box.append (linkbutton);
 
             var close_button = new Gtk.Button.with_label (_("Close"));
             close_button.clicked.connect (()=> {
-                destroy ();
+                close ();
             });
 
             host_button = new Gtk.Button.with_label (_("Share Host"));
             host_button.clicked.connect (share_server);
 
             var box_action = new Gtk.Grid () {
-                width_request = 210,
                 margin_top = 10,
                 margin_bottom = 10,
                 column_spacing = 10,
                 column_homogeneous = true,
                 halign = Gtk.Align.CENTER,
-                valign = Gtk.Align.CENTER,
-                orientation = Gtk.Orientation.HORIZONTAL
+                valign = Gtk.Align.CENTER
             };
-            box_action.add (host_button);
-            box_action.add (close_button);
+            box_action.attach (host_button, 0, 0);
+            box_action.attach (close_button, 1, 0);
 
             var maingrid = new Gtk.Grid () {
-                orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER,
+                hexpand = true,
                 margin_start = 10,
-                margin_end = 10,
-                width_request = 210,
-                height_request = 200
+                margin_end = 10
             };
-            maingrid.add (imageqr);
-            maingrid.add (link_box);
-            maingrid.add (box_action);
+            maingrid.attach (imageqr, 0, 0);
+            maingrid.attach (link_box, 0, 1);
+            maingrid.attach (box_action, 0, 2);
 
-            get_content_area ().add (maingrid);
-            move_widget (this);
+            set_child (maingrid);
         }
 
         public override void show () {
@@ -166,7 +164,7 @@ namespace Gabut {
         private void create_qrcode (string strinput) {
             var qrencode = new Qrencode.QRcode.encodeData (strinput.length, strinput.data, 1, Qrencode.EcLevel.M);
             int qrenwidth = qrencode.width;
-            int sizeqrcode = 20 + qrenwidth * 4;
+            int sizeqrcode = 200 + qrenwidth * 40;
             Cairo.ImageSurface surface = new Cairo.ImageSurface (Cairo.Format.RGB30, sizeqrcode, sizeqrcode);
             Cairo.Context context = new Cairo.Context (surface);
             context.set_source_rgb (1.0, 1.0, 1.0);
@@ -175,8 +173,8 @@ namespace Gabut {
             char* qrentdata = qrencode.data;
             for (int y = 0; y < qrenwidth; y++) {
                 for (int x = 0; x < qrenwidth; x++) {
-                    int rectx = 10 + x * 4;
-                    int recty = 10 + y * 4;
+                    int rectx = 100 + x * 40;
+                    int recty = 100 + y * 40;
                     int digit_ornot = 0;
                     digit_ornot += (*qrentdata & 1);
                     if (digit_ornot == 1) {
@@ -184,12 +182,12 @@ namespace Gabut {
                     } else {
                         context.set_source_rgb (1.0, 1.0, 1.0);
                     }
-                    context.rectangle (rectx, recty, 4, 4);
+                    context.rectangle (rectx, recty, 40, 40);
                     context.fill ();
                     qrentdata++;
                 }
             }
-            imageqr.set_from_surface (surface);
+            imageqr.set_from_pixbuf (Gdk.pixbuf_get_from_surface (surface, 0, 0, sizeqrcode, sizeqrcode));
         }
     }
 }

@@ -10,7 +10,6 @@ sources = files (
     'UnityLauncherEntry.vala',
     'Preferences.vala',
     'AddUrl.vala',
-    'HeaderLabel.vala',
     'MediaEntry.vala',
     'SuccesDialog.vala',
     'GabutServer.vala',

@@ -20,7 +20,7 @@
 */
 
 namespace Gabut {
-    public class ModeTogle : Gtk.Grid {
+    public class ModeTogle : GLib.Object {
         public signal void item_activated (int id);
 
         private int _id = 0;
@@ -41,28 +41,24 @@ namespace Gabut {
         }
 
         public GLib.List<ModeTogle> menuchildren = null;
-        public Gtk.Grid checkgrid;
-        public Gtk.RadioButton menucheckbox;
+        public Gtk.CheckButton menucheckbox;
 
-        construct {
-            checkgrid = new Gtk.Grid ();
-            menucheckbox = new Gtk.RadioButton (null) {
-                margin_top = 5
-            };
-            orientation = Gtk.Orientation.VERTICAL;
+        public ModeTogle.with_label (string value) {
+            menucheckbox.set_label (value);
         }
 
-        private Gtk.RadioButton get_checkbox () {
-            menucheckbox.add (checkgrid);
+        construct {
+            menucheckbox = new Gtk.CheckButton () {
+                margin_top = 5
+            };
+        }
+
+        private Gtk.CheckButton get_checkbox () {
             return menucheckbox;
         }
 
-        public void set_image_label (string value) {
-            checkgrid.add (new Gtk.Image.from_icon_name (value, Gtk.IconSize.SMALL_TOOLBAR));
-        }
-
         public void set_label (string value) {
-            checkgrid.add (new Gtk.Label (value));
+            menucheckbox.set_label (value);
         }
 
         private bool get_exist (ModeTogle children) {
@@ -86,13 +82,14 @@ namespace Gabut {
                 menuchildren.foreach ((item)=> {
                     item.id = menuchildren.index (item);
                     if (item.id > 0) {
-                        item.menucheckbox.join_group (menuchildren.nth_data ((uint) item.id - 1).menucheckbox);
+                        item.menucheckbox.set_group (menuchildren.nth_data ((uint) item.id - 1).menucheckbox);
                     }
                 });
             }
         }
 
-        public Gtk.Widget get_menu () {
+        public Gtk.Box get_box () {
+            var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 2);
             menuchildren.foreach ((menu)=> {
                 menu.menucheckbox.toggled.connect (()=> {
                     if (menu.menucheckbox.active) {
@@ -100,9 +97,9 @@ namespace Gabut {
                         item_activated (id);
                     }
                 });
-                add (menu.get_checkbox ());
+                box.append (menu.get_checkbox ());
             });
-            return this;
+            return box;
         }
     }
 }

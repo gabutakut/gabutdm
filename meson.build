@@ -1,4 +1,4 @@
-project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.7.4')
+project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.8.4')
 
 i18n = import ('i18n')
 
@@ -8,19 +8,15 @@ add_project_arguments (['--vapidir', vapi], language: 'vala')
 
 dependencies = [
     dependency ('glib-2.0'),
-    dependency ('gtk+-3.0'),
+    dependency ('gtk4'),
     dependency ('sqlite3'),
     dependency ('libcanberra'),
-    dependency ('gdk-x11-3.0'),
-    dependency ('xtst'),
-    dependency ('x11'),
-    dependency ('libsoup-2.4'),
+    dependency ('libsoup-3.0'),
     dependency ('gee-0.8'),
     dependency ('json-glib-1.0'),
     dependency ('libqrencode'),
     dependency ('gdk-pixbuf-2.0'),
     dependency ('cairo'),
-    dependency ('libhandy-1'),
 
     meson.get_compiler ('vala').find_library ('posix'),
 ]

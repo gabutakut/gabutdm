@@ -51,7 +51,7 @@ namespace Gabut {
             disconnect ();
         }
 
-        private void upload_handler (Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+        private void upload_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
             Idle.add (()=> {
                 var upload = new ServerUpload ();
@@ -60,12 +60,12 @@ namespace Gabut {
                 return false;
             });
             self.pause_message (msg);
-            if (msg.method == "POST") {
+            if (msg.get_method () == "POST") {
                 try {
-                    if (msg.request_headers.get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
-                        var multipart = new Soup.Multipart.from_message (msg.request_headers , msg.request_body);
+                    if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
+                        var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
                         Soup.MessageHeaders headers;
-                        unowned Soup.Buffer body;
+                        GLib.Bytes body;
                         multipart.get_part (0, out headers, out body);
                         GLib.HashTable<string, string> params;
                         headers.get_content_disposition (null, out params);
@@ -74,23 +74,23 @@ namespace Gabut {
                             File filed = File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/") + GLib.Path.DIR_SEPARATOR_S + filename);
                             if (!filed.query_exists ()) {
                                 FileOutputStream out_stream = filed.create (FileCreateFlags.REPLACE_DESTINATION);
-                                out_stream.write (body.get_as_bytes ().get_data ());
+                                out_stream.write (body.get_data ());
                                 notify_app (_("File Transfered"), _("%s").printf (filename), GLib.ContentType.get_icon (get_mime_type (filed)));
                             } else {
                                 notify_app (_("File Exist"), _("%s").printf (filename), GLib.ContentType.get_icon (get_mime_type (filed)));
                             }
                         }
                     }
-                    msg.set_status_full (200, "OK");
+                    msg.set_status (200, "OK");
                 } catch (Error e) {
                     GLib.warning (e.message);
                 }
-            } else if (msg.method == "GET") {
-                msg.set_status_full (200, "OK");
+            } else if (msg.get_method () == "GET") {
+                msg.set_status (200, "OK");
             }
         }
 
-        private void home_handler (Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+        private void home_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
             Idle.add (() => {
                 var serverhome = new ServerHome ();
@@ -99,17 +99,17 @@ namespace Gabut {
                 return false;
             });
             self.pause_message (msg);
-            if (msg.method == "POST") {
-                string result = (string) msg.request_body.data;
+            if (msg.get_method () == "POST") {
+                string result = (string) msg.get_request_body ().data;
                 try {
                     MatchInfo match_info;
                     Regex regex = new Regex ("link:(.*?),filename:(.*?),referrer:(.*?),mimetype:(.*?),filesize:(.*?),resumable:(.*?),");
                     bool matches = regex.match_full (result, -1, 0, 0, out match_info);
                     if (matches) {
-                        msg.set_status_full (200, "OK");
+                        msg.set_status (200, "OK");
                         send_post_data (match_info);
                     } else if (Regex.match_simple ("openlink=(.*?)", result)) {
-                        msg.set_status_full (200, "OK");
+                        msg.set_status (200, "OK");
                         string reslink = result.replace ("openlink=", "").strip ();
                         if (reslink != "") {
                             if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
@@ -118,17 +118,17 @@ namespace Gabut {
                             }
                         }
                     } else {
-                        msg.set_status_full (500, "Error");
+                        msg.set_status (500, "Error");
                     }
                 } catch (Error e) {
                     GLib.warning (e.message);
                 }
-            } else if (msg.method == "GET") {
-                msg.set_status_full (200, "OK");
+            } else if (msg.get_method () == "GET") {
+                msg.set_status (200, "OK");
             }
         }
 
-        private void gabut_handler (Soup.Server server, Soup.Message msg, string path, GLib.HashTable? query, Soup.ClientContext client) {
+        private void gabut_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
             string pathname = "";
             if (path.contains ("Downloading") || path.contains ("Paused") || path.contains ("Complete") || path.contains ("Waiting") || path.contains ("Error")) {
@@ -141,8 +141,8 @@ namespace Gabut {
                 return false;
             });
             self.pause_message (msg);
-            if (msg.method == "POST") {
-                string result = (string) msg.request_body.data;
+            if (msg.get_method () == "POST") {
+                string result = (string) msg.get_request_body ().data;
                 var hashoption = new Gee.HashMap<string, string> ();
                 hashoption[AriaOptions.BT_SAVE_METADATA.get_name ()] = "true";
                 hashoption[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = "true";
@@ -155,38 +155,38 @@ namespace Gabut {
                             address_url (reslink, hashoption, false, LinkMode.URL);
                         }
                     }
-                    msg.set_status_full (200, "OK");
-                } else if (msg.request_headers.get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
-                    var multipart = new Soup.Multipart.from_message (msg.request_headers , msg.request_body);
+                    msg.set_status (200, "OK");
+                } else if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
+                    var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
                     Soup.MessageHeaders headers;
-                    unowned Soup.Buffer body;
+                    GLib.Bytes body;
                     multipart.get_part (0, out headers, out body);
                     GLib.HashTable<string, string> params;
                     headers.get_content_disposition (null, out params);
                     string filename = params.get ("filename");
                     if (filename != null && filename != "") {
-                        string bencode = data_bencoder (body.get_as_bytes ());
+                        string bencode = data_bencoder (body);
                         if (filename.down ().has_suffix (".torrent")) {
                             address_url (bencode, hashoption, false, LinkMode.TORRENT);
                         } else if (filename.down ().has_suffix (".metalink")) {
                             address_url (bencode, hashoption, false, LinkMode.METALINK);
                         }
                     }
-                    msg.set_status_full (200, "OK");
+                    msg.set_status (200, "OK");
                 } else {
-                    msg.set_status_full (500, "Error");
+                    msg.set_status (500, "Error");
                 }
-            } else if (msg.method == "GET") {
-                msg.set_status_full (200, "OK");
+            } else if (msg.get_method () == "GET") {
+                msg.set_status (200, "OK");
             }
         }
 
         public string get_address () {
             var soupuri = get_uris ().nth_data (0);
             if (!bool.parse (get_dbsetting (DBSettings.IPLOCAL))) {
-                return @"$(soupuri.scheme)://$(get_local_address ()):$(soupuri.port)";
+                return @"$(soupuri.get_scheme ())://$(get_local_address ()):$(soupuri.get_port ())";
             } else {
-                return @"$(soupuri.scheme)://$(get_listeners ().nth_data (0).local_address)";
+                return @"$(soupuri.get_scheme ())://$(get_listeners ().nth_data (0).local_address)";
             }
         }
     }

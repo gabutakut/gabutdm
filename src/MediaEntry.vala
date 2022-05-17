@@ -23,6 +23,7 @@ namespace Gabut {
     private class MediaEntry : Gtk.Entry {
         public string first_label { get; construct; }
         public string second_label { get; construct; }
+        private Gdk.Clipboard clipboard;
         public MediaEntry (string first_label, string second_label, bool second = true) {
             Object (
                 first_label: first_label,
@@ -37,16 +38,21 @@ namespace Gabut {
             secondary_icon_name = second_label;
             secondary_icon_tooltip_text = _("Paste");
             hexpand = true;
-            icon_press.connect ((pos, event) => {
-                Gtk.Clipboard clipboard = get_clipboard (Gdk.SELECTION_CLIPBOARD);
+            icon_press.connect ((pos) => {
+                clipboard = get_display ().get_clipboard ();
                 if (pos == Gtk.EntryIconPosition.PRIMARY) {
-                    clipboard.set_text (text, text.length);
+                    clipboard.set_text (text);
                 }
                 if (pos == Gtk.EntryIconPosition.SECONDARY) {
-                    text = clipboard.wait_for_text ().strip ();
+                    get_value.begin ();
                 }
             });
             activates_default = true;
+        }
+
+        private async void get_value () throws Error {
+            unowned GLib.Value? value = yield clipboard.read_value_async (GLib.Type.STRING, GLib.Priority.DEFAULT, null);
+            text = value.get_string ();
         }
     }
 }

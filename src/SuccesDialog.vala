@@ -38,18 +38,19 @@ namespace Gabut {
             icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
-                icon_size = Gtk.IconSize.DIALOG
+                icon_size = Gtk.IconSize.LARGE,
+                pixel_size = 64
             };
 
             var icon_badge = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
                 gicon = new ThemedIcon ("process-completed"),
-                icon_size = Gtk.IconSize.LARGE_TOOLBAR
+                icon_size = Gtk.IconSize.LARGE
             };
 
             var overlay = new Gtk.Overlay ();
-            overlay.add (icon_image);
+            overlay.set_child (icon_image);
             overlay.add_overlay (icon_badge);
 
             var primarylabel = new Gtk.Label ("Download Complete") {
@@ -72,18 +73,17 @@ namespace Gabut {
 
             var header_grid = new Gtk.Grid () {
                 column_spacing = 0,
-                width_request = 250,
-                margin_start = 4,
-                margin_top = 4
+                hexpand = true,
+                halign = Gtk.Align.START,
+                valign = Gtk.Align.CENTER
             };
             header_grid.attach (overlay, 0, 0, 1, 2);
             header_grid.attach (primarylabel, 1, 0, 1, 1);
             header_grid.attach (filesizelabel, 1, 1, 1, 1);
 
             var header = get_header_bar ();
-            header.has_subtitle = false;
-            header.show_close_button = false;
-            header.pack_start (header_grid);
+            header.set_title_widget (header_grid);
+            header.decoration_layout = "none";
 
             address = new MediaEntry ("insert-link", "process-completed") {
                 primary_icon_tooltip_text = "",
@@ -101,26 +101,22 @@ namespace Gabut {
                 sensitive = false
             };
 
-            var succeshow = new Gtk.Grid ();
-            succeshow.add (new Gtk.Image.from_icon_name ("process-completed", Gtk.IconSize.SMALL_TOOLBAR));
-            succeshow.add (new HeaderLabel (_("Don't open this dialog when download complete"), 200));
-
-            var dontshow = new Gtk.CheckButton () {
+            var dontshow = new Gtk.CheckButton.with_label (_("Don't open this dialog when download complete")) {
+                margin_top = 5,
+                margin_bottom = 5,
                 active = !bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))
             };
-            dontshow.add (succeshow);
             dontshow.toggled.connect (()=> {
                 set_dbsetting (DBSettings.DIALOGNOTIF, (!dontshow.active).to_string ());
             });
             var dialogmain = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
-                width_request = 450,
+                width_request = 500,
                 halign = Gtk.Align.START
             };
-            dialogmain.attach (new HeaderLabel (_("Address:"), 300), 1, 1, 1, 1);
+            dialogmain.attach (headerlabel (_("Address:"), 300), 1, 1, 1, 1);
             dialogmain.attach (address, 1, 2, 1, 1);
-            dialogmain.attach (new HeaderLabel (_("Directory:"), 300), 1, 3, 1, 1);
+            dialogmain.attach (headerlabel (_("Directory:"), 300), 1, 3, 1, 1);
             dialogmain.attach (directory, 1, 4, 1, 1);
             dialogmain.attach (dontshow, 1, 5, 1, 1);
 
@@ -131,14 +127,14 @@ namespace Gabut {
             open_file.clicked.connect (()=> {
                 string[] datastrs = datastr.split ("<gabut>");
                 open_fileman.begin (File.new_for_path (datastrs[1]).get_uri ());
-                destroy ();
+                close ();
             });
             var close_button = new Gtk.Button.with_label (_("Close")) {
                 width_request = 120,
                 height_request = 25
             };
             close_button.clicked.connect (()=> {
-                destroy ();
+                close ();
             });
 
             var open_folder = new Gtk.Button.with_label (_("Open Folder")) {
@@ -153,28 +149,28 @@ namespace Gabut {
                 } else {
                     open_fileman.begin (file.get_parent ().get_uri ());
                 }
-                destroy ();
+                close ();
             });
 
             var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
-                width_request = 400,
                 margin_bottom = 10,
+                halign = Gtk.Align.END,
                 hexpand = true
             };
-            box_action.pack_start (open_file, false, false, 0);
-            box_action.pack_start (open_folder, false, false, 0);
-            box_action.pack_end (close_button, false, false, 0);
+            box_action.append (open_file);
+            box_action.append (open_folder);
+            box_action.append (close_button);
 
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
                 margin_start = 10,
-                margin_end = 10
+                margin_end = 10,
+                hexpand = true
             };
-            maingrid.add (dialogmain);
-            maingrid.add (box_action);
-            get_content_area ().add (maingrid);
-            move_widget (this);
+            maingrid.attach (dialogmain, 0, 0);
+            maingrid.attach (box_action, 0, 1);
+            set_child (maingrid);
         }
 
         public void set_dialog (string datastr) {
@@ -185,11 +181,6 @@ namespace Gabut {
             directory.text = file.get_path ();
             filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (datastrs[2]), GLib.FormatSizeFlags.LONG_FORMAT));
             icon_image.gicon = GLib.ContentType.get_icon (datastrs[3]);
-        }
-
-        public override void show () {
-            base.show ();
-            set_keep_above (true);
         }
     }
 }

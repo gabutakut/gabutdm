@@ -24,11 +24,13 @@ namespace Gabut {
             }
             set {
                 if (value != null && value != "") {
-                    image.set_from_icon_name (value, Gtk.IconSize.DIALOG);
-                    image.no_show_all = false;
+                    image.set_from_icon_name (value);
+                    image.icon_size = Gtk.IconSize.LARGE;
+                    image.pixel_size = 64;
+                    image.visible = true;
                     image.show ();
                 } else {
-                    image.no_show_all = true;
+                    image.visible = false;
                     image.hide ();
                 }
             }
@@ -72,15 +74,14 @@ namespace Gabut {
                 row_spacing = 6,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER,
-                vexpand = true,
-                margin = 24
+                vexpand = true
             };
 
             layout.attach (image, 1, 1, 1, 2);
             layout.attach (title_label, 2, 1, 1, 1);
             layout.attach (description_label, 2, 2, 1, 1);
 
-            add (layout);
+            attach (layout, 0, 0);
         }
     }
 }

@@ -1240,11 +1240,6 @@ namespace Gabut {
         }
     }
 
-    private enum Target {
-        STRING,
-        URILIST
-    }
-
     public enum MenuItem {
         VISIBLE = 0,
         ENABLED = 1,
@@ -1329,9 +1324,20 @@ namespace Gabut {
         return "";
     }
 
+    private string get_soupmess (string datas) {
+        try {
+            var session = new Soup.Session ();
+            var message = new Soup.Message ("POST", aria_listent);
+            message.set_request_body_from_bytes (Soup.FORM_MIME_TYPE_MULTIPART, new GLib.Bytes (datas.data));
+            GLib.Bytes bytes = session.send_and_read (message);
+            return (string) bytes.get_data ();
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "";
+    }
+
     private string aria_url (string url, Gee.HashMap<string, string> options) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1343,9 +1349,7 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1353,8 +1357,6 @@ namespace Gabut {
     }
 
     private string aria_torrent (string torr, Gee.HashMap<string, string> options) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1366,9 +1368,7 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1376,8 +1376,6 @@ namespace Gabut {
     }
 
     private string aria_metalink (string metal, Gee.HashMap<string, string> options) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1389,9 +1387,7 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1399,12 +1395,8 @@ namespace Gabut {
     }
 
     private string aria_remove (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forceRemove\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1412,12 +1404,8 @@ namespace Gabut {
     }
 
     private string aria_pause (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forcePause\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1425,12 +1413,8 @@ namespace Gabut {
     }
 
     private string aria_pause_all () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1438,12 +1422,8 @@ namespace Gabut {
     }
 
     private string aria_purge_all () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1451,12 +1431,8 @@ namespace Gabut {
     }
 
     private string aria_shutdown () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1464,12 +1440,8 @@ namespace Gabut {
     }
 
     private string aria_unpause (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1478,12 +1450,8 @@ namespace Gabut {
 
     private Gtk.ListStore aria_get_peers (string gid) {
         var liststore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
@@ -1494,10 +1462,10 @@ namespace Gabut {
                 Regex regex = new Regex (regexstr);
                 regex.match_full (result, -1, 0, 0, out match_info);
                 while (match_info.matches ()) {
-                    string peerid = Soup.URI.decode (match_info.fetch (6));
+                    string peerid = GLib.Uri.unescape_string (match_info.fetch (6));
                     Gtk.TreeIter iter;
                     liststore.append (out iter);
-                    liststore.set (iter, TorrentPeers.HOST, @"$(match_info.fetch (4)):$(match_info.fetch (7))", TorrentPeers.PEERID, peerid != ""? get_peerid (peerid.slice (1, 3)) : "Unknow", TorrentPeers.DOWNLOADSPEED, format_size (int64.parse (match_info.fetch (3))), TorrentPeers.UPLOADSPEED, match_info.fetch (9), TorrentPeers.SEEDER, match_info.fetch (8), TorrentPeers.BITFIELD, match_info.fetch (2), TorrentPeers.AMCHOKING, match_info.fetch (1), TorrentPeers.PEERCHOKING, match_info.fetch (5));
+                    liststore.set (iter, TorrentPeers.HOST, @"$(match_info.fetch (4)):$(match_info.fetch (7))", TorrentPeers.PEERID, peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow", TorrentPeers.DOWNLOADSPEED, format_size (int64.parse (match_info.fetch (3))), TorrentPeers.UPLOADSPEED, match_info.fetch (9), TorrentPeers.SEEDER, match_info.fetch (8), TorrentPeers.BITFIELD, match_info.fetch (2), TorrentPeers.AMCHOKING, match_info.fetch (1), TorrentPeers.PEERCHOKING, match_info.fetch (5));
                     match_info.next ();
                 }
             } catch (Error e) {
@@ -1508,12 +1476,8 @@ namespace Gabut {
     }
 
     private string aria_tell_status (string gid, TellStatus type) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"$(type.get_name ())\"]]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1532,12 +1496,8 @@ namespace Gabut {
     }
 
     private string aria_tell_bittorent (string gid, TellBittorrent tellbit) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1578,12 +1538,8 @@ namespace Gabut {
 
     private GLib.List<string> aria_tell_active () {
         var listgid = new GLib.List<string> ();
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return listgid;
         }
@@ -1605,12 +1561,8 @@ namespace Gabut {
     }
 
     private string aria_str_files (AriaGetfiles files, string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1628,12 +1580,8 @@ namespace Gabut {
 
     private Gtk.ListStore aria_files_store (string gid) {
         var liststore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
@@ -1653,7 +1601,7 @@ namespace Gabut {
                     Gtk.TreeIter iter;
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
                     liststore.append (out iter);
-                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? Soup.URI.decode (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
+                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")?  (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
                     match_info.next ();
                 }
             } catch (Error e) {
@@ -1664,12 +1612,8 @@ namespace Gabut {
     }
 
     private string aria_get_option (string gid, AriaOptions option) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getOption\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1688,12 +1632,8 @@ namespace Gabut {
     }
 
     private string aria_set_option (string gid, AriaOptions option, string value) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeOption\", \"params\":[\"$(gid)\", {\"$(option.get_name ())\":\"$(value)\"}]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1701,12 +1641,8 @@ namespace Gabut {
     }
 
     private string aria_get_globalops (AriaOptions option) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1722,12 +1658,8 @@ namespace Gabut {
     }
 
     private string aria_set_globalops (AriaOptions option, string value) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1735,12 +1667,8 @@ namespace Gabut {
     }
 
     private string aria_deleteresult (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1748,12 +1676,8 @@ namespace Gabut {
     }
 
     private string aria_geturis (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1772,12 +1696,8 @@ namespace Gabut {
     }
 
     private string aria_globalstat (GlobalStat stat) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1793,12 +1713,8 @@ namespace Gabut {
     }
 
     private bool aria_getverion () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (jsonrpc);
         return result.down ().contains ("result");
     }
 
@@ -1918,25 +1834,12 @@ namespace Gabut {
     }
 
     private async void get_css_online (string url, string filename) throws Error {
-        SourceFunc callback = get_css_online.callback;
         var session = new Soup.Session ();
         var msg = new Soup.Message ("GET", url);
-        session.send_message (msg);
-        session.queue_message (msg, (sess, mess) => {
-            if (mess.status_code == 200) {
-                try {
-                    var file = File.new_for_path (filename);
-                    FileOutputStream out_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
-                    out_stream.write (mess.response_body.flatten ().data);
-                } catch (Error e) {
-                    GLib.warning (e.message);
-                }
-            }
-            if (callback != null) {
-                Idle.add ((owned)callback);
-            }
-        });
-        yield;
+        var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
+        var file = File.new_for_path (filename);
+        FileOutputStream out_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
+        out_stream.write (bytes.get_data ());
     }
 
     private string format_time (int seconds) {
@@ -2076,33 +1979,24 @@ namespace Gabut {
         GabutApp.gabutwindow.application.send_notification (Environment.get_application_name (), notification);
     }
 
-    private void move_widget (Gtk.Widget widget) {
-        bool mouse_primary_down = false;
-        widget.motion_notify_event.connect ((event) => {
-            if (mouse_primary_down) {
-                mouse_primary_down = false;
-                ((Gtk.Window) widget.get_toplevel ()).begin_move_drag (Gdk.BUTTON_PRIMARY, (int)event.x_root, (int)event.y_root, event.time);
-            }
-            return false;
-        });
-        widget.button_press_event.connect ((event) => {
-            if (event.button == Gdk.BUTTON_PRIMARY) {
-                mouse_primary_down = true;
-            }
-            return Gdk.EVENT_PROPAGATE;
-        });
-        widget.button_release_event.connect ((event) => {
-            if (event.button == Gdk.BUTTON_PRIMARY) {
-                mouse_primary_down = false;
-            }
-            return false;
-        });
-    }
     private string set_dollar (string dollar) {
         return "$%s".printf (dollar);
     }
 
+    private Gtk.Widget headerlabel (string label, int wrequest) {
+        var hlabel = new Gtk.Label (label) {
+            width_request = wrequest,
+            attributes = set_attribute (Pango.Weight.SEMIBOLD),
+            halign = Gtk.Align.START,
+            xalign = 0,
+            margin_top = 7,
+            margin_bottom = 7
+        };
+        return hlabel;
+    }
+
     private File[] run_open_file (Gtk.Window window) {
+        var loopop = new GLib.MainLoop (null, false);
         var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
         filechooser.select_multiple = true;
 
@@ -2116,33 +2010,124 @@ namespace Gabut {
 
         filechooser.add_filter (torrent);
         filechooser.add_filter (metalink);
+        filechooser.set_transient_for (window);
 
+        filechooser.show ();
         File[] files = null;
-        if (filechooser.run () == Gtk.ResponseType.ACCEPT) {
-            foreach (File item in filechooser.get_files ()) {
-                files += item;
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                for (int i = 0; i < filechooser.get_files ().get_n_items (); i++) {
+                    files += (File) filechooser.get_files ().get_item (i);
+                }
+                filechooser.destroy ();
             }
-        }
-        filechooser.destroy ();
+            loopop.quit ();
+        });
+        loopop.run ();
         return files;
     }
 
     private File run_open_text (Gtk.Window window) {
+        var loopop = new GLib.MainLoop (null, false);
         var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
         filechooser.select_multiple = false;
 
         var text_filter = new Gtk.FileFilter ();
         text_filter.set_filter_name (_("Text"));
         text_filter.add_mime_type ("text/*");
-
         filechooser.add_filter (text_filter);
 
         File file = null;
-        if (filechooser.run () == Gtk.ResponseType.ACCEPT) {
-            file = filechooser.get_files ().nth_data (0);
-        }
-        filechooser.destroy ();
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                file = filechooser.get_file ();
+                filechooser.destroy ();
+            }
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
         return file;
+    }
+
+    private File run_open_all (Gtk.Window window) {
+        var loopop = new GLib.MainLoop (null, false);
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
+        filechooser.select_multiple = false;
+
+        File file = null;
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                file = filechooser.get_file ();
+                filechooser.destroy ();
+            }
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
+        return file;
+    }
+
+    private File run_open_fd (Gtk.Window window, GLib.File current) {
+        var loopop = new GLib.MainLoop (null, false);
+        var filechooser = new Gtk.FileChooserNative (_("Open Folder"), window, Gtk.FileChooserAction.SELECT_FOLDER, _("Open"), _("Cancel"));
+        filechooser.select_multiple = false;
+        if (current != null) {
+            try {
+                filechooser.set_current_folder (current);
+            } catch (Error e) {
+                GLib.warning (e.message);
+            }
+        }
+        File file = null;
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                file = filechooser.get_file ();
+                filechooser.destroy ();
+            }
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
+        return file;
+    }
+
+    private Gtk.Grid button_chooser (GLib.File file) {
+        var grid = new Gtk.Grid () {
+            valign = Gtk.Align.CENTER,
+            halign = Gtk.Align.START,
+            column_spacing = 5
+        };
+        var img = new Gtk.Image.from_gicon (GLib.ContentType.get_icon (get_mime_type (file))) {
+            icon_size = Gtk.IconSize.NORMAL
+        };
+        var tittle = new Gtk.Label (file.get_basename ()) {
+            wrap_mode = Pango.WrapMode.WORD_CHAR,
+            xalign = 0,
+            attributes = set_attribute (Pango.Weight.BOLD)
+        };
+        grid.attach (img, 0, 0);
+        grid.attach (tittle, 1, 0);
+        return grid;
+    }
+
+    private Gtk.Grid none_chooser (string none) {
+        var grid = new Gtk.Grid () {
+            valign = Gtk.Align.CENTER,
+            halign = Gtk.Align.START,
+            column_spacing = 5
+        };
+        var img = new Gtk.Image.from_gicon (new ThemedIcon ("com.github.gabutakut.gabutdm")) {
+            icon_size = Gtk.IconSize.NORMAL
+        };
+        var tittle = new Gtk.Label (none) {
+            wrap_mode = Pango.WrapMode.WORD_CHAR,
+            xalign = 0,
+            attributes = set_attribute (Pango.Weight.BOLD)
+        };
+        grid.attach (img, 0, 0);
+        grid.attach (tittle, 1, 0);
+        return grid;
     }
 
     private int open_database (out Sqlite.Database db) {

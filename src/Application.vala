@@ -23,11 +23,11 @@ namespace Gabut {
     public class GabutApp : Gtk.Application {
         public static GabutWindow gabutwindow = null;
         public static Sqlite.Database db;
-        private static Gtk.Clipboard clipboard;
-        private static Gtk.TargetEntry [] target_list;
+        private Gdk.Clipboard clipboard;
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
         private bool startingup = false;
+        private bool dontopen = false;
 
         public GabutApp () {
             Object (
@@ -37,10 +37,6 @@ namespace Gabut {
         }
 
         construct {
-            Gtk.TargetEntry string_entry = { "STRING", 0, Target.STRING};
-            Gtk.TargetEntry urilist_entry = { "text/uri-list", 0, Target.URILIST};
-            target_list += string_entry;
-            target_list += urilist_entry;
             GLib.OptionEntry [] options = new GLib.OptionEntry [3];
             options [0] = { "startingup", 's', 0, OptionArg.NONE, null, null, "Run App on Startup" };
             options [1] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
@@ -64,6 +60,8 @@ namespace Gabut {
                 }
                 if (gabutwindow != null) {
                     return Posix.EXIT_SUCCESS;
+                } else {
+                    dontopen = true;
                 }
             }
             activate ();
@@ -94,11 +92,11 @@ namespace Gabut {
                 gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 gabutserver.send_post_data.connect (dialog_server);
                 gabutwindow = new GabutWindow (this);
-                Gtk.drag_dest_set (gabutwindow, Gtk.DestDefaults.ALL, target_list, Gdk.DragAction.COPY);
-                gabutwindow.drag_data_received.connect (on_drag_data_received);
-                if (!startingup) {
-                    gabutwindow.show_all ();
-                }
+
+                var droptarget = new Gtk.DropTarget (Type.STRING, Gdk.DragAction.COPY);
+                gabutwindow.child.add_controller (droptarget);
+                droptarget.on_drop.connect (on_drag_data_received);
+
                 gabutwindow.send_file.connect (dialog_url);
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
@@ -150,16 +148,17 @@ namespace Gabut {
                 gabutserver.get_dl_row.connect ((status)=> {
                     return gabutwindow.get_dl_row (status);
                 });
-                clipboard = Gtk.Clipboard.get (Gdk.SELECTION_CLIPBOARD);
-                start ();
-                perform_key_event ("<Control>v", true, 100);
-                perform_key_event ("<Control>v", false, 0);
+                clipboard = gabutwindow.get_display ().get_clipboard ();
+                clipboard.changed.connect (on_clipboard);
                 pantheon_theme.begin ();
                 gabutwindow.load_dowanload ();
                 download_table ();
+                if (!startingup && !dontopen) {
+                    gabutwindow.show ();
+                }
             } else {
                 if (startingup) {
-                    gabutwindow.show_all ();
+                    gabutwindow.show ();
                     startingup = false;
                 } else {
                     gabutwindow.present ();
@@ -190,10 +189,10 @@ namespace Gabut {
 
         public void dialog_succes (string strdata) {
             var succesdl = new SuccesDialog (this);
-            succesdl.show_all ();
+            succesdl.show ();
             succesdl.set_dialog (strdata);
             succesdls.append (succesdl);
-            succesdl.destroy.connect (()=> {
+            succesdl.close.connect (()=> {
                 succesdls.foreach ((succes)=> {
                     if (succes == succesdl) {
                         succesdls.remove_link (succesdls.find (succes));
@@ -205,13 +204,13 @@ namespace Gabut {
 
         public void dialog_server (MatchInfo match_info) {
             var addurl = new AddUrl (this);
-            addurl.show_all ();
             addurl.server_link (match_info);
+            addurl.show ();
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
             });
-            addurl.destroy.connect (()=> {
-                textclip = null;
+            addurl.close.connect (()=> {
+                backupclip = null;
             });
         }
 
@@ -232,13 +231,13 @@ namespace Gabut {
                 return;
             }
             var addurl = new AddUrl (this);
-            addurl.show_all ();
             addurl.add_link (link, icon);
+            addurl.show ();
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
             });
-            addurl.destroy.connect (()=> {
-                textclip = null;
+            addurl.close.connect (()=> {
+                backupclip = null;
             });
         }
 
@@ -256,9 +255,9 @@ namespace Gabut {
         private void download (string aria_gid) {
             var downloader = new Downloader (this);
             downloader.aria_gid (aria_gid);
-            downloader.show_all ();
+            downloader.show ();
             downloaders.append (downloader);
-            downloader.destroy.connect (()=> {
+            downloader.close.connect (()=> {
                 downloaders.foreach ((download)=> {
                     if (download == downloader) {
                         downloaders.remove_link (downloaders.find (download));
@@ -271,60 +270,34 @@ namespace Gabut {
             });
         }
 
-        public virtual void start () {
-            clipboard.owner_change.connect (on_clipboard_event);
-        }
-
-        private string? textclip = null;
-        private void on_clipboard_event (Gdk.EventOwnerChange event) {
-            string? text = clipboard.wait_for_text ();
-            bool available = (text != null && text != "") || clipboard.wait_is_text_available ();
-            if (available) {
-                if (event.reason == Gdk.OwnerChange.NEW_OWNER) {
-                    if (text != null && text != "") {
-                        string strstrip = text.strip ();
-                        if (textclip != strstrip) {
-                            dialog_url (strstrip);
-                            textclip = strstrip;
-                        }
+        private string? textclip = "";
+        private string? backupclip = "";
+        private void on_clipboard () {
+            get_value.begin (()=> {
+                if (textclip != null && textclip != "") {
+                    string strstrip = textclip.strip ();
+                    if (backupclip != strstrip) {
+                        dialog_url (strstrip);
+                        backupclip = strstrip;
                     }
                 }
-            }
+            });
         }
 
-        private static void perform_key_event (string accelerator, bool press, ulong delay) {
-            uint keysym;
-            Gdk.ModifierType modifiers;
-            Gtk.accelerator_parse (accelerator, out keysym, out modifiers);
-            unowned X.Display display = Gdk.X11.get_default_xdisplay ();
-            int keycode = display.keysym_to_keycode (keysym);
-            if (keycode != 0) {
-                if (Gdk.ModifierType.CONTROL_MASK in modifiers) {
-                    int modcode = display.keysym_to_keycode (Gdk.Key.Control_L);
-                    XTest.fake_key_event (display, modcode, press, delay);
-                }
-                if (Gdk.ModifierType.SHIFT_MASK in modifiers) {
-                    int modcode = display.keysym_to_keycode (Gdk.Key.Shift_L);
-                    XTest.fake_key_event (display, modcode, press, delay);
-                }
-                XTest.fake_key_event (display, keycode, press, delay);
-            }
+        private async void get_value () throws Error {
+            unowned GLib.Value? value = yield clipboard.read_value_async (GLib.Type.STRING, GLib.Priority.DEFAULT, null);
+            textclip = value.get_string ();
         }
 
-        private void on_drag_data_received (Gtk.Widget widget, Gdk.DragContext drag_context, int x, int y, Gtk.SelectionData selection_data, uint target_type, uint time) {
-            if ((selection_data == null) || !(selection_data.get_length () >= 0)) {
-                return;
+        private bool on_drag_data_received (GLib.Value value, double x, double y) {
+            if (value.get_string ().contains ("\n")) {
+                foreach (string url in value.get_string ().strip ().split ("\n")) {
+                    dialog_url (url.strip ());
+                }
+            } else {
+                dialog_url (value.get_string ().strip ());
             }
-            switch (target_type) {
-                case Target.STRING:
-                    dialog_url ((string) selection_data.get_data ());
-                    break;
-                case Target.URILIST:
-                    foreach (var uri in selection_data.get_uris ()) {
-                        dialog_url (uri);
-                    };
-                break;
-            }
+            return Gdk.EVENT_PROPAGATE;
         }
 
         public static int main (string[] args) {

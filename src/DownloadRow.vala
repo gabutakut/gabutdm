@@ -21,6 +21,7 @@
 
 namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
+        public signal void delete_me (DownloadRow row);
         private Gtk.Button start_button;
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
@@ -83,7 +84,7 @@ namespace Gabut {
                 _status = value;
                 switch (value) {
                     case StatusMode.PAUSED:
-                        ((Gtk.Image) start_button.image).icon_name = "media-playback-pause";
+                        start_button.icon_name = "media-playback-pause";
                         start_button.tooltip_text = _("Paused");
                         remove_timeout ();
                         if (url != null && db_download_exist (url)) {
@@ -93,11 +94,11 @@ namespace Gabut {
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
                             if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
-                                ((Gtk.Image) start_button.image).icon_name = "com.github.gabutakut.gabutdm.seed";
+                                start_button.icon_name = "com.github.gabutakut.gabutdm.seed";
                                 start_button.tooltip_text = _("Seeding");
                                 return;
                             } else {
-                                ((Gtk.Image) start_button.image).icon_name = "process-completed";
+                                start_button.icon_name = "process-completed";
                                 start_button.tooltip_text = _("Complete");
                             }
                         }
@@ -131,7 +132,7 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     case StatusMode.WAIT:
-                        ((Gtk.Image) start_button.image).icon_name = "preferences-system-time";
+                        start_button.icon_name = "preferences-system-time";
                         start_button.tooltip_text = _("Waiting");
                         remove_timeout ();
                         if (url != null && db_download_exist (url)) {
@@ -139,7 +140,7 @@ namespace Gabut {
                         }
                         break;
                     case StatusMode.ERROR:
-                        ((Gtk.Image) start_button.image).icon_name = "dialog-error";
+                        start_button.icon_name = "dialog-error";
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null) {
                             filepath = aria_str_files (AriaGetfiles.PATH, ariagid);
@@ -155,7 +156,7 @@ namespace Gabut {
                         }
                         break;
                     default:
-                        ((Gtk.Image) start_button.image).icon_name = "media-playback-start";
+                        start_button.icon_name = "media-playback-start";
                         start_button.tooltip_text = _("Downloading");
                         add_timeout ();
                         break;
@@ -320,24 +321,24 @@ namespace Gabut {
             rowbus = new DbusmenuItem ();
             rowbus.item_activated.connect (download);
             imagefile = new Gtk.Image () {
-                icon_size = Gtk.IconSize.DND
+                icon_size = Gtk.IconSize.LARGE
             };
 
             badge_img = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
-                icon_size = Gtk.IconSize.MENU
+                icon_size = Gtk.IconSize.INHERIT
             };
 
             var overlay = new Gtk.Overlay ();
             overlay.add_overlay (badge_img);
-            overlay.add (imagefile);
+            overlay.set_child (imagefile);
 
             var openimage = new Gtk.Button () {
                 focus_on_click = false,
                 tooltip_text = _("Open Details")
             };
-            openimage.add (overlay);
+            openimage.set_child (overlay);
             openimage.clicked.connect (download);
 
             transfer_rate = new Gtk.Label (null) {
@@ -356,7 +357,7 @@ namespace Gabut {
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
 
-            start_button = new Gtk.Button.from_icon_name ("media-playback-start", Gtk.IconSize.SMALL_TOOLBAR) {
+            start_button = new Gtk.Button.from_icon_name ("media-playback-start") {
                 valign = Gtk.Align.CENTER
             };
             start_button.clicked.connect (()=> {
@@ -376,16 +377,20 @@ namespace Gabut {
                 }
             });
 
-            var remove_button = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.SMALL_TOOLBAR) {
+            var remove_button = new Gtk.Button.from_icon_name ("edit-delete") {
                 valign = Gtk.Align.CENTER,
                 tooltip_text = _("Remove")
             };
             remove_button.clicked.connect (remove_down);
 
             var grid = new Gtk.Grid () {
-                margin = 6,
-                column_spacing = 6,
-                orientation = Gtk.Orientation.HORIZONTAL,
+                hexpand = true,
+                margin_start = 4,
+                margin_end = 4,
+                margin_top = 2,
+                margin_bottom = 2,
+                column_spacing = 4,
+                row_spacing = 2,
                 valign = Gtk.Align.CENTER
             };
             grid.attach (openimage, 0, 0, 1, 4);
@@ -394,7 +399,7 @@ namespace Gabut {
             grid.attach (transfer_rate, 1, 2, 1, 1);
             grid.attach (remove_button, 5, 0, 1, 4);
             grid.attach (start_button, 6, 0, 1, 4);
-            add (grid);
+            set_child (grid);
         }
 
         public void if_not_exist (string ariag, int linkm, int stats) {
@@ -532,7 +537,7 @@ namespace Gabut {
             remove_download (url);
             remove_dboptions (url);
             aria_deleteresult (ariagid);
-            this.destroy ();
+            delete_me (this);
         }
 
         public void download () {
