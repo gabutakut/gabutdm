@@ -218,6 +218,7 @@ namespace Gabut {
             };
 
             var alllink = new Gtk.Grid () {
+                column_spacing = 10,
                 height_request = 130,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
