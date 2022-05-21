@@ -124,6 +124,7 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER,
                 hexpand = true,
+                margin_top = 15,
                 margin_start = 10,
                 margin_end = 10
             };

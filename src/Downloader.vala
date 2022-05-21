@@ -589,7 +589,8 @@ namespace Gabut {
             up_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT)) / 1024;
             bt_req_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT)) / 1024;
             torrentmode.label = _("<b>Mode: </b> %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
-            timecreation.label = _("<b>Time Creation: </b> %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE));
+            var timesn = new GLib.DateTime.from_unix_local (int64.parse (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE)));
+            timecreation.label = _("<b>Time Creation: </b> %s").printf (timesn.to_string ());
 
             foreach (string announce in aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST).split ("+")) {
                 if (announce != "") {
