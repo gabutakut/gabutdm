@@ -2046,32 +2046,6 @@ namespace Gabut {
         return config_dir.get_path ();
     }
 
-    private static File file_start () {
-        return File.new_for_path (Path.build_filename (config_folder ("autostart"), Environment.get_application_name () + ".desktop"));
-    }
-    private async void create_startup () throws Error {
-        File file = file_start ();
-        if (file.query_exists ()) {
-            file.delete ();
-        }
-        FileOutputStream outstartup = file.create (FileCreateFlags.REPLACE_DESTINATION);
-        yield outstartup.write_async ("[Desktop Entry]\n".data);
-        yield outstartup.write_async ("Type=Application\n".data);
-        yield outstartup.write_async ("Name=Autostart Gabut Download Manager\n".data);
-        yield outstartup.write_async ("Comment=Simple and Faster Download Manager\n".data);
-        yield outstartup.write_async ("X-GNOME-Autostart-enabled=true\n".data);
-        yield outstartup.write_async ("Terminal=false\n".data);
-        yield outstartup.write_async ("Categories=Network;P2P;FileTransfer;\n".data);
-        yield outstartup.write_async ("NoDisplay=true\n".data);
-        yield outstartup.write_async ("Icon=com.github.gabutakut.gabutdm\n".data);
-        if (file.get_path ().contains (".var")) {
-            yield outstartup.write_async ("Exec=/usr/bin/flatpak run --branch=master --arch=x86_64 --command=com.github.gabutakut.gabutdm --file-forwarding com.github.gabutakut.gabutdm @@u --s @@\n".data);
-            yield outstartup.write_async ("X-Flatpak=com.github.gabutakut.gabutdm\n".data);
-        } else {
-            yield outstartup.write_async ("Exec=com.github.gabutakut.gabutdm --s\n".data);
-        }
-    }
-
     private static string create_folder (string name) {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
     }
