@@ -53,7 +53,6 @@ namespace Gabut {
             if (dict.contains ("startingup") && gabutwindow == null) {
                 startingup = true;
             }
-            create_startup.begin ();
             if (dict.contains (GLib.OPTION_REMAINING)) {
                 foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, VariantType.BYTESTRING_ARRAY).get_bytestring_array ()) {
                     if (GLib.FileUtils.test (arg_file, GLib.FileTest.EXISTS)) {
