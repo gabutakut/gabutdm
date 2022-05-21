@@ -24,6 +24,7 @@ namespace Gabut {
         public signal void send_file (string url);
         public signal void stop_server ();
         public signal void restart_server ();
+        public signal void open_show ();
         public signal string get_host (bool reboot);
         private Gtk.ListBox list_box;
         private Gtk.Stack headerstack;
@@ -52,7 +53,9 @@ namespace Gabut {
             openmenu.property_set (MenuItem.LABEL.get_name (), _("Gabut Download Manager"));
             openmenu.property_set (MenuItem.ICON_NAME.get_name (), "com.github.gabutakut.gabutdm");
             openmenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
-            openmenu.item_activated.connect (present);
+            openmenu.item_activated.connect (()=> {
+                open_show ();
+            });
 
             startmenu = new DbusmenuItem ();
             startmenu.property_set (MenuItem.LABEL.get_name (), _("Start All"));
@@ -66,6 +69,7 @@ namespace Gabut {
             pausemenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
             pausemenu.item_activated.connect (stop_all);
             menudbus = new DbusmenuItem ();
+            append_dbus.begin (openmenu);
             append_dbus.begin (startmenu);
             append_dbus.begin (pausemenu);
 

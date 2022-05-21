@@ -1833,6 +1833,18 @@ namespace Gabut {
         } while (get_dbsetting (DBSettings.PIECESELECTOR) != aria_get_globalops (AriaOptions.STREAM_PIECE_SELECTOR));
     }
 
+    private async void boot_strap () throws Error {
+        yield get_css_online ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", create_folder (".bootstrap.min.css"));
+    }
+
+    private async void drop_zone () throws Error {
+        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", create_folder (".dropzone.min.js"));
+    }
+
+    private async void drop_zonemin () throws Error {
+        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", create_folder (".dropzone.min.css"));
+    }
+
     private async void get_css_online (string url, string filename) throws Error {
         var session = new Soup.Session ();
         var msg = new Soup.Message ("GET", url);

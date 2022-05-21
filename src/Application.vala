@@ -80,13 +80,25 @@ namespace Gabut {
                 }
                 exec_aria ();
                 if (!GLib.FileUtils.test (create_folder (".bootstrap.min.css"), GLib.FileTest.EXISTS)) {
-                    get_css_online.begin ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", create_folder (".bootstrap.min.css"));
+                    var loop = new GLib.MainLoop (null, false);
+                    boot_strap.begin (()=> {
+                        loop.quit ();
+                    });
+                    loop.run ();
                 }
                 if (!GLib.FileUtils.test (create_folder (".dropzone.min.js"), GLib.FileTest.EXISTS)) {
-                    get_css_online.begin ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", create_folder (".dropzone.min.js"));
+                    var loop = new GLib.MainLoop (null, false);
+                    drop_zone.begin (()=> {
+                        loop.quit ();
+                    });
+                    loop.run ();
                 }
                 if (!GLib.FileUtils.test (create_folder (".dropzone.min.css"), GLib.FileTest.EXISTS)) {
-                    get_css_online.begin ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", create_folder (".dropzone.min.css"));
+                    var loop = new GLib.MainLoop (null, false);
+                    drop_zonemin.begin (()=> {
+                        loop.quit ();
+                    });
+                    loop.run ();
                 }
                 var gabutserver = new GabutServer ();
                 gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
@@ -98,6 +110,7 @@ namespace Gabut {
                 droptarget.on_drop.connect (on_drag_data_received);
 
                 gabutwindow.send_file.connect (dialog_url);
+                gabutwindow.open_show.connect (open_now);
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
                 });
@@ -157,12 +170,16 @@ namespace Gabut {
                     gabutwindow.show ();
                 }
             } else {
-                if (startingup) {
-                    gabutwindow.show ();
-                    startingup = false;
-                } else {
-                    gabutwindow.present ();
-                }
+                open_now ();
+            }
+        }
+
+        private void open_now () {
+            if (startingup) {
+                gabutwindow.show ();
+                startingup = false;
+            } else {
+                gabutwindow.present ();
             }
         }
 
