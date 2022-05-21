@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Gabut Download Manager
+Comment=Fast and Simple Downloader
+GenericName=Gabut Download Manager
+Exec=com.github.gabutakut.gabutdm -s
+Icon=com.github.gabutakut.gabutdm
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-Notify=false
+X-GNOME-AutoRestart=true
+X-GNOME-Autostart-enabled=true
