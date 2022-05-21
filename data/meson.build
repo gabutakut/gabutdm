@@ -52,6 +52,14 @@ i18n.merge_file (
     install: true,
     install_dir: join_paths (get_option ('datadir'), 'applications')
 )
+i18n.merge_file (
+    input: meson.project_name () + '.startup.desktop.in',
+    output: meson.project_name () + '.startup.desktop',
+    po_dir: join_paths (meson.source_root (), 'po', 'extra'),
+    type: 'desktop',
+    install: true,
+    install_dir: join_paths(get_option('sysconfdir'), 'xdg', 'autostart')
+)
 
 i18n.merge_file (
     input: meson.project_name () + '.appdata.xml.in',
