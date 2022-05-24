@@ -451,7 +451,6 @@ namespace Gabut {
             box_action.append (close_button);
 
             var maingrid = new Gtk.Grid () {
-                orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
                 hexpand = true,
                 margin_start = 10,
@@ -459,8 +458,8 @@ namespace Gabut {
             };
             maingrid.attach (boxstatus, 0, 0);
             maingrid.attach (box_action, 0, 1);
-
             set_child (maingrid);
+
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:

@@ -1746,7 +1746,6 @@ namespace Gabut {
     }
 
     private async void ensure_run () throws Error {
-        SourceFunc callback = ensure_run.callback;
         string rpcport = get_dbsetting (DBSettings.RPCPORT);
         string size_req = get_dbsetting (DBSettings.RPCSIZE);
         string cache = get_dbsetting (DBSettings.DISKCACHE);
@@ -1756,15 +1755,9 @@ namespace Gabut {
         string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--listen-port=$(btport)", @"--dht-listen-port=$(dhtport)", @"--disk-cache=$(cache)", @"--file-allocation=$(allocate.down ())", "--quiet=true"};
         GLib.SubprocessFlags flags = GLib.SubprocessFlags.STDIN_INHERIT | GLib.SubprocessFlags.STDOUT_SILENCE | GLib.SubprocessFlags.STDERR_MERGE;
         GLib.Subprocess subprocess = new GLib.Subprocess.newv (exec, flags);
-        if (yield subprocess.wait_check_async ()) {
-            if (subprocess.get_successful ()) {
-                if (callback != null) {
-                    subprocess.force_exit ();
-                    Idle.add ((owned)callback);
-                }
-            }
-        }
-        yield;
+        subprocess.wait_check_async.begin (null, ()=> {
+            subprocess.force_exit ();
+        });
     }
 
     private void set_startup () {

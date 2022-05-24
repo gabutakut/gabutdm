@@ -39,14 +39,15 @@ namespace Gabut {
             }
             set {
                 _linkmode = value;
+                imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
                 if (linkmode == LinkMode.METALINK) {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
+                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.metalink");
                 } else if (linkmode == LinkMode.MAGNETLINK) {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
+                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
                 } else if (linkmode == LinkMode.TORRENT) {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("application-x-bittorrent");
+                    badge_img.gicon = new ThemedIcon ("application-x-bittorrent");
                 } else {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("insert-link");
+                    badge_img.gicon = new ThemedIcon ("insert-link");
                 }
             }
         }
@@ -104,7 +105,8 @@ namespace Gabut {
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
-                                GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
+                                var destroy = (SimpleAction) GLib.Application.get_default ().lookup_action ("destroy");
+                                destroy.activate (new Variant.string (ariagid));
                                 notify_app (_("Download Complete"), filename, imagefile.gicon);
                                 if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                     send_dialog ();
@@ -541,7 +543,8 @@ namespace Gabut {
         }
 
         public void download () {
-            GabutApp.gabutwindow.application.activate_action ("downloader", new Variant.string (ariagid));
+            var downloader = (SimpleAction) GLib.Application.get_default ().lookup_action ("downloader");
+            downloader.activate (new Variant.string (ariagid));
         }
 
         private uint timeout_id = 0;
@@ -624,7 +627,8 @@ namespace Gabut {
             builder.append (totalsize.to_string ());
             builder.append ("<gabut>");
             builder.append (fileordir);
-            GabutApp.gabutwindow.application.activate_action ("succes", new Variant.string (builder.str));
+            var succes = (SimpleAction) GLib.Application.get_default ().lookup_action ("succes");
+            succes.activate (new Variant.string (builder.str));
         }
     }
 }

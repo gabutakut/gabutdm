@@ -113,6 +113,9 @@ namespace Gabut {
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
                 });
+                gabutwindow.active_downloader.connect ((ariagid)=> {
+                    return dialog_active (ariagid);
+                });
                 gabutwindow.get_host.connect ((reboot)=> {
                     if (reboot) {
                         gabutserver.stop_server ();
@@ -198,13 +201,14 @@ namespace Gabut {
                 if (downloader.ariagid == ariagid) {
                     downloaders.remove_link (downloaders.find (downloader));
                     remove_window (downloader);
-                    downloader.destroy ();
+                    downloader.close ();
                 }
             });
         }
 
         public void dialog_succes (string strdata) {
             var succesdl = new SuccesDialog (this);
+            succesdl.set_transient_for (gabutwindow);
             succesdl.show ();
             succesdl.set_dialog (strdata);
             succesdls.append (succesdl);
@@ -216,10 +220,20 @@ namespace Gabut {
                     }
                 });
             });
+            succesdl.close_request.connect (()=> {
+                succesdls.foreach ((succes)=> {
+                    if (succes == succesdl) {
+                        succesdls.remove_link (succesdls.find (succes));
+                        remove_window (succes);
+                    }
+                });
+                return false;
+            });
         }
 
         public void dialog_server (MatchInfo match_info) {
             var addurl = new AddUrl (this);
+            addurl.set_transient_for (gabutwindow);
             addurl.server_link (match_info);
             addurl.show ();
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
@@ -227,6 +241,10 @@ namespace Gabut {
             });
             addurl.close.connect (()=> {
                 backupclip = null;
+            });
+            addurl.close_request.connect (()=> {
+                backupclip = null;
+                return false;
             });
         }
 
@@ -247,6 +265,7 @@ namespace Gabut {
                 return;
             }
             var addurl = new AddUrl (this);
+            addurl.set_transient_for (gabutwindow);
             addurl.add_link (link, icon);
             addurl.show ();
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
@@ -254,6 +273,10 @@ namespace Gabut {
             });
             addurl.close.connect (()=> {
                 backupclip = null;
+            });
+            addurl.close_request.connect (()=> {
+                backupclip = null;
+                return false;
             });
         }
 
@@ -270,16 +293,29 @@ namespace Gabut {
 
         private void download (string aria_gid) {
             var downloader = new Downloader (this);
+            downloader.set_transient_for (gabutwindow);
             downloader.aria_gid (aria_gid);
-            downloader.show ();
             downloaders.append (downloader);
+            downloader.show.connect (()=> {
+                gabutwindow.remove_row (downloader.ariagid);
+            });
+            downloader.show ();
             downloader.close.connect (()=> {
                 downloaders.foreach ((download)=> {
                     if (download == downloader) {
+                        gabutwindow.append_row (downloader.ariagid);
                         downloaders.remove_link (downloaders.find (download));
-                        remove_window (download);
                     }
                 });
+            });
+            downloader.close_request.connect (()=> {
+                downloaders.foreach ((download)=> {
+                    if (download == downloader) {
+                        gabutwindow.append_row (downloader.ariagid);
+                        downloaders.remove_link (downloaders.find (download));
+                    }
+                });
+                return false;
             });
             downloader.sendselected.connect ((ariagid, selected)=> {
                 return gabutwindow.set_selected (ariagid, selected);
