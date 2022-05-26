@@ -186,7 +186,7 @@ namespace Gabut {
         private bool succes_active (string datastr) {
             bool active = false;
             succesdls.foreach ((succesdl)=> {
-                if (succesdl.datastr.split ("<gabut>")[1] == datastr.split ("<gabut>")[1]) {
+                if (succesdl.datastr == datastr) {
                     succesdl.present ();
                     active = true;
                 }
