@@ -560,6 +560,10 @@ namespace Gabut {
             return server_coll;
         }
 
+        public void get_active_status () {
+            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
+        }
+
         private void action_status () {
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status == StatusMode.ACTIVE) {

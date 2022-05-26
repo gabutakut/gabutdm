@@ -142,9 +142,8 @@ namespace Gabut {
                 height_request = 25
             };
             open_folder.clicked.connect (()=> {
-                string[] datastrs = datastr.split ("<gabut>");
-                var file = File.new_for_path (datastrs[1]);
-                if (datastrs[3] == "inode/directory") {
+                var file = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH));
+                if (info_succes (datastr, InfoSucces.ICONNAME) == "inode/directory") {
                     open_fileman.begin (file.get_uri ());
                 } else {
                     open_fileman.begin (file.get_parent ().get_uri ());
@@ -175,12 +174,10 @@ namespace Gabut {
 
         public void set_dialog (string datastr) {
             this.datastr = datastr;
-            string[] datastrs = datastr.split ("<gabut>");
-            address.text = datastrs[0];
-            File file = File.new_for_path (datastrs[1]);
-            directory.text = file.get_path ();
-            filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (datastrs[2]), GLib.FormatSizeFlags.LONG_FORMAT));
-            icon_image.gicon = GLib.ContentType.get_icon (datastrs[3]);
+            address.text = info_succes (datastr, InfoSucces.ADDRESS);
+            directory.text = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH)).get_path ();
+            filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (info_succes (datastr, InfoSucces.FILESIZE)), GLib.FormatSizeFlags.LONG_FORMAT));
+            icon_image.gicon = GLib.ContentType.get_icon (info_succes (datastr, InfoSucces.ICONNAME));
         }
     }
 }

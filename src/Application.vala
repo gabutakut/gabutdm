@@ -26,6 +26,7 @@ namespace Gabut {
         private Gdk.Clipboard clipboard;
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
+        public GLib.List<AddUrl> addurls;
         private bool startingup = false;
         private bool dontopen = false;
 
@@ -114,7 +115,7 @@ namespace Gabut {
                     gabutserver.stop_server ();
                 });
                 gabutwindow.active_downloader.connect ((ariagid)=> {
-                    return dialog_active (ariagid);
+                    return download_active (ariagid);
                 });
                 gabutwindow.get_host.connect ((reboot)=> {
                     if (reboot) {
@@ -132,10 +133,11 @@ namespace Gabut {
                 });
                 downloaders = new GLib.List<Downloader> ();
                 succesdls = new GLib.List<SuccesDialog> ();
+                addurls = new GLib.List<AddUrl> ();
                 var action_download = new SimpleAction ("downloader", VariantType.STRING);
                 action_download.activate.connect ((parameter) => {
                     string aria_gid = parameter.get_string (null);
-                    if (!dialog_active (aria_gid)) {
+                    if (!download_active (aria_gid)) {
                         download (aria_gid);
                     }
                 });
@@ -185,6 +187,16 @@ namespace Gabut {
             }
         }
 
+        private void destroy_active (string ariagid) {
+            downloaders.foreach ((downloader)=> {
+                if (downloader.ariagid == ariagid) {
+                    downloaders.remove_link (downloaders.find (downloader));
+                    remove_window (downloader);
+                    downloader.close ();
+                }
+            });
+        }
+
         private bool succes_active (string datastr) {
             bool active = false;
             succesdls.foreach ((succesdl)=> {
@@ -194,16 +206,6 @@ namespace Gabut {
                 }
             });
             return active;
-        }
-
-        private void destroy_active (string ariagid) {
-            downloaders.foreach ((downloader)=> {
-                if (downloader.ariagid == ariagid) {
-                    downloaders.remove_link (downloaders.find (downloader));
-                    remove_window (downloader);
-                    downloader.close ();
-                }
-            });
         }
 
         public void dialog_succes (string strdata) {
@@ -236,14 +238,25 @@ namespace Gabut {
             addurl.set_transient_for (gabutwindow);
             addurl.server_link (match_info);
             addurl.show ();
+            addurls.append (addurl);
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
             });
             addurl.close.connect (()=> {
-                backupclip = null;
+                addurls.foreach ((addur)=> {
+                    if (addur == addurl) {
+                        addurls.remove_link (addurls.find (addur));
+                        remove_window (addur);
+                    }
+                });
             });
             addurl.close_request.connect (()=> {
-                backupclip = null;
+                addurls.foreach ((addur)=> {
+                    if (addur == addurl) {
+                        addurls.remove_link (addurls.find (addur));
+                        remove_window (addur);
+                    }
+                });
                 return false;
             });
         }
@@ -268,23 +281,44 @@ namespace Gabut {
             addurl.set_transient_for (gabutwindow);
             addurl.add_link (link, icon);
             addurl.show ();
+            addurls.append (addurl);
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
             });
             addurl.close.connect (()=> {
-                backupclip = null;
+                addurls.foreach ((addur)=> {
+                    if (addur == addurl) {
+                        addurls.remove_link (addurls.find (addur));
+                        remove_window (addur);
+                    }
+                });
             });
             addurl.close_request.connect (()=> {
-                backupclip = null;
+                addurls.foreach ((addur)=> {
+                    if (addur == addurl) {
+                        addurls.remove_link (addurls.find (addur));
+                        remove_window (addur);
+                    }
+                });
                 return false;
             });
         }
 
-        private bool dialog_active (string ariagid) {
+        private bool url_active (string url) {
+            bool active = false;
+            addurls.foreach ((urls)=> {
+                if (urls.get_link () == url) {
+                    active = true;
+                }
+            });
+            return active;
+        }
+
+        private bool download_active (string ariagid) {
             bool active = false;
             downloaders.foreach ((downloader)=> {
                 if (downloader.ariagid == ariagid) {
-                    downloader.present ();
+                    downloader.get_active_status ();
                     active = true;
                 }
             });
@@ -324,23 +358,24 @@ namespace Gabut {
             });
         }
 
-        private string? textclip = "";
-        private string? backupclip = "";
         private void on_clipboard () {
-            get_value.begin (()=> {
-                if (textclip != null && textclip != "") {
-                    string strstrip = textclip.strip ();
-                    if (backupclip != strstrip) {
-                        dialog_url (strstrip);
-                        backupclip = strstrip;
+            get_clipboard.begin ((obj, res)=> {
+                try {
+                    string textclip;
+                    get_clipboard.end (res, out textclip);
+                    if (textclip != null && textclip != "") {
+                        if (!url_active (textclip.strip ())) {
+                            dialog_url (textclip.strip ());
+                        }
                     }
+                } catch (GLib.Error e) {
+                    critical (e.message);
                 }
             });
         }
 
-        private async void get_value () throws Error {
-            unowned GLib.Value? value = yield clipboard.read_value_async (GLib.Type.STRING, GLib.Priority.DEFAULT, null);
-            textclip = value.get_string ();
+        private async void get_clipboard (out string? valu) throws Error {
+            valu = yield clipboard.read_text_async (null);
         }
 
         private bool on_drag_data_received (GLib.Value value, double x, double y) {

@@ -28,5 +28,6 @@ sources = files (
     'ProxyType.vala',
     'CanonicalDbusmenu.vala',
     'DbusmenuItem.vala',
-    'ModeTogle.vala'
+    'ModeTogle.vala',
+    'GabutSucces.vala'
 )

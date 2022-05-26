@@ -897,6 +897,10 @@ namespace Gabut {
             status_image.gicon = new ThemedIcon (icon);
         }
 
+        public string get_link () {
+            return link_entry.text;
+        }
+
         public void server_link (MatchInfo match_info) {
             link_entry.text = match_info.fetch (PostServer.URL);
             name_entry.text = match_info.fetch (PostServer.FILENAME);

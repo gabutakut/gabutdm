@@ -548,7 +548,7 @@ namespace Gabut {
         }
 
         private uint timeout_id = 0;
-        public void add_timeout () {
+        private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = true;
                 timeout_id = Timeout.add_seconds (1, update_progress);
@@ -611,26 +611,23 @@ namespace Gabut {
         }
 
         private void send_dialog () {
-            var builder = new StringBuilder ();
+            var gabutinfo = new GabutSucces ();
             if (linkmode == LinkMode.TORRENT) {
                 if (url.has_prefix ("magnet:?")) {
-                    builder.append (url);
+                    gabutinfo.set_info (url, InfoSucces.ADDRESS);
                 } else {
-                    builder.append ("File Torrent");
+                    gabutinfo.set_info ("File Torrent", InfoSucces.ADDRESS);
                 }
             } else if (linkmode == LinkMode.METALINK) {
-                builder.append ("File Metalink");
+                gabutinfo.set_info ("File Metalink", InfoSucces.ADDRESS);
             } else {
-                builder.append (url);
+                gabutinfo.set_info (url, InfoSucces.ADDRESS);
             }
-            builder.append ("<gabut>");
-            builder.append (pathname);
-            builder.append ("<gabut>");
-            builder.append (totalsize.to_string ());
-            builder.append ("<gabut>");
-            builder.append (fileordir);
+            gabutinfo.set_info (pathname, InfoSucces.FILEPATH);
+            gabutinfo.set_info (totalsize.to_string (), InfoSucces.FILESIZE);
+            gabutinfo.set_info (fileordir != ""? fileordir : get_mime_type (File.new_for_path (pathname)), InfoSucces.ICONNAME);
             var succes = (SimpleAction) GLib.Application.get_default ().lookup_action ("succes");
-            succes.activate (new Variant.string (builder.str));
+            succes.activate (new Variant.string (gabutinfo.get_info ()));
         }
     }
 }

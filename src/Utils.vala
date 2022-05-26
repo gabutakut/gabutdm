@@ -1287,6 +1287,13 @@ namespace Gabut {
         }
     }
 
+    public enum InfoSucces {
+        ADDRESS = 0,
+        FILEPATH = 1,
+        FILESIZE = 2,
+        ICONNAME = 3
+    }
+
     private struct DbusmenuMenuitem {
         public int id {get; set;}
         public GLib.HashTable<string, GLib.Variant> properties {get; set;}
@@ -1746,13 +1753,13 @@ namespace Gabut {
     }
 
     private async void ensure_run () throws Error {
-        string rpcport = get_dbsetting (DBSettings.RPCPORT);
-        string size_req = get_dbsetting (DBSettings.RPCSIZE);
-        string cache = get_dbsetting (DBSettings.DISKCACHE);
-        string allocate = get_dbsetting (DBSettings.FILEALLOCATION);
-        string btport = get_dbsetting (DBSettings.BTLISTENPORT);
-        string dhtport = get_dbsetting (DBSettings.DHTLISTENPORT);
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--listen-port=$(btport)", @"--dht-listen-port=$(dhtport)", @"--disk-cache=$(cache)", @"--file-allocation=$(allocate.down ())", "--quiet=true"};
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true"};
+        exec += @"--rpc-listen-port=$(get_dbsetting (DBSettings.RPCPORT))";
+        exec += @"--rpc-max-request-size=$(get_dbsetting (DBSettings.RPCSIZE))";
+        exec += @"--listen-port=$(get_dbsetting (DBSettings.BTLISTENPORT))";
+        exec += @"--dht-listen-port=$(get_dbsetting (DBSettings.DHTLISTENPORT))";
+        exec += @"--disk-cache=$(get_dbsetting (DBSettings.DISKCACHE))";
+        exec += @"--file-allocation=$(get_dbsetting (DBSettings.FILEALLOCATION).down ())";
         GLib.SubprocessFlags flags = GLib.SubprocessFlags.STDIN_INHERIT | GLib.SubprocessFlags.STDOUT_SILENCE | GLib.SubprocessFlags.STDERR_MERGE;
         GLib.Subprocess subprocess = new GLib.Subprocess.newv (exec, flags);
         subprocess.wait_check_async.begin (null, ()=> {
@@ -1867,6 +1874,10 @@ namespace Gabut {
             return h.concat (", ", m);
         }
         return ngettext ("approximately %'d hour", "approximately %'d hours  left", hours).printf (hours);
+    }
+
+    public string info_succes (string data, InfoSucces succes) {
+        return data.split ("<gabut>")[succes];
     }
 
     private Variant v_s (string data) {
