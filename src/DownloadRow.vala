@@ -576,6 +576,8 @@ namespace Gabut {
             if (totalsize > 0 && transferrate > 0) {
                 uint64 remaining_time = (totalsize - transferred) / transferrate;
                 timedownload = @"- $(format_time ((int) remaining_time))";
+            } else {
+                timedownload = "";
             }
             if (status != StatusMode.ERROR) {
                 labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize)) $(duprate) $(downrate) $(timedownload)";

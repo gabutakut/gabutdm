@@ -45,7 +45,9 @@ namespace Gabut {
         private GLib.List<DownloadRow> listrow;
 
         public GabutWindow (Gtk.Application application) {
-            Object (application: application);
+            Object (application: application,
+                    title: _("Gabut Download Manager")
+            );
         }
 
         construct {
@@ -127,13 +129,7 @@ namespace Gabut {
         }
 
         private Gtk.HeaderBar build_headerbar () {
-            var tittle = new Gtk.Label ("Gabut Download Manager") {
-                wrap_mode = Pango.WrapMode.WORD_CHAR,
-                xalign = 0,
-                attributes = set_attribute (Pango.Weight.BOLD)
-            };
             var headerbar = new Gtk.HeaderBar () {
-                title_widget = tittle,
                 hexpand = true,
                 decoration_layout = "close:maximize"
             };
@@ -225,6 +221,7 @@ namespace Gabut {
                 if (row != null) {
                     if (!property_active (row)) {
                         var property = new AddUrl.Property (application);
+                        property.set_transient_for (this);
                         property.show ();
                         properties.append (property);
                         property.property (row);
@@ -446,9 +443,6 @@ namespace Gabut {
                         switch (row.status) {
                             case StatusMode.PAUSED:
                             case StatusMode.COMPLETE:
-                                next_download ();
-                                remove_dbus.begin (row.rowbus);
-                                break;
                             case StatusMode.ERROR:
                                 next_download ();
                                 remove_dbus.begin (row.rowbus);
@@ -474,7 +468,7 @@ namespace Gabut {
                     }
                     row.delete_me.connect ((rw)=> {
                         list_box.remove (rw);
-                        remove_dbus.begin (((DownloadRow) rw).rowbus);
+                        remove_dbus.begin (rw.rowbus);
                         next_download ();
                         view_status ();
                         listrow.remove_link (listrow.find (rw));
@@ -495,9 +489,6 @@ namespace Gabut {
                 switch (row.status) {
                     case StatusMode.PAUSED:
                     case StatusMode.COMPLETE:
-                        next_download ();
-                        remove_dbus.begin (row.rowbus);
-                        break;
                     case StatusMode.ERROR:
                         next_download ();
                         remove_dbus.begin (row.rowbus);
@@ -519,7 +510,7 @@ namespace Gabut {
             });
             row.delete_me.connect ((rw)=> {
                 list_box.remove (rw);
-                remove_dbus.begin (((DownloadRow) rw).rowbus);
+                remove_dbus.begin (rw.rowbus);
                 next_download ();
                 view_status ();
                 listrow.remove_link (listrow.find (rw));

@@ -188,7 +188,7 @@ namespace Gabut {
         private bool succes_active (string datastr) {
             bool active = false;
             succesdls.foreach ((succesdl)=> {
-                if (succesdl.datastr.split ("<gabut>")[1] == datastr.split ("<gabut>")[1]) {
+                if (succesdl.datastr == datastr) {
                     succesdl.present ();
                     active = true;
                 }
@@ -209,8 +209,8 @@ namespace Gabut {
         public void dialog_succes (string strdata) {
             var succesdl = new SuccesDialog (this);
             succesdl.set_transient_for (gabutwindow);
-            succesdl.show ();
             succesdl.set_dialog (strdata);
+            succesdl.show ();
             succesdls.append (succesdl);
             succesdl.close.connect (()=> {
                 succesdls.foreach ((succes)=> {
@@ -303,6 +303,7 @@ namespace Gabut {
             downloader.close.connect (()=> {
                 downloaders.foreach ((download)=> {
                     if (download == downloader) {
+                        download.remove_timeout ();
                         gabutwindow.append_row (downloader.ariagid);
                         downloaders.remove_link (downloaders.find (download));
                     }
@@ -311,6 +312,7 @@ namespace Gabut {
             downloader.close_request.connect (()=> {
                 downloaders.foreach ((download)=> {
                     if (download == downloader) {
+                        download.remove_timeout ();
                         gabutwindow.append_row (downloader.ariagid);
                         downloaders.remove_link (downloaders.find (download));
                     }

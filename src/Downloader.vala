@@ -610,7 +610,7 @@ namespace Gabut {
             }
         }
 
-        private void remove_timeout () {
+        public void remove_timeout () {
             if (timeout_id != 0) {
                 Source.remove (timeout_id);
                 timeout_id = 0;
