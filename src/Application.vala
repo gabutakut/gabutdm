@@ -277,6 +277,7 @@ namespace Gabut {
             downloader.destroy.connect (()=> {
                 downloaders.foreach ((download)=> {
                     if (download == downloader) {
+                        download.remove_timeout ();
                         downloaders.remove_link (downloaders.find (download));
                         remove_window (download);
                     }
