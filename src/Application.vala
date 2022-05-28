@@ -234,6 +234,9 @@ namespace Gabut {
         }
 
         public void dialog_server (MatchInfo match_info) {
+            if (url_active (match_info.fetch (PostServer.URL))) {
+                return;
+            }
             var addurl = new AddUrl (this);
             addurl.set_transient_for (gabutwindow);
             addurl.server_link (match_info);
