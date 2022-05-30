@@ -15,7 +15,17 @@
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
 
+<h4 align="center">Extensions for Gabut Download Manager</h4>
 
+<h4 align="center">Now Available On Add-ons</h4>
+
+<p style="background-color:powderblue;" background-size: 300px 100px align="center">
+
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/gabut-extentions/"><img
+
+            src="https://addons.mozilla.org/static-frontend/c6276b7c0dc392e3ce8668f12e68b83c.svg" alt="Get it from the Add-ons"></a>
+
+</p>
 
 <h1 align="center">🤖 GabutDM 🤖</h1>
 <p align="center">
