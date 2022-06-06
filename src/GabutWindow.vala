@@ -338,8 +338,8 @@ namespace Gabut {
         private bool set_menulauncher () {
             globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
             bool statact = globalactive > 0;
-            set_progress_visible.begin (!is_active && statact);
-            set_badge_visible.begin (!is_active && statact);
+            set_progress_visible.begin (statact);
+            set_badge_visible.begin (statact);
             return true;
         }
 

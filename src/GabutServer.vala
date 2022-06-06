@@ -104,8 +104,7 @@ namespace Gabut {
                 try {
                     MatchInfo match_info;
                     Regex regex = new Regex ("link:(.*?),filename:(.*?),referrer:(.*?),mimetype:(.*?),filesize:(.*?),resumable:(.*?),");
-                    bool matches = regex.match_full (result, -1, 0, 0, out match_info);
-                    if (matches) {
+                    if (regex.match_full (result, -1, 0, 0, out match_info)) {
                         msg.set_status (200, "OK");
                         send_post_data (match_info);
                     } else if (Regex.match_simple ("openlink=(.*?)", result)) {

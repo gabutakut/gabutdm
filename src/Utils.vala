@@ -1402,8 +1402,7 @@ namespace Gabut {
     }
 
     private string aria_remove (string gid) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forceRemove\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forceRemove\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1411,8 +1410,7 @@ namespace Gabut {
     }
 
     private string aria_pause (string gid) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forcePause\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forcePause\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1420,8 +1418,7 @@ namespace Gabut {
     }
 
     private string aria_pause_all () {
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1429,8 +1426,7 @@ namespace Gabut {
     }
 
     private string aria_purge_all () {
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1438,8 +1434,7 @@ namespace Gabut {
     }
 
     private string aria_shutdown () {
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1447,8 +1442,7 @@ namespace Gabut {
     }
 
     private string aria_unpause (string gid) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1457,17 +1451,14 @@ namespace Gabut {
 
     private Gtk.ListStore aria_get_peers (string gid) {
         var liststore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
-        string regexstr = "{\"amChoking\":\"(.*?)\".*?\"bitfield\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"ip\":\"(.*?)\".*?\"peerChoking\":\"(.*?)\".*?\"peerId\":\"(.*?)\".*?\"port\":\"(.*?)\".*?\"seeder\":\"(.*?)\".*?\"uploadSpeed\":\"(.*?)\"}";
-        if (Regex.match_simple (regexstr, result)) {
-            try {
-                MatchInfo match_info;
-                Regex regex = new Regex (regexstr);
-                regex.match_full (result, -1, 0, 0, out match_info);
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex ("{\"amChoking\":\"(.*?)\".*?\"bitfield\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"ip\":\"(.*?)\".*?\"peerChoking\":\"(.*?)\".*?\"peerId\":\"(.*?)\".*?\"port\":\"(.*?)\".*?\"seeder\":\"(.*?)\".*?\"uploadSpeed\":\"(.*?)\"}");
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
                     string peerid = GLib.Uri.unescape_string (match_info.fetch (6));
                     Gtk.TreeIter iter;
@@ -1475,26 +1466,26 @@ namespace Gabut {
                     liststore.set (iter, TorrentPeers.HOST, @"$(match_info.fetch (4)):$(match_info.fetch (7))", TorrentPeers.PEERID, peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow", TorrentPeers.DOWNLOADSPEED, format_size (int64.parse (match_info.fetch (3))), TorrentPeers.UPLOADSPEED, match_info.fetch (9), TorrentPeers.SEEDER, match_info.fetch (8), TorrentPeers.BITFIELD, match_info.fetch (2), TorrentPeers.AMCHOKING, match_info.fetch (1), TorrentPeers.PEERCHOKING, match_info.fetch (5));
                     match_info.next ();
                 }
-            } catch (Error e) {
-                GLib.warning (e.message);
             }
+        } catch (Error e) {
+            GLib.warning (e.message);
         }
         return liststore;
     }
 
     private string aria_tell_status (string gid, TellStatus type) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"$(type.get_name ())\"]]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"$(type.get_name ())\"]]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(type.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string tellus = match_info.fetch (1);
-            if (tellus != null) {
-                return tellus;
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string tellus = match_info.fetch (1);
+                if (tellus != null) {
+                    return tellus;
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1503,8 +1494,7 @@ namespace Gabut {
     }
 
     private string aria_tell_bittorent (string gid, TellBittorrent tellbit) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1512,29 +1502,32 @@ namespace Gabut {
             MatchInfo match_info;
             if (tellbit == TellBittorrent.ANNOUNCELIST) {
                 Regex regex = new Regex (@"$(tellbit.get_name ()):(.*?)\"");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                string liststring = "";
-                while (match_info.matches ()) {
-                    string matchgid = match_info.fetch (0);
-                    if (matchgid != null) {
-                        liststring += matchgid.replace ("\\/", "/").replace ("\"", "") + "+";
+                if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                    string liststring = "";
+                    while (match_info.matches ()) {
+                        string matchgid = match_info.fetch (0);
+                        if (matchgid != null) {
+                            liststring += matchgid.replace ("\\/", "/").replace ("\"", "") + "+";
+                        }
+                        match_info.next ();
                     }
-                    match_info.next ();
+                    return liststring;
                 }
-                return liststring;
             } else if (tellbit == TellBittorrent.CREATIONDATE) {
                 Regex regex = new Regex (@"\"$(tellbit.get_name ())\":([0-9]+)");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                string namefile = match_info.fetch (1);
-                if (namefile != null) {
-                    return namefile;
+                if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                    string namefile = match_info.fetch (1);
+                    if (namefile != null) {
+                        return namefile;
+                    }
                 }
             } else if (tellbit == TellBittorrent.MODE || tellbit == TellBittorrent.COMMENT || tellbit == TellBittorrent.NAME) {
                 Regex regex = new Regex (@"\"$(tellbit.get_name ())\":\"(.*?)\"");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                string namefile = match_info.fetch (1);
-                if (namefile != null) {
-                    return namefile;
+                if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                    string namefile = match_info.fetch (1);
+                    if (namefile != null) {
+                        return namefile;
+                    }
                 }
             }
         } catch (Error e) {
@@ -1545,21 +1538,21 @@ namespace Gabut {
 
     private GLib.List<string> aria_tell_active () {
         var listgid = new GLib.List<string> ();
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}");
         if (!result.down ().contains ("result") || result == null) {
             return listgid;
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex ("\"gid\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            while (match_info.matches ()) {
-                string matchgid = match_info.fetch (1);
-                if (matchgid != null) {
-                    listgid.append (matchgid);
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                while (match_info.matches ()) {
+                    string matchgid = match_info.fetch (1);
+                    if (matchgid != null) {
+                        listgid.append (matchgid);
+                    }
+                    match_info.next ();
                 }
-                match_info.next ();
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1568,17 +1561,17 @@ namespace Gabut {
     }
 
     private string aria_str_files (AriaGetfiles files, string gid) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string getfile = match_info.fetch (1);
-            return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string getfile = match_info.fetch (1);
+                return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1587,17 +1580,14 @@ namespace Gabut {
 
     private Gtk.ListStore aria_files_store (string gid) {
         var liststore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
-        string regexstr = "{\"completedLength\":\"(.*?)\".*?\"index\":\"(.*?)\".*?\"length\":\"(.*?)\".*?\"path\":\"(.*?)\".*?\"selected\":\"(.*?)\".*?\"uris\":(.*?)}";
-        if (Regex.match_simple (regexstr, result)) {
-            try {
-                MatchInfo match_info;
-                Regex regex = new Regex (regexstr);
-                regex.match_full (result, -1, 0, 0, out match_info);
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex ("{\"completedLength\":\"(.*?)\".*?\"index\":\"(.*?)\".*?\"length\":\"(.*?)\".*?\"path\":\"(.*?)\".*?\"selected\":\"(.*?)\".*?\"uris\":(.*?)}");
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
                     int64 total = int64.parse (match_info.fetch (3)).abs ();
                     int64 transfer = int64.parse (match_info.fetch (1)).abs ();
@@ -1611,26 +1601,26 @@ namespace Gabut {
                     liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")?  (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
                     match_info.next ();
                 }
-            } catch (Error e) {
-                GLib.warning (e.message);
             }
+        } catch (Error e) {
+            GLib.warning (e.message);
         }
         return liststore;
     }
 
     private string aria_get_option (string gid, AriaOptions option) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getOption\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getOption\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(option.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string ariaopt = match_info.fetch (1);
-            if (ariaopt != null) {
-                return ariaopt;
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string ariaopt = match_info.fetch (1);
+                if (ariaopt != null) {
+                    return ariaopt;
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1639,8 +1629,7 @@ namespace Gabut {
     }
 
     private string aria_set_option (string gid, AriaOptions option, string value) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeOption\", \"params\":[\"$(gid)\", {\"$(option.get_name ())\":\"$(value)\"}]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeOption\", \"params\":[\"$(gid)\", {\"$(option.get_name ())\":\"$(value)\"}]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1648,16 +1637,16 @@ namespace Gabut {
     }
 
     private string aria_get_globalops (AriaOptions option) {
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(option.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            return match_info.fetch (1);
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                return match_info.fetch (1);
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1665,8 +1654,7 @@ namespace Gabut {
     }
 
     private string aria_set_globalops (AriaOptions option, string value) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1674,8 +1662,7 @@ namespace Gabut {
     }
 
     private string aria_deleteresult (string gid) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1683,18 +1670,18 @@ namespace Gabut {
     }
 
     private string aria_geturis (string gid) {
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex ("\"uri\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string statusuris = match_info.fetch (1);
-            if (statusuris != null) {
-                return statusuris.replace ("\\/", "/");
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string statusuris = match_info.fetch (1);
+                if (statusuris != null) {
+                    return statusuris.replace ("\\/", "/");
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1703,16 +1690,16 @@ namespace Gabut {
     }
 
     private string aria_globalstat (GlobalStat stat) {
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(stat.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            return match_info.fetch (1);
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                return match_info.fetch (1);
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1720,8 +1707,7 @@ namespace Gabut {
     }
 
     private bool aria_getverion () {
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}";
-        string result = get_soupmess (jsonrpc);
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}");
         return result.down ().contains ("result");
     }
 
@@ -1850,7 +1836,7 @@ namespace Gabut {
         var msg = new Soup.Message ("GET", url);
         var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
         var file = File.new_for_path (filename);
-        FileOutputStream out_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
+        FileOutputStream out_stream = yield file.create_async (FileCreateFlags.REPLACE_DESTINATION, GLib.Priority.DEFAULT, null);
         out_stream.write (bytes.get_data ());
     }
 
@@ -1966,7 +1952,7 @@ namespace Gabut {
         notification.set_icon (iconimg);
         notification.set_title (message);
         notification.set_body (msg_bd);
-        GabutApp.gabutwindow.application.send_notification (Environment.get_application_name (), notification);
+        GLib.Application.get_default ().send_notification (Environment.get_application_name (), notification);
     }
 
     private string set_dollar (string dollar) {
@@ -2002,7 +1988,6 @@ namespace Gabut {
         filechooser.add_filter (metalink);
         filechooser.set_transient_for (window);
 
-        filechooser.show ();
         File[] files = null;
         filechooser.response.connect ((pos)=> {
             if (pos == Gtk.ResponseType.ACCEPT) {
@@ -2013,6 +1998,7 @@ namespace Gabut {
             }
             loopop.quit ();
         });
+        filechooser.show ();
         loopop.run ();
         return files;
     }
@@ -3070,11 +3056,17 @@ namespace Gabut {
 
     private Pango.AttrList set_attribute (Pango.Weight weight, double scale = 0) {
         Pango.AttrList attrlist = new Pango.AttrList ();
-        Pango.Attribute attr = Pango.attr_weight_new (weight);
         if (scale != 0) {
-            attr = Pango.attr_scale_new (scale);
+            attrlist.insert (Pango.attr_scale_new (scale));
         }
-        attrlist.change ((owned) attr);
+        attrlist.insert (Pango.attr_weight_new (weight));
+        return attrlist;
+    }
+
+    private Pango.AttrList color_attribute (uint16 red, uint16 green, uint16 blue) {
+        Pango.AttrList attrlist = new Pango.AttrList ();
+        attrlist.insert (Pango.attr_weight_new (Pango.Weight.ULTRABOLD));
+        attrlist.insert (Pango.attr_foreground_new (red, green, blue));
         return attrlist;
     }
 
@@ -3119,8 +3111,9 @@ namespace Gabut {
             string addressstr = addressdata.print (true);
             MatchInfo match_info;
             Regex regex = new Regex ("<'(.*?)'>");
-            regex.match_full (addressstr, -1, 0, 0, out match_info);
-            return match_info.fetch (1);
+            if (regex.match_full (addressstr, -1, 0, 0, out match_info)) {
+                return match_info.fetch (1);
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }

@@ -68,11 +68,13 @@ namespace Gabut {
                     case StatusMode.PAUSED:
                         start_button.set_label (_("Start"));
                         statuslabel.label = _("Paused");
+                        statuslabel.attributes = color_attribute (60000, 37000, 0);
                         remove_timeout ();
                         break;
                     case StatusMode.COMPLETE:
                         statuslabel.label = _("Complete");
                         start_button.set_label (_("Complete"));
+                        statuslabel.attributes = color_attribute (60000, 30000, 19764);
                         remove_timeout ();
                         if (aria_str_files (AriaGetfiles.PATH, ariagid).contains ("[METADATA]")) {
                             close ();
@@ -81,21 +83,25 @@ namespace Gabut {
                     case StatusMode.WAIT:
                         start_button.set_label (_("Wait"));
                         statuslabel.label = _("Waiting");
+                        statuslabel.attributes = color_attribute (0, 0, 42588);
                         remove_timeout ();
                         break;
                     case StatusMode.ERROR:
                         statuslabel.label = _("Error");
+                        statuslabel.attributes = color_attribute (60000, 0, 0);
                         remove_timeout ();
                         close ();
                         break;
                     case StatusMode.NOTHING:
                         statuslabel.label = _("Nothing Process!, Press Download for continue");
+                        statuslabel.attributes = color_attribute (28705, 4000, 9882);
                         download_rev.reveal_child = true;
                         remove_timeout ();
                         break;
                     default:
                         start_button.set_label (_("Pause"));
                         statuslabel.label = _("Downloading");
+                        statuslabel.attributes = color_attribute (0, 60000, 0);
                         add_timeout ();
                         break;
                 }
