@@ -1570,7 +1570,9 @@ namespace Gabut {
             Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
             if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 string getfile = match_info.fetch (1);
-                return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
+                if (getfile != "" || getfile != null) {
+                    return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -3063,9 +3065,11 @@ namespace Gabut {
         return attrlist;
     }
 
-    private Pango.AttrList color_attribute (uint16 red, uint16 green, uint16 blue) {
+    private Pango.AttrList color_attribute (uint16 red, uint16 green, uint16 blue, bool bold = true) {
         Pango.AttrList attrlist = new Pango.AttrList ();
-        attrlist.insert (Pango.attr_weight_new (Pango.Weight.ULTRABOLD));
+        if (bold) {
+            attrlist.insert (Pango.attr_weight_new (Pango.Weight.ULTRABOLD));
+        }
         attrlist.insert (Pango.attr_foreground_new (red, green, blue));
         return attrlist;
     }

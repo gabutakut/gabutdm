@@ -185,7 +185,7 @@ namespace Gabut {
             view_mode.selected = 0;
             var header = get_header_bar ();
             header.decoration_layout = "none";
-            header.set_title_widget (view_mode);
+            header.title_widget = view_mode;
 
             progressbar = new Gtk.ProgressBar () {
                 hexpand = true,
@@ -290,19 +290,20 @@ namespace Gabut {
 
             infotorrent.append_column (text_column (_("Name"), 0));
             var infoscr = new Gtk.ScrolledWindow () {
-                height_request = 120
+                height_request = 120,
+                child = infotorrent
             };
-            infoscr.set_child (infotorrent);
 
-            commenttext = new Gtk.TextView ();
-            commenttext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
+            commenttext = new Gtk.TextView () {
+                wrap_mode = Gtk.WrapMode.WORD_CHAR
+            };
 
             var comment = new Gtk.ScrolledWindow () {
                 width_request = 250,
                 height_request = 120,
-                margin_bottom = 10
+                margin_bottom = 10,
+                child = commenttext
             };
-            comment.set_child (commenttext);
 
             var torrentinfo = new Gtk.Grid () {
                 column_homogeneous = true,
@@ -333,9 +334,9 @@ namespace Gabut {
                 width_request = 550,
                 height_request = 140,
                 margin_bottom = 5,
-                margin_top = 5
+                margin_top = 5,
+                child = peerstree
             };
-            peerscrolled.set_child (peerstree);
 
             torrstore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
             torrenttree = new Gtk.TreeView () {
@@ -355,9 +356,9 @@ namespace Gabut {
                 width_request = 550,
                 height_request = 140,
                 margin_bottom = 5,
-                margin_top = 5
+                margin_top = 5,
+                child = torrenttree
             };
-            torrscrolled.set_child (torrenttree);
 
             down_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
@@ -427,9 +428,9 @@ namespace Gabut {
                 close ();
             });
             download_rev = new Gtk.Revealer () {
-                transition_type = Gtk.RevealerTransitionType.CROSSFADE
+                transition_type = Gtk.RevealerTransitionType.CROSSFADE,
+                child = download
             };
-            download_rev.set_child (download);
             var close_button = new Gtk.Button.with_label (_("Close")) {
                 width_request = 120,
                 height_request = 25,
@@ -464,7 +465,7 @@ namespace Gabut {
             };
             maingrid.attach (boxstatus, 0, 0);
             maingrid.attach (box_action, 0, 1);
-            set_child (maingrid);
+            child = maingrid;
 
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
@@ -681,10 +682,16 @@ namespace Gabut {
                 string index, name, download, size, uris, pathname;
                 int persen;
                 model.get (iter, FileCol.FILEPATH, out pathname);
+                if  (pathname == "" || pathname == null) {
+                    return false;
+                }
                 if (pathname.contains ("[METADATA]")) {
                     return false;
                 }
-                model.get (iter, FileCol.SELECTED, out select, FileCol.ROW, out index, FileCol.NAME, out name, FileCol.FILEPATH, out pathname, FileCol.DOWNLOADED, out download, FileCol.SIZE, out size, FileCol.PERCEN, out persen, FileCol.URIS, out uris);
+                model.get (iter, FileCol.SELECTED, out select, FileCol.ROW, out index, FileCol.NAME, out name, FileCol.DOWNLOADED, out download, FileCol.SIZE, out size, FileCol.PERCEN, out persen, FileCol.URIS, out uris);
+                if (name == null || download == null || size == null) {
+                    return false;
+                }
                 if (!liststore_exist (select, index, Markup.escape_text (name), Markup.escape_text (pathname), download, size, persen.abs (), Markup.escape_text (uris))) {
                     Gtk.TreeIter iters;
                     torrstore.append (out iters);

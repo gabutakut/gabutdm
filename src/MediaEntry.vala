@@ -24,20 +24,22 @@ namespace Gabut {
         public string first_label { get; construct; }
         public string second_label { get; construct; }
         private Gdk.Clipboard clipboard;
+
         public MediaEntry (string first_label, string second_label, bool second = true) {
             Object (
                 first_label: first_label,
                 second_label: second_label,
-                secondary_icon_activatable: second
+                secondary_icon_activatable: second,
+                primary_icon_name: first_label,
+                secondary_icon_name: second_label,
+                primary_icon_tooltip_text: _("Copy"),
+                secondary_icon_tooltip_text: _("Paste"),
+                hexpand: true,
+                activates_default: true
             );
         }
 
         construct {
-            primary_icon_name = first_label;
-            primary_icon_tooltip_text = _("Copy");
-            secondary_icon_name = second_label;
-            secondary_icon_tooltip_text = _("Paste");
-            hexpand = true;
             icon_press.connect ((pos) => {
                 clipboard = get_display ().get_clipboard ();
                 if (pos == Gtk.EntryIconPosition.PRIMARY) {
@@ -47,7 +49,6 @@ namespace Gabut {
                     get_value.begin ();
                 }
             });
-            activates_default = true;
         }
 
         private async void get_value () throws Error {

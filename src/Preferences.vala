@@ -96,7 +96,7 @@ namespace Gabut {
 
             var header = get_header_bar ();
             header.decoration_layout = "none";
-            header.set_title_widget (view_mode);
+            header.title_widget = view_mode;
 
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
@@ -146,23 +146,24 @@ namespace Gabut {
                 value = double.parse (aria_get_globalops (AriaOptions.LOWEST_SPEED_LIMIT)) / 1024
             };
 
-            piecesel_button = new Gtk.MenuButton ();
             var stream_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
             };
             var stream_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = stream_flow
             };
-            stream_popover.set_child (stream_flow);
             stream_popover.show.connect (() => {
                 if (pieceselector != null) {
                     stream_flow.select_child (pieceselector);
                     pieceselector.grab_focus ();
                 }
             });
-            piecesel_button.popover = stream_popover;
+            piecesel_button = new Gtk.MenuButton () {
+                popover = stream_popover
+            };
             foreach (var piecesel in PieceSelectors.get_all ()) {
                 stream_flow.append (new PieceSelector (piecesel));
             }
@@ -178,23 +179,24 @@ namespace Gabut {
                 }
             }
 
-            urisel_button = new Gtk.MenuButton ();
             var urisel_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
             };
             var urisel_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = urisel_flow
             };
-            urisel_popover.set_child (urisel_flow);
             urisel_popover.show.connect (() => {
                 if (uriselector != null) {
                     urisel_flow.select_child (uriselector);
                     uriselector.grab_focus ();
                 }
             });
-            urisel_button.popover = urisel_popover;
+            urisel_button = new Gtk.MenuButton () {
+                popover = urisel_popover
+            };
             foreach (var urisel in UriSelectors.get_all ()) {
                 urisel_flow.append (new UriSelector (urisel));
             }
@@ -282,9 +284,9 @@ namespace Gabut {
 
             var trackerscr = new Gtk.ScrolledWindow () {
                 width_request = 220,
-                height_request = 100
+                height_request = 100,
+                child = trackertext
             };
-            trackerscr.set_child (trackertext);
 
             var load_tr = new Gtk.Button.from_icon_name ("document-open") {
                 tooltip_text = _("Open Text Tracker")
@@ -338,9 +340,9 @@ namespace Gabut {
 
             var etrackerscr = new Gtk.ScrolledWindow () {
                 width_request = 220,
-                height_request = 100
+                height_request = 100,
+                child = etrackertext
             };
-            etrackerscr.set_child (etrackertext);
 
             var load_etr = new Gtk.Button.from_icon_name ("document-open") {
                 tooltip_text = _("Open Text Tracker")
@@ -464,23 +466,25 @@ namespace Gabut {
                 hexpand = true,
                 value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
             };
-            allocate_button = new Gtk.MenuButton ();
+
             var allocate_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
             };
             var allocate_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = allocate_flow
             };
-            allocate_popover.set_child (allocate_flow);
             allocate_popover.show.connect (() => {
                 if (fileallocation != null) {
                     allocate_flow.select_child (fileallocation);
                     fileallocation.grab_focus ();
                 }
             });
-            allocate_button.popover = allocate_popover;
+            allocate_button = new Gtk.MenuButton () {
+                popover = allocate_popover
+            };
             foreach (var allocate in FileAllocations.get_all ()) {
                 allocate_flow.append (new FileAllocation (allocate));
             }
@@ -556,10 +560,10 @@ namespace Gabut {
                 active = bool.parse (aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING))
             };
 
-            var style_mode = new ModeTogle ();
             var auto_mode = new ModeTogle.with_label (_("System Default"));
             var light_mode = new ModeTogle.with_label (_("Light"));
             var dark_mode = new ModeTogle.with_label (_("Dark"));
+            var style_mode = new ModeTogle ();
             style_mode.add_item (auto_mode);
             style_mode.add_item (light_mode);
             style_mode.add_item (dark_mode);

@@ -126,7 +126,7 @@ namespace Gabut {
             set {
                 _selectfd = value;
                 if (selectfd != null) {
-                    folder_location.set_child (button_chooser (selectfd));
+                    folder_location.child = button_chooser (selectfd);
                 }
             }
         }
@@ -139,9 +139,9 @@ namespace Gabut {
             set {
                 _selectcook = value;
                 if (selectcook != null) {
-                    cookie_location.set_child (button_chooser (selectcook));
+                    cookie_location.child = button_chooser (selectcook);
                 } else {
-                    cookie_location.set_child (none_chooser (_("Press and Select Cookie")));
+                    cookie_location.child = none_chooser (_("Press and Select Cookie"));
                 }
             }
         }
@@ -165,8 +165,7 @@ namespace Gabut {
         construct {
             hashoptions = new Gee.HashMap<string, string> ();
             var view_mode = new ModeButton () {
-                hexpand = false,
-                width_request = 350
+                hexpand = true
             };
             view_mode.append_text (_("Address"));
             view_mode.append_text (_("Proxy"));
@@ -178,7 +177,7 @@ namespace Gabut {
             view_mode.selected = 0;
 
             var header = get_header_bar ();
-            header.set_title_widget (view_mode);
+            header.title_widget = view_mode;
             header.decoration_layout = "none";
 
             status_image = new Gtk.Image () {
@@ -197,8 +196,9 @@ namespace Gabut {
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
 
-            var overlay = new Gtk.Overlay ();
-            overlay.set_child (status_image);
+            var overlay = new Gtk.Overlay () {
+                child = status_image
+            };
             overlay.add_overlay (sizelabel);
 
             link_entry = new MediaEntry ("insert-link", "edit-paste") {
@@ -230,7 +230,6 @@ namespace Gabut {
             alllink.attach (name_entry, 1, 4, 1, 1);
             alllink.attach (save_meta, 1, 5, 1, 1);
 
-            prometh_button = new Gtk.MenuButton ();
             method_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
@@ -246,7 +245,9 @@ namespace Gabut {
                     proxymethod.grab_focus ();
                 }
             });
-            prometh_button.popover = method_popover;
+            prometh_button = new Gtk.MenuButton () {
+                popover = method_popover
+            };
             foreach (var method in ProxyMethods.get_all ()) {
                 method_flow.append (new ProxyMethod (method));
             }
@@ -257,23 +258,24 @@ namespace Gabut {
             });
             proxymethod = method_flow.get_child_at_index (0) as ProxyMethod;
 
-            type_button = new Gtk.MenuButton ();
             type_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70,
             };
             var type_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = type_flow
             };
-            type_popover.set_child (type_flow);
             type_popover.show.connect (() => {
                 if (proxytype != null) {
                     type_flow.select_child (proxytype);
                     proxytype.grab_focus ();
                 }
             });
-            type_button.popover = type_popover;
+            type_button = new Gtk.MenuButton () {
+                popover = type_popover
+            };
             foreach (var typepr in ProxyTypes.get_all ()) {
                 type_flow.append (new ProxyType (typepr));
             }
@@ -305,7 +307,9 @@ namespace Gabut {
 
             var proxygrid = new Gtk.Grid () {
                 height_request = 130,
-                column_spacing = 10
+                column_spacing = 10,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             proxygrid.attach (prometh_button, 0, 1, 1, 1);
             proxygrid.attach (type_button, 1, 1, 1, 1);
@@ -318,23 +322,24 @@ namespace Gabut {
             proxygrid.attach (headerlabel (_("Password:"), 140), 1, 4, 1, 1);
             proxygrid.attach (pass_entry, 1, 5, 1, 1);
 
-            login_button = new Gtk.MenuButton ();
             login_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
             };
             var login_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = login_flow
             };
-            login_popover.set_child (login_flow);
             login_popover.show.connect (() => {
                 if (loginuser != null) {
                     login_flow.select_child (loginuser);
                     loginuser.grab_focus ();
                 }
             });
-            login_button.popover = login_popover;
+            login_button = new Gtk.MenuButton () {
+                popover = login_popover
+            };
             foreach (var logn in LoginUsers.get_all ()) {
                 login_flow.append (new LoginUser (logn));
             }
@@ -431,15 +436,14 @@ namespace Gabut {
             foldergrid.attach (usefolder, 1, 2, 1, 1);
             foldergrid.attach (folder_location, 1, 3, 1, 1);
 
-            checksum_button = new Gtk.MenuButton ();
             checksums_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL
             };
             var checksums_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = checksums_flow
             };
-            checksums_popover.set_child (checksums_flow);
             checksums_popover.show.connect (() => {
                 checksums_popover.width_request = checksum_button.get_allocated_width ();
                 if (checksumtype != null) {
@@ -447,7 +451,9 @@ namespace Gabut {
                     checksumtype.grab_focus ();
                 }
             });
-            checksum_button.popover = checksums_popover;
+            checksum_button = new Gtk.MenuButton () {
+                popover = checksums_popover
+            };
             foreach (var checksum in AriaChecksumTypes.get_all ()) {
                 checksums_flow.append (new ChecksumType (checksum));
             }
@@ -482,23 +488,24 @@ namespace Gabut {
                 width_request = 300
             };
 
-            encrypt_button = new Gtk.MenuButton ();
             encrypt_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
             };
             var encrypt_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.BOTTOM,
-                width_request = 70
+                width_request = 70,
+                child = encrypt_flow
             };
-            encrypt_popover.set_child (encrypt_flow);
             encrypt_popover.show.connect (() => {
                 if (btencrypt != null) {
                     encrypt_flow.select_child (btencrypt);
                     btencrypt.grab_focus ();
                 }
             });
-            encrypt_button.popover = encrypt_popover;
+            encrypt_button = new Gtk.MenuButton () {
+                popover = encrypt_popover
+            };
             foreach (var encrp in BTEncrypts.get_all ()) {
                 encrypt_flow.append (new BTEncrypt (encrp));
             }
@@ -610,7 +617,7 @@ namespace Gabut {
             maingrid.attach (stack, 0, 0);
             maingrid.attach (box_action, 0, 1);
 
-            set_child (maingrid);
+            child = maingrid;
 
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {

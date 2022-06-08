@@ -29,7 +29,7 @@ namespace Gabut {
                 row_spacing = 12,
                 halign = Gtk.Align.CENTER
             };
-            set_child (content);
+            child = content;
         }
 
         public ProxyType (ProxyTypes proxytype) {

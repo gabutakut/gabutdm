@@ -49,8 +49,9 @@ namespace Gabut {
                 icon_size = Gtk.IconSize.LARGE
             };
 
-            var overlay = new Gtk.Overlay ();
-            overlay.set_child (icon_image);
+            var overlay = new Gtk.Overlay () {
+                child = icon_image
+            };
             overlay.add_overlay (icon_badge);
 
             var primary = new Gtk.Label ("Scan QR Code") {
@@ -82,7 +83,7 @@ namespace Gabut {
             header_grid.attach (secondary, 1, 1, 1, 1);
 
             var header = get_header_bar ();
-            header.set_title_widget (header_grid);
+            header.title_widget = header_grid;
             header.decoration_layout = "none";
 
             imageqr = new Gtk.Image () {
@@ -101,12 +102,18 @@ namespace Gabut {
             };
             link_box.append (linkbutton);
 
-            var close_button = new Gtk.Button.with_label (_("Close"));
+            var close_button = new Gtk.Button.with_label (_("Close")) {
+                width_request = 120,
+                height_request = 25
+            };
             close_button.clicked.connect (()=> {
                 close ();
             });
 
-            host_button = new Gtk.Button.with_label (_("Share Host"));
+            host_button = new Gtk.Button.with_label (_("Share Host")) {
+                width_request = 120,
+                height_request = 25
+            };
             host_button.clicked.connect (share_server);
 
             var box_action = new Gtk.Grid () {
@@ -132,7 +139,7 @@ namespace Gabut {
             maingrid.attach (link_box, 0, 1);
             maingrid.attach (box_action, 0, 2);
 
-            set_child (maingrid);
+            child = maingrid;
         }
 
         public override void show () {
@@ -152,8 +159,10 @@ namespace Gabut {
         private bool load_host (bool reboot) {
             if (local_server) {
                 host_button.label =_("Share Address");
+                ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 0, 0);
             } else {
                 host_button.label = _("Stop Share");
+                ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 37000, 0);
             }
             string host = get_host (reboot);
             create_qrcode (host);

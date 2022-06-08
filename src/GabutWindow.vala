@@ -92,9 +92,9 @@ namespace Gabut {
             var scrolled = new Gtk.ScrolledWindow () {
                 height_request = 350,
                 width_request = 650,
-                vexpand = true
+                vexpand = true,
+                child = list_box
             };
-            scrolled.set_child (list_box);
 
             headerstack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_DOWN,
@@ -111,7 +111,7 @@ namespace Gabut {
             var mainwindow = new Gtk.Grid ();
             mainwindow.attach (headerstack, 0, 0);
             mainwindow.attach (scrolled, 0, 1);
-            set_child (mainwindow);
+            child = mainwindow;
             notify["is-active"].connect (()=> {
                 set_badge.begin (globalactive);
             });
@@ -139,8 +139,9 @@ namespace Gabut {
             headerbar.pack_end (menu_button);
             menu_button.clicked.connect (()=> {
                 if (preferences == null && aria_getverion ()) {
-                    preferences = new Preferences (application);
-                    preferences.set_transient_for (this);
+                    preferences = new Preferences (application) {
+                        transient_for = this
+                    };
                     preferences.show ();
                     preferences.restart_server.connect (()=> {
                         restart_server ();
@@ -197,8 +198,9 @@ namespace Gabut {
             headerbar.pack_end (host_button);
             host_button.clicked.connect (()=> {
                 if (qrcode == null) {
-                    qrcode = new QrCode (application);
-                    qrcode.set_transient_for (this);
+                    qrcode = new QrCode (application) {
+                        transient_for = this
+                    };
                     qrcode.show ();
                     qrcode.get_host.connect ((reboot)=> {
                         return get_host (reboot);
@@ -220,8 +222,9 @@ namespace Gabut {
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     if (!property_active (row)) {
-                        var property = new AddUrl.Property (application);
-                        property.set_transient_for (this);
+                        var property = new AddUrl.Property (application) {
+                            transient_for = this
+                        };
                         property.show ();
                         properties.append (property);
                         property.property (row);

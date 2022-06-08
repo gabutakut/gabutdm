@@ -29,7 +29,7 @@ namespace Gabut {
                 row_spacing = 12,
                 halign = Gtk.Align.CENTER
             };
-            set_child (content);
+            child = content;
         }
 
         public UriSelector (UriSelectors selector) {
@@ -44,7 +44,7 @@ namespace Gabut {
                 margin_end = 12,
                 width_request = 100
             };
-            content.attach (title, 0, 1);
+            content.attach (title, 0, 0);
             show ();
         }
     }

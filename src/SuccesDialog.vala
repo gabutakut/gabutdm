@@ -49,8 +49,9 @@ namespace Gabut {
                 icon_size = Gtk.IconSize.LARGE
             };
 
-            var overlay = new Gtk.Overlay ();
-            overlay.set_child (icon_image);
+            var overlay = new Gtk.Overlay () {
+                child = icon_image
+            };
             overlay.add_overlay (icon_badge);
 
             var primarylabel = new Gtk.Label ("Download Complete") {
@@ -82,7 +83,7 @@ namespace Gabut {
             header_grid.attach (filesizelabel, 1, 1, 1, 1);
 
             var header = get_header_bar ();
-            header.set_title_widget (header_grid);
+            header.title_widget = header_grid;
             header.decoration_layout = "none";
 
             address = new MediaEntry ("insert-link", "process-completed") {
@@ -151,14 +152,16 @@ namespace Gabut {
                 close ();
             });
 
-            var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
+            var box_action = new Gtk.Grid () {
                 margin_bottom = 10,
                 halign = Gtk.Align.END,
-                hexpand = true
+                hexpand = true,
+                column_homogeneous = true,
+                column_spacing = 5
             };
-            box_action.append (open_file);
-            box_action.append (open_folder);
-            box_action.append (close_button);
+            box_action.attach (open_file, 0, 0);
+            box_action.attach (open_folder, 1, 0);
+            box_action.attach (close_button, 2, 0);
 
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
@@ -169,7 +172,7 @@ namespace Gabut {
             };
             maingrid.attach (dialogmain, 0, 0);
             maingrid.attach (box_action, 0, 1);
-            set_child (maingrid);
+            child = maingrid;
         }
 
         public void set_dialog (string datastr) {
