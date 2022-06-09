@@ -1600,7 +1600,7 @@ namespace Gabut {
                     Gtk.TreeIter iter;
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
                     liststore.append (out iter);
-                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")?  (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
+                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
                     match_info.next ();
                 }
             }
@@ -1731,7 +1731,7 @@ namespace Gabut {
         int start_exec = 0;
         do {
             if (start_exec < max_exec) {
-                ensure_run.begin ();
+                aria_start.begin ();
             }
             start_exec++;
         } while (!aria_getverion () && start_exec < max_exec);
@@ -1740,7 +1740,7 @@ namespace Gabut {
         }
     }
 
-    private async void ensure_run () throws Error {
+    private async void aria_start () throws Error {
         string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true"};
         exec += @"--rpc-listen-port=$(get_dbsetting (DBSettings.RPCPORT))";
         exec += @"--rpc-max-request-size=$(get_dbsetting (DBSettings.RPCSIZE))";
@@ -1875,24 +1875,16 @@ namespace Gabut {
         return new Variant.boolean (data);
     }
 
-    private async void set_badge (int64 count) throws GLib.Error {
+    private async void set_count_visible (int64 count) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
+        instance.set_app_property ("count-visible", v_b (count > 0));
         instance.set_app_property ("count", new GLib.Variant.int64 (count));
     }
 
-    private async void set_badge_visible (bool visible) throws GLib.Error {
-        unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("count-visible", v_b (visible));
-    }
-
-    private async void set_progress (double progress) throws GLib.Error {
-        unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("progress", new GLib.Variant.double (progress));
-    }
-
-    private async void set_progress_visible (bool visible) throws GLib.Error {
+    private async void set_progress_visible (double progress, bool visible = true) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("progress-visible", v_b (visible));
+        instance.set_app_property ("progress", new GLib.Variant.double (progress));
     }
 
     private SourceFunc quicksource;
@@ -2081,7 +2073,9 @@ namespace Gabut {
         };
         var tittle = new Gtk.Label (file.get_basename ()) {
             wrap_mode = Pango.WrapMode.WORD_CHAR,
+            ellipsize = Pango.EllipsizeMode.MIDDLE,
             xalign = 0,
+            max_width_chars = 35,
             attributes = set_attribute (Pango.Weight.BOLD)
         };
         grid.attach (img, 0, 0);

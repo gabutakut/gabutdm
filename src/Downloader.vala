@@ -422,6 +422,7 @@ namespace Gabut {
                 height_request = 25,
                 halign = Gtk.Align.START
             };
+            ((Gtk.Label) download.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             download.clicked.connect (()=> {
                 sendselected (ariagid, "");
                 remove_timeout ();
@@ -436,6 +437,7 @@ namespace Gabut {
                 height_request = 25,
                 halign = Gtk.Align.END
             };
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
                 remove_timeout ();
                 close ();
@@ -446,6 +448,7 @@ namespace Gabut {
                 height_request = 25,
                 halign = Gtk.Align.END
             };
+            ((Gtk.Label) start_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             start_button.clicked.connect (action_status);
 
             var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
@@ -490,7 +493,6 @@ namespace Gabut {
 
         public override void show () {
             base.show ();
-            set_badge.begin (int64.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             Idle.add (()=> {
                 update_progress ();
                 add_timeout ();
@@ -614,7 +616,7 @@ namespace Gabut {
         }
 
         private uint timeout_id = 0;
-        public void add_timeout () {
+        private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = true;
                 timeout_id = Timeout.add (500, update_progress);
@@ -682,7 +684,7 @@ namespace Gabut {
                 string index, name, download, size, uris, pathname;
                 int persen;
                 model.get (iter, FileCol.FILEPATH, out pathname);
-                if  (pathname == "" || pathname == null) {
+                if (pathname == "" || pathname == null) {
                     return false;
                 }
                 if (pathname.contains ("[METADATA]")) {
@@ -699,7 +701,6 @@ namespace Gabut {
                 }
                 return false;
             });
-            aria_files_store (ariagid);
             if (totalsize > 0 && transferrate > 0) {
                 uint64 remaining_time = (totalsize - transferred) / transferrate;
                 timeleft.label = format_time ((int) remaining_time);

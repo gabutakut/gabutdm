@@ -121,7 +121,7 @@ namespace Gabut {
         File _selectfd = null;
         File selectfd {
             get {
-                return  _selectfd;
+                return _selectfd;
             }
             set {
                 _selectfd = value;
@@ -134,7 +134,7 @@ namespace Gabut {
         File _selectcook = null;
         File selectcook {
             get {
-                return  _selectcook;
+                return _selectcook;
             }
             set {
                 _selectcook = value;
@@ -216,6 +216,7 @@ namespace Gabut {
             save_meta = new Gtk.CheckButton.with_label ("Backup Magnet, Torrent, Metalink to File") {
                 margin_top = 5
             };
+            ((Gtk.Label) save_meta.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
 
             var alllink = new Gtk.Grid () {
                 column_spacing = 10,
@@ -556,6 +557,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
                 close ();
             });
@@ -564,6 +566,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) start_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             start_button.clicked.connect (()=> {
                 set_option ();
                 download_send.begin (false);
@@ -574,6 +577,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) later_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             later_button.clicked.connect (()=> {
                 set_option ();
                 download_send.begin (true);
@@ -584,6 +588,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) save_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             save_button.clicked.connect (()=> {
                 set_option (true);
                 close ();

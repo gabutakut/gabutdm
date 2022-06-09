@@ -107,6 +107,7 @@ namespace Gabut {
                 margin_bottom = 5,
                 active = !bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))
             };
+            ((Gtk.Label) dontshow.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             dontshow.toggled.connect (()=> {
                 set_dbsetting (DBSettings.DIALOGNOTIF, (!dontshow.active).to_string ());
             });
@@ -125,6 +126,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) open_file.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             open_file.clicked.connect (()=> {
                 string[] datastrs = datastr.split ("<gabut>");
                 open_fileman.begin (File.new_for_path (datastrs[1]).get_uri ());
@@ -134,6 +136,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
                 close ();
             });
@@ -142,6 +145,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) open_folder.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             open_folder.clicked.connect (()=> {
                 var file = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH));
                 if (info_succes (datastr, InfoSucces.ICONNAME) == "inode/directory") {

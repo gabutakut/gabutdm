@@ -273,7 +273,7 @@ namespace Gabut {
                     progressbar.fraction = fraction;
                 }
                 if (status == StatusMode.ACTIVE) {
-                    set_progress.begin (progressbar.fraction);
+                    set_progress_visible.begin (progressbar.fraction);
                 }
             }
         }
@@ -543,6 +543,7 @@ namespace Gabut {
             remove_dboptions (url);
             aria_deleteresult (ariagid);
             delete_me (this);
+            destroy ();
         }
 
         public void download () {

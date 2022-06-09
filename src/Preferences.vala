@@ -65,7 +65,7 @@ namespace Gabut {
         File _selectfd = null;
         File selectfd {
             get {
-                return  _selectfd;
+                return _selectfd;
             }
             set {
                 _selectfd = value;
@@ -600,11 +600,13 @@ namespace Gabut {
             stack.show ();
 
             var close_button = new Gtk.Button.with_label (_("Close"));
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
                 close ();
             });
 
             var save_button = new Gtk.Button.with_label (_("Save"));
+            ((Gtk.Label) save_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             save_button.clicked.connect (()=> {
                 aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
                 aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, set_dbsetting (DBSettings.CONNSERVER, numbconn.value.to_string ()));

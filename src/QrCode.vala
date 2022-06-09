@@ -106,6 +106,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
                 close ();
             });
@@ -114,6 +115,7 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) host_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             host_button.clicked.connect (share_server);
 
             var box_action = new Gtk.Grid () {

@@ -41,8 +41,8 @@ namespace Gabut {
         private DbusmenuItem startmenu;
         private DbusmenuItem pausemenu;
         private CanonicalDbusmenu dbusserver;
-        private int64 globalactive = 0;
         private GLib.List<DownloadRow> listrow;
+        private int64 globalactive = 0;
 
         public GabutWindow (Gtk.Application application) {
             Object (application: application,
@@ -106,15 +106,10 @@ namespace Gabut {
             headerstack.visible_child_name = "mode";
             headerstack.show ();
 
-            set_titlebar (build_headerbar ());
-
             var mainwindow = new Gtk.Grid ();
             mainwindow.attach (headerstack, 0, 0);
             mainwindow.attach (scrolled, 0, 1);
             child = mainwindow;
-            notify["is-active"].connect (()=> {
-                set_badge.begin (globalactive);
-            });
             hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
             close_request.connect (() => {
                 if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
@@ -125,7 +120,7 @@ namespace Gabut {
                 }
                 return false;
             });
-            Timeout.add (500, set_menulauncher);
+            set_titlebar (build_headerbar ());
         }
 
         private Gtk.HeaderBar build_headerbar () {
@@ -341,9 +336,37 @@ namespace Gabut {
         private bool set_menulauncher () {
             globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
             bool statact = globalactive > 0;
-            set_progress_visible.begin (statact);
-            set_badge_visible.begin (statact);
-            return true;
+            set_count_visible.begin (globalactive);
+            if (!statact) {
+                Timeout.add (400, ()=> {
+                    set_progress_visible.begin (0.0, false);
+                    set_count_visible.begin (globalactive);
+                    return false;
+                });
+            }
+            if (timeout_id != 0) {
+                Source.remove (timeout_id);
+                timeout_id = 0;
+            }
+            if (rmtimeout_id != 0) {
+                Source.remove (rmtimeout_id);
+                rmtimeout_id = 0;
+            }
+            return false;
+        }
+
+        private uint timeout_id = 0;
+        private void run_launcher () {
+            if (timeout_id == 0) {
+                timeout_id = Timeout.add (500, set_menulauncher);
+            }
+        }
+
+        private uint rmtimeout_id = 0;
+        private void stop_launcher () {
+            if (rmtimeout_id == 0) {
+                rmtimeout_id = Timeout.add (500, set_menulauncher);
+            }
         }
 
         private bool property_active (DownloadRow row) {
@@ -448,6 +471,7 @@ namespace Gabut {
                             case StatusMode.COMPLETE:
                             case StatusMode.ERROR:
                                 next_download ();
+                                stop_launcher ();
                                 remove_dbus.begin (row.rowbus);
                                 break;
                             case StatusMode.WAIT:
@@ -456,6 +480,7 @@ namespace Gabut {
                                 break;
                             case StatusMode.ACTIVE:
                                 if (!menudbus.get_exist (row.rowbus)) {
+                                    run_launcher ();
                                     if (!active_downloader (row.ariagid)) {
                                         append_dbus.begin (row.rowbus);
                                     }
@@ -475,6 +500,7 @@ namespace Gabut {
                         next_download ();
                         view_status ();
                         listrow.remove_link (listrow.find (rw));
+                        stop_launcher ();
                     });
                 }
             });
@@ -494,6 +520,7 @@ namespace Gabut {
                     case StatusMode.COMPLETE:
                     case StatusMode.ERROR:
                         next_download ();
+                        stop_launcher ();
                         remove_dbus.begin (row.rowbus);
                         break;
                     case StatusMode.WAIT:
@@ -502,6 +529,7 @@ namespace Gabut {
                         break;
                     case StatusMode.ACTIVE:
                         if (!menudbus.get_exist (row.rowbus)) {
+                            run_launcher ();
                             if (!active_downloader (row.ariagid)) {
                                 append_dbus.begin (row.rowbus);
                             }
@@ -517,6 +545,7 @@ namespace Gabut {
                 next_download ();
                 view_status ();
                 listrow.remove_link (listrow.find (rw));
+                stop_launcher ();
             });
             if (list_box.get_selected_row () == null) {
                 list_box.select_row (row);
@@ -647,7 +676,6 @@ namespace Gabut {
                 menudbus.child_append (rowbus);
             }
             yield open_quicklist (dbusserver, menudbus);
-            set_badge.begin (globalactive);
         }
 
         private async void remove_dbus (DbusmenuItem rowbus) throws GLib.Error {
@@ -655,7 +683,6 @@ namespace Gabut {
                 menudbus.child_delete (rowbus);
             }
             yield open_quicklist (dbusserver, menudbus);
-            set_badge.begin (globalactive);
         }
 
         public void view_status () {
