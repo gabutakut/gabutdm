@@ -55,7 +55,8 @@ namespace Gabut {
         SPLITSIZE = 31,
         LOWESTSPEED = 32,
         URISELECTOR = 33,
-        PIECESELECTOR = 34;
+        PIECESELECTOR = 34,
+        CLIPBOARD = 35;
 
         public string get_name () {
             switch (this) {
@@ -127,6 +128,8 @@ namespace Gabut {
                     return "uriselector";
                 case PIECESELECTOR:
                     return "pieceselector";
+                case CLIPBOARD:
+                    return "clipboard";
                 default:
                     return "id";
             }
@@ -2204,13 +2207,14 @@ namespace Gabut {
             splitsize      TEXT    NOT NULL,
             lowestspeed    TEXT    NOT NULL,
             uriselector    TEXT    NOT NULL,
-            pieceselector  TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\");");
+            pieceselector  TEXT    NOT NULL,
+            clipboard      TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\");");
     }
 
     private void settings_table () {
-        if ((db_table ("settings") - 1) != DBSettings.PIECESELECTOR) {
+        if ((db_table ("settings") - 1) != DBSettings.CLIPBOARD) {
             GabutApp.db.exec ("DROP TABLE settings;");
             table_settings (GabutApp.db);
         }

@@ -548,6 +548,12 @@ namespace Gabut {
                 active = bool.parse (get_dbsetting (DBSettings.STARTUP))
             };
 
+            var appclipboard = new Gtk.CheckButton.with_label (_("Add Url From Clipboard")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.CLIPBOARD))
+            };
+
             var allowrepl = new Gtk.CheckButton.with_label (_("Replace File")) {
                 margin_top = 5,
                 width_request = 450,
@@ -560,13 +566,10 @@ namespace Gabut {
                 active = bool.parse (aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING))
             };
 
-            var auto_mode = new ModeTogle.with_label (_("System Default"));
-            var light_mode = new ModeTogle.with_label (_("Light"));
-            var dark_mode = new ModeTogle.with_label (_("Dark"));
             var style_mode = new ModeTogle ();
-            style_mode.add_item (auto_mode);
-            style_mode.add_item (light_mode);
-            style_mode.add_item (dark_mode);
+            style_mode.add_item (new ModeTogle.with_label (_("System Default")));
+            style_mode.add_item (new ModeTogle.with_label (_("Light")));
+            style_mode.add_item (new ModeTogle.with_label (_("Dark")));
             style_mode.id = int.parse (get_dbsetting (DBSettings.STYLE));
 
             var notifyopt = new Gtk.Grid () {
@@ -579,13 +582,18 @@ namespace Gabut {
             notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 2, 1, 1);
             notifyopt.attach (retonhide, 0, 3, 1, 1);
             notifyopt.attach (appstartup, 0, 4, 1, 1);
-            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 5, 1, 1);
-            notifyopt.attach (systemnotif, 0, 6, 1, 1);
-            notifyopt.attach (dialognotify, 0, 7, 1, 1);
-            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 8, 1, 1);
-            notifyopt.attach (allowrepl, 0, 9, 1, 1);
-            notifyopt.attach (autorename, 0, 10, 1, 1);
-
+            notifyopt.attach (appclipboard, 0, 5, 1, 1);
+            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 6, 1, 1);
+            notifyopt.attach (systemnotif, 0, 7, 1, 1);
+            notifyopt.attach (dialognotify, 0, 8, 1, 1);
+            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 9, 1, 1);
+            notifyopt.attach (allowrepl, 0, 10, 1, 1);
+            notifyopt.attach (autorename, 0, 11, 1, 1);
+            var notyscr = new Gtk.ScrolledWindow () {
+                width_request = 455,
+                vexpand = true,
+                child = notifyopt
+            };
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
                 transition_duration = 500,
@@ -595,7 +603,7 @@ namespace Gabut {
             stack.add_named (bittorrent, "bittorrent");
             stack.add_named (folderopt, "folderopt");
             stack.add_named (moreoptions, "moreoptions");
-            stack.add_named (notifyopt, "notifyopt");
+            stack.add_named (notyscr, "notifyopt");
             stack.visible_child = settings;
             stack.show ();
 
@@ -628,6 +636,7 @@ namespace Gabut {
                 aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
                 aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
                 aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.get_name ().down ()));
+                set_dbsetting (DBSettings.CLIPBOARD, appclipboard.active.to_string ());
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
@@ -701,7 +710,7 @@ namespace Gabut {
                         stack.visible_child = moreoptions;
                         break;
                     case 4:
-                        stack.visible_child = notifyopt;
+                        stack.visible_child = notyscr;
                         break;
                     default:
                         stack.visible_child = settings;

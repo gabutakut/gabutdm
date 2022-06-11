@@ -23,7 +23,6 @@ namespace Gabut {
     public class GabutServer : Soup.Server {
         public signal void send_post_data (MatchInfo match_info);
         public signal void address_url (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
-        public signal void address_port (string address);
         public signal GLib.List<string> get_dl_row (int status);
         private SourceFunc callback;
 

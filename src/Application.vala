@@ -362,6 +362,9 @@ namespace Gabut {
         }
 
         private void on_clipboard () {
+            if (!bool.parse (get_dbsetting (DBSettings.CLIPBOARD))) {
+                return;
+            }
             get_clipboard.begin ((obj, res)=> {
                 try {
                     string textclip;
