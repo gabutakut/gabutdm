@@ -26,7 +26,7 @@ namespace Gabut {
             background: transparent;
         }
         body {
-            background: linear-gradient(90deg, rgb(16, 148, 44), rgb(16, 148, 34));
+            background: linear-gradient(90deg, rgb(16, 138, 44), rgb(16, 148, 34));
             color: white;
             width: 100%;
             height: 100%;
@@ -126,7 +126,7 @@ namespace Gabut {
             left: 0;
             z-index: 9999;
             display: none;
-            background: linear-gradient(60deg, rgb(16, 148, 44), rgb(16, 148, 34));
+            background: linear-gradient(60deg, rgb(16, 138, 44), rgb(16, 148, 34));
         }
         .overlay nav {
             text-align: center;
@@ -173,7 +173,6 @@ namespace Gabut {
             border: none;
             cursor: pointer;
         }
-
         #logo {
             font-size: 80px;
             letter-spacing: 10px;
@@ -185,9 +184,6 @@ namespace Gabut {
         }
         .strong{
             font-weight: 400;
-        }
-        .header img{
-            width: 100%;
         }
         .top-bar{
             width: 100%;
@@ -218,7 +214,7 @@ namespace Gabut {
             padding: 0px 12px;
         }
         header {
-            background: linear-gradient(60deg, rgb(16, 148, 44), rgb(16, 148, 34));
+            background: linear-gradient(60deg, rgb(16, 138, 44), rgb(16, 148, 34));
             color: white;
             position: sticky;
             top: 0;
@@ -243,7 +239,7 @@ namespace Gabut {
             white-space: nowrap;
         }
         .append .item:hover {
-            background: linear-gradient (60deg, rgb(16, 148, 44), rgb(16, 148, 34));
+            background: linear-gradient (60deg, rgb(16, 138, 44), rgb(16, 148, 34));
             border-radius: 4px;
         }
         .item > div {
@@ -269,6 +265,10 @@ namespace Gabut {
             text-align: end;
         }
         .item .modified {
+            flex-basis: 10%;
+            text-align: end;
+        }
+        .item .button {
             flex-basis: 10%;
             text-align: end;
         }
@@ -308,6 +308,21 @@ namespace Gabut {
         .item .icon.po {
             content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='white' class='bi bi-translate' viewBox='0 0 16 16'%3E%3Cpath d='M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286H4.545zm1.634-.736L5.5 3.956h-.049l-.679 2.022H6.18z'/%3E%3Cpath d='M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H2zm7.138 9.995c.193.301.402.583.63.846-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6.066 6.066 0 0 1-.415-.492 1.988 1.988 0 0 1-.94.31z'/%3E%3C/svg%3E\");
         }
+        .item .icon.playing {
+            content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='yellow' class='bi bi-play-circle-fill' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z'/%3E%3C/svg%3E\");
+        }
+        .item .icon.paused {
+            content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='blue' class='bi bi-pause-circle-fill' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.25 5C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5zm3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5z'/%3E%3C/svg%3E\");
+        }
+        .item .icon.waiting {
+            content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='white' class='bi bi-stopwatch-fill' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 0a.5.5 0 0 0 0 1H7v1.07A7.001 7.001 0 0 0 8 16a7 7 0 0 0 5.29-11.584.531.531 0 0 0 .013-.012l.354-.354.353.354a.5.5 0 1 0 .707-.707l-1.414-1.415a.5.5 0 1 0-.707.707l.354.354-.354.354a.717.717 0 0 0-.012.012A6.973 6.973 0 0 0 9 2.071V1h.5a.5.5 0 0 0 0-1h-3zm2 5.6V9a.5.5 0 0 1-.5.5H4.5a.5.5 0 0 1 0-1h3V5.6a.5.5 0 1 1 1 0z'/%3E%3C/svg%3E\");
+        }
+        .item .icon.complete {
+            content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='blue' class='bi bi-check-circle-fill' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z'/%3E%3C/svg%3E\");
+        }
+        .item .icon.error {
+            content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='red' class='bi bi-x-octagon-fill' viewBox='0 0 16 16'%3E%3Cpath d='M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zm-6.106 4.5L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 1 1 .708-.708z'/%3E%3C/svg%3E\");
+        }
         .icon.closew {
             content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='white' class='bi bi-x-circle' viewBox='0 0 16 16'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3E%3Cpath d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E\");
         }
@@ -315,22 +330,7 @@ namespace Gabut {
             content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='white' class='bi bi-window-plus' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1ZM4 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1Zm2-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z'/%3E%3Cpath d='M0 4a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v4a.5.5 0 0 1-1 0V7H1v5a1 1 0 0 0 1 1h5.5a.5.5 0 0 1 0 1H2a2 2 0 0 1-2-2V4Zm1 2h13V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2Z'/%3E%3Cpath d='M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-3.5-2a.5.5 0 0 0-.5.5v1h-1a.5.5 0 0 0 0 1h1v1a.5.5 0 0 0 1 0v-1h1a.5.5 0 0 0 0-1h-1v-1a.5.5 0 0 0-.5-.5Z'/%3E%3C/svg%3E\");
         }
         .icon.myhome {
-            content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='white' class='bi bi-house-heart-fill' viewBox='0 0 19 12'%3E%3Cpath d='M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207 1.354 8.853a.5.5 0 1 1-.708-.707L7.293 1.5Z'/%3E%3Cpath d='m14 9.293-6-6-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V9.293Zm-6-.811c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.691 0-5.018Z'/%3E%3C/svg%3E\");
-        }
-        .starting img{
-            margin-top: 10px;
-        }
-        .starting video{
-            margin-top: 50px;
-        }
-        #imgdata {
-            margin-left: 25%;
-        }
-        .starting audio{
-            margin-top: 110px;
-        }
-        .banner-text{
-            margin-top: 100px;
+            content: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='white' class='bi bi-house-heart-fill' viewBox='0 0 18 11'%3E%3Cpath d='M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207 1.354 8.853a.5.5 0 1 1-.708-.707L7.293 1.5Z'/%3E%3Cpath d='m14 9.293-6-6-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V9.293Zm-6-.811c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.691 0-5.018Z'/%3E%3C/svg%3E\");
         }
         .starting p{
             padding: 20px 0px;
@@ -353,29 +353,28 @@ namespace Gabut {
         }
         @-webkit-keyframes fadeInDownBig {
             0% {
-            opacity: 0;
-            -webkit-transform: translate3d(0, -2000px, 0);
-            transform: translate3d(0, -2000px, 0);
+                opacity: 0;
+                -webkit-transform: translate3d(0, -2000px, 0);
+                transform: translate3d(0, -2000px, 0);
             }
-            
             100% {
-            opacity: 1;
-            -webkit-transform: none;
-            transform: none;
+                opacity: 1;
+                -webkit-transform: none;
+                transform: none;
             }
         }
         @keyframes fadeInDownBig {
             0% {
-            opacity: 0;
-            -webkit-transform: translate3d(0, -2000px, 0);
-            -ms-transform: translate3d(0, -2000px, 0);
-            transform: translate3d(0, -2000px, 0);
+                opacity: 0;
+                -webkit-transform: translate3d(0, -2000px, 0);
+                -ms-transform: translate3d(0, -2000px, 0);
+                transform: translate3d(0, -2000px, 0);
             }
             100% {
-            opacity: 1;
-            -webkit-transform: none;
-            -ms-transform: none;
-            transform: none;
+                opacity: 1;
+                -webkit-transform: none;
+                -ms-transform: none;
+                transform: none;
             }
         }
         .fadeInDownBig {
@@ -384,28 +383,28 @@ namespace Gabut {
         }
         @-webkit-keyframes fadeInLeft {
             0% {
-            opacity: 0;
-            -webkit-transform: translate3d(-100%, 0, 0);
-            transform: translate3d(-100%, 0, 0);
+                opacity: 0;
+                -webkit-transform: translate3d(-100%, 0, 0);
+                transform: translate3d(-100%, 0, 0);
             }
             100% {
-            opacity: 1;
-            -webkit-transform: none;
-            transform: none;
+                opacity: 1;
+                -webkit-transform: none;
+                transform: none;
             }
         }
         @keyframes fadeInLeft {
             0% {
-            opacity: 0;
-            -webkit-transform: translate3d(-100%, 0, 0);
-            -ms-transform: translate3d(-100%, 0, 0);
-            transform: translate3d(-100%, 0, 0);
+                opacity: 0;
+                -webkit-transform: translate3d(-100%, 0, 0);
+                -ms-transform: translate3d(-100%, 0, 0);
+                transform: translate3d(-100%, 0, 0);
             }
             100% {
-            opacity: 1;
-            -webkit-transform: none;
-            -ms-transform: none;
-            transform: none;
+                opacity: 1;
+                -webkit-transform: none;
+                -ms-transform: none;
+                transform: none;
             }
         }
         .fadeInLeft {

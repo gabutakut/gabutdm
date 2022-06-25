@@ -401,8 +401,8 @@ namespace Gabut {
             set_download (downloads);
         }
 
-        public GLib.List<string> get_dl_row (int status) {
-            var strlist = new GLib.List<string> ();
+        public GLib.List<DownloadRow> get_dl_row (int status) {
+            var strlist = new GLib.List<DownloadRow> ();
             int total = (int) listrow.length ();
             for (int i = 0; i < total; i++) {
                 list_box.select_row (list_box.get_row_at_index (i));
@@ -410,7 +410,7 @@ namespace Gabut {
                 if (row != null) {
                     list_box.unselect_row (row);
                     if (row.status == status) {
-                        strlist.append (row.ariagid);
+                        strlist.append (row);
                     }
                 }
             }

@@ -23,7 +23,7 @@ namespace Gabut {
     public class GabutServer : Soup.Server {
         public signal void send_post_data (MatchInfo match_info);
         public signal void address_url (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
-        public signal GLib.List<string> get_dl_row (int status);
+        public signal GLib.List<DownloadRow> get_dl_row (int status);
         private SourceFunc callback;
 
         public async void set_listent (int port) throws Error {
@@ -161,9 +161,34 @@ namespace Gabut {
         private void gabut_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
             string pathname = "";
-            if (path.contains ("Downloading") || path.contains ("Paused") || path.contains ("Complete") || path.contains ("Waiting") || path.contains ("Error")) {
+            var htmlstr = "<div class=\"append\">";
+            if (path.contains ("Downloading")) {
                 pathname = path.split ("/")[1].strip ();
+                get_dl_row (StatusMode.ACTIVE).foreach ((row)=> {
+                    htmlstr += dm_div (row, "playing");
+                });
+            } else if (path.contains ("Paused")) {
+                pathname = path.split ("/")[1].strip ();
+                get_dl_row (StatusMode.PAUSED).foreach ((row)=> {
+                    htmlstr += dm_div (row, "paused");
+                });
+            } else if (path.contains ("Complete")) {
+                pathname = path.split ("/")[1].strip ();
+                get_dl_row (StatusMode.COMPLETE).foreach ((row)=> {
+                    htmlstr += dm_div (row, "complete");
+                });
+            } else if (path.contains ("Waiting")) {
+                pathname = path.split ("/")[1].strip ();
+                get_dl_row (StatusMode.WAIT).foreach ((row)=> {
+                    htmlstr += dm_div (row, "waiting");
+                });
+            } else if (path.contains ("Error")) {
+                pathname = path.split ("/")[1].strip ();
+                get_dl_row (StatusMode.ERROR).foreach ((row)=> {
+                    htmlstr += dm_div (row, "error");
+                });
             }
+            htmlstr += "</div>";
             self.pause_message (msg);
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
@@ -202,7 +227,7 @@ namespace Gabut {
                 }
                 self.unpause_message (msg);
             } else if (msg.get_method () == "GET") {
-                msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname).data);
+                msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, htmlstr).data);
                 msg.set_status (Soup.Status.OK, "OK");
                 self.unpause_message (msg);
             }
@@ -228,8 +253,15 @@ namespace Gabut {
             self.unpause_message (msg);
         }
 
-        private async void open_file (Soup.ServerMessage msg, File file) throws Error {
-            msg.set_response (get_mime_type (file), Soup.MemoryUse.COPY, file.load_bytes ().get_data ());
+        private string dm_div (DownloadRow? row, string icon) {
+            var sbuilder = new StringBuilder ("<div class=\"item\">");
+            sbuilder.append (@"<a class=\"icon $(get_mime_css (row.fileordir) != null? get_mime_css (row.fileordir) : "file")\"></a>");
+            sbuilder.append (@"<div class=\"name\"><h2 title=\"$(row.pathname != null? row.pathname : "Loading Informatioan")\">$(row.filename != null? row.filename : "Loading Informatioan")</h2></div>");
+            sbuilder.append (@"<div class=\"size\">$(GLib.format_size (row.transferred).to_ascii ())</div>");
+            sbuilder.append (@"<div class=\"size\">$(GLib.format_size (row.totalsize).to_ascii ())</div>");
+            sbuilder.append (@"<div class=\"icon $(icon)\"></div>");
+            sbuilder.append ("</div>");
+            return sbuilder.str;
         }
 
         private int path_lenght = 0;
@@ -339,9 +371,9 @@ namespace Gabut {
                 sbuilder.append (@"<a class=\"icon up\" href=\"$(GLib.Uri.unescape_string (path))\"></a>");
             } else {
                 if (fileordir) {
-                    sbuilder.append ("<div class=\"icon folder\"></div>");
+                    sbuilder.append (@"<a class=\"icon folder\" href=\"$(GLib.Uri.unescape_string (path))\"></a>");
                 } else {
-                    sbuilder.append (@"<div class=\"icon $(get_mime_css (mime))\"></div>");
+                    sbuilder.append (@"<a class=\"icon $(get_mime_css (mime))\" href=\"$(GLib.Uri.unescape_string (path))\"></a>");
                 }
             }
             if (fileinfo != null) {

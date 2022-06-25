@@ -20,7 +20,7 @@
 */
 
 namespace Gabut {
-    public string get_dm (string pathname) {
+    public string get_dm (string pathname, string htmlstr) {
         return @"
         <html>
         <head>
@@ -41,30 +41,31 @@ namespace Gabut {
                 </div>
             </div>
         </div>
-        <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Downloading\', this, \'#165391\')\"id=\"downloading\">Downloading</button>
-        <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Paused\', this, \'#165391\')\"id=\"paused\">Paused</button>
-        <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Complete\', this, \'#165391\')\"id=\"complete\">Complete</button>
-        <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Waiting\', this, \'#165391\')\"id=\"waiting\">Waiting</button>
-        <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Error\', this, \'#165391\')\"id=\"error\">Error</button>
-
+        <header>
+            <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Downloading\', this, \'#165391\')\"id=\"downloading\">Downloading</button>
+            <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Paused\', this, \'#165391\')\"id=\"paused\">Paused</button>
+            <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Complete\', this, \'#165391\')\"id=\"complete\">Complete</button>
+            <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Waiting\', this, \'#165391\')\"id=\"waiting\">Waiting</button>
+            <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Error\', this, \'#165391\')\"id=\"error\">Error</button>
+        </header>
         <div id=\"Downloading\" class=\"tabcontent\">
-            <h1 align=\"center\">Nothing Download</h1>
+            $(htmlstr)
         </div>
 
         <div id=\"Paused\" class=\"tabcontent\">
-            <h1 align=\"center\">No Paused Download</h1>
+            $(htmlstr)
         </div>
     
         <div id=\"Complete\" class=\"tabcontent\">
-            <h1 align=\"center\">No Complete Download</h1>
+            $(htmlstr)
         </div>
 
         <div id=\"Waiting\" class=\"tabcontent\">
-            <h1 align=\"center\">No Waiting Download</h1>
+            $(htmlstr)
         </div>
 
         <div id=\"Error\" class=\"tabcontent\">
-            <h1 align=\"center\">No Error Download</h1>
+            $(htmlstr)
         </div>
         <div id=\"myOverlay\" class=\"overlay animated fadeInDownBig\">
             <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close Overlay\"> <i class=\"icon closew\"></i></span>

@@ -46,8 +46,7 @@ namespace Gabut {
                 <div class=\"container\">
                     <div class=\"starting\">
                         <div class=\"row\">
-                            <div class=\"banner-text\">
-                            <div id=\"labelsend\"><h2>Send Multiple File</h2></div>
+                            <div id=\"labelsend\"><h2 class=\"fadeInLeft animated\">Send Multiple File</h2></div>
                             <form id=\"gabut-dropzone\" action=\"/Upload\" class=\"dropzone fadeInLeft animated\">
                                 <div class=\"fallback\">
                                     <input name=\"file\" type=\"file\" multiple />

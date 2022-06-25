@@ -1900,6 +1900,10 @@ namespace Gabut {
         return files;
     }
 
+    private async void open_file (Soup.ServerMessage msg, File file) throws Error {
+        msg.set_response (get_mime_type (file), Soup.MemoryUse.COPY, file.load_bytes ().get_data ());
+    }
+
     private async void get_css_online (string url, string filename) throws Error {
         var session = new Soup.Session.with_options ("max-conns", 16, "max-conns-per-host", 16);
         var msg = new Soup.Message ("GET", url);

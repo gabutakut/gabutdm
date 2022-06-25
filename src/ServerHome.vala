@@ -49,7 +49,6 @@ namespace Gabut {
                     <div class=\"starting\">
                         <div class=\"row\">
                             <div class=\"col-md-6\">
-                                <div class=\"banner-text\"></div>
                                 <h2 class=\"animated fadeInLeft\"><strong class=\"strong\" id=\"labelsend\">Download Manger</strong><br></h2>
                                 <p class=\"animated fadeInLeft\">
                                     Gabut download manager support Metallink Magnetlink Torrent URIs with simple and modern style.
@@ -58,10 +57,8 @@ namespace Gabut {
                                 <a href=\"/Downloading\" class=\"btn btn-primary btn-lg active animated fadeInLeft\" id=\"buttongo\">
                                 <strong>Download</strong>
                                 <br/>Manager </a>
-                                <div class=\"banner-text\"></div>
                             </div>
                             <div class=\"col-md-6\">
-                                <div class=\"banner-text\"></div>
                                 <h2 class=\"animated fadeInLeft\"><strong class=\"strong\" id=\"labelsend\">File Transfer</strong><br></h2>
                                 <p class=\"animated fadeInLeft\">
                                     Gabut File Trensfer is options to Send file on your smartphone or other pc to send file to this manager or explore your file share.
@@ -72,7 +69,6 @@ namespace Gabut {
                                 <a align=\"start\" href=\"/Home\" class=\"btn btn-primary btn-lg active animated fadeInLeft\" id=\"buttongo\">
                                 <strong>File</strong>
                                 <br/>Sharing </a>
-                                <div class=\"banner-text\"></div>
                             </div>
                         </div>
                     </div>

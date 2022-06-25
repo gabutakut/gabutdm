@@ -196,27 +196,10 @@ namespace Gabut {
                     color: #FFC48C;
                 }
             }
-            * {
-                -webkit-box-sizing: border-box;
-                -moz-box-sizing: border-box;
-                box-sizing: border-box;
-            }
-            body {
-                background-color: #416475;
-                margin-bottom: 50px;
-            }
-            html, button, input, select, textarea {
-                font-family: 'Montserrat', Helvetica, sans-serif;
-                color: #92a4ad;
-            }
-            h1 {
-                text-align: center;
-                margin: 30px 15px;
-            }
             .zoom-area { 
-                max-width: 490px;
+                max-width: 520px;
                 margin: 30px auto 30px;
-                font-size: 19px;
+                font-size: 20px;
                 text-align: center;
             }
         </style>
