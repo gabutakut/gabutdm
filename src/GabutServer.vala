@@ -107,15 +107,14 @@ namespace Gabut {
         private void home_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
             self.pause_message (msg);
-            string path_msg = msg.get_uri ().get_path ();
-            if (path_msg != "/" && path_msg != "favicon.ico") {
+            if (path != "/" && path != "favicon.ico") {
                 if (msg.get_method () == "POST") {
                     var meseg = (string) msg.get_request_body ().data;
                     if (!meseg.contains ("+")) {
                         set_dbsetting (DBSettings.SHORTBY, meseg.split ("=")[1]);
                     }
                 }
-                File filegbt = File.new_for_path (@"$(get_dbsetting (DBSettings.SHAREDIR))$(path_msg)");
+                File filegbt = File.new_for_path (@"$(get_dbsetting (DBSettings.SHAREDIR))$(path)");
                 var ftype = filegbt.query_file_type (FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
                 msg.set_status (Soup.Status.OK, "OK");
                 if (ftype == FileType.DIRECTORY) {
