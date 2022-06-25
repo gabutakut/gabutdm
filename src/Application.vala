@@ -22,7 +22,6 @@
 namespace Gabut {
     public class GabutApp : Gtk.Application {
         public static GabutWindow gabutwindow = null;
-        public static Sqlite.Database db;
         private Gdk.Clipboard clipboard;
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
@@ -40,7 +39,7 @@ namespace Gabut {
         construct {
             GLib.OptionEntry [] options = new GLib.OptionEntry [3];
             options [0] = { "startingup", 's', 0, OptionArg.NONE, null, null, "Run App on Startup" };
-            options [1] = { GLib.OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
+            options [1] = { GLib.OPTION_REMAINING, 0, 0, GLib.OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
             options [2] = { null };
             add_main_option_entries (options);
         }
@@ -70,30 +69,30 @@ namespace Gabut {
 
         protected override void activate () {
             if (gabutwindow == null) {
-                if (open_database (out db) != Sqlite.OK) {
+                if (open_database (out gabutdb) != Sqlite.OK) {
                     notify_app (_("Database Error"),
-                                _("Can't open database: %s\n").printf (db.errmsg ()), new ThemedIcon ("office-database"));
+                                _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
                 }
                 settings_table ();
                 if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
                     return;
                 }
                 exec_aria ();
-                if (!GLib.FileUtils.test (create_folder (".bootstrap.min.css"), GLib.FileTest.EXISTS)) {
+                if (!GLib.FileUtils.test (file_config (".bootstrap.min.css"), GLib.FileTest.EXISTS)) {
                     var loop = new GLib.MainLoop (null, false);
                     boot_strap.begin (()=> {
                         loop.quit ();
                     });
                     loop.run ();
                 }
-                if (!GLib.FileUtils.test (create_folder (".dropzone.min.js"), GLib.FileTest.EXISTS)) {
+                if (!GLib.FileUtils.test (file_config (".dropzone.min.js"), GLib.FileTest.EXISTS)) {
                     var loop = new GLib.MainLoop (null, false);
                     drop_zone.begin (()=> {
                         loop.quit ();
                     });
                     loop.run ();
                 }
-                if (!GLib.FileUtils.test (create_folder (".dropzone.min.css"), GLib.FileTest.EXISTS)) {
+                if (!GLib.FileUtils.test (file_config (".dropzone.min.css"), GLib.FileTest.EXISTS)) {
                     var loop = new GLib.MainLoop (null, false);
                     drop_zonemin.begin (()=> {
                         loop.quit ();
@@ -365,19 +364,21 @@ namespace Gabut {
             if (!bool.parse (get_dbsetting (DBSettings.CLIPBOARD))) {
                 return;
             }
-            get_clipboard.begin ((obj, res)=> {
-                try {
-                    string textclip;
-                    get_clipboard.end (res, out textclip);
-                    if (textclip != null && textclip != "") {
-                        if (!url_active (textclip.strip ())) {
-                            dialog_url (textclip.strip ());
+            if (clipboard.formats.contain_gtype (GLib.Type.STRING)) {
+                get_clipboard.begin ((obj, res)=> {
+                    try {
+                        string textclip;
+                        get_clipboard.end (res, out textclip);
+                        if (textclip != null && textclip != "") {
+                            if (!url_active (textclip.strip ())) {
+                                dialog_url (textclip.strip ());
+                            }
                         }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
                     }
-                } catch (GLib.Error e) {
-                    critical (e.message);
-                }
-            });
+                });
+            }
         }
 
         private async void get_clipboard (out string? valu) throws Error {

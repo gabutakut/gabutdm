@@ -20,94 +20,95 @@
 */
 
 namespace Gabut {
-    public class ServerHome : GLib.Object {
-        public string get_home () {
-            return @"
-                <html>
-                <head>
-                <style>
-                    $(ServerCss.get_css ());
-                </style>
-                <style>
-                    $(get_css(create_folder (".bootstrap.min.css")));
-                </style>
-                    <title>Share File To Computer</title>
-                </head>
-                <body>
+    public string get_home () {
+        return @"
+        <html>
+        <head>
+            <title>Welcome to Gabut Akut</title>
+        </head>
+        <body>
+        <div class=\"container\">
+            <div class=\"navigation\" id=\"navigation-scroll\">
+                <div class=\"row\">
+                    <div class=\"col-md-11 col-xs-10\">
+                        <a href=\"/\"><span id=\"logo\"><strong class=\"strong\">G</strong>ABUT</span></a>
+                        </div>
+                        <div class=\"col-md-1 col-xs-2\">
+                            <p class=\"nav-button\">
+                            <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
+                            <i class=\"icon open\"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <section id=\"header\" class=\"header\">
+            <div class=\"top-bar\">
                 <div class=\"container\">
-                    <div class=\"navigation\" id=\"navigation-scroll\">
+                    <div class=\"starting\">
                         <div class=\"row\">
-                            <div class=\"col-md-11 col-xs-10\">
-                                <a href=\"/\"><span id=\"logo\"><strong class=\"strong\">G</strong>ABUT</span></a>
-                                </div>
-                                <div class=\"col-md-1 col-xs-2\">
-                                    <p class=\"nav-button\">
-                                    <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
-                                    <b class=\"openBtn\">Open</b>
-                                    </button>
-                                </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"banner-text\"></div>
+                                <h2 class=\"animated fadeInLeft\"><strong class=\"strong\" id=\"labelsend\">Download Manger</strong><br></h2>
+                                <p class=\"animated fadeInLeft\">
+                                    Gabut download manager support Metallink Magnetlink Torrent URIs with simple and modern style.
+                                    Gabut runing with the Aria2 RPC method.
+                                </p>
+                                <a href=\"/Downloading\" class=\"btn btn-primary btn-lg active animated fadeInLeft\" id=\"buttongo\">
+                                <strong>Download</strong>
+                                <br/>Manager </a>
+                                <div class=\"banner-text\"></div>
+                            </div>
+                            <div class=\"col-md-6\">
+                                <div class=\"banner-text\"></div>
+                                <h2 class=\"animated fadeInLeft\"><strong class=\"strong\" id=\"labelsend\">File Transfer</strong><br></h2>
+                                <p class=\"animated fadeInLeft\">
+                                    Gabut File Trensfer is options to Send file on your smartphone or other pc to send file to this manager or explore your file share.
+                                </p>
+                                <a align=\"end\" href=\"/Upload\" class=\"btn btn-primary btn-lg active animated fadeInLeft\" id=\"buttongo\">
+                                <strong>File</strong>
+                                <br/>Transfer </a>
+                                <a align=\"start\" href=\"/Home\" class=\"btn btn-primary btn-lg active animated fadeInLeft\" id=\"buttongo\">
+                                <strong>File</strong>
+                                <br/>Sharing </a>
+                                <div class=\"banner-text\"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <section id=\"header\" class=\"header\">
-                    <div class=\"top-bar\">
-                        <div class=\"container\">
-                            <div class=\"starting\">
-                                <div class=\"row\">
-                                    <div class=\"col-md-6\">
-                                        <div class=\"banner-text\"></div>
-                                        <h2 class=\"animated fadeInLeft\"><strong class=\"strong\" id=\"labelsend\">Download Manger</strong><br></h2>
-                                        <p class=\"animated fadeInLeft\">
-                                            Gabut download manager support Metallink Magnetlink Torrent URIs with simple and modern style.
-                                            Gabut runing with the Aria2 RPC method.
-                                        </p>
-                                        <a href=\"/Downloading\" class=\"btn btn-primary btn-lg active animated fadeInLeft\" id=\"buttongo\">
-                                        <strong>Download</strong>
-                                        <br/>Manager </a>
-                                        <div class=\"banner-text\"></div>
-                                    </div>
-                                    <div class=\"col-md-6\">
-                                        <div class=\"banner-text\"></div>
-                                        <h2 class=\"animated fadeInLeft\"><strong class=\"strong\" id=\"labelsend\">File Transfer</strong><br></h2>
-                                        <p class=\"animated fadeInLeft\">
-                                            Gabut File Trensfer is options to Send file on your smartphone or other pc to send file to this manager.
-                                        </p>
-                                        <a align=\"end\" href=\"/Upload\" class=\"btn btn-primary btn-lg active animated fadeInLeft\" id=\"buttongo\">
-                                        <strong>File</strong>
-                                        <br/>Transfer </a>
-                                        <div class=\"banner-text\"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <div id=\"myOverlay\" class=\"overlay animated fadeInDownBig\">
-                    <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close Overlay\">x</span>
-                    <div class=\"overlay-content\">
-                        <nav>
-                        <ul>
-                            <h2 id=\"metadata\">Open link On Browser PC</h2>
-                            <form class=\"text\" action=\"/\" method=\"post\" enctype=\"text/plain\">
-                                <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"openlink\">
-                                <button class=\"btn btn-primary btn-lg active\">Open</button>
-                            </form>
-                        </ul>
-                    </nav>
-                    </div>
-                </div>
-                <script>
-                    function openMenu() {
-                        document.getElementById(\"myOverlay\").style.display = \"block\";
-                    }
-                    function closeMenu() {
-                        document.getElementById(\"myOverlay\").style.display = \"none\";
-                    }
-                </script>
-                </body>
-                </html>
-            ";
-        }
+            </div>
+        </section>
+        <div id=\"myOverlay\" class=\"overlay animated fadeInDownBig\">
+            <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close Overlay\"> <i class=\"icon closew\"></i></span>
+            <div class=\"overlay-content\">
+                <nav>
+                <ul>
+                    <h2 id=\"metadata\">Open link On Browser PC</h2>
+                    <form class=\"text\" action=\"/\" method=\"post\" enctype=\"text/plain\">
+                        <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"openlink\">
+                        <button class=\"btn btn-primary btn-lg active\">Open</button>
+                    </form>
+                </ul>
+            </nav>
+            </div>
+        </div>
+        <script>
+            function openMenu() {
+                document.getElementById(\"myOverlay\").style.display = \"block\";
+            }
+            function closeMenu() {
+                document.getElementById(\"myOverlay\").style.display = \"none\";
+            }
+        </script>
+        <style>
+            $(get_gbt_css ());
+        </style>
+        <style>
+            $(get_css(file_config (".bootstrap.min.css")));
+        </style>
+        </body>
+        </html>
+        ";
     }
 }

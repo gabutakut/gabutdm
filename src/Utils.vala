@@ -56,7 +56,10 @@ namespace Gabut {
         LOWESTSPEED = 32,
         URISELECTOR = 33,
         PIECESELECTOR = 34,
-        CLIPBOARD = 35;
+        CLIPBOARD = 35,
+        SHAREDIR = 36,
+        SWITCHDIR = 37,
+        SHORTBY = 38;
 
         public string get_name () {
             switch (this) {
@@ -130,6 +133,12 @@ namespace Gabut {
                     return "pieceselector";
                 case CLIPBOARD:
                     return "clipboard";
+                case SHAREDIR:
+                    return "sharedir";
+                case SWITCHDIR:
+                    return "switchdir";
+                case SHORTBY:
+                    return "shortby";
                 default:
                     return "id";
             }
@@ -1066,6 +1075,17 @@ namespace Gabut {
         N_COLUMNS
     }
 
+    private enum FSorter {
+        NAME,
+        MIMETYPE,
+        FILEORDIR,
+        SIZE,
+        FILEINDIR,
+        FILEINFO,
+        DATE,
+        N_COLUMNS
+    }
+
     public enum FileAllocations {
         NONE = 0,
         PREALLOC = 1,
@@ -1315,6 +1335,33 @@ namespace Gabut {
         public string eventid {get; set;}
         public Variant data {get; set;}
         public uint timestamp {get; set;}
+    }
+
+    private struct UsersID {
+        public int64 id {get; set;}
+        public bool activate {get; set;}
+        public string user {get; set;}
+        public string passwd {get; set;}
+    }
+
+    private enum UserID {
+        ID = 0,
+        ACTIVE = 1,
+        USER = 2,
+        PASSWD = 3;
+
+        public string get_str () {
+            switch (this) {
+                case ACTIVE:
+                    return "active";
+                case USER:
+                    return "user";
+                case PASSWD:
+                    return "passwd";
+                default:
+                    return "id";
+            }
+        }
     }
 
     private string aria_listent;
@@ -1825,21 +1872,42 @@ namespace Gabut {
     }
 
     private async void boot_strap () throws Error {
-        yield get_css_online ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", create_folder (".bootstrap.min.css"));
+        yield get_css_online ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", file_config (".bootstrap.min.css"));
     }
 
     private async void drop_zone () throws Error {
-        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", create_folder (".dropzone.min.js"));
+        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", file_config (".dropzone.min.js"));
     }
 
     private async void drop_zonemin () throws Error {
-        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", create_folder (".dropzone.min.css"));
+        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", file_config (".dropzone.min.css"));
+    }
+
+    private int get_container (File file) {
+        int files = 0;
+        try {
+            FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            FileInfo info = null;
+            while (((info = enumerator.next_file (null)) != null)) {
+                if (info.get_name ().length > 0 && info.get_name ()[0] == '.') {
+                    continue;
+                }
+                files++;
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return files;
     }
 
     private async void get_css_online (string url, string filename) throws Error {
-        var session = new Soup.Session ();
+        var session = new Soup.Session.with_options ("max-conns", 16, "max-conns-per-host", 16);
         var msg = new Soup.Message ("GET", url);
         var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
+        write_file.begin (bytes, filename);
+    }
+
+    private async void write_file (GLib.Bytes bytes, string filename) throws Error {
         var file = File.new_for_path (filename);
         FileOutputStream out_stream = yield file.create_async (FileCreateFlags.REPLACE_DESTINATION, GLib.Priority.DEFAULT, null);
         out_stream.write (bytes.get_data ());
@@ -1902,6 +1970,10 @@ namespace Gabut {
         yield;
     }
 
+    private string get_shorted (int sort) {
+        return int.parse (get_dbsetting (DBSettings.SHORTBY)) == sort? "selected>" : @"value=\"$(sort)\">";
+    }
+
     private string get_mime_type (File fileinput) {
         if (!fileinput.query_exists ()) {
             return "";
@@ -1914,6 +1986,7 @@ namespace Gabut {
         }
         return "";
     }
+
     private string get_css (string cssloc) {
         try {
             var file = File.new_for_path (cssloc);
@@ -1936,7 +2009,7 @@ namespace Gabut {
         return config_dir.get_path ();
     }
 
-    private static string create_folder (string name) {
+    private static string file_config (string name) {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
     }
 
@@ -1950,10 +2023,6 @@ namespace Gabut {
         notification.set_title (message);
         notification.set_body (msg_bd);
         GLib.Application.get_default ().send_notification (Environment.get_application_name (), notification);
-    }
-
-    private string set_dollar (string dollar) {
-        return "$%s".printf (dollar);
     }
 
     private Gtk.Widget headerlabel (string label, int wrequest) {
@@ -2105,25 +2174,60 @@ namespace Gabut {
         return grid;
     }
 
+    private string get_mime_css (string mime) {
+        if (mime.contains ("image/")) {
+            return "image";
+        } else if (mime.contains ("audio/")) {
+            return "audio";
+        } else if (mime.contains ("script") || mime.contains ("json") || mime.contains ("yaml") || mime.contains ("xml")) {
+            return "code";
+        } else if (mime.contains ("font/") || mime.contains ("octet-stream")) {
+            return "font";
+        } else if (mime.contains ("video/")) {
+            return "video";
+        } else if (mime.contains ("text/")) {
+            return "text";
+        } else if (mime.contains ("pdf")) {
+            return "pdf";
+        } else if (mime.contains ("translation")) {
+            return "po";
+        } else if (mime.contains ("/zip") || mime.contains ("/gzip") || mime.contains ("compressed")) {
+            return "archive";
+        } else {
+            return "file";
+        }
+    }
+    public static Sqlite.Database gabutdb;
     private int open_database (out Sqlite.Database db) {
         int opendb = 0;
-        if (!File.new_for_path (create_folder (".db")).query_exists ()) {
+        if (!File.new_for_path (file_config (".db")).query_exists ()) {
             opendb = creat_no_exist (out db);
         } else {
-            opendb = Sqlite.Database.open (create_folder (".db"), out db);
+            opendb = Sqlite.Database.open (file_config (".db"), out db);
         }
         return opendb;
     }
 
     private int creat_no_exist (out Sqlite.Database db) {
-        int opendb = Sqlite.Database.open (create_folder (".db"), out db);
+        int opendb = Sqlite.Database.open (file_config (".db"), out db);
         if (opendb != Sqlite.OK) {
             warning ("Can't open database: %s\n", db.errmsg ());
         }
+        opendb = table_users (db);
         opendb = table_download (db);
         opendb = table_options (db);
         opendb = table_settings (db);
         return opendb;
+    }
+
+    private int table_users (Sqlite.Database db) {
+        return db.exec (@"CREATE TABLE IF NOT EXISTS users (
+            id             INT64   NOT NULL,
+            active         TEXT    NOT NULL,
+            user           TEXT    NOT NULL,
+            passwd         TEXT    NOT NULL);
+            INSERT INTO users (id, active, user, passwd)
+            VALUES (1, \"true\", \"gabutdm\", \"123456\");");
     }
 
     private int table_download (Sqlite.Database db) {
@@ -2171,7 +2275,7 @@ namespace Gabut {
     }
 
     private int table_settings (Sqlite.Database db) {
-        string dir = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD).replace ("/", "\\/");
+        string dir = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD);
         return db.exec (@"CREATE TABLE IF NOT EXISTS settings (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,
             rpcport        TEXT    NOT NULL,
@@ -2208,42 +2312,108 @@ namespace Gabut {
             lowestspeed    TEXT    NOT NULL,
             uriselector    TEXT    NOT NULL,
             pieceselector  TEXT    NOT NULL,
-            clipboard      TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\");");
+            clipboard      TEXT    NOT NULL,
+            sharedir       TEXT    NOT NULL,
+            switchdir      TEXT    NOT NULL,
+            shortby        TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, shortby)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"2\");");
     }
 
     private void settings_table () {
-        if ((db_table ("settings") - 1) != DBSettings.CLIPBOARD) {
-            GabutApp.db.exec ("DROP TABLE settings;");
-            table_settings (GabutApp.db);
+        if ((db_get_cols ("settings") - 1) != DBSettings.SHORTBY) {
+            gabutdb.exec ("DROP TABLE settings;");
+            table_settings (gabutdb);
         }
     }
 
     private void download_table () {
-        if ((db_table ("download") - 1) != DBDownload.LABELTRANSFER) {
-            GabutApp.db.exec ("DROP TABLE download;");
-            table_download (GabutApp.db);
+        if ((db_get_cols ("download") - 1) != DBDownload.LABELTRANSFER) {
+            gabutdb.exec ("DROP TABLE download;");
+            table_download (gabutdb);
         }
-        if ((db_table ("options") - 1) != DBOption.UNVERIFIED) {
-            GabutApp.db.exec ("DROP TABLE options;");
-            table_options (GabutApp.db);
+        if ((db_get_cols ("options") - 1) != DBOption.UNVERIFIED) {
+            gabutdb.exec ("DROP TABLE options;");
+            table_options (gabutdb);
         }
     }
 
-    private int db_table (string opt) {
+    private int db_get_cols (string opt) {
         int ncols;
         string errmsg;
-        int res = GabutApp.db.get_table (@"SELECT * FROM $(opt)", null, null, out ncols, out errmsg);
+        int res = gabutdb.get_table (@"SELECT * FROM $(opt)", null, null, out ncols, out errmsg);
         if (res != Sqlite.OK) {
             warning ("Error: %s", errmsg);
         }
         return ncols;
     }
 
+    private void add_db_user (int64 id) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("INSERT OR IGNORE INTO users (id, active, user, passwd) VALUES (?, ?, ?, ?);", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        res = stmt.bind_text (2, "false");
+        res = stmt.bind_text (3, "");
+        res = stmt.bind_text (4, "");
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+    }
+
+    private void remove_user (int64 id) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("DELETE FROM users WHERE id = ?", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+    }
+
+    private GLib.List<UsersID?> get_users () {
+        var usersid = new GLib.List<UsersID?> ();
+        Sqlite.Statement? stmt;
+        int res = gabutdb.prepare_v2 ("SELECT id, active, user, passwd FROM users ORDER BY id;", -1, out stmt);
+        if (res != Sqlite.OK) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        while (stmt.step () == Sqlite.ROW) {
+            var users = UsersID ();
+            users.id = stmt.column_int64 (0);
+            users.activate = bool.parse (stmt.column_text (1));
+            users.user = stmt.column_text (2);
+            users.passwd = stmt.column_text (3);
+            usersid.append (users);
+        }
+        stmt.reset ();
+        return usersid;
+    }
+
+    private string update_user (int64 id, UserID type, string value) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 (@"UPDATE users SET $(type.get_str ()) = \"$(value)\" WHERE id = ?", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+        return value;
+    }
+
+    private string get_db_user (UserID type, string user) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("SELECT * FROM users WHERE user = ?", -1, out stmt);
+        stmt.bind_text (1, user);
+        if ((res = stmt.step ()) == Sqlite.ROW) {
+            return stmt.column_text (type);
+        }
+        return "";
+    }
+
     private string get_dbsetting (DBSettings type) {
         Sqlite.Statement stmt;
-        int res = GabutApp.db.prepare_v2 ("SELECT * FROM settings WHERE id = ?", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM settings WHERE id = ?", -1, out stmt);
         stmt.bind_int (1, 1);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return stmt.column_text (type);
@@ -2253,11 +2423,10 @@ namespace Gabut {
 
     private string set_dbsetting (DBSettings type, string value) {
         Sqlite.Statement stmt;
-        string sql = @"UPDATE settings SET $(type.get_name ()) = \"$(value)\" WHERE id = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 (@"UPDATE settings SET $(type.get_name ()) = \"$(value)\" WHERE id = ?", -1, out stmt);
         res = stmt.bind_int (1, 1);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
         return value;
@@ -2276,7 +2445,7 @@ namespace Gabut {
     private void add_db_download (DownloadRow download) {
         Sqlite.Statement stmt;
         string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBDownload.URL, download.url);
         res = stmt.bind_int (DBDownload.STATUS, download.status);
         res = stmt.bind_text (DBDownload.ARIAGID, download.ariagid);
@@ -2289,7 +2458,7 @@ namespace Gabut {
         res = stmt.bind_text (DBDownload.FILEORDIR, download.fileordir == null? "" : download.fileordir);
         res = stmt.bind_text (DBDownload.LABELTRANSFER, download.labeltransfer == null? "" : download.labeltransfer);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
@@ -2299,7 +2468,7 @@ namespace Gabut {
         var buildstr = new StringBuilder ();
         buildstr.append ("UPDATE download SET");
         uint empty_hash = buildstr.str.hash ();
-        int res = GabutApp.db.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, download.url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             if (stmt.column_int (DBDownload.STATUS) != download.status) {
@@ -2364,21 +2533,20 @@ namespace Gabut {
             }
         }
         buildstr.append (" WHERE url = ?");
-        res = GabutApp.db.prepare_v2 (buildstr.str, -1, out stmt);
+        res = gabutdb.prepare_v2 (buildstr.str, -1, out stmt);
         res = stmt.bind_text (1, download.url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
 
     private void remove_download (string url) {
         Sqlite.Statement stmt;
-        string sql = "DELETE FROM download WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("DELETE FROM download WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
@@ -2386,9 +2554,9 @@ namespace Gabut {
     private GLib.List<DownloadRow> get_download () {
         var downloads = new GLib.List<DownloadRow> ();
         Sqlite.Statement stmt;
-        int res = GabutApp.db.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer FROM download ORDER BY url;", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer FROM download ORDER BY url;", -1, out stmt);
         if (res != Sqlite.OK) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         while (stmt.step () == Sqlite.ROW) {
             downloads.append (new DownloadRow (stmt));
@@ -2399,8 +2567,7 @@ namespace Gabut {
 
     private bool db_download_exist (string url) {
         Sqlite.Statement stmt;
-        string sql = "SELECT * FROM download WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return true;
@@ -2412,8 +2579,7 @@ namespace Gabut {
     private Gee.HashMap<string, string> get_dboptions (string url) {
         Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
         Sqlite.Statement stmt;
-        string sql = "SELECT * FROM options WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             string dir = stmt.column_text (DBOption.DIR);
@@ -2537,7 +2703,7 @@ namespace Gabut {
     private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
         Sqlite.Statement stmt;
         string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, proxyusr, proxypass, httpusr, httppass, ftpusr, ftppass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp, integrity, unverified, proxytype) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBOption.URL, url);
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
             res = stmt.bind_text (DBOption.MAGNETBACKUP, hashoptions.@get (AriaOptions.BT_SAVE_METADATA.get_name ()));
@@ -2668,18 +2834,17 @@ namespace Gabut {
             res = stmt.bind_text (DBOption.UNVERIFIED, "");
         }
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
 
     private void remove_dboptions (string url) {
         Sqlite.Statement stmt;
-        string sql = "DELETE FROM options WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("DELETE FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
@@ -2689,7 +2854,7 @@ namespace Gabut {
         var buildstr = new StringBuilder ();
         buildstr.append ("UPDATE options SET");
         uint empty_hash = buildstr.str.hash ();
-        int res = GabutApp.db.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
@@ -3034,18 +3199,17 @@ namespace Gabut {
             }
         }
         buildstr.append (" WHERE url = ?");
-        res = GabutApp.db.prepare_v2 (buildstr.str, -1, out stmt);
+        res = gabutdb.prepare_v2 (buildstr.str, -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
 
     private bool db_option_exist (string url) {
         Sqlite.Statement stmt;
-        string sql = "SELECT * FROM options WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return true;

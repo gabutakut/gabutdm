@@ -86,20 +86,14 @@ namespace Gabut {
             header.title_widget = header_grid;
             header.decoration_layout = "none";
 
-            address = new MediaEntry ("insert-link", "process-completed") {
-                primary_icon_tooltip_text = "",
-                secondary_icon_tooltip_text = "",
+            address = new MediaEntry.info ("insert-link", "process-completed") {
                 hexpand = true,
-                width_request = 450,
-                sensitive = false
+                width_request = 450
             };
 
-            directory = new MediaEntry ("folder", "process-completed") {
-                primary_icon_tooltip_text = "",
-                secondary_icon_tooltip_text = "",
+            directory = new MediaEntry.info ("folder", "process-completed") {
                 hexpand = true,
-                width_request = 450,
-                sensitive = false
+                width_request = 450
             };
 
             var dontshow = new Gtk.CheckButton.with_label (_("Don't open this dialog when download complete")) {

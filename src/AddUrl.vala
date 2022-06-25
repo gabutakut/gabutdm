@@ -494,7 +494,6 @@ namespace Gabut {
                 width_request = 70
             };
             var encrypt_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.BOTTOM,
                 width_request = 70,
                 child = encrypt_flow
             };
@@ -505,6 +504,7 @@ namespace Gabut {
                 }
             });
             encrypt_button = new Gtk.MenuButton () {
+                direction = Gtk.ArrowType.UP,
                 popover = encrypt_popover
             };
             foreach (var encrp in BTEncrypts.get_all ()) {

@@ -28,6 +28,7 @@ namespace Gabut {
         private Gtk.MenuButton piecesel_button;
         private Gtk.MenuButton urisel_button;
         private Gtk.Button folder_location;
+        private Gtk.Button folder_sharing;
 
         FileAllocation _fileallocation = null;
         FileAllocation fileallocation {
@@ -62,8 +63,8 @@ namespace Gabut {
             }
         }
 
-        File _selectfd = null;
-        File selectfd {
+        GLib.File _selectfd = null;
+        GLib.File selectfd {
             get {
                 return _selectfd;
             }
@@ -71,6 +72,19 @@ namespace Gabut {
                 _selectfd = value;
                 if (selectfd != null) {
                     folder_location.set_child (button_chooser (selectfd));
+                }
+            }
+        }
+
+        GLib.File _selectfs = null;
+        GLib.File selectfs {
+            get {
+                return _selectfs;
+            }
+            set {
+                _selectfs = value;
+                if (selectfs != null) {
+                    folder_sharing.set_child (button_chooser (selectfs));
                 }
             }
         }
@@ -89,7 +103,7 @@ namespace Gabut {
             };
             view_mode.append_text (_("Default"));
             view_mode.append_text (_("BitTorrent"));
-            view_mode.append_text (_("Folder"));
+            view_mode.append_text (_("Sharing"));
             view_mode.append_text (_("Option"));
             view_mode.append_text (_("System"));
             view_mode.selected = 0;
@@ -151,7 +165,6 @@ namespace Gabut {
                 width_request = 70
             };
             var stream_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.TOP,
                 width_request = 70,
                 child = stream_flow
             };
@@ -162,6 +175,7 @@ namespace Gabut {
                 }
             });
             piecesel_button = new Gtk.MenuButton () {
+                direction = Gtk.ArrowType.UP,
                 popover = stream_popover
             };
             foreach (var piecesel in PieceSelectors.get_all ()) {
@@ -184,7 +198,6 @@ namespace Gabut {
                 width_request = 70
             };
             var urisel_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.TOP,
                 width_request = 70,
                 child = urisel_flow
             };
@@ -195,6 +208,7 @@ namespace Gabut {
                 }
             });
             urisel_button = new Gtk.MenuButton () {
+                direction = Gtk.ArrowType.UP,
                 popover = urisel_popover
             };
             foreach (var urisel in UriSelectors.get_all ()) {
@@ -421,6 +435,116 @@ namespace Gabut {
             });
             selectfd = File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/"));
 
+            folder_sharing = new Gtk.Button ();
+            folder_sharing.clicked.connect (()=> {
+                var file = run_open_fd (this, selectfs);
+                if (file != null) {
+                    selectfs = file;
+                }
+            });
+            selectfs = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
+
+            var add_auth = new Gtk.Button.from_icon_name ("list-add") {
+                tooltip_text = _("Add Authenty")
+            };
+
+            var usergrid = new Gtk.Grid () {
+                column_spacing = 10,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
+            };
+            int userid = 0;
+            get_users ().foreach ((user)=> {
+                userid++;
+                var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    text = user.user,
+                    secondary_icon_name = user.activate? "media-playback-start" : "process-stop",
+                    secondary_icon_tooltip_text = !user.activate? _("Reject") : _("Accept")
+                };
+                bool activable = user.activate;
+                user_entry.sclicked.connect (()=> {
+                    activable = !activable;
+                    user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
+                    user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
+                    update_user (user.id, UserID.ACTIVE, activable.to_string ());
+                });
+                user_entry.changed.connect (()=> {
+                    update_user (user.id, UserID.USER, user_entry.text);
+                });
+                var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    secondary_icon_tooltip_text = _("Delete Authentication"),
+                    text = user.passwd
+                };
+                pass_entry.changed.connect (()=> {
+                    update_user (user.id, UserID.PASSWD, pass_entry.text);
+                });
+                pass_entry.sclicked.connect (()=> {
+                    remove_user (user.id);
+                    userid--;
+                    usergrid.remove (user_entry);
+                    usergrid.remove (pass_entry);
+                    user_entry.destroy ();
+                    pass_entry.destroy ();
+                });
+                usergrid.attach (user_entry, 0, userid);
+                usergrid.attach (pass_entry, 1, userid);
+            });
+
+            add_auth.clicked.connect (()=> {
+                userid++;
+                int64 menemonic = get_real_time ();
+                add_db_user (menemonic);
+                bool activable = false;
+                var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    placeholder_text = _("Username"),
+                    secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept")
+                };
+                user_entry.sclicked.connect (()=> {
+                    activable = !activable;
+                    user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
+                    user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
+                    update_user (menemonic, UserID.ACTIVE, activable.to_string ());
+                });
+                user_entry.changed.connect (()=> {
+                    update_user (menemonic, UserID.USER, user_entry.text);
+                });
+                var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    secondary_icon_tooltip_text = _("Delete Authentication"),
+                    placeholder_text = _("Password")
+                };
+                pass_entry.changed.connect (()=> {
+                    update_user (menemonic, UserID.PASSWD, pass_entry.text);
+                });
+                pass_entry.sclicked.connect (()=> {
+                    remove_user (menemonic);
+                    userid--;
+                    usergrid.remove (user_entry);
+                    usergrid.remove (pass_entry);
+                    user_entry.destroy ();
+                    pass_entry.destroy ();
+                });
+                usergrid.attach (user_entry, 0, userid);
+                usergrid.attach (pass_entry, 1, userid);
+            });
+
+            var sharebutton = new Gtk.CheckButton.with_label (_("Folder Sharing:")) {
+                margin_top = 5,
+                margin_bottom = 5,
+                active = bool.parse (get_dbsetting (DBSettings.SWITCHDIR))
+            };
+            ((Gtk.Label) sharebutton.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
+            sharebutton.toggled.connect (()=> {
+                folder_sharing.sensitive = sharebutton.active;
+            });
+            folder_sharing.sensitive = sharebutton.active;
             var folderopt = new Gtk.Grid () {
                 height_request = 150,
                 margin_bottom = 5,
@@ -430,6 +554,17 @@ namespace Gabut {
             };
             folderopt.attach (headerlabel (_("Save to Folder:"), 450), 1, 0, 1, 1);
             folderopt.attach (folder_location, 1, 1, 1, 1);
+            folderopt.attach (sharebutton, 1, 2, 1, 1);
+            folderopt.attach (folder_sharing, 1, 3, 1, 1);
+            folderopt.attach (headerlabel (_("Authentication:"), 450), 1, 4, 1, 1);
+            folderopt.attach (usergrid, 1, 5, 1, 1);
+            folderopt.attach (add_auth, 1, 6, 1, 1);
+
+            var folderscr = new Gtk.ScrolledWindow () {
+                width_request = 455,
+                vexpand = true,
+                child = folderopt
+            };
 
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
@@ -599,11 +734,11 @@ namespace Gabut {
                 transition_duration = 500,
                 hhomogeneous = false
             };
-            stack.add_named (settings, "settings");
-            stack.add_named (bittorrent, "bittorrent");
-            stack.add_named (folderopt, "folderopt");
-            stack.add_named (moreoptions, "moreoptions");
-            stack.add_named (notyscr, "notifyopt");
+            stack.add_child (settings);
+            stack.add_child (bittorrent);
+            stack.add_child (folderscr);
+            stack.add_child (moreoptions);
+            stack.add_child (notyscr);
             stack.visible_child = settings;
             stack.show ();
 
@@ -637,6 +772,8 @@ namespace Gabut {
                 aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
                 aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.get_name ().down ()));
                 set_dbsetting (DBSettings.CLIPBOARD, appclipboard.active.to_string ());
+                set_dbsetting (DBSettings.SHAREDIR, selectfs.get_path ());
+                set_dbsetting (DBSettings.SWITCHDIR, sharebutton.active.to_string ());
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
@@ -704,7 +841,7 @@ namespace Gabut {
                         stack.visible_child = bittorrent;
                         break;
                     case 2:
-                        stack.visible_child = folderopt;
+                        stack.visible_child = folderscr;
                         break;
                     case 3:
                         stack.visible_child = moreoptions;

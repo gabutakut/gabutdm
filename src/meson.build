@@ -29,5 +29,7 @@ sources = files (
     'CanonicalDbusmenu.vala',
     'DbusmenuItem.vala',
     'ModeTogle.vala',
-    'GabutSucces.vala'
+    'GabutSucces.vala',
+    'ServerShare.vala',
+    'ServerNotFound.vala'
 )

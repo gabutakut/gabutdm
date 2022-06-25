@@ -20,11 +20,14 @@
 */
 
 namespace Gabut {
-    public string get_upload () {
+    public string get_share (string path, string share, string opcl) {
+        if (path == "/") {
+            path = "/Home";
+        }
         return @"
         <html>
         <head>
-            <title>Share File To Computer</title>
+            <title>File Sharing</title>
         </head>
         <body>
         <div class=\"container\">
@@ -33,10 +36,13 @@ namespace Gabut {
                     <div class=\"col-md-11 col-xs-10\">
                         <a href=\"/\"><span id=\"logo\"><strong class=\"strong\">G</strong>ABUT</span></a>
                         </div>
-                        <div class=\"col-md-1 col-xs-2\">
-                            <p class=\"nav-button\">
-                            <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
-                            <i class=\"icon open\"></i>
+                            <div class=\"col-md-1 col-xs-2\">
+                                <p class=\"nav-button\">
+                                <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
+                                <i class=\"icon open\"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -45,14 +51,8 @@ namespace Gabut {
             <div class=\"top-bar\">
                 <div class=\"container\">
                     <div class=\"starting\">
-                        <div class=\"row\">
-                            <div class=\"banner-text\">
-                            <div id=\"labelsend\"><h2>Send Multiple File</h2></div>
-                            <form id=\"gabut-dropzone\" action=\"/Upload\" class=\"dropzone fadeInLeft animated\">
-                                <div class=\"fallback\">
-                                    <input name=\"file\" type=\"file\" multiple />
-                                </div>
-                            </form>
+                        <div class=\"row active animated $(opcl)\">
+                            $(share)
                         </div>
                     </div>
                 </div>
@@ -63,19 +63,25 @@ namespace Gabut {
             <div class=\"overlay-content\">
                 <nav>
                     <ul>
+                        <form action=\"$(path)\" method=\"POST\">
+                            <select id=\"cars\" name=\"sort\">
+                                <option $(get_shorted (0))Sort By Name</option>
+                                <option $(get_shorted (1))Sort By Type</option>
+                                <option $(get_shorted (2))Sort By Size</option>
+                                <option $(get_shorted (3))Sort By Date</option>
+                            </select>
+                            <input type=\"submit\" class=\"btn btn-primary btn-lg active button buttonx\" value=\"Submit\">
+                        </form>
                     </ul>
                 </nav>
             </div>
         </div>
-        <script>
-            $(get_css(file_config (".dropzone.min.js")));
-        </script>
-        <script>
-            Dropzone.options.gabutDropzone = {
-                maxFilesize: 50000,
-                dictDefaultMessage: \"Drop files here to send\"
-            }
-        </script>
+        <style>
+            $(get_gbt_css ());
+        </style>
+        <style>
+            $(get_css(file_config (".bootstrap.min.css")));
+        </style>
         <script>
             function openMenu() {
                 document.getElementById(\"myOverlay\").style.display = \"block\";
@@ -84,15 +90,6 @@ namespace Gabut {
                 document.getElementById(\"myOverlay\").style.display = \"none\";
             }
         </script>
-        <style>
-            $(get_gbt_css ());
-        </style>
-        <style>
-            $(get_css(file_config (".bootstrap.min.css")));
-        </style>
-        <style>
-            $(get_css(file_config (".dropzone.min.css")));
-        </style>
         </body>
         </html>
     ";
