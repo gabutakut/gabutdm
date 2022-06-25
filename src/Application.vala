@@ -106,7 +106,7 @@ namespace Gabut {
 
                 var droptarget = new Gtk.DropTarget (Type.STRING, Gdk.DragAction.COPY);
                 gabutwindow.child.add_controller (droptarget);
-                droptarget.on_drop.connect (on_drag_data_received);
+                droptarget.accept.connect (on_drag_data_received);
 
                 gabutwindow.send_file.connect (dialog_url);
                 gabutwindow.open_show.connect (open_now);
@@ -385,15 +385,31 @@ namespace Gabut {
             valu = yield clipboard.read_text_async (null);
         }
 
-        private bool on_drag_data_received (GLib.Value value, double x, double y) {
-            if (value.get_string ().contains ("\n")) {
-                foreach (string url in value.get_string ().strip ().split ("\n")) {
-                    dialog_url (url.strip ());
+        private bool on_drag_data_received (Gdk.Drop drop) {
+            drag_value.begin (drop, (obj, res)=> {
+                try {
+                    GLib.Value value;
+                    drag_value.end (res, out value);
+                    if (value.get_string ().contains ("\n")) {
+                        foreach (string url in value.get_string ().strip ().split ("\n")) {
+                            if (!url_active (url.strip ())) {
+                                dialog_url (url.strip ());
+                            }
+                        }
+                    } else {
+                        if (!url_active (value.get_string ().strip ())) {
+                            dialog_url (value.get_string ().strip ());
+                        }
+                    }
+                } catch (GLib.Error e) {
+                    critical (e.message);
                 }
-            } else {
-                dialog_url (value.get_string ().strip ());
-            }
+            });
             return Gdk.EVENT_PROPAGATE;
+        }
+
+        private async void drag_value (Gdk.Drop drop, out Value? valu) throws Error {
+            valu = yield drop.read_value_async (GLib.Type.STRING, GLib.Priority.DEFAULT, null);
         }
 
         public static int main (string[] args) {
