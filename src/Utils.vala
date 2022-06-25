@@ -1889,7 +1889,7 @@ namespace Gabut {
             FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             FileInfo info = null;
             while (((info = enumerator.next_file (null)) != null)) {
-                if (info.get_name ().length > 0 && info.get_name ()[0] == '.') {
+                if (info.get_is_hidden ()) {
                     continue;
                 }
                 files++;
