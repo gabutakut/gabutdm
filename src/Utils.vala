@@ -58,8 +58,7 @@ namespace Gabut {
         PIECESELECTOR = 34,
         CLIPBOARD = 35,
         SHAREDIR = 36,
-        SWITCHDIR = 37,
-        SHORTBY = 38;
+        SWITCHDIR = 37;
 
         public string get_name () {
             switch (this) {
@@ -137,8 +136,6 @@ namespace Gabut {
                     return "sharedir";
                 case SWITCHDIR:
                     return "switchdir";
-                case SHORTBY:
-                    return "shortby";
                 default:
                     return "id";
             }
@@ -1348,7 +1345,8 @@ namespace Gabut {
         ID = 0,
         ACTIVE = 1,
         USER = 2,
-        PASSWD = 3;
+        PASSWD = 3,
+        SHORTBY = 4;
 
         public string get_str () {
             switch (this) {
@@ -1358,6 +1356,8 @@ namespace Gabut {
                     return "user";
                 case PASSWD:
                     return "passwd";
+                case SHORTBY:
+                    return "shortby";
                 default:
                     return "id";
             }
@@ -1974,8 +1974,8 @@ namespace Gabut {
         yield;
     }
 
-    private string get_shorted (int sort) {
-        return int.parse (get_dbsetting (DBSettings.SHORTBY)) == sort? "selected>" : @"value=\"$(sort)\">";
+    private string get_shorted (int sort, string username) {
+        return int.parse (get_db_user (UserID.SHORTBY, username)) == sort? "selected>" : @"value=\"$(sort)\">";
     }
 
     private string get_mime_type (File fileinput) {
@@ -2229,9 +2229,10 @@ namespace Gabut {
             id             INT64   NOT NULL,
             active         TEXT    NOT NULL,
             user           TEXT    NOT NULL,
-            passwd         TEXT    NOT NULL);
-            INSERT INTO users (id, active, user, passwd)
-            VALUES (1, \"true\", \"gabutdm\", \"123456\");");
+            passwd         TEXT    NOT NULL,
+            shortby        TEXT    NOT NULL);
+            INSERT INTO users (id, active, user, passwd, shortby)
+            VALUES (1, \"true\", \"gabutdm\", \"123456\", \"1\");");
     }
 
     private int table_download (Sqlite.Database db) {
@@ -2318,14 +2319,13 @@ namespace Gabut {
             pieceselector  TEXT    NOT NULL,
             clipboard      TEXT    NOT NULL,
             sharedir       TEXT    NOT NULL,
-            switchdir      TEXT    NOT NULL,
-            shortby        TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, shortby)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"2\");");
+            switchdir      TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.SHORTBY) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.SWITCHDIR) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
@@ -2354,11 +2354,12 @@ namespace Gabut {
 
     private void add_db_user (int64 id) {
         Sqlite.Statement stmt;
-        int res = gabutdb.prepare_v2 ("INSERT OR IGNORE INTO users (id, active, user, passwd) VALUES (?, ?, ?, ?);", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("INSERT OR IGNORE INTO users (id, active, user, passwd, shortby) VALUES (?, ?, ?, ?, ?);", -1, out stmt);
         res = stmt.bind_int64 (1, id);
         res = stmt.bind_text (2, "false");
         res = stmt.bind_text (3, "");
         res = stmt.bind_text (4, "");
+        res = stmt.bind_text (5, "1");
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
@@ -2394,7 +2395,18 @@ namespace Gabut {
         return usersid;
     }
 
-    private string update_user (int64 id, UserID type, string value) {
+    private string update_user (string user, UserID type, string value) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 (@"UPDATE users SET $(type.get_str ()) = \"$(value)\" WHERE user = ?", -1, out stmt);
+        res = stmt.bind_text (1, user);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+        return value;
+    }
+
+    private string update_user_id (int64 id, UserID type, string value) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 (@"UPDATE users SET $(type.get_str ()) = \"$(value)\" WHERE id = ?", -1, out stmt);
         res = stmt.bind_int64 (1, id);

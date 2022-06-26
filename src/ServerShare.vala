@@ -20,7 +20,7 @@
 */
 
 namespace Gabut {
-    public string get_share (string path, string share, string opcl) {
+    public string get_share (string path, string share, string opcl, string username) {
         if (path == "/") {
             path = "/Home";
         }
@@ -65,10 +65,10 @@ namespace Gabut {
                     <ul>
                         <form action=\"$(path)\" method=\"POST\">
                             <select id=\"cars\" name=\"sort\">
-                                <option $(get_shorted (0))Sort By Name</option>
-                                <option $(get_shorted (1))Sort By Type</option>
-                                <option $(get_shorted (2))Sort By Size</option>
-                                <option $(get_shorted (3))Sort By Date</option>
+                                <option $(get_shorted (0, username))Sort By Name</option>
+                                <option $(get_shorted (1, username))Sort By Type</option>
+                                <option $(get_shorted (2, username))Sort By Size</option>
+                                <option $(get_shorted (3, username))Sort By Date</option>
                             </select>
                             <input type=\"submit\" class=\"btn btn-primary btn-lg active button buttonx\" value=\"Submit\">
                         </form>

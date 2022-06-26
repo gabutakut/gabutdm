@@ -24,11 +24,13 @@ namespace Gabut {
         public signal void send_post_data (MatchInfo match_info);
         public signal void address_url (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
         public signal GLib.List<DownloadRow> get_dl_row (int status);
+        private string username;
+        private Soup.AuthDomainDigest authenti;
         private SourceFunc callback;
 
         public async void set_listent (int port) throws Error {
             callback = set_listent.callback;
-            var authenti = new Soup.AuthDomainDigest ("realm", "server-gabut");
+            authenti = new Soup.AuthDomainDigest ("realm", "server-gabut");
             authenti.add_path ("/Upload");
             authenti.add_path ("/Home");
             authenti.add_path ("/Downloading");
@@ -62,6 +64,7 @@ namespace Gabut {
         }
 
         private string authentication (Soup.AuthDomainDigest domain, Soup.ServerMessage msg, string username) {
+            this.username = username;
             if (!bool.parse (get_db_user (UserID.ACTIVE, username))) {
                 return "";
             }
@@ -111,7 +114,7 @@ namespace Gabut {
                 if (msg.get_method () == "POST") {
                     var meseg = (string) msg.get_request_body ().data;
                     if (!meseg.contains ("+")) {
-                        set_dbsetting (DBSettings.SHORTBY, meseg.split ("=")[1]);
+                        update_user (username, UserID.SHORTBY, meseg.split ("=")[1]);
                     }
                 }
                 File filegbt = File.new_for_path (@"$(get_dbsetting (DBSettings.SHAREDIR))$(path)");
@@ -147,6 +150,8 @@ namespace Gabut {
                     } else {
                         msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                     }
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_home ().data);
+                    msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } catch (Error e) {
                     GLib.warning (e.message);
@@ -204,7 +209,9 @@ namespace Gabut {
                             address_url (reslink, hashoption, false, LinkMode.URL);
                         }
                     }
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, htmlstr).data);
                     msg.set_status (Soup.Status.OK, "OK");
+                    self.unpause_message (msg);
                 } else if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
                     var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
                     Soup.MessageHeaders headers;
@@ -221,11 +228,13 @@ namespace Gabut {
                             address_url (bencode, hashoption, false, LinkMode.METALINK);
                         }
                     }
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, htmlstr).data);
                     msg.set_status (Soup.Status.OK, "OK");
+                    self.unpause_message (msg);
                 } else {
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
+                    self.unpause_message (msg);
                 }
-                self.unpause_message (msg);
             } else if (msg.get_method () == "GET") {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, htmlstr).data);
                 msg.set_status (Soup.Status.OK, "OK");
@@ -236,7 +245,7 @@ namespace Gabut {
         private void share_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
             self.pause_message (msg);
-            if (msg.get_method () == "GET" && (!bool.parse (get_dbsetting (DBSettings.SWITCHDIR)))) {
+            if (msg.get_method () == "GET" && !bool.parse (get_dbsetting (DBSettings.SWITCHDIR))) {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                 msg.set_status (Soup.Status.OK, "OK");
                 self.unpause_message (msg);
@@ -245,7 +254,7 @@ namespace Gabut {
             if (msg.get_method () == "POST") {
                 var meseg = (string) msg.get_request_body ().data;
                 if (!meseg.contains ("+")) {
-                    set_dbsetting (DBSettings.SHORTBY, meseg.split ("=")[1]);
+                    update_user (username, UserID.SHORTBY, meseg.split ("=")[1]);
                 }
             }
             msg.set_status(Soup.Status.OK, _("OK"));
@@ -309,7 +318,11 @@ namespace Gabut {
                 htmlstr += @"<div class=\"append\">$(loaddiv (path_back, null))</div>";
             }
             htmlstr += "<div class=\"append\">";
-            switch (int.parse (get_dbsetting (DBSettings.SHORTBY))) {
+            if (username == null) {
+                msg.set_redirect (Soup.Status.TEMPORARY_REDIRECT, "/Home");
+                return;
+            }
+            switch (int.parse (get_db_user (UserID.SHORTBY, username))) {
                 case 1:
                     ((Gtk.TreeSortable)filesorter).set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 1);
@@ -333,7 +346,7 @@ namespace Gabut {
             }
             htmlstr += "</div>";
             var opcls = path_lenght < pathfile.length? "fadeInRight" : "fadeInLeft";
-            msg.set_response ("text/html", Soup.MemoryUse.COPY, get_share (pathfile, htmlstr, opcls).data);
+            msg.set_response ("text/html", Soup.MemoryUse.COPY, get_share (pathfile, htmlstr, opcls, username).data);
             path_lenght = pathfile.length;
         }
 
@@ -381,6 +394,7 @@ namespace Gabut {
                 if (!fileordir) {
                     sbuilder.append (@"<div class=\"size\">$(GLib.format_size (size).to_ascii ())</div>");
                 } else {
+                    authenti.add_path (path);
                     if (infolder != 0) {
                         sbuilder.append (@"<div class=\"size\">$(infolder) items</div>");
                     } else {

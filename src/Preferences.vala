@@ -468,10 +468,10 @@ namespace Gabut {
                     activable = !activable;
                     user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
                     user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
-                    update_user (user.id, UserID.ACTIVE, activable.to_string ());
+                    update_user_id (user.id, UserID.ACTIVE, activable.to_string ());
                 });
                 user_entry.changed.connect (()=> {
-                    update_user (user.id, UserID.USER, user_entry.text);
+                    update_user_id (user.id, UserID.USER, user_entry.text);
                 });
                 var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
                     width_request = 220,
@@ -480,7 +480,7 @@ namespace Gabut {
                     text = user.passwd
                 };
                 pass_entry.changed.connect (()=> {
-                    update_user (user.id, UserID.PASSWD, pass_entry.text);
+                    update_user_id (user.id, UserID.PASSWD, pass_entry.text);
                 });
                 pass_entry.sclicked.connect (()=> {
                     remove_user (user.id);
@@ -509,10 +509,10 @@ namespace Gabut {
                     activable = !activable;
                     user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
                     user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
-                    update_user (menemonic, UserID.ACTIVE, activable.to_string ());
+                    update_user_id (menemonic, UserID.ACTIVE, activable.to_string ());
                 });
                 user_entry.changed.connect (()=> {
-                    update_user (menemonic, UserID.USER, user_entry.text);
+                    update_user_id (menemonic, UserID.USER, user_entry.text);
                 });
                 var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
                     width_request = 220,
@@ -521,7 +521,7 @@ namespace Gabut {
                     placeholder_text = _("Password")
                 };
                 pass_entry.changed.connect (()=> {
-                    update_user (menemonic, UserID.PASSWD, pass_entry.text);
+                    update_user_id (menemonic, UserID.PASSWD, pass_entry.text);
                 });
                 pass_entry.sclicked.connect (()=> {
                     remove_user (menemonic);
