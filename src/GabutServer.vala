@@ -113,19 +113,26 @@ namespace Gabut {
             if (path != "/" && path != "favicon.ico") {
                 if (msg.get_method () == "POST") {
                     var meseg = (string) msg.get_request_body ().data;
-                    if (!meseg.contains ("+")) {
+                    if (!meseg.contains ("+") && meseg.contains ("sort")) {
                         update_user (username, UserID.SHORTBY, meseg.split ("=")[1]);
                     }
                 }
-                File filegbt = File.new_for_path (@"$(get_dbsetting (DBSettings.SHAREDIR))$(path)");
+                File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
+                File filegbt = File.new_for_path (@"$(sourcef.get_path ())$(path)");
                 var ftype = filegbt.query_file_type (FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
                 msg.set_status (Soup.Status.OK, "OK");
                 if (ftype == FileType.DIRECTORY) {
-                    directory_mode.begin (msg, filegbt);
+                    directory_mode.begin (msg, filegbt, sourcef);
                     self.unpause_message (msg);
                     return;
                 } else if (ftype == FileType.REGULAR) {
                     open_file.begin (msg, filegbt);
+                    self.unpause_message (msg);
+                    return;
+                }
+                if (!filegbt.query_exists (null)) {
+                    var pathfile = @"$(filegbt.get_parent ().get_path ().split (sourcef.get_path ())[1])/";
+                    msg.set_redirect (Soup.Status.TEMPORARY_REDIRECT, pathfile == "/"? "/Home" : pathfile);
                     self.unpause_message (msg);
                     return;
                 }
@@ -253,12 +260,13 @@ namespace Gabut {
             }
             if (msg.get_method () == "POST") {
                 var meseg = (string) msg.get_request_body ().data;
-                if (!meseg.contains ("+")) {
+                if (!meseg.contains ("+") && meseg.contains ("sort")) {
                     update_user (username, UserID.SHORTBY, meseg.split ("=")[1]);
                 }
             }
             msg.set_status(Soup.Status.OK, _("OK"));
-            directory_mode.begin (msg, File.new_for_path (get_dbsetting (DBSettings.SHAREDIR)));
+            File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
+            directory_mode.begin (msg, sourcef, sourcef);
             self.unpause_message (msg);
         }
 
@@ -274,9 +282,9 @@ namespace Gabut {
         }
 
         private int path_lenght = 0;
-        private async void directory_mode (Soup.ServerMessage msg, File file) throws Error {
+        private async void directory_mode (Soup.ServerMessage msg, File file, File sourcef) throws Error {
             var filesorter = new Gtk.ListStore (FSorter.N_COLUMNS, typeof (string), typeof (string), typeof (bool), typeof (int64), typeof (int), typeof (FileInfo), typeof (string));
-            FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            FileEnumerator enumerator = file.enumerate_children ("*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             FileInfo info = null;
             while (((info = enumerator.next_file (null)) != null)) {
                 if (info.get_is_hidden ()) {
@@ -292,18 +300,17 @@ namespace Gabut {
                 filesorter.append (out iter);
                 filesorter.set (iter, FSorter.NAME, info.get_name (), FSorter.MIMETYPE, info.get_content_type (), FSorter.FILEORDIR, fileordir, FSorter.SIZE, info.get_size (), FSorter.FILEINDIR, container, FSorter.FILEINFO, info, FSorter.DATE, info.get_modification_date_time ().to_string ());
             }
-            File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
             var pathfile = @"$(file.get_path ().split (sourcef.get_path ())[1])/";
             var htmlstr = "";
             if (pathfile == "/") {
-                htmlstr = _(@"<header><a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\">/</a></header>");
+                htmlstr = _(@"<header><a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\" href=\"/Home\">Home/</a></header>");
             } else {
                 htmlstr += "<header>";
                 foreach (string path in pathfile.split ("/")) {
                     if (path != "") {
                         var strpath = pathfile.split (path)[0];
                         if (strpath == "/") {
-                            htmlstr += @"<a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\">/</a>";
+                            htmlstr += @"<a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\" href=\"/Home\">Home/</a>";
                         }
                         htmlstr += @"<a class=\"shortfd\" title=\"$(path)\" href=\"$(GLib.Uri.unescape_string (strpath+path))\">$(path)/</a>";
                     }

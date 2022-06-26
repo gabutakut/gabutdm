@@ -29,6 +29,7 @@ namespace Gabut {
         <head>
             <title>File Sharing</title>
         </head>
+        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=big5\"/>
         <body>
         <div class=\"container\">
             <div class=\"navigation\" id=\"navigation-scroll\">
