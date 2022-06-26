@@ -624,21 +624,6 @@ namespace Gabut {
             return aria_gid;
         }
 
-        public bool has_visible_children () {
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.get_child_visible ()) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
         public void append_row (string ariagid) {
             int total = (int) listrow.length ();
             for (int i = 0; i < total; i++) {
@@ -700,13 +685,17 @@ namespace Gabut {
                     list_box.set_placeholder (search_alert);
                     return;
                 }
+                bool item_visible = false;
                 list_box.set_filter_func ((item) => {
+                    if (item.get_child_visible ()) {
+                        item_visible = true;
+                    }
                     if (((DownloadRow) item).filename == null) {
                         return false;
                     }
                     return ((DownloadRow) item).filename.casefold ().contains (search_entry.text.casefold ());
                 });
-                if (!has_visible_children ()) {
+                if (!item_visible) {
                     var empty_alert = new AlertView (
                         _("No Search Found"),
                         _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
@@ -781,8 +770,14 @@ namespace Gabut {
                     list_box.set_placeholder (noerr_alert);
                     return;
                 default:
-                    list_box.set_filter_func (null);
-                    if (!has_visible_children ()) {
+                    bool hide_alert = false;
+                    list_box.set_filter_func ((item)=> {
+                        if (item.get_child_visible ()) {
+                            hide_alert = true;
+                        }
+                        return true;
+                    });
+                    if (!hide_alert) {
                         list_box.set_placeholder (nodown_alert);
                     }
                     return;

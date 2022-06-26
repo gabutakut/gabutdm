@@ -118,7 +118,7 @@ namespace Gabut {
                     }
                 }
                 File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
-                File filegbt = File.new_for_path (@"$(sourcef.get_path ())$(path)");
+                File filegbt = GLib.File.new_build_filename (sourcef.get_path (), path);
                 var ftype = filegbt.query_file_type (FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
                 msg.set_status (Soup.Status.OK, "OK");
                 if (ftype == FileType.DIRECTORY) {
@@ -294,7 +294,7 @@ namespace Gabut {
                 int container = 0;
                 if (info.get_file_type () == FileType.DIRECTORY) {
                     fileordir = true;
-                    container = get_container (File.new_for_path (@"$(file.get_path ())/$(info.get_name ())"));
+                    container = get_container (GLib.File.new_build_filename (file.get_path (), info.get_name ()));
                 }
                 Gtk.TreeIter iter;
                 filesorter.append (out iter);
