@@ -67,7 +67,7 @@ namespace Gabut {
             </div>
         </div>
         <script>
-            $(get_css(file_config (".dropzone.min.js")));
+            $(get_css(file_config (".dropzone.min.js")))
         </script>
         <script>
             Dropzone.options.gabutDropzone = {
@@ -84,13 +84,13 @@ namespace Gabut {
             }
         </script>
         <style>
-            $(get_gbt_css ());
+            $(get_gbt_css ())
         </style>
         <style>
-            $(get_css(file_config (".bootstrap.min.css")));
+            $(get_css(file_config (".bootstrap.min.css")))
         </style>
         <style>
-            $(get_css(file_config (".dropzone.min.css")));
+            $(get_css(file_config (".dropzone.min.css")))
         </style>
         </body>
         </html>

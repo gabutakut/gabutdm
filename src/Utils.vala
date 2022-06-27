@@ -2043,8 +2043,9 @@ namespace Gabut {
 
     private File[] run_open_file (Gtk.Window window) {
         var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
-        filechooser.select_multiple = true;
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+            select_multiple = true
+        };
 
         var torrent = new Gtk.FileFilter ();
         torrent.set_filter_name (_("Torrent"));
@@ -2075,8 +2076,9 @@ namespace Gabut {
 
     private File run_open_text (Gtk.Window window) {
         var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
-        filechooser.select_multiple = false;
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+            select_multiple = false
+        };
 
         var text_filter = new Gtk.FileFilter ();
         text_filter.set_filter_name (_("Text"));
@@ -2098,9 +2100,9 @@ namespace Gabut {
 
     private File run_open_all (Gtk.Window window) {
         var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
-        filechooser.select_multiple = false;
-
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+            select_multiple = false
+        };
         File file = null;
         filechooser.response.connect ((pos)=> {
             if (pos == Gtk.ResponseType.ACCEPT) {
@@ -2116,8 +2118,9 @@ namespace Gabut {
 
     private File run_open_fd (Gtk.Window window, GLib.File current) {
         var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Folder"), window, Gtk.FileChooserAction.SELECT_FOLDER, _("Open"), _("Cancel"));
-        filechooser.select_multiple = false;
+        var filechooser = new Gtk.FileChooserNative (_("Open Folder"), window, Gtk.FileChooserAction.SELECT_FOLDER, _("Open"), _("Cancel")) {
+            select_multiple = false
+        };
         if (current != null) {
             try {
                 filechooser.set_current_folder (current);

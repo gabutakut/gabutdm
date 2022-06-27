@@ -78,10 +78,10 @@ namespace Gabut {
             </div>
         </div>
         <style>
-            $(get_gbt_css ());
+            $(get_gbt_css ())
         </style>
         <style>
-            $(get_css(file_config (".bootstrap.min.css")));
+            $(get_css(file_config (".bootstrap.min.css")))
         </style>
         <script>
             function openMenu() {

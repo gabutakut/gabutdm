@@ -21,7 +21,7 @@
 
 namespace Gabut {
     public class GabutApp : Gtk.Application {
-        public static GabutWindow gabutwindow = null;
+        public GabutWindow gabutwindow = null;
         private Gdk.Clipboard clipboard;
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
