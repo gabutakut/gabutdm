@@ -120,7 +120,7 @@ namespace Gabut {
 
         public void child_delete (DbusmenuItem child) {
             if (get_exist (child)) {
-                menuchildren.remove_link (menuchildren.find (child));
+                menuchildren.delete_link (menuchildren.find (child));
                 menuchildren.foreach ((item)=> {
                     item.id = menuchildren.index (item) + 1;
                 });

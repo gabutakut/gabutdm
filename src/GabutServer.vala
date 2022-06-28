@@ -331,23 +331,23 @@ namespace Gabut {
             }
             switch (int.parse (get_db_user (UserID.SHORTBY, username))) {
                 case 1:
-                    ((Gtk.TreeSortable)filesorter).set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
+                    filesorter.set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 1);
-                    ((Gtk.TreeSortable)filesorter).set_sort_column_id (FSorter.MIMETYPE, Gtk.SortType.ASCENDING);
+                    filesorter.set_sort_column_id (FSorter.MIMETYPE, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 2);
                     break;
                 case 2:
-                    ((Gtk.TreeSortable)filesorter).set_sort_column_id (FSorter.FILEINDIR, Gtk.SortType.ASCENDING);
+                    filesorter.set_sort_column_id (FSorter.FILEINDIR, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 1);
-                    ((Gtk.TreeSortable)filesorter).set_sort_column_id (FSorter.SIZE, Gtk.SortType.ASCENDING);
+                    filesorter.set_sort_column_id (FSorter.SIZE, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 2);
                     break;
                 case 3:
-                    ((Gtk.TreeSortable)filesorter).set_sort_column_id (FSorter.DATE, Gtk.SortType.ASCENDING);
+                    filesorter.set_sort_column_id (FSorter.DATE, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 0);
                     break;
                 default:
-                    ((Gtk.TreeSortable)filesorter).set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
+                    filesorter.set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 0);
                     break;
             }

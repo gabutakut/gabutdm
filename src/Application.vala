@@ -189,7 +189,7 @@ namespace Gabut {
         private void destroy_active (string ariagid) {
             downloaders.foreach ((downloader)=> {
                 if (downloader.ariagid == ariagid) {
-                    downloaders.remove_link (downloaders.find (downloader));
+                    downloaders.delete_link (downloaders.find (downloader));
                     remove_window (downloader);
                     downloader.close ();
                 }
@@ -216,7 +216,7 @@ namespace Gabut {
             succesdl.close.connect (()=> {
                 succesdls.foreach ((succes)=> {
                     if (succes == succesdl) {
-                        succesdls.remove_link (succesdls.find (succes));
+                        succesdls.delete_link (succesdls.find (succes));
                         remove_window (succes);
                     }
                 });
@@ -224,7 +224,7 @@ namespace Gabut {
             succesdl.close_request.connect (()=> {
                 succesdls.foreach ((succes)=> {
                     if (succes == succesdl) {
-                        succesdls.remove_link (succesdls.find (succes));
+                        succesdls.delete_link (succesdls.find (succes));
                         remove_window (succes);
                     }
                 });
@@ -247,7 +247,7 @@ namespace Gabut {
             addurl.close.connect (()=> {
                 addurls.foreach ((addur)=> {
                     if (addur == addurl) {
-                        addurls.remove_link (addurls.find (addur));
+                        addurls.delete_link (addurls.find (addur));
                         remove_window (addur);
                     }
                 });
@@ -255,7 +255,7 @@ namespace Gabut {
             addurl.close_request.connect (()=> {
                 addurls.foreach ((addur)=> {
                     if (addur == addurl) {
-                        addurls.remove_link (addurls.find (addur));
+                        addurls.delete_link (addurls.find (addur));
                         remove_window (addur);
                     }
                 });
@@ -290,7 +290,7 @@ namespace Gabut {
             addurl.close.connect (()=> {
                 addurls.foreach ((addur)=> {
                     if (addur == addurl) {
-                        addurls.remove_link (addurls.find (addur));
+                        addurls.delete_link (addurls.find (addur));
                         remove_window (addur);
                     }
                 });
@@ -298,7 +298,7 @@ namespace Gabut {
             addurl.close_request.connect (()=> {
                 addurls.foreach ((addur)=> {
                     if (addur == addurl) {
-                        addurls.remove_link (addurls.find (addur));
+                        addurls.delete_link (addurls.find (addur));
                         remove_window (addur);
                     }
                 });
@@ -341,7 +341,7 @@ namespace Gabut {
                     if (download == downloader) {
                         download.remove_timeout ();
                         gabutwindow.append_row (downloader.ariagid);
-                        downloaders.remove_link (downloaders.find (download));
+                        downloaders.delete_link (downloaders.find (download));
                     }
                 });
             });
@@ -350,7 +350,7 @@ namespace Gabut {
                     if (download == downloader) {
                         download.remove_timeout ();
                         gabutwindow.append_row (downloader.ariagid);
-                        downloaders.remove_link (downloaders.find (download));
+                        downloaders.delete_link (downloaders.find (download));
                     }
                 });
                 return false;

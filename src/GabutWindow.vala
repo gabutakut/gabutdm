@@ -30,19 +30,18 @@ namespace Gabut {
         private Gtk.ListBox list_box;
         private Gtk.Stack headerstack;
         private Gtk.Revealer property_rev;
-        private Preferences preferences = null;
+        private Preferences preferences;
         private QrCode qrcode;
         private Gtk.SearchEntry search_entry;
         private ModeButton view_mode;
         private AlertView nodown_alert;
         private GLib.List<AddUrl> properties;
+        private GLib.List<DownloadRow> listrow;
         private DbusmenuItem menudbus;
         private DbusmenuItem openmenu;
         private DbusmenuItem startmenu;
         private DbusmenuItem pausemenu;
         private CanonicalDbusmenu dbusserver;
-        private GLib.List<DownloadRow> listrow;
-        private int64 globalactive = 0;
 
         public GabutWindow (Gtk.Application application) {
             Object (application: application,
@@ -142,15 +141,14 @@ namespace Gabut {
                         restart_server ();
                     });
                     preferences.restart_process.connect (()=> {
-                        int total = (int) listrow.length ();
-                        for (int i = 0; i < total; i++) {
-                            list_box.select_row (list_box.get_row_at_index (i));
+                        listrow.foreach ((lrow)=> {
+                            list_box.select_row (lrow);
                             var row = (DownloadRow) list_box.get_selected_row ();
                             if (row != null) {
                                 list_box.unselect_row (row);
                                 row.if_not_exist (row.ariagid, row.linkmode, row.status);
                             }
-                        }
+                        });
                     });
                     preferences.max_active.connect (()=> {
                         next_download ();
@@ -229,14 +227,14 @@ namespace Gabut {
                         property.close.connect (()=> {
                             properties.foreach ((proper)=> {
                                 if (proper == property) {
-                                    properties.remove_link (properties.find (proper));
+                                    properties.delete_link (properties.find (proper));
                                 }
                             });
                         });
                         property.close_request.connect (()=> {
                             properties.foreach ((proper)=> {
                                 if (proper == property) {
-                                    properties.remove_link (properties.find (proper));
+                                    properties.delete_link (properties.find (proper));
                                 }
                             });
                             return false;
@@ -334,7 +332,7 @@ namespace Gabut {
         }
 
         private bool set_menulauncher () {
-            globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
+            var globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
             bool statact = globalactive > 0;
             set_count_visible.begin (globalactive);
             if (!statact) {
@@ -382,9 +380,8 @@ namespace Gabut {
 
         public void save_all_download () {
             var downloads = new GLib.List<DownloadRow> ();
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     if (row.url == "") {
@@ -397,7 +394,7 @@ namespace Gabut {
                     }
                     downloads.append (row);
                 }
-            }
+            });
             set_download (downloads);
         }
 
@@ -418,9 +415,8 @@ namespace Gabut {
         }
 
         private void next_download () {
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -429,13 +425,12 @@ namespace Gabut {
                         row.idle_progress ();
                     }
                 }
-            }
+            });
         }
 
         public void fast_respond (string ariagid) {
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -443,18 +438,17 @@ namespace Gabut {
                         row.idle_progress ();
                     }
                 }
-            }
+            });
         }
 
         public void remove_all () {
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (0));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     row.remove_down ();
                 }
-            }
+            });
             aria_purge_all ();
         }
 
@@ -499,7 +493,7 @@ namespace Gabut {
                         remove_dbus.begin (rw.rowbus);
                         next_download ();
                         view_status ();
-                        listrow.remove_link (listrow.find (rw));
+                        listrow.delete_link (listrow.find (rw));
                         stop_launcher ();
                     });
                 }
@@ -544,7 +538,7 @@ namespace Gabut {
                 remove_dbus.begin (rw.rowbus);
                 next_download ();
                 view_status ();
-                listrow.remove_link (listrow.find (rw));
+                listrow.delete_link (listrow.find (rw));
                 stop_launcher ();
             });
             if (list_box.get_selected_row () == null) {
@@ -561,9 +555,8 @@ namespace Gabut {
 
         private bool get_exist (string url) {
             bool linkexist = false;
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -571,14 +564,13 @@ namespace Gabut {
                         linkexist = true;
                     }
                 }
-            }
+            });
             return linkexist;
         }
 
         private void start_all () {
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -587,15 +579,14 @@ namespace Gabut {
                         row.idle_progress ();
                     }
                 }
-            }
+            });
             view_status ();
         }
 
         private void stop_all () {
             aria_pause_all ();
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -604,15 +595,14 @@ namespace Gabut {
                         row.update_progress ();
                     }
                 }
-            }
+            });
             view_status ();
         }
 
         public string set_selected (string ariagid, string selected) {
             string aria_gid = "";
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -620,14 +610,13 @@ namespace Gabut {
                         aria_gid = row.set_selected (selected);
                     }
                 }
-            }
+            });
             return aria_gid;
         }
 
         public void append_row (string ariagid) {
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -637,13 +626,12 @@ namespace Gabut {
                         }
                     }
                 }
-            }
+            });
         }
 
         public void remove_row (string ariagid) {
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
+            listrow.foreach ((lrow)=> {
+                list_box.select_row (lrow);
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
                     list_box.unselect_row (row);
@@ -653,7 +641,7 @@ namespace Gabut {
                         }
                     }
                 }
-            }
+            });
         }
 
         private async void append_dbus (DbusmenuItem rowbus) throws GLib.Error {
@@ -703,8 +691,6 @@ namespace Gabut {
                     );
                     empty_alert.show ();
                     list_box.set_placeholder (empty_alert);
-                } else {
-                    list_box.set_placeholder (null);
                 }
                 return;
             }
