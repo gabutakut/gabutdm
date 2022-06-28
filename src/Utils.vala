@@ -2001,7 +2001,7 @@ namespace Gabut {
         return "";
     }
 
-    private static string config_folder (string folder) {
+    private string config_folder (string folder) {
         var config_dir = File.new_for_path (GLib.Path.build_path (GLib.Path.DIR_SEPARATOR_S, Environment.get_user_config_dir (), folder));
         if (!config_dir.query_exists ()) {
             try {
@@ -2013,7 +2013,7 @@ namespace Gabut {
         return config_dir.get_path ();
     }
 
-    private static string file_config (string name) {
+    private string file_config (string name) {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
     }
 
@@ -2204,7 +2204,7 @@ namespace Gabut {
             return "file";
         }
     }
-    public static Sqlite.Database gabutdb;
+    public Sqlite.Database gabutdb;
     private int open_database (out Sqlite.Database db) {
         int opendb = 0;
         if (!File.new_for_path (file_config (".db")).query_exists ()) {
