@@ -1,4 +1,5 @@
 project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.8.4')
+
 i18n = import ('i18n')
 
 vapi = join_paths (meson.current_source_dir (), 'vapi')
