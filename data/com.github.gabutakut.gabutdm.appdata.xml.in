@@ -28,6 +28,11 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.7.5" date="2022-6-29">
+      <description>
+        <p>Last Update For Gtk3</p>
+      </description>
+    </release>
     <release version="1.7.4" date="2022-2-16">
       <description>
         <p>Modebutton to Radiobutton</p>

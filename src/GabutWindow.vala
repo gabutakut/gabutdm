@@ -394,9 +394,6 @@ namespace Gabut {
                         switch (((DownloadRow) row).status) {
                             case StatusMode.PAUSED:
                             case StatusMode.COMPLETE:
-                                next_download ();
-                                remove_dbus.begin (((DownloadRow) row).rowbus);
-                                break;
                             case StatusMode.ERROR:
                                 next_download ();
                                 remove_dbus.begin (((DownloadRow) row).rowbus);
@@ -434,9 +431,6 @@ namespace Gabut {
                 switch (((DownloadRow) row).status) {
                     case StatusMode.PAUSED:
                     case StatusMode.COMPLETE:
-                        next_download ();
-                        remove_dbus.begin (((DownloadRow) row).rowbus);
-                        break;
                     case StatusMode.ERROR:
                         next_download ();
                         remove_dbus.begin (((DownloadRow) row).rowbus);
@@ -567,8 +561,6 @@ namespace Gabut {
                     );
                     empty_alert.show_all ();
                     list_box.set_placeholder (empty_alert);
-                } else {
-                    list_box.set_placeholder (null);
                 }
                 return;
             }
