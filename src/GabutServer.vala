@@ -75,31 +75,26 @@ namespace Gabut {
             unowned GabutServer self = server as GabutServer;
             self.pause_message (msg);
             if (msg.get_method () == "POST") {
-                try {
-                    if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
-                        var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
-                        Soup.MessageHeaders headers;
-                        GLib.Bytes body;
-                        multipart.get_part (0, out headers, out body);
-                        GLib.HashTable<string, string> params;
-                        headers.get_content_disposition (null, out params);
-                        string filename = params.get ("filename");
-                        if (filename != null && filename != "") {
-                            File filed = File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/") + GLib.Path.DIR_SEPARATOR_S + filename);
-                            if (!filed.query_exists ()) {
-                                FileOutputStream out_stream = filed.create (FileCreateFlags.REPLACE_DESTINATION);
-                                out_stream.write (body.get_data ());
-                                notify_app (_("File Transfered"), _("%s").printf (filename), GLib.ContentType.get_icon (get_mime_type (filed)));
-                            } else {
-                                notify_app (_("File Exist"), _("%s").printf (filename), GLib.ContentType.get_icon (get_mime_type (filed)));
-                            }
+                if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
+                    var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
+                    Soup.MessageHeaders headers;
+                    GLib.Bytes body;
+                    multipart.get_part (0, out headers, out body);
+                    GLib.HashTable<string, string> params;
+                    headers.get_content_disposition (null, out params);
+                    string filename = params.get ("filename");
+                    if (filename != null && filename != "") {
+                        File filed = GLib.File.new_build_filename (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/"), filename);
+                        if (!filed.query_exists ()) {
+                            write_file.begin (body, filename);
+                            notify_app (_("File Transfered"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
+                        } else {
+                            notify_app (_("File Exist"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
                         }
                     }
-                    msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
-                } catch (Error e) {
-                    GLib.warning (e.message);
                 }
+                msg.set_status (Soup.Status.OK, "OK");
+                self.unpause_message (msg);
             } else if (msg.get_method () == "GET") {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_upload ().data);
                 msg.set_status (Soup.Status.OK, "OK");
@@ -264,7 +259,7 @@ namespace Gabut {
                     update_user (username, UserID.SHORTBY, meseg.split ("=")[1]);
                 }
             }
-            msg.set_status(Soup.Status.OK, _("OK"));
+            msg.set_status (Soup.Status.OK, _("OK"));
             File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
             directory_mode.begin (msg, sourcef, sourcef);
             self.unpause_message (msg);

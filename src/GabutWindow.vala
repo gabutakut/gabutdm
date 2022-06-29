@@ -399,7 +399,7 @@ namespace Gabut {
         }
 
         public GLib.List<DownloadRow> get_dl_row (int status) {
-            var strlist = new GLib.List<DownloadRow> ();
+            var rowlist = new GLib.List<DownloadRow> ();
             int total = (int) listrow.length ();
             for (int i = 0; i < total; i++) {
                 list_box.select_row (list_box.get_row_at_index (i));
@@ -407,11 +407,11 @@ namespace Gabut {
                 if (row != null) {
                     list_box.unselect_row (row);
                     if (row.status == status) {
-                        strlist.append (row);
+                        rowlist.append (row);
                     }
                 }
             }
-            return strlist;
+            return rowlist;
         }
 
         private void next_download () {
