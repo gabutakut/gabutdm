@@ -2398,7 +2398,7 @@ namespace Gabut {
         return usersid;
     }
 
-    private string update_user (string user, UserID type, string value) {
+    private void update_user (string user, UserID type, string value) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 (@"UPDATE users SET $(type.get_str ()) = \"$(value)\" WHERE user = ?", -1, out stmt);
         res = stmt.bind_text (1, user);
@@ -2406,10 +2406,9 @@ namespace Gabut {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
-        return value;
     }
 
-    private string update_user_id (int64 id, UserID type, string value) {
+    private void update_user_id (int64 id, UserID type, string value) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 (@"UPDATE users SET $(type.get_str ()) = \"$(value)\" WHERE id = ?", -1, out stmt);
         res = stmt.bind_int64 (1, id);
@@ -2417,7 +2416,6 @@ namespace Gabut {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
-        return value;
     }
 
     private string get_db_user (UserID type, string user) {

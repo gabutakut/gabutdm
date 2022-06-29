@@ -116,11 +116,7 @@ namespace Gabut {
                 gabutwindow.active_downloader.connect ((ariagid)=> {
                     return download_active (ariagid);
                 });
-                gabutwindow.get_host.connect ((reboot)=> {
-                    if (reboot) {
-                        gabutserver.stop_server ();
-                        gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
-                    }
+                gabutwindow.get_host.connect (()=> {
                     return gabutserver.get_address ();
                 });
                 gabutwindow.restart_server.connect (()=> {

@@ -237,9 +237,9 @@ namespace Gabut {
             };
             var method_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = method_flow
             };
-            method_popover.set_child (method_flow);
             method_popover.show.connect (() => {
                 if (proxymethod != null) {
                     method_flow.select_child (proxymethod);

@@ -26,7 +26,7 @@ namespace Gabut {
         public signal void restart_server ();
         public signal void open_show ();
         public signal bool active_downloader (string ariagid);
-        public signal string get_host (bool reboot);
+        public signal string get_host ();
         private Gtk.ListBox list_box;
         private Gtk.Stack headerstack;
         private Gtk.Revealer property_rev;
@@ -196,7 +196,10 @@ namespace Gabut {
                     };
                     qrcode.show ();
                     qrcode.get_host.connect ((reboot)=> {
-                        return get_host (reboot);
+                        if (reboot) {
+                            restart_server ();
+                        }
+                        return get_host ();
                     });
                     qrcode.close.connect (()=> {
                         qrcode = null;
@@ -243,9 +246,9 @@ namespace Gabut {
                 }
             });
             property_rev = new Gtk.Revealer () {
-                transition_type = Gtk.RevealerTransitionType.CROSSFADE
+                transition_type = Gtk.RevealerTransitionType.CROSSFADE,
+                child = property_button
             };
-            property_rev.set_child (property_button);
             headerbar.pack_end (property_rev);
             list_box.row_selected.connect ((row)=> {
                 property_rev.reveal_child = row != null? true : false;

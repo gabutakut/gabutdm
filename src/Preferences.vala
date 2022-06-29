@@ -71,7 +71,7 @@ namespace Gabut {
             set {
                 _selectfd = value;
                 if (selectfd != null) {
-                    folder_location.set_child (button_chooser (selectfd));
+                    folder_location.child = button_chooser (selectfd);
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace Gabut {
             set {
                 _selectfs = value;
                 if (selectfs != null) {
-                    folder_sharing.set_child (button_chooser (selectfs));
+                    folder_sharing.child = button_chooser (selectfs);
                 }
             }
         }
@@ -834,7 +834,7 @@ namespace Gabut {
             maingrid.attach (stack, 0, 0);
             maingrid.attach (box_action, 0, 1);
 
-            set_child (maingrid);
+            child = maingrid;
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:
