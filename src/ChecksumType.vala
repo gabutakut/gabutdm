@@ -29,20 +29,23 @@ namespace Gabut {
                 row_spacing = 12,
                 halign = Gtk.Align.CENTER
             };
-            add (content);
+            child = content;
         }
 
         public ChecksumType (AriaChecksumTypes checksums) {
             this.checksums = checksums;
             var title = new Gtk.Label (checksums.get_name ().up ().replace ("=", "").replace ("-", "")) {
                 halign = Gtk.Align.CENTER,
+                wrap_mode = Pango.WrapMode.WORD_CHAR,
+                attributes = set_attribute (Pango.Weight.BOLD),
                 margin_top = 6,
                 margin_bottom = 6,
                 margin_start = 12,
-                margin_end = 12
+                margin_end = 12,
+                width_request = 100
             };
-            content.add (title);
-            show_all ();
+            content.attach (title, 0, 0);
+            show ();
         }
     }
 }

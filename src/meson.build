@@ -10,7 +10,6 @@ sources = files (
     'UnityLauncherEntry.vala',
     'Preferences.vala',
     'AddUrl.vala',
-    'HeaderLabel.vala',
     'MediaEntry.vala',
     'SuccesDialog.vala',
     'GabutServer.vala',
@@ -29,5 +28,8 @@ sources = files (
     'ProxyType.vala',
     'CanonicalDbusmenu.vala',
     'DbusmenuItem.vala',
-    'ModeTogle.vala'
+    'ModeTogle.vala',
+    'GabutSucces.vala',
+    'ServerShare.vala',
+    'ServerNotFound.vala'
 )

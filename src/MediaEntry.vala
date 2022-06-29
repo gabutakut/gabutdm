@@ -21,32 +21,80 @@
 
 namespace Gabut {
     private class MediaEntry : Gtk.Entry {
-        public string first_label { get; construct; }
-        public string second_label { get; construct; }
-        public MediaEntry (string first_label, string second_label, bool second = true) {
+        public enum EntryType {
+            STANDARD,
+            WITHSIGNAL,
+            INFO
+        }
+        public signal void pclicked ();
+        public signal void sclicked ();
+        private Gdk.Clipboard clipboard;
+        public EntryType entrytype { get; construct; }
+
+        public MediaEntry (string first_label, string second_label) {
             Object (
-                first_label: first_label,
-                second_label: second_label,
-                secondary_icon_activatable: second
+                entrytype: EntryType.STANDARD,
+                secondary_icon_activatable: true,
+                primary_icon_name: first_label,
+                secondary_icon_name: second_label,
+                primary_icon_tooltip_text: _("Copy"),
+                secondary_icon_tooltip_text: _("Paste"),
+                hexpand: true,
+                activates_default: true
+            );
+        }
+
+        public MediaEntry.activable (string first_label, string second_label) {
+            Object (
+                entrytype: EntryType.WITHSIGNAL,
+                secondary_icon_activatable: true,
+                primary_icon_name: first_label,
+                secondary_icon_name: second_label,
+                hexpand: true,
+                activates_default: true
+            );
+        }
+
+        public MediaEntry.info (string first_label, string second_label) {
+            Object (
+                entrytype: EntryType.INFO,
+                secondary_icon_activatable: false,
+                primary_icon_activatable: false,
+                primary_icon_name: first_label,
+                secondary_icon_name: second_label,
+                editable: false,
+                hexpand: true,
+                activates_default: false
             );
         }
 
         construct {
-            primary_icon_name = first_label;
-            primary_icon_tooltip_text = _("Copy");
-            secondary_icon_name = second_label;
-            secondary_icon_tooltip_text = _("Paste");
-            hexpand = true;
-            icon_press.connect ((pos, event) => {
-                Gtk.Clipboard clipboard = get_clipboard (Gdk.SELECTION_CLIPBOARD);
-                if (pos == Gtk.EntryIconPosition.PRIMARY) {
-                    clipboard.set_text (text, text.length);
-                }
-                if (pos == Gtk.EntryIconPosition.SECONDARY) {
-                    text = clipboard.wait_for_text ().strip ();
+            icon_press.connect ((pos) => {
+                switch (entrytype) {
+                    case EntryType.WITHSIGNAL:
+                        if (pos == Gtk.EntryIconPosition.PRIMARY) {
+                            pclicked ();
+                        }
+                        if (pos == Gtk.EntryIconPosition.SECONDARY) {
+                            sclicked ();
+                        }
+                        break;
+                    default:
+                        clipboard = get_display ().get_clipboard ();
+                        if (pos == Gtk.EntryIconPosition.PRIMARY) {
+                            clipboard.set_text (text);
+                        }
+                        if (pos == Gtk.EntryIconPosition.SECONDARY) {
+                            get_value.begin ();
+                        }
+                        break;
                 }
             });
-            activates_default = true;
+        }
+
+        private async void get_value () throws Error {
+            unowned GLib.Value? value = yield clipboard.read_value_async (GLib.Type.STRING, GLib.Priority.DEFAULT, null);
+            text = value.get_string ();
         }
     }
 }

@@ -38,18 +38,20 @@ namespace Gabut {
             icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
-                icon_size = Gtk.IconSize.DIALOG
+                icon_size = Gtk.IconSize.LARGE,
+                pixel_size = 64
             };
 
             var icon_badge = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
                 gicon = new ThemedIcon ("process-completed"),
-                icon_size = Gtk.IconSize.LARGE_TOOLBAR
+                icon_size = Gtk.IconSize.LARGE
             };
 
-            var overlay = new Gtk.Overlay ();
-            overlay.add (icon_image);
+            var overlay = new Gtk.Overlay () {
+                child = icon_image
+            };
             overlay.add_overlay (icon_badge);
 
             var primarylabel = new Gtk.Label ("Download Complete") {
@@ -72,55 +74,45 @@ namespace Gabut {
 
             var header_grid = new Gtk.Grid () {
                 column_spacing = 0,
-                width_request = 250,
-                margin_start = 4,
-                margin_top = 4
+                hexpand = true,
+                halign = Gtk.Align.START,
+                valign = Gtk.Align.CENTER
             };
             header_grid.attach (overlay, 0, 0, 1, 2);
             header_grid.attach (primarylabel, 1, 0, 1, 1);
             header_grid.attach (filesizelabel, 1, 1, 1, 1);
 
             var header = get_header_bar ();
-            header.has_subtitle = false;
-            header.show_close_button = false;
-            header.pack_start (header_grid);
+            header.title_widget = header_grid;
+            header.decoration_layout = "none";
 
-            address = new MediaEntry ("insert-link", "process-completed") {
-                primary_icon_tooltip_text = "",
-                secondary_icon_tooltip_text = "",
+            address = new MediaEntry.info ("insert-link", "process-completed") {
                 hexpand = true,
-                width_request = 450,
-                sensitive = false
+                width_request = 450
             };
 
-            directory = new MediaEntry ("folder", "process-completed") {
-                primary_icon_tooltip_text = "",
-                secondary_icon_tooltip_text = "",
+            directory = new MediaEntry.info ("folder", "process-completed") {
                 hexpand = true,
-                width_request = 450,
-                sensitive = false
+                width_request = 450
             };
 
-            var succeshow = new Gtk.Grid ();
-            succeshow.add (new Gtk.Image.from_icon_name ("process-completed", Gtk.IconSize.SMALL_TOOLBAR));
-            succeshow.add (new HeaderLabel (_("Don't open this dialog when download complete"), 200));
-
-            var dontshow = new Gtk.CheckButton () {
+            var dontshow = new Gtk.CheckButton.with_label (_("Don't open this dialog when download complete")) {
+                margin_top = 5,
+                margin_bottom = 5,
                 active = !bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))
             };
-            dontshow.add (succeshow);
+            ((Gtk.Label) dontshow.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             dontshow.toggled.connect (()=> {
                 set_dbsetting (DBSettings.DIALOGNOTIF, (!dontshow.active).to_string ());
             });
             var dialogmain = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
-                width_request = 450,
+                width_request = 500,
                 halign = Gtk.Align.START
             };
-            dialogmain.attach (new HeaderLabel (_("Address:"), 300), 1, 1, 1, 1);
+            dialogmain.attach (headerlabel (_("Address:"), 300), 1, 1, 1, 1);
             dialogmain.attach (address, 1, 2, 1, 1);
-            dialogmain.attach (new HeaderLabel (_("Directory:"), 300), 1, 3, 1, 1);
+            dialogmain.attach (headerlabel (_("Directory:"), 300), 1, 3, 1, 1);
             dialogmain.attach (directory, 1, 4, 1, 1);
             dialogmain.attach (dontshow, 1, 5, 1, 1);
 
@@ -128,68 +120,65 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) open_file.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             open_file.clicked.connect (()=> {
                 string[] datastrs = datastr.split ("<gabut>");
                 open_fileman.begin (File.new_for_path (datastrs[1]).get_uri ());
-                destroy ();
+                close ();
             });
             var close_button = new Gtk.Button.with_label (_("Close")) {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
-                destroy ();
+                close ();
             });
 
             var open_folder = new Gtk.Button.with_label (_("Open Folder")) {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) open_folder.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             open_folder.clicked.connect (()=> {
-                string[] datastrs = datastr.split ("<gabut>");
-                var file = File.new_for_path (datastrs[1]);
-                if (datastrs[3] == "inode/directory") {
+                var file = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH));
+                if (info_succes (datastr, InfoSucces.ICONNAME) == "inode/directory") {
                     open_fileman.begin (file.get_uri ());
                 } else {
                     open_fileman.begin (file.get_parent ().get_uri ());
                 }
-                destroy ();
+                close ();
             });
 
-            var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
-                width_request = 400,
+            var box_action = new Gtk.Grid () {
                 margin_bottom = 10,
-                hexpand = true
+                halign = Gtk.Align.END,
+                hexpand = true,
+                column_homogeneous = true,
+                column_spacing = 5
             };
-            box_action.pack_start (open_file, false, false, 0);
-            box_action.pack_start (open_folder, false, false, 0);
-            box_action.pack_end (close_button, false, false, 0);
+            box_action.attach (open_file, 0, 0);
+            box_action.attach (open_folder, 1, 0);
+            box_action.attach (close_button, 2, 0);
 
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
                 margin_start = 10,
-                margin_end = 10
+                margin_end = 10,
+                hexpand = true
             };
-            maingrid.add (dialogmain);
-            maingrid.add (box_action);
-            get_content_area ().add (maingrid);
-            move_widget (this);
+            maingrid.attach (dialogmain, 0, 0);
+            maingrid.attach (box_action, 0, 1);
+            child = maingrid;
         }
 
         public void set_dialog (string datastr) {
             this.datastr = datastr;
-            string[] datastrs = datastr.split ("<gabut>");
-            address.text = datastrs[0];
-            File file = File.new_for_path (datastrs[1]);
-            directory.text = file.get_path ();
-            filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (datastrs[2]), GLib.FormatSizeFlags.LONG_FORMAT));
-            icon_image.gicon = GLib.ContentType.get_icon (datastrs[3]);
-        }
-
-        public override void show () {
-            base.show ();
-            set_keep_above (true);
+            address.text = info_succes (datastr, InfoSucces.ADDRESS);
+            directory.text = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH)).get_path ();
+            filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (info_succes (datastr, InfoSucces.FILESIZE)), GLib.FormatSizeFlags.LONG_FORMAT));
+            icon_image.gicon = GLib.ContentType.get_icon (info_succes (datastr, InfoSucces.ICONNAME));
         }
     }
 }

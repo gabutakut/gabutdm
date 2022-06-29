@@ -1,5 +1,10 @@
-com.github.gabutakut.gabutdm (1.5.00-1ubuntu4) focal; urgency=medium
+com.github.gabutakut.gabutdm (1.8.5-1ubuntu4) jammy; urgency=medium
 
+  [ torikhabib ]
   * Relaease
 
- -- torikhabib <torik.habib@gmail.com>  Thu, 11 Nov 2021 07:38:13 +0700
+  [ torik ]
+  * jammy
+  * GTK4
+
+ -- torikhabib <torik.habib@gmail.com>  Thu, 16 May 2022 07:38:13 +0700

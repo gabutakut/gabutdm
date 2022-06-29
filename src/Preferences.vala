@@ -27,6 +27,8 @@ namespace Gabut {
         private Gtk.MenuButton allocate_button;
         private Gtk.MenuButton piecesel_button;
         private Gtk.MenuButton urisel_button;
+        private Gtk.Button folder_location;
+        private Gtk.Button folder_sharing;
 
         FileAllocation _fileallocation = null;
         FileAllocation fileallocation {
@@ -61,6 +63,32 @@ namespace Gabut {
             }
         }
 
+        GLib.File _selectfd = null;
+        GLib.File selectfd {
+            get {
+                return _selectfd;
+            }
+            set {
+                _selectfd = value;
+                if (selectfd != null) {
+                    folder_location.child = button_chooser (selectfd);
+                }
+            }
+        }
+
+        GLib.File _selectfs = null;
+        GLib.File selectfs {
+            get {
+                return _selectfs;
+            }
+            set {
+                _selectfs = value;
+                if (selectfs != null) {
+                    folder_sharing.child = button_chooser (selectfs);
+                }
+            }
+        }
+
         public Preferences (Gtk.Application application) {
             Object (application: application,
                     resizable: false,
@@ -71,144 +99,134 @@ namespace Gabut {
         construct {
             var view_mode = new ModeButton () {
                 hexpand = false,
-                margin = 2,
                 width_request = 300
             };
             view_mode.append_text (_("Default"));
             view_mode.append_text (_("BitTorrent"));
-            view_mode.append_text (_("Folder"));
+            view_mode.append_text (_("Sharing"));
             view_mode.append_text (_("Option"));
             view_mode.append_text (_("System"));
             view_mode.selected = 0;
 
             var header = get_header_bar ();
-            header.has_subtitle = false;
-            header.show_close_button = false;
-            header.set_custom_title (view_mode);
+            header.decoration_layout = "none";
+            header.title_widget = view_mode;
 
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "view-refresh",
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_TRIES))
             };
 
             var numbconn = new Gtk.SpinButton.with_range (0, 16, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "network-wireless",
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER))
             };
 
             var maxcurrent = new Gtk.SpinButton.with_range (1, 50, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "media-playback-start",
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))
             };
 
             var timeout = new Gtk.SpinButton.with_range (0, 600, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.TIMEOUT))
             };
 
             var retry = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.RETRY_WAIT))
             };
 
             var split = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "edit-cut",
                 value = double.parse (aria_get_globalops (AriaOptions.SPLIT))
             };
 
             var splitsize = new Gtk.SpinButton.with_range (0, 9999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "drive-harddisk",
                 value = double.parse (aria_get_globalops (AriaOptions.MIN_SPLIT_SIZE)) / 1024
             };
 
             var lowestspd = new Gtk.SpinButton.with_range (0, 9999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "go-down",
-                primary_icon_tooltip_text = _("0 Means Unrestricted"),
                 value = double.parse (aria_get_globalops (AriaOptions.LOWEST_SPEED_LIMIT)) / 1024
             };
 
-            piecesel_button = new Gtk.MenuButton ();
             var stream_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-                margin = 10
-            };
-            var stream_popover = new Gtk.Popover (piecesel_button) {
-                position = Gtk.PositionType.TOP,
                 width_request = 70
             };
-            stream_popover.add (stream_flow);
+            var stream_popover = new Gtk.Popover () {
+                width_request = 70,
+                child = stream_flow
+            };
             stream_popover.show.connect (() => {
                 if (pieceselector != null) {
                     stream_flow.select_child (pieceselector);
                     pieceselector.grab_focus ();
                 }
             });
-            piecesel_button.popover = stream_popover;
+            piecesel_button = new Gtk.MenuButton () {
+                direction = Gtk.ArrowType.UP,
+                popover = stream_popover
+            };
             foreach (var piecesel in PieceSelectors.get_all ()) {
-                stream_flow.add (new PieceSelector (piecesel));
+                stream_flow.append (new PieceSelector (piecesel));
             }
-            stream_flow.show_all ();
+            stream_flow.show ();
             stream_flow.child_activated.connect ((piecesel)=> {
                 pieceselector = piecesel as PieceSelector;
                 stream_popover.hide ();
             });
-            foreach (var piecesel in stream_flow.get_children ()) {
+            for (int a = 0; a <= PieceSelectors.GEOM; a++) {
+                var piecesel = stream_flow.get_child_at_index (a);
                 if (((PieceSelector) piecesel).selector.get_name ().down () == aria_get_globalops (AriaOptions.STREAM_PIECE_SELECTOR)) {
                     pieceselector = piecesel as PieceSelector;
                 }
-            };
+            }
 
-            urisel_button = new Gtk.MenuButton ();
             var urisel_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-                margin = 10
-            };
-            var urisel_popover = new Gtk.Popover (urisel_button) {
-                position = Gtk.PositionType.TOP,
                 width_request = 70
             };
-            urisel_popover.add (urisel_flow);
+            var urisel_popover = new Gtk.Popover () {
+                width_request = 70,
+                child = urisel_flow
+            };
             urisel_popover.show.connect (() => {
                 if (uriselector != null) {
                     urisel_flow.select_child (uriselector);
                     uriselector.grab_focus ();
                 }
             });
-            urisel_button.popover = urisel_popover;
+            urisel_button = new Gtk.MenuButton () {
+                direction = Gtk.ArrowType.UP,
+                popover = urisel_popover
+            };
             foreach (var urisel in UriSelectors.get_all ()) {
-                urisel_flow.add (new UriSelector (urisel));
+                urisel_flow.append (new UriSelector (urisel));
             }
-            urisel_flow.show_all ();
+            urisel_flow.show ();
             urisel_flow.child_activated.connect ((urisel)=> {
                 uriselector = urisel as UriSelector;
                 urisel_popover.hide ();
             });
-            foreach (var urisel in urisel_flow.get_children ()) {
+            for (int a = 0; a <= UriSelectors.ADAPTIVE; a++) {
+                var urisel = urisel_flow.get_child_at_index (a);
                 if (((UriSelector) urisel).selector.get_name ().down () == aria_get_globalops (AriaOptions.URI_SELECTOR)) {
                     uriselector = urisel as UriSelector;
                 }
-            };
+            }
 
             var settings = new Gtk.Grid () {
-                expand = true,
                 column_homogeneous = true,
                 height_request = 150,
                 margin_bottom = 5,
@@ -217,68 +235,60 @@ namespace Gabut {
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            settings.attach (new HeaderLabel (_("Number of Tries:"), 220), 1, 0, 1, 1);
+            settings.attach (headerlabel (_("Number of Tries:"), 220), 1, 0, 1, 1);
             settings.attach (numbtries, 1, 1, 1, 1);
-            settings.attach (new HeaderLabel (_("Connection:"), 220), 0, 0, 1, 1);
+            settings.attach (headerlabel (_("Connection:"), 220), 0, 0, 1, 1);
             settings.attach (numbconn, 0, 1, 1, 1);
-            settings.attach (new HeaderLabel (_("Active Download:"), 220), 1, 2, 1, 1);
+            settings.attach (headerlabel (_("Active Download:"), 220), 1, 2, 1, 1);
             settings.attach (maxcurrent, 1, 3, 1, 1);
-            settings.attach (new HeaderLabel (_("Time out (in Secconds):"), 220), 0, 2, 1, 1);
+            settings.attach (headerlabel (_("Time out (in Secconds):"), 220), 0, 2, 1, 1);
             settings.attach (timeout, 0, 3, 1, 1);
-            settings.attach (new HeaderLabel (_("Retry Wait (in Secconds):"), 220), 1, 4, 1, 1);
+            settings.attach (headerlabel (_("Retry Wait (in Secconds):"), 220), 1, 4, 1, 1);
             settings.attach (retry, 1, 5, 1, 1);
-            settings.attach (new HeaderLabel (_("Split:"), 220), 0, 4, 1, 1);
+            settings.attach (headerlabel (_("Split:"), 220), 0, 4, 1, 1);
             settings.attach (split, 0, 5, 1, 1);
-            settings.attach (new HeaderLabel (_("Lowest Speed (in Kb):"), 220), 1, 6, 1, 1);
+            settings.attach (headerlabel (_("Lowest Speed (in Kb):"), 220), 1, 6, 1, 1);
             settings.attach (lowestspd, 1, 7, 1, 1);
-            settings.attach (new HeaderLabel (_("Split Size (in Kb):"), 220), 0, 6, 1, 1);
+            settings.attach (headerlabel (_("Split Size (in Kb):"), 220), 0, 6, 1, 1);
             settings.attach (splitsize, 0, 7, 1, 1);
-            settings.attach (new HeaderLabel (_("Piece Selector:"), 220), 1, 8, 1, 1);
+            settings.attach (headerlabel (_("Piece Selector:"), 220), 1, 8, 1, 1);
             settings.attach (piecesel_button, 1, 9, 1, 1);
-            settings.attach (new HeaderLabel (_("Uri Selector:"), 220), 0, 8, 1, 1);
+            settings.attach (headerlabel (_("Uri Selector:"), 220), 0, 8, 1, 1);
             settings.attach (urisel_button, 0, 9, 1, 1);
 
             var maxopfile = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "application-x-bittorrent",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_OPEN_FILES))
             };
 
             var maxpeers = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "avatar-default",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_PEERS))
             };
 
             var bt_timeout = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.BT_TRACKER_TIMEOUT))
             };
 
             var bt_seedtime = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "com.github.gabutakut.gabutdm.waiting",
                 value = double.parse (aria_get_globalops (AriaOptions.SEED_TIME))
             };
 
             var bt_upload = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "go-up",
-                primary_icon_tooltip_text = _("0 Means Unlimited"),
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT)) / 1024
             };
 
             var bt_download = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "go-down",
-                primary_icon_tooltip_text = _("0 Means Unlimited"),
                 value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT)) / 1024
             };
             var trackertext = new Gtk.TextView () {
@@ -286,13 +296,13 @@ namespace Gabut {
             };
             trackertext.buffer.text = aria_get_globalops (AriaOptions.BT_TRACKER).replace ("\\/", "/");
 
-            var trackerscr = new Gtk.ScrolledWindow (null, null) {
+            var trackerscr = new Gtk.ScrolledWindow () {
                 width_request = 220,
-                height_request = 100
+                height_request = 100,
+                child = trackertext
             };
-            trackerscr.add (trackertext);
 
-            var load_tr = new Gtk.Button.from_icon_name ("document-open", Gtk.IconSize.BUTTON) {
+            var load_tr = new Gtk.Button.from_icon_name ("document-open") {
                 tooltip_text = _("Open Text Tracker")
             };
             load_tr.clicked.connect (() => {
@@ -306,7 +316,7 @@ namespace Gabut {
                 }
             });
 
-            var fformat_tr = new Gtk.Button.from_icon_name ("view-refresh", Gtk.IconSize.BUTTON) {
+            var fformat_tr = new Gtk.Button.from_icon_name ("view-refresh") {
                 tooltip_text = _("Fix to Tracker")
             };
             fformat_tr.clicked.connect (() => {
@@ -317,7 +327,7 @@ namespace Gabut {
                 trackertext.buffer.text = trackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
             });
 
-            var clear_tr = new Gtk.Button.from_icon_name ("edit-clear", Gtk.IconSize.BUTTON) {
+            var clear_tr = new Gtk.Button.from_icon_name ("edit-clear") {
                 tooltip_text = _("Clear Text Tracker")
             };
             clear_tr.clicked.connect (() => {
@@ -327,28 +337,28 @@ namespace Gabut {
             var action_track = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
                 hexpand = true
             };
-            action_track.pack_start (load_tr, false, false, 0);
-            action_track.pack_start (fformat_tr, false, false, 0);
-            action_track.pack_start (clear_tr, false, false, 0);
+            action_track.append (load_tr);
+            action_track.append (fformat_tr);
+            action_track.append (clear_tr);
 
             var layout_track = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL
             };
-            layout_track.add (trackerscr);
-            layout_track.add (action_track);
+            layout_track.attach (trackerscr, 0, 0);
+            layout_track.attach (action_track, 0, 1);
 
             var etrackertext = new Gtk.TextView () {
                 wrap_mode = Gtk.WrapMode.WORD_CHAR
             };
             etrackertext.buffer.text = aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
 
-            var etrackerscr = new Gtk.ScrolledWindow (null, null) {
+            var etrackerscr = new Gtk.ScrolledWindow () {
                 width_request = 220,
-                height_request = 100
+                height_request = 100,
+                child = etrackertext
             };
-            etrackerscr.add (etrackertext);
 
-            var load_etr = new Gtk.Button.from_icon_name ("document-open", Gtk.IconSize.BUTTON) {
+            var load_etr = new Gtk.Button.from_icon_name ("document-open") {
                 tooltip_text = _("Open Text Tracker")
             };
             load_etr.clicked.connect (() => {
@@ -361,7 +371,7 @@ namespace Gabut {
                     }
                 }
             });
-            var fformat_etr = new Gtk.Button.from_icon_name ("view-refresh", Gtk.IconSize.BUTTON) {
+            var fformat_etr = new Gtk.Button.from_icon_name ("view-refresh") {
                 tooltip_text = _("Fix to Tracker")
             };
             fformat_etr.clicked.connect (() => {
@@ -371,7 +381,7 @@ namespace Gabut {
                 etrackertext.buffer.text = etrackertext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
                 etrackertext.buffer.text = etrackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
             });
-            var clear_etr = new Gtk.Button.from_icon_name ("edit-clear", Gtk.IconSize.BUTTON) {
+            var clear_etr = new Gtk.Button.from_icon_name ("edit-clear") {
                 tooltip_text = _("Clear Text Tracker")
             };
             clear_etr.clicked.connect (() => {
@@ -380,18 +390,17 @@ namespace Gabut {
             var actionetr = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
                 hexpand = true
             };
-            actionetr.pack_start (load_etr, false, false, 0);
-            actionetr.pack_start (fformat_etr, false, false, 0);
-            actionetr.pack_start (clear_etr, false, false, 0);
+            actionetr.append (load_etr);
+            actionetr.append (fformat_etr);
+            actionetr.append (clear_etr);
 
             var layout_etrack = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL
             };
-            layout_etrack.add (etrackerscr);
-            layout_etrack.add (actionetr);
+            layout_etrack.attach (etrackerscr, 0, 0);
+            layout_etrack.attach (actionetr, 0, 1);
 
             var bittorrent = new Gtk.Grid () {
-                expand = true,
                 column_homogeneous = true,
                 height_request = 150,
                 margin_bottom = 5,
@@ -400,115 +409,233 @@ namespace Gabut {
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            bittorrent.attach (new HeaderLabel (_("Max Open File:"), 220), 1, 0, 1, 1);
+            bittorrent.attach (headerlabel (_("Max Open File:"), 220), 1, 0, 1, 1);
             bittorrent.attach (maxopfile, 1, 1, 1, 1);
-            bittorrent.attach (new HeaderLabel (_("Bittorent Max Peers:"), 220), 0, 0, 1, 1);
+            bittorrent.attach (headerlabel (_("Bittorent Max Peers:"), 220), 0, 0, 1, 1);
             bittorrent.attach (maxpeers, 0, 1, 1, 1);
-            bittorrent.attach (new HeaderLabel (_("Tracker Time out (in Secconds):"), 220), 1, 2, 1, 1);
+            bittorrent.attach (headerlabel (_("Tracker Time out (in Secconds):"), 220), 1, 2, 1, 1);
             bittorrent.attach (bt_timeout, 1, 3, 1, 1);
-            bittorrent.attach (new HeaderLabel (_("Seed Time (in Minutes):"), 220), 0, 2, 1, 1);
+            bittorrent.attach (headerlabel (_("Seed Time (in Minutes):"), 220), 0, 2, 1, 1);
             bittorrent.attach (bt_seedtime, 0, 3, 1, 1);
-            bittorrent.attach (new HeaderLabel (_("Upload Limit (in Kb):"), 220), 1, 4, 1, 1);
+            bittorrent.attach (headerlabel (_("Upload Limit (in Kb):"), 220), 1, 4, 1, 1);
             bittorrent.attach (bt_upload, 1, 5, 1, 1);
-            bittorrent.attach (new HeaderLabel (_("Download Limit (in Kb):"), 220), 0, 4, 1, 1);
+            bittorrent.attach (headerlabel (_("Download Limit (in Kb):"), 220), 0, 4, 1, 1);
             bittorrent.attach (bt_download, 0, 5, 1, 1);
-            bittorrent.attach (new HeaderLabel (_("BitTorrent Tracker Exclude:"), 220), 1, 6, 1, 1);
+            bittorrent.attach (headerlabel (_("BitTorrent Tracker Exclude:"), 220), 1, 6, 1, 1);
             bittorrent.attach (layout_etrack, 1, 7, 1, 1);
-            bittorrent.attach (new HeaderLabel (_("BitTorrent Tracker:"), 220), 0, 6, 1, 1);
+            bittorrent.attach (headerlabel (_("BitTorrent Tracker:"), 220), 0, 6, 1, 1);
             bittorrent.attach (layout_track, 0, 7, 1, 1);
 
-            var folder_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.SELECT_FOLDER);
-            var filter_folder = new Gtk.FileFilter ();
-            filter_folder.add_mime_type ("inode/directory");
-            folder_location.set_filter (filter_folder);
-            folder_location.set_uri (File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/")).get_uri ());
+            folder_location = new Gtk.Button ();
+            folder_location.clicked.connect (()=> {
+                var file = run_open_fd (this, selectfd);
+                if (file != null) {
+                    selectfd = file;
+                }
+            });
+            selectfd = File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/"));
 
+            folder_sharing = new Gtk.Button ();
+            folder_sharing.clicked.connect (()=> {
+                var file = run_open_fd (this, selectfs);
+                if (file != null) {
+                    selectfs = file;
+                }
+            });
+            selectfs = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
+
+            var add_auth = new Gtk.Button.from_icon_name ("list-add") {
+                tooltip_text = _("Add Authenty")
+            };
+
+            var usergrid = new Gtk.Grid () {
+                column_spacing = 10,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
+            };
+            int userid = 0;
+            get_users ().foreach ((user)=> {
+                userid++;
+                var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    text = user.user,
+                    secondary_icon_name = user.activate? "media-playback-start" : "process-stop",
+                    secondary_icon_tooltip_text = !user.activate? _("Reject") : _("Accept")
+                };
+                bool activable = user.activate;
+                user_entry.sclicked.connect (()=> {
+                    activable = !activable;
+                    user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
+                    user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
+                    update_user_id (user.id, UserID.ACTIVE, activable.to_string ());
+                });
+                user_entry.changed.connect (()=> {
+                    update_user_id (user.id, UserID.USER, user_entry.text);
+                });
+                var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    secondary_icon_tooltip_text = _("Delete Authentication"),
+                    text = user.passwd
+                };
+                pass_entry.changed.connect (()=> {
+                    update_user_id (user.id, UserID.PASSWD, pass_entry.text);
+                });
+                pass_entry.sclicked.connect (()=> {
+                    remove_user (user.id);
+                    userid--;
+                    usergrid.remove (user_entry);
+                    usergrid.remove (pass_entry);
+                    user_entry.destroy ();
+                    pass_entry.destroy ();
+                });
+                usergrid.attach (user_entry, 0, userid);
+                usergrid.attach (pass_entry, 1, userid);
+            });
+
+            add_auth.clicked.connect (()=> {
+                userid++;
+                int64 menemonic = get_real_time ();
+                add_db_user (menemonic);
+                bool activable = false;
+                var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    placeholder_text = _("Username"),
+                    secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept")
+                };
+                user_entry.sclicked.connect (()=> {
+                    activable = !activable;
+                    user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
+                    user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
+                    update_user_id (menemonic, UserID.ACTIVE, activable.to_string ());
+                });
+                user_entry.changed.connect (()=> {
+                    update_user_id (menemonic, UserID.USER, user_entry.text);
+                });
+                var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
+                    width_request = 220,
+                    margin_bottom = 4,
+                    secondary_icon_tooltip_text = _("Delete Authentication"),
+                    placeholder_text = _("Password")
+                };
+                pass_entry.changed.connect (()=> {
+                    update_user_id (menemonic, UserID.PASSWD, pass_entry.text);
+                });
+                pass_entry.sclicked.connect (()=> {
+                    remove_user (menemonic);
+                    userid--;
+                    usergrid.remove (user_entry);
+                    usergrid.remove (pass_entry);
+                    user_entry.destroy ();
+                    pass_entry.destroy ();
+                });
+                usergrid.attach (user_entry, 0, userid);
+                usergrid.attach (pass_entry, 1, userid);
+            });
+
+            var sharebutton = new Gtk.CheckButton.with_label (_("Folder Sharing:")) {
+                margin_top = 5,
+                margin_bottom = 5,
+                active = bool.parse (get_dbsetting (DBSettings.SWITCHDIR))
+            };
+            ((Gtk.Label) sharebutton.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
+            sharebutton.toggled.connect (()=> {
+                folder_sharing.sensitive = sharebutton.active;
+            });
+            folder_sharing.sensitive = sharebutton.active;
             var folderopt = new Gtk.Grid () {
-                expand = true,
                 height_request = 150,
                 margin_bottom = 5,
                 margin_start = 2,
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            folderopt.attach (new HeaderLabel (_("Save to Folder:"), 450), 1, 0, 1, 1);
+            folderopt.attach (headerlabel (_("Save to Folder:"), 450), 1, 0, 1, 1);
             folderopt.attach (folder_location, 1, 1, 1, 1);
+            folderopt.attach (sharebutton, 1, 2, 1, 1);
+            folderopt.attach (folder_sharing, 1, 3, 1, 1);
+            folderopt.attach (headerlabel (_("Authentication:"), 450), 1, 4, 1, 1);
+            folderopt.attach (usergrid, 1, 5, 1, 1);
+            folderopt.attach (add_auth, 1, 6, 1, 1);
+
+            var folderscr = new Gtk.ScrolledWindow () {
+                width_request = 455,
+                vexpand = true,
+                child = folderopt
+            };
 
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "go-home",
                 value = double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
             };
 
             var local_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "go-home",
                 value = double.parse (get_dbsetting (DBSettings.PORTLOCAL))
             };
 
             var bt_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "go-home",
                 value = double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
             };
 
             var dht_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "go-home",
                 value = double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
             };
 
             var maxrequest = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "dialog-information",
                 value = double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))
             };
 
             var diskcache = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
                 width_request = 220,
                 hexpand = true,
-                primary_icon_name = "drive-harddisk",
                 value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
             };
-            allocate_button = new Gtk.MenuButton ();
+
             var allocate_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-                margin = 10
-            };
-            var allocate_popover = new Gtk.Popover (allocate_button) {
-                position = Gtk.PositionType.TOP,
                 width_request = 70
             };
-            allocate_popover.add (allocate_flow);
+            var allocate_popover = new Gtk.Popover () {
+                position = Gtk.PositionType.TOP,
+                width_request = 70,
+                child = allocate_flow
+            };
             allocate_popover.show.connect (() => {
                 if (fileallocation != null) {
                     allocate_flow.select_child (fileallocation);
                     fileallocation.grab_focus ();
                 }
             });
-            allocate_button.popover = allocate_popover;
+            allocate_button = new Gtk.MenuButton () {
+                popover = allocate_popover
+            };
             foreach (var allocate in FileAllocations.get_all ()) {
-                allocate_flow.add (new FileAllocation (allocate));
+                allocate_flow.append (new FileAllocation (allocate));
             }
-            allocate_flow.show_all ();
+            allocate_flow.show ();
             allocate_flow.child_activated.connect ((allocate)=> {
                 fileallocation = allocate as FileAllocation;
                 allocate_popover.hide ();
             });
-            foreach (var allocate in allocate_flow.get_children ()) {
+            for (int a = 0; a <= FileAllocations.FALLOC; a++) {
+                var allocate = allocate_flow.get_child_at_index (a);
                 if (((FileAllocation) allocate).fileallocation.get_name ().down () == aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
                     fileallocation = allocate as FileAllocation;
                 }
-            };
+            }
 
             var moreoptions = new Gtk.Grid () {
-                expand = true,
                 column_homogeneous = true,
                 height_request = 150,
                 margin_bottom = 5,
@@ -517,145 +644,118 @@ namespace Gabut {
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            moreoptions.attach (new HeaderLabel (_("RPC Port:"), 220), 0, 0, 1, 1);
+            moreoptions.attach (headerlabel (_("RPC Port:"), 220), 0, 0, 1, 1);
             moreoptions.attach (rpc_port, 0, 1, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("Local Port:"), 220), 0, 2, 1, 1);
+            moreoptions.attach (headerlabel (_("Local Port:"), 220), 0, 2, 1, 1);
             moreoptions.attach (local_port, 0, 3, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("BT Listen Port:"), 220), 0, 4, 1, 1);
+            moreoptions.attach (headerlabel (_("BT Listen Port:"), 220), 0, 4, 1, 1);
             moreoptions.attach (bt_listenport, 0, 5, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("DHT Listen Port:"), 220), 0, 6, 1, 1);
+            moreoptions.attach (headerlabel (_("DHT Listen Port:"), 220), 0, 6, 1, 1);
             moreoptions.attach (dht_listenport, 0, 7, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("RPC Max Request Size (in Byte):"), 220), 1, 0, 1, 1);
+            moreoptions.attach (headerlabel (_("RPC Max Request Size (in Byte):"), 220), 1, 0, 1, 1);
             moreoptions.attach (maxrequest, 1, 1, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("Disk Cache (in Byte):"), 220), 1, 2, 1, 1);
+            moreoptions.attach (headerlabel (_("Disk Cache (in Byte):"), 220), 1, 2, 1, 1);
             moreoptions.attach (diskcache, 1, 3, 1, 1);
-            moreoptions.attach (new HeaderLabel (_("File Allocation:"), 220), 1, 4, 1, 1);
+            moreoptions.attach (headerlabel (_("File Allocation:"), 220), 1, 4, 1, 1);
             moreoptions.attach (allocate_button, 1, 5, 1, 1);
 
-            var notifydia = new Gtk.Grid ();
-            notifydia.add (new Gtk.Image.from_icon_name ("dialog-information", Gtk.IconSize.SMALL_TOOLBAR));
-            notifydia.add (new Gtk.Label (_("Open dialog succes when download complete")));
-
-            var dialognotify = new Gtk.CheckButton () {
+            var dialognotify = new Gtk.CheckButton.with_label (_("Open dialog succes when download complete")) {
                 margin_top = 5,
                 width_request = 450,
                 active = bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))
             };
-            dialognotify.add (notifydia);
 
-            var notifygrid = new Gtk.Grid ();
-            notifygrid.add (new Gtk.Image.from_icon_name ("preferences-system-notifications", Gtk.IconSize.SMALL_TOOLBAR));
-            notifygrid.add (new Gtk.Label (_("Send notification system")));
-
-            var systemnotif = new Gtk.CheckButton () {
+            var systemnotif = new Gtk.CheckButton.with_label (_("Send notification system")) {
                 margin_top = 5,
                 width_request = 450,
                 active = bool.parse (get_dbsetting (DBSettings.SYSTEMNOTIF))
             };
-            systemnotif.add (notifygrid);
 
-            var deletegrid = new Gtk.Grid ();
-            deletegrid.add (new Gtk.Image.from_icon_name ("system-shutdown", Gtk.IconSize.SMALL_TOOLBAR));
-            deletegrid.add (new Gtk.Label (_("Running on background")));
-
-            var retonhide = new Gtk.CheckButton () {
+            var retonhide = new Gtk.CheckButton.with_label (_("Running on background")) {
                 margin_top = 5,
                 width_request = 450,
                 active = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))
             };
-            retonhide.add (deletegrid);
 
-            var startupgrid = new Gtk.Grid ();
-            startupgrid.add (new Gtk.Image.from_icon_name ("system-run", Gtk.IconSize.SMALL_TOOLBAR));
-            startupgrid.add (new Gtk.Label (_("Launch App on Startup")));
-
-            var appstartup = new Gtk.CheckButton () {
+            var appstartup = new Gtk.CheckButton.with_label (_("Launch App on Startup")) {
                 margin_top = 5,
                 width_request = 450,
                 active = bool.parse (get_dbsetting (DBSettings.STARTUP))
             };
-            appstartup.add (startupgrid);
 
-            var replacegrid = new Gtk.Grid ();
-            replacegrid.add (new Gtk.Image.from_icon_name ("edit-find-replace", Gtk.IconSize.SMALL_TOOLBAR));
-            replacegrid.add (new Gtk.Label (_("Replace File")));
+            var appclipboard = new Gtk.CheckButton.with_label (_("Add Url From Clipboard")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.CLIPBOARD))
+            };
 
-            var allowrepl = new Gtk.CheckButton () {
+            var allowrepl = new Gtk.CheckButton.with_label (_("Replace File")) {
                 margin_top = 5,
                 width_request = 450,
                 active = bool.parse (aria_get_globalops (AriaOptions.ALLOW_OVERWRITE))
             };
-            allowrepl.add (replacegrid);
 
-            var autorengrid = new Gtk.Grid ();
-            autorengrid.add (new Gtk.Image.from_icon_name ("edit-copy", Gtk.IconSize.SMALL_TOOLBAR));
-            autorengrid.add (new Gtk.Label (_("Auto Rename")));
-
-            var autorename = new Gtk.CheckButton () {
+            var autorename = new Gtk.CheckButton.with_label (_("Auto Rename")) {
                 margin_top = 5,
                 width_request = 450,
                 active = bool.parse (aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING))
             };
-            autorename.add (autorengrid);
 
             var style_mode = new ModeTogle ();
-            var auto_mode = new ModeTogle ();
-            auto_mode.set_image_label ("com.github.gabutakut.gabutdm.auto-symbolic");
-            auto_mode.set_label (_("System Default"));
-            var light_mode = new ModeTogle ();
-            light_mode.set_image_label ("display-brightness-symbolic");
-            light_mode.set_label (_("Light"));
-            var dark_mode = new ModeTogle ();
-            dark_mode.set_image_label ("weather-clear-night-symbolic");
-            dark_mode.set_label (_("Dark"));
-            style_mode.add_item (auto_mode);
-            style_mode.add_item (light_mode);
-            style_mode.add_item (dark_mode);
+            style_mode.add_item (new ModeTogle.with_label (_("System Default")));
+            style_mode.add_item (new ModeTogle.with_label (_("Light")));
+            style_mode.add_item (new ModeTogle.with_label (_("Dark")));
             style_mode.id = int.parse (get_dbsetting (DBSettings.STYLE));
 
             var notifyopt = new Gtk.Grid () {
-                expand = true,
                 margin_start = 2,
                 margin_end = 2,
                 height_request = 190
             };
-            notifyopt.attach (new HeaderLabel (_("Style:"), 450), 0, 0, 1, 1);
-            notifyopt.attach (style_mode.get_menu (), 0, 1, 1, 1);
-            notifyopt.attach (new HeaderLabel (_("Settings:"), 450), 0, 2, 1, 1);
+            notifyopt.attach (headerlabel (_("Style:"), 450), 0, 0, 1, 1);
+            notifyopt.attach (style_mode.get_box (), 0, 1, 1, 1);
+            notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 2, 1, 1);
             notifyopt.attach (retonhide, 0, 3, 1, 1);
             notifyopt.attach (appstartup, 0, 4, 1, 1);
-            notifyopt.attach (new HeaderLabel (_("Notify:"), 450), 0, 5, 1, 1);
-            notifyopt.attach (systemnotif, 0, 6, 1, 1);
-            notifyopt.attach (dialognotify, 0, 7, 1, 1);
-            notifyopt.attach (new HeaderLabel (_("File Download:"), 450), 0, 8, 1, 1);
-            notifyopt.attach (allowrepl, 0, 9, 1, 1);
-            notifyopt.attach (autorename, 0, 10, 1, 1);
-
+            notifyopt.attach (appclipboard, 0, 5, 1, 1);
+            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 6, 1, 1);
+            notifyopt.attach (systemnotif, 0, 7, 1, 1);
+            notifyopt.attach (dialognotify, 0, 8, 1, 1);
+            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 9, 1, 1);
+            notifyopt.attach (allowrepl, 0, 10, 1, 1);
+            notifyopt.attach (autorename, 0, 11, 1, 1);
+            var notyscr = new Gtk.ScrolledWindow () {
+                width_request = 455,
+                vexpand = true,
+                child = notifyopt
+            };
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
                 transition_duration = 500,
                 hhomogeneous = false
             };
-            stack.add_named (settings, "settings");
-            stack.add_named (bittorrent, "bittorrent");
-            stack.add_named (folderopt, "folderopt");
-            stack.add_named (moreoptions, "moreoptions");
-            stack.add_named (notifyopt, "notifyopt");
+            stack.add_child (settings);
+            stack.add_child (bittorrent);
+            stack.add_child (folderscr);
+            stack.add_child (moreoptions);
+            stack.add_child (notyscr);
             stack.visible_child = settings;
-            stack.show_all ();
+            stack.show ();
 
             var close_button = new Gtk.Button.with_label (_("Close"));
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
-                destroy ();
+                close ();
             });
 
             var save_button = new Gtk.Button.with_label (_("Save"));
+            ((Gtk.Label) save_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             save_button.clicked.connect (()=> {
                 aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
                 aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, set_dbsetting (DBSettings.CONNSERVER, numbconn.value.to_string ()));
                 aria_set_globalops (AriaOptions.TIMEOUT, set_dbsetting (DBSettings.TIMEOUT, timeout.value.to_string ()));
                 aria_set_globalops (AriaOptions.RETRY_WAIT, set_dbsetting (DBSettings.RETRY, retry.value.to_string ()));
-                aria_set_globalops (AriaOptions.DIR, set_dbsetting (DBSettings.DIR, folder_location.get_file ().get_path ().replace ("/", "\\/")));
+                aria_set_globalops (AriaOptions.DIR, set_dbsetting (DBSettings.DIR, selectfd.get_path ().replace ("/", "\\/")));
                 aria_set_globalops (AriaOptions.BT_MAX_PEERS, set_dbsetting (DBSettings.BTMAXPEERS, maxpeers.value.to_string ()));
                 aria_set_globalops (AriaOptions.SPLIT, set_dbsetting (DBSettings.SPLIT, split.value.to_string ()));
                 aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, set_dbsetting (DBSettings.BTTIMEOUTTRACK, bt_timeout.value.to_string ()));
@@ -671,6 +771,9 @@ namespace Gabut {
                 aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
                 aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
                 aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.get_name ().down ()));
+                set_dbsetting (DBSettings.CLIPBOARD, appclipboard.active.to_string ());
+                set_dbsetting (DBSettings.SHAREDIR, selectfs.get_path ());
+                set_dbsetting (DBSettings.SWITCHDIR, sharebutton.active.to_string ());
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
@@ -700,13 +803,13 @@ namespace Gabut {
                     } while (aria_getverion ());
                     exec_aria ();
                     restart_process ();
-                    destroy ();
+                    close ();
                 } else if (local_port.value.to_string () != get_dbsetting (DBSettings.PORTLOCAL)) {
                     set_dbsetting (DBSettings.PORTLOCAL, local_port.value.to_string ());
                     restart_server ();
-                    destroy ();
+                    close ();
                 } else {
-                    destroy ();
+                    close ();
                 }
             });
 
@@ -719,8 +822,8 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 orientation = Gtk.Orientation.HORIZONTAL
             };
-            box_action.add (save_button);
-            box_action.add (close_button);
+            box_action.attach (save_button, 0, 0);
+            box_action.attach (close_button, 1, 0);
 
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
@@ -728,24 +831,23 @@ namespace Gabut {
                 margin_start = 10,
                 margin_end = 10
             };
-            maingrid.add (stack);
-            maingrid.add (box_action);
+            maingrid.attach (stack, 0, 0);
+            maingrid.attach (box_action, 0, 1);
 
-            get_content_area ().add (maingrid);
-            move_widget (this);
+            child = maingrid;
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:
                         stack.visible_child = bittorrent;
                         break;
                     case 2:
-                        stack.visible_child = folderopt;
+                        stack.visible_child = folderscr;
                         break;
                     case 3:
                         stack.visible_child = moreoptions;
                         break;
                     case 4:
-                        stack.visible_child = notifyopt;
+                        stack.visible_child = notyscr;
                         break;
                     default:
                         stack.visible_child = settings;

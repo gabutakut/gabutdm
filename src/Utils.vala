@@ -55,7 +55,10 @@ namespace Gabut {
         SPLITSIZE = 31,
         LOWESTSPEED = 32,
         URISELECTOR = 33,
-        PIECESELECTOR = 34;
+        PIECESELECTOR = 34,
+        CLIPBOARD = 35,
+        SHAREDIR = 36,
+        SWITCHDIR = 37;
 
         public string get_name () {
             switch (this) {
@@ -127,6 +130,12 @@ namespace Gabut {
                     return "uriselector";
                 case PIECESELECTOR:
                     return "pieceselector";
+                case CLIPBOARD:
+                    return "clipboard";
+                case SHAREDIR:
+                    return "sharedir";
+                case SWITCHDIR:
+                    return "switchdir";
                 default:
                     return "id";
             }
@@ -1063,6 +1072,17 @@ namespace Gabut {
         N_COLUMNS
     }
 
+    private enum FSorter {
+        NAME,
+        MIMETYPE,
+        FILEORDIR,
+        SIZE,
+        FILEINDIR,
+        FILEINFO,
+        DATE,
+        N_COLUMNS
+    }
+
     public enum FileAllocations {
         NONE = 0,
         PREALLOC = 1,
@@ -1240,11 +1260,6 @@ namespace Gabut {
         }
     }
 
-    private enum Target {
-        STRING,
-        URILIST
-    }
-
     public enum MenuItem {
         VISIBLE = 0,
         ENABLED = 1,
@@ -1292,6 +1307,13 @@ namespace Gabut {
         }
     }
 
+    public enum InfoSucces {
+        ADDRESS = 0,
+        FILEPATH = 1,
+        FILESIZE = 2,
+        ICONNAME = 3
+    }
+
     private struct DbusmenuMenuitem {
         public int id {get; set;}
         public GLib.HashTable<string, GLib.Variant> properties {get; set;}
@@ -1312,6 +1334,36 @@ namespace Gabut {
         public uint timestamp {get; set;}
     }
 
+    private struct UsersID {
+        public int64 id {get; set;}
+        public bool activate {get; set;}
+        public string user {get; set;}
+        public string passwd {get; set;}
+    }
+
+    private enum UserID {
+        ID = 0,
+        ACTIVE = 1,
+        USER = 2,
+        PASSWD = 3,
+        SHORTBY = 4;
+
+        public string get_str () {
+            switch (this) {
+                case ACTIVE:
+                    return "active";
+                case USER:
+                    return "user";
+                case PASSWD:
+                    return "passwd";
+                case SHORTBY:
+                    return "shortby";
+                default:
+                    return "id";
+            }
+        }
+    }
+
     private string aria_listent;
 
     private void setjsonrpchost () {
@@ -1329,9 +1381,20 @@ namespace Gabut {
         return "";
     }
 
+    private string get_soupmess (string datas) {
+        try {
+            var session = new Soup.Session ();
+            var message = new Soup.Message ("POST", aria_listent);
+            message.set_request_body_from_bytes (Soup.FORM_MIME_TYPE_MULTIPART, new GLib.Bytes (datas.data));
+            GLib.Bytes bytes = session.send_and_read (message);
+            return (string) bytes.get_data ();
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "";
+    }
+
     private string aria_url (string url, Gee.HashMap<string, string> options) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1343,9 +1406,7 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1353,8 +1414,6 @@ namespace Gabut {
     }
 
     private string aria_torrent (string torr, Gee.HashMap<string, string> options) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1366,9 +1425,7 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1376,8 +1433,6 @@ namespace Gabut {
     }
 
     private string aria_metalink (string metal, Gee.HashMap<string, string> options) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1389,9 +1444,7 @@ namespace Gabut {
             return true;
         });
         stringbuild.append ("}]}");
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, stringbuild.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1399,12 +1452,7 @@ namespace Gabut {
     }
 
     private string aria_remove (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forceRemove\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forceRemove\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1412,12 +1460,7 @@ namespace Gabut {
     }
 
     private string aria_pause (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forcePause\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.forcePause\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1425,12 +1468,7 @@ namespace Gabut {
     }
 
     private string aria_pause_all () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1438,12 +1476,7 @@ namespace Gabut {
     }
 
     private string aria_purge_all () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1451,12 +1484,7 @@ namespace Gabut {
     }
 
     private string aria_shutdown () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1464,12 +1492,7 @@ namespace Gabut {
     }
 
     private string aria_unpause (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1478,52 +1501,41 @@ namespace Gabut {
 
     private Gtk.ListStore aria_get_peers (string gid) {
         var liststore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
-        string regexstr = "{\"amChoking\":\"(.*?)\".*?\"bitfield\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"ip\":\"(.*?)\".*?\"peerChoking\":\"(.*?)\".*?\"peerId\":\"(.*?)\".*?\"port\":\"(.*?)\".*?\"seeder\":\"(.*?)\".*?\"uploadSpeed\":\"(.*?)\"}";
-        if (Regex.match_simple (regexstr, result)) {
-            try {
-                MatchInfo match_info;
-                Regex regex = new Regex (regexstr);
-                regex.match_full (result, -1, 0, 0, out match_info);
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex ("{\"amChoking\":\"(.*?)\".*?\"bitfield\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"ip\":\"(.*?)\".*?\"peerChoking\":\"(.*?)\".*?\"peerId\":\"(.*?)\".*?\"port\":\"(.*?)\".*?\"seeder\":\"(.*?)\".*?\"uploadSpeed\":\"(.*?)\"}");
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
-                    string peerid = Soup.URI.decode (match_info.fetch (6));
+                    string peerid = GLib.Uri.unescape_string (match_info.fetch (6));
                     Gtk.TreeIter iter;
                     liststore.append (out iter);
-                    liststore.set (iter, TorrentPeers.HOST, @"$(match_info.fetch (4)):$(match_info.fetch (7))", TorrentPeers.PEERID, peerid != ""? get_peerid (peerid.slice (1, 3)) : "Unknow", TorrentPeers.DOWNLOADSPEED, format_size (int64.parse (match_info.fetch (3))), TorrentPeers.UPLOADSPEED, match_info.fetch (9), TorrentPeers.SEEDER, match_info.fetch (8), TorrentPeers.BITFIELD, match_info.fetch (2), TorrentPeers.AMCHOKING, match_info.fetch (1), TorrentPeers.PEERCHOKING, match_info.fetch (5));
+                    liststore.set (iter, TorrentPeers.HOST, @"$(match_info.fetch (4)):$(match_info.fetch (7))", TorrentPeers.PEERID, peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow", TorrentPeers.DOWNLOADSPEED, format_size (int64.parse (match_info.fetch (3))), TorrentPeers.UPLOADSPEED, match_info.fetch (9), TorrentPeers.SEEDER, match_info.fetch (8), TorrentPeers.BITFIELD, match_info.fetch (2), TorrentPeers.AMCHOKING, match_info.fetch (1), TorrentPeers.PEERCHOKING, match_info.fetch (5));
                     match_info.next ();
                 }
-            } catch (Error e) {
-                GLib.warning (e.message);
             }
+        } catch (Error e) {
+            GLib.warning (e.message);
         }
         return liststore;
     }
 
     private string aria_tell_status (string gid, TellStatus type) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"$(type.get_name ())\"]]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"$(type.get_name ())\"]]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(type.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string tellus = match_info.fetch (1);
-            if (tellus != null) {
-                return tellus;
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string tellus = match_info.fetch (1);
+                if (tellus != null) {
+                    return tellus;
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1532,12 +1544,7 @@ namespace Gabut {
     }
 
     private string aria_tell_bittorent (string gid, TellBittorrent tellbit) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1545,29 +1552,32 @@ namespace Gabut {
             MatchInfo match_info;
             if (tellbit == TellBittorrent.ANNOUNCELIST) {
                 Regex regex = new Regex (@"$(tellbit.get_name ()):(.*?)\"");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                string liststring = "";
-                while (match_info.matches ()) {
-                    string matchgid = match_info.fetch (0);
-                    if (matchgid != null) {
-                        liststring += matchgid.replace ("\\/", "/").replace ("\"", "") + "+";
+                if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                    string liststring = "";
+                    while (match_info.matches ()) {
+                        string matchgid = match_info.fetch (0);
+                        if (matchgid != null) {
+                            liststring += matchgid.replace ("\\/", "/").replace ("\"", "") + "+";
+                        }
+                        match_info.next ();
                     }
-                    match_info.next ();
+                    return liststring;
                 }
-                return liststring;
             } else if (tellbit == TellBittorrent.CREATIONDATE) {
                 Regex regex = new Regex (@"\"$(tellbit.get_name ())\":([0-9]+)");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                string namefile = match_info.fetch (1);
-                if (namefile != null) {
-                    return namefile;
+                if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                    string namefile = match_info.fetch (1);
+                    if (namefile != null) {
+                        return namefile;
+                    }
                 }
             } else if (tellbit == TellBittorrent.MODE || tellbit == TellBittorrent.COMMENT || tellbit == TellBittorrent.NAME) {
                 Regex regex = new Regex (@"\"$(tellbit.get_name ())\":\"(.*?)\"");
-                regex.match_full (result, -1, 0, 0, out match_info);
-                string namefile = match_info.fetch (1);
-                if (namefile != null) {
-                    return namefile;
+                if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                    string namefile = match_info.fetch (1);
+                    if (namefile != null) {
+                        return namefile;
+                    }
                 }
             }
         } catch (Error e) {
@@ -1578,25 +1588,21 @@ namespace Gabut {
 
     private GLib.List<string> aria_tell_active () {
         var listgid = new GLib.List<string> ();
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}");
         if (!result.down ().contains ("result") || result == null) {
             return listgid;
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex ("\"gid\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            while (match_info.matches ()) {
-                string matchgid = match_info.fetch (1);
-                if (matchgid != null) {
-                    listgid.append (matchgid);
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                while (match_info.matches ()) {
+                    string matchgid = match_info.fetch (1);
+                    if (matchgid != null) {
+                        listgid.append (matchgid);
+                    }
+                    match_info.next ();
                 }
-                match_info.next ();
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1605,21 +1611,19 @@ namespace Gabut {
     }
 
     private string aria_str_files (AriaGetfiles files, string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string getfile = match_info.fetch (1);
-            return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string getfile = match_info.fetch (1);
+                if (getfile != "" || getfile != null) {
+                    return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
+                }
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1628,21 +1632,14 @@ namespace Gabut {
 
     private Gtk.ListStore aria_files_store (string gid) {
         var liststore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
         }
-        string regexstr = "{\"completedLength\":\"(.*?)\".*?\"index\":\"(.*?)\".*?\"length\":\"(.*?)\".*?\"path\":\"(.*?)\".*?\"selected\":\"(.*?)\".*?\"uris\":(.*?)}";
-        if (Regex.match_simple (regexstr, result)) {
-            try {
-                MatchInfo match_info;
-                Regex regex = new Regex (regexstr);
-                regex.match_full (result, -1, 0, 0, out match_info);
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex ("{\"completedLength\":\"(.*?)\".*?\"index\":\"(.*?)\".*?\"length\":\"(.*?)\".*?\"path\":\"(.*?)\".*?\"selected\":\"(.*?)\".*?\"uris\":(.*?)}");
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
                     int64 total = int64.parse (match_info.fetch (3)).abs ();
                     int64 transfer = int64.parse (match_info.fetch (1)).abs ();
@@ -1653,33 +1650,29 @@ namespace Gabut {
                     Gtk.TreeIter iter;
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
                     liststore.append (out iter);
-                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? Soup.URI.decode (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
+                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
                     match_info.next ();
                 }
-            } catch (Error e) {
-                GLib.warning (e.message);
             }
+        } catch (Error e) {
+            GLib.warning (e.message);
         }
         return liststore;
     }
 
     private string aria_get_option (string gid, AriaOptions option) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getOption\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getOption\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(option.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string ariaopt = match_info.fetch (1);
-            if (ariaopt != null) {
-                return ariaopt;
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string ariaopt = match_info.fetch (1);
+                if (ariaopt != null) {
+                    return ariaopt;
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1688,12 +1681,7 @@ namespace Gabut {
     }
 
     private string aria_set_option (string gid, AriaOptions option, string value) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeOption\", \"params\":[\"$(gid)\", {\"$(option.get_name ())\":\"$(value)\"}]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeOption\", \"params\":[\"$(gid)\", {\"$(option.get_name ())\":\"$(value)\"}]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1701,20 +1689,16 @@ namespace Gabut {
     }
 
     private string aria_get_globalops (AriaOptions option) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(option.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            return match_info.fetch (1);
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                return match_info.fetch (1);
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1722,12 +1706,7 @@ namespace Gabut {
     }
 
     private string aria_set_globalops (AriaOptions option, string value) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1735,12 +1714,7 @@ namespace Gabut {
     }
 
     private string aria_deleteresult (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1748,22 +1722,18 @@ namespace Gabut {
     }
 
     private string aria_geturis (string gid) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = @"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex ("\"uri\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            string statusuris = match_info.fetch (1);
-            if (statusuris != null) {
-                return statusuris.replace ("\\/", "/");
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                string statusuris = match_info.fetch (1);
+                if (statusuris != null) {
+                    return statusuris.replace ("\\/", "/");
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1772,20 +1742,16 @@ namespace Gabut {
     }
 
     private string aria_globalstat (GlobalStat stat) {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex (@"\"$(stat.get_name ())\":\"(.*?)\"");
-            regex.match_full (result, -1, 0, 0, out match_info);
-            return match_info.fetch (1);
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                return match_info.fetch (1);
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }
@@ -1793,12 +1759,7 @@ namespace Gabut {
     }
 
     private bool aria_getverion () {
-        var session = new Soup.Session ();
-        var message = new Soup.Message ("POST", aria_listent);
-        var jsonrpc = "{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}";
-        message.set_request (Soup.FORM_MIME_TYPE_MULTIPART, Soup.MemoryUse.COPY, jsonrpc.data);
-        session.send_message (message);
-        string result = (string) message.response_body.flatten ().data;
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}");
         return result.down ().contains ("result");
     }
 
@@ -1820,7 +1781,7 @@ namespace Gabut {
         int start_exec = 0;
         do {
             if (start_exec < max_exec) {
-                ensure_run.begin ();
+                aria_start.begin ();
             }
             start_exec++;
         } while (!aria_getverion () && start_exec < max_exec);
@@ -1829,26 +1790,19 @@ namespace Gabut {
         }
     }
 
-    private async void ensure_run () throws Error {
-        SourceFunc callback = ensure_run.callback;
-        string rpcport = get_dbsetting (DBSettings.RPCPORT);
-        string size_req = get_dbsetting (DBSettings.RPCSIZE);
-        string cache = get_dbsetting (DBSettings.DISKCACHE);
-        string allocate = get_dbsetting (DBSettings.FILEALLOCATION);
-        string btport = get_dbsetting (DBSettings.BTLISTENPORT);
-        string dhtport = get_dbsetting (DBSettings.DHTLISTENPORT);
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", @"--rpc-listen-port=$(rpcport)", @"--rpc-max-request-size=$(size_req)", @"--listen-port=$(btport)", @"--dht-listen-port=$(dhtport)", @"--disk-cache=$(cache)", @"--file-allocation=$(allocate.down ())", "--quiet=true"};
+    private async void aria_start () throws Error {
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true"};
+        exec += @"--rpc-listen-port=$(get_dbsetting (DBSettings.RPCPORT))";
+        exec += @"--rpc-max-request-size=$(get_dbsetting (DBSettings.RPCSIZE))";
+        exec += @"--listen-port=$(get_dbsetting (DBSettings.BTLISTENPORT))";
+        exec += @"--dht-listen-port=$(get_dbsetting (DBSettings.DHTLISTENPORT))";
+        exec += @"--disk-cache=$(get_dbsetting (DBSettings.DISKCACHE))";
+        exec += @"--file-allocation=$(get_dbsetting (DBSettings.FILEALLOCATION).down ())";
         GLib.SubprocessFlags flags = GLib.SubprocessFlags.STDIN_INHERIT | GLib.SubprocessFlags.STDOUT_SILENCE | GLib.SubprocessFlags.STDERR_MERGE;
         GLib.Subprocess subprocess = new GLib.Subprocess.newv (exec, flags);
-        if (yield subprocess.wait_check_async ()) {
-            if (subprocess.get_successful ()) {
-                if (callback != null) {
-                    subprocess.force_exit ();
-                    Idle.add ((owned)callback);
-                }
-            }
-        }
-        yield;
+        subprocess.wait_check_async.begin (null, ()=> {
+            subprocess.force_exit ();
+        });
     }
 
     private void set_startup () {
@@ -1918,37 +1872,49 @@ namespace Gabut {
     }
 
     private async void boot_strap () throws Error {
-        yield get_css_online ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", create_folder (".bootstrap.min.css"));
+        yield get_css_online ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", file_config (".bootstrap.min.css"));
     }
 
     private async void drop_zone () throws Error {
-        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", create_folder (".dropzone.min.js"));
+        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", file_config (".dropzone.min.js"));
     }
 
     private async void drop_zonemin () throws Error {
-        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", create_folder (".dropzone.min.css"));
+        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", file_config (".dropzone.min.css"));
+    }
+
+    private int get_container (File file) {
+        int files = 0;
+        try {
+            FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            FileInfo info = null;
+            while (((info = enumerator.next_file (null)) != null)) {
+                if (info.get_is_hidden ()) {
+                    continue;
+                }
+                files++;
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return files;
+    }
+
+    private async void open_file (Soup.ServerMessage msg, File file) throws Error {
+        msg.set_response (get_mime_type (file), Soup.MemoryUse.COPY, file.load_bytes ().get_data ());
     }
 
     private async void get_css_online (string url, string filename) throws Error {
-        SourceFunc callback = get_css_online.callback;
-        var session = new Soup.Session ();
+        var session = new Soup.Session.with_options ("max-conns", 16, "max-conns-per-host", 16);
         var msg = new Soup.Message ("GET", url);
-        session.send_message (msg);
-        session.queue_message (msg, (sess, mess) => {
-            if (mess.status_code == 200) {
-                try {
-                    var file = File.new_for_path (filename);
-                    FileOutputStream out_stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
-                    out_stream.write (mess.response_body.flatten ().data);
-                } catch (Error e) {
-                    GLib.warning (e.message);
-                }
-            }
-            if (callback != null) {
-                Idle.add ((owned)callback);
-            }
-        });
-        yield;
+        var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
+        write_file.begin (bytes, filename);
+    }
+
+    private async void write_file (GLib.Bytes bytes, string filename) throws Error {
+        var file = File.new_for_path (filename);
+        FileOutputStream out_stream = yield file.create_async (FileCreateFlags.REPLACE_DESTINATION, GLib.Priority.DEFAULT, null);
+        out_stream.write (bytes.get_data ());
     }
 
     private string format_time (int seconds) {
@@ -1973,6 +1939,10 @@ namespace Gabut {
         return ngettext ("approximately %'d hour", "approximately %'d hours  left", hours).printf (hours);
     }
 
+    public string info_succes (string data, InfoSucces succes) {
+        return data.split ("<gabut>")[succes];
+    }
+
     private Variant v_s (string data) {
         return new Variant.string (data);
     }
@@ -1980,24 +1950,16 @@ namespace Gabut {
         return new Variant.boolean (data);
     }
 
-    private async void set_badge (int64 count) throws GLib.Error {
+    private async void set_count_visible (int64 count) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
+        instance.set_app_property ("count-visible", v_b (count > 0));
         instance.set_app_property ("count", new GLib.Variant.int64 (count));
     }
 
-    private async void set_badge_visible (bool visible) throws GLib.Error {
-        unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("count-visible", v_b (visible));
-    }
-
-    private async void set_progress (double progress) throws GLib.Error {
-        unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("progress", new GLib.Variant.double (progress));
-    }
-
-    private async void set_progress_visible (bool visible) throws GLib.Error {
+    private async void set_progress_visible (double progress, bool visible = true) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("progress-visible", v_b (visible));
+        instance.set_app_property ("progress", new GLib.Variant.double (progress));
     }
 
     private SourceFunc quicksource;
@@ -2012,6 +1974,10 @@ namespace Gabut {
         yield;
     }
 
+    private string get_shorted (int sort, string username) {
+        return int.parse (get_db_user (UserID.SHORTBY, username)) == sort? "selected>" : @"value=\"$(sort)\">";
+    }
+
     private string get_mime_type (File fileinput) {
         if (!fileinput.query_exists ()) {
             return "";
@@ -2024,6 +1990,7 @@ namespace Gabut {
         }
         return "";
     }
+
     private string get_css (string cssloc) {
         try {
             var file = File.new_for_path (cssloc);
@@ -2034,7 +2001,7 @@ namespace Gabut {
         return "";
     }
 
-    private static string config_folder (string folder) {
+    private string config_folder (string folder) {
         var config_dir = File.new_for_path (GLib.Path.build_path (GLib.Path.DIR_SEPARATOR_S, Environment.get_user_config_dir (), folder));
         if (!config_dir.query_exists ()) {
             try {
@@ -2046,7 +2013,7 @@ namespace Gabut {
         return config_dir.get_path ();
     }
 
-    private static string create_folder (string name) {
+    private string file_config (string name) {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
     }
 
@@ -2059,38 +2026,26 @@ namespace Gabut {
         notification.set_icon (iconimg);
         notification.set_title (message);
         notification.set_body (msg_bd);
-        GabutApp.gabutwindow.application.send_notification (Environment.get_application_name (), notification);
+        GLib.Application.get_default ().send_notification (Environment.get_application_name (), notification);
     }
 
-    private void move_widget (Gtk.Widget widget) {
-        bool mouse_primary_down = false;
-        widget.motion_notify_event.connect ((event) => {
-            if (mouse_primary_down) {
-                mouse_primary_down = false;
-                ((Gtk.Window) widget.get_toplevel ()).begin_move_drag (Gdk.BUTTON_PRIMARY, (int)event.x_root, (int)event.y_root, event.time);
-            }
-            return false;
-        });
-        widget.button_press_event.connect ((event) => {
-            if (event.button == Gdk.BUTTON_PRIMARY) {
-                mouse_primary_down = true;
-            }
-            return Gdk.EVENT_PROPAGATE;
-        });
-        widget.button_release_event.connect ((event) => {
-            if (event.button == Gdk.BUTTON_PRIMARY) {
-                mouse_primary_down = false;
-            }
-            return false;
-        });
-    }
-    private string set_dollar (string dollar) {
-        return "$%s".printf (dollar);
+    private Gtk.Widget headerlabel (string label, int wrequest) {
+        var hlabel = new Gtk.Label (label) {
+            width_request = wrequest,
+            attributes = set_attribute (Pango.Weight.SEMIBOLD),
+            halign = Gtk.Align.START,
+            xalign = 0,
+            margin_top = 7,
+            margin_bottom = 7
+        };
+        return hlabel;
     }
 
     private File[] run_open_file (Gtk.Window window) {
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
-        filechooser.select_multiple = true;
+        var loopop = new GLib.MainLoop (null, false);
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+            select_multiple = true
+        };
 
         var torrent = new Gtk.FileFilter ();
         torrent.set_filter_name (_("Torrent"));
@@ -2102,54 +2057,185 @@ namespace Gabut {
 
         filechooser.add_filter (torrent);
         filechooser.add_filter (metalink);
+        filechooser.set_transient_for (window);
 
         File[] files = null;
-        if (filechooser.run () == Gtk.ResponseType.ACCEPT) {
-            foreach (File item in filechooser.get_files ()) {
-                files += item;
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                for (int i = 0; i < filechooser.get_files ().get_n_items (); i++) {
+                    files += (File) filechooser.get_files ().get_item (i);
+                }
+                filechooser.destroy ();
             }
-        }
-        filechooser.destroy ();
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
         return files;
     }
 
     private File run_open_text (Gtk.Window window) {
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel"));
-        filechooser.select_multiple = false;
+        var loopop = new GLib.MainLoop (null, false);
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+            select_multiple = false
+        };
 
         var text_filter = new Gtk.FileFilter ();
         text_filter.set_filter_name (_("Text"));
         text_filter.add_mime_type ("text/*");
-
         filechooser.add_filter (text_filter);
 
         File file = null;
-        if (filechooser.run () == Gtk.ResponseType.ACCEPT) {
-            file = filechooser.get_files ().nth_data (0);
-        }
-        filechooser.destroy ();
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                file = filechooser.get_file ();
+                filechooser.destroy ();
+            }
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
         return file;
     }
 
+    private File run_open_all (Gtk.Window window) {
+        var loopop = new GLib.MainLoop (null, false);
+        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+            select_multiple = false
+        };
+        File file = null;
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                file = filechooser.get_file ();
+                filechooser.destroy ();
+            }
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
+        return file;
+    }
+
+    private File run_open_fd (Gtk.Window window, GLib.File current) {
+        var loopop = new GLib.MainLoop (null, false);
+        var filechooser = new Gtk.FileChooserNative (_("Open Folder"), window, Gtk.FileChooserAction.SELECT_FOLDER, _("Open"), _("Cancel")) {
+            select_multiple = false
+        };
+        if (current != null) {
+            try {
+                filechooser.set_current_folder (current);
+            } catch (Error e) {
+                GLib.warning (e.message);
+            }
+        }
+        File file = null;
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                file = filechooser.get_file ();
+                filechooser.destroy ();
+            }
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
+        return file;
+    }
+
+    private Gtk.Grid button_chooser (GLib.File file) {
+        var grid = new Gtk.Grid () {
+            valign = Gtk.Align.CENTER,
+            halign = Gtk.Align.START,
+            column_spacing = 5
+        };
+        var img = new Gtk.Image.from_gicon (GLib.ContentType.get_icon (get_mime_type (file))) {
+            icon_size = Gtk.IconSize.NORMAL
+        };
+        var tittle = new Gtk.Label (file.get_basename ()) {
+            wrap_mode = Pango.WrapMode.WORD_CHAR,
+            ellipsize = Pango.EllipsizeMode.MIDDLE,
+            xalign = 0,
+            max_width_chars = 35,
+            attributes = set_attribute (Pango.Weight.BOLD)
+        };
+        grid.attach (img, 0, 0);
+        grid.attach (tittle, 1, 0);
+        return grid;
+    }
+
+    private Gtk.Grid none_chooser (string none) {
+        var grid = new Gtk.Grid () {
+            valign = Gtk.Align.CENTER,
+            halign = Gtk.Align.START,
+            column_spacing = 5
+        };
+        var img = new Gtk.Image.from_gicon (new ThemedIcon ("com.github.gabutakut.gabutdm")) {
+            icon_size = Gtk.IconSize.NORMAL
+        };
+        var tittle = new Gtk.Label (none) {
+            wrap_mode = Pango.WrapMode.WORD_CHAR,
+            xalign = 0,
+            attributes = set_attribute (Pango.Weight.BOLD)
+        };
+        grid.attach (img, 0, 0);
+        grid.attach (tittle, 1, 0);
+        return grid;
+    }
+
+    private string get_mime_css (string mime) {
+        if (mime.contains ("image/")) {
+            return "image";
+        } else if (mime.contains ("audio/")) {
+            return "audio";
+        } else if (mime.contains ("script") || mime.contains ("json") || mime.contains ("yaml") || mime.contains ("xml")) {
+            return "code";
+        } else if (mime.contains ("font/") || mime.contains ("octet-stream")) {
+            return "font";
+        } else if (mime.contains ("video/")) {
+            return "video";
+        } else if (mime.contains ("text/")) {
+            return "text";
+        } else if (mime.contains ("pdf")) {
+            return "pdf";
+        } else if (mime.contains ("translation")) {
+            return "po";
+        } else if (mime.contains ("/zip") || mime.contains ("/gzip") || mime.contains ("compressed")) {
+            return "archive";
+        } else {
+            return "file";
+        }
+    }
+    public Sqlite.Database gabutdb;
     private int open_database (out Sqlite.Database db) {
         int opendb = 0;
-        if (!File.new_for_path (create_folder (".db")).query_exists ()) {
+        if (!File.new_for_path (file_config (".db")).query_exists ()) {
             opendb = creat_no_exist (out db);
         } else {
-            opendb = Sqlite.Database.open (create_folder (".db"), out db);
+            opendb = Sqlite.Database.open (file_config (".db"), out db);
         }
         return opendb;
     }
 
     private int creat_no_exist (out Sqlite.Database db) {
-        int opendb = Sqlite.Database.open (create_folder (".db"), out db);
+        int opendb = Sqlite.Database.open (file_config (".db"), out db);
         if (opendb != Sqlite.OK) {
             warning ("Can't open database: %s\n", db.errmsg ());
         }
+        opendb = table_users (db);
         opendb = table_download (db);
         opendb = table_options (db);
         opendb = table_settings (db);
         return opendb;
+    }
+
+    private int table_users (Sqlite.Database db) {
+        return db.exec (@"CREATE TABLE IF NOT EXISTS users (
+            id             INT64   NOT NULL,
+            active         TEXT    NOT NULL,
+            user           TEXT    NOT NULL,
+            passwd         TEXT    NOT NULL,
+            shortby        TEXT    NOT NULL);
+            INSERT INTO users (id, active, user, passwd, shortby)
+            VALUES (1, \"true\", \"gabutdm\", \"123456\", \"1\");");
     }
 
     private int table_download (Sqlite.Database db) {
@@ -2197,7 +2283,7 @@ namespace Gabut {
     }
 
     private int table_settings (Sqlite.Database db) {
-        string dir = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD).replace ("/", "\\/");
+        string dir = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD);
         return db.exec (@"CREATE TABLE IF NOT EXISTS settings (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,
             rpcport        TEXT    NOT NULL,
@@ -2233,42 +2319,118 @@ namespace Gabut {
             splitsize      TEXT    NOT NULL,
             lowestspeed    TEXT    NOT NULL,
             uriselector    TEXT    NOT NULL,
-            pieceselector  TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir)\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\");");
+            pieceselector  TEXT    NOT NULL,
+            clipboard      TEXT    NOT NULL,
+            sharedir       TEXT    NOT NULL,
+            switchdir      TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\");");
     }
 
     private void settings_table () {
-        if ((db_table ("settings") - 1) != DBSettings.PIECESELECTOR) {
-            GabutApp.db.exec ("DROP TABLE settings;");
-            table_settings (GabutApp.db);
+        if ((db_get_cols ("settings") - 1) != DBSettings.SWITCHDIR) {
+            gabutdb.exec ("DROP TABLE settings;");
+            table_settings (gabutdb);
         }
     }
 
     private void download_table () {
-        if ((db_table ("download") - 1) != DBDownload.LABELTRANSFER) {
-            GabutApp.db.exec ("DROP TABLE download;");
-            table_download (GabutApp.db);
+        if ((db_get_cols ("download") - 1) != DBDownload.LABELTRANSFER) {
+            gabutdb.exec ("DROP TABLE download;");
+            table_download (gabutdb);
         }
-        if ((db_table ("options") - 1) != DBOption.UNVERIFIED) {
-            GabutApp.db.exec ("DROP TABLE options;");
-            table_options (GabutApp.db);
+        if ((db_get_cols ("options") - 1) != DBOption.UNVERIFIED) {
+            gabutdb.exec ("DROP TABLE options;");
+            table_options (gabutdb);
         }
     }
 
-    private int db_table (string opt) {
+    private int db_get_cols (string opt) {
         int ncols;
         string errmsg;
-        int res = GabutApp.db.get_table (@"SELECT * FROM $(opt)", null, null, out ncols, out errmsg);
+        int res = gabutdb.get_table (@"SELECT * FROM $(opt)", null, null, out ncols, out errmsg);
         if (res != Sqlite.OK) {
             warning ("Error: %s", errmsg);
         }
         return ncols;
     }
 
+    private void add_db_user (int64 id) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("INSERT OR IGNORE INTO users (id, active, user, passwd, shortby) VALUES (?, ?, ?, ?, ?);", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        res = stmt.bind_text (2, "false");
+        res = stmt.bind_text (3, "");
+        res = stmt.bind_text (4, "");
+        res = stmt.bind_text (5, "1");
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+    }
+
+    private void remove_user (int64 id) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("DELETE FROM users WHERE id = ?", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+    }
+
+    private GLib.List<UsersID?> get_users () {
+        var usersid = new GLib.List<UsersID?> ();
+        Sqlite.Statement? stmt;
+        int res = gabutdb.prepare_v2 ("SELECT id, active, user, passwd FROM users ORDER BY id;", -1, out stmt);
+        if (res != Sqlite.OK) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        while (stmt.step () == Sqlite.ROW) {
+            var users = UsersID ();
+            users.id = stmt.column_int64 (0);
+            users.activate = bool.parse (stmt.column_text (1));
+            users.user = stmt.column_text (2);
+            users.passwd = stmt.column_text (3);
+            usersid.append (users);
+        }
+        stmt.reset ();
+        return usersid;
+    }
+
+    private void update_user (string user, UserID type, string value) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 (@"UPDATE users SET $(type.get_str ()) = \"$(value)\" WHERE user = ?", -1, out stmt);
+        res = stmt.bind_text (1, user);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+    }
+
+    private void update_user_id (int64 id, UserID type, string value) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 (@"UPDATE users SET $(type.get_str ()) = \"$(value)\" WHERE id = ?", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+    }
+
+    private string get_db_user (UserID type, string user) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("SELECT * FROM users WHERE user = ?", -1, out stmt);
+        stmt.bind_text (1, user);
+        if ((res = stmt.step ()) == Sqlite.ROW) {
+            return stmt.column_text (type);
+        }
+        return "";
+    }
+
     private string get_dbsetting (DBSettings type) {
         Sqlite.Statement stmt;
-        int res = GabutApp.db.prepare_v2 ("SELECT * FROM settings WHERE id = ?", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM settings WHERE id = ?", -1, out stmt);
         stmt.bind_int (1, 1);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return stmt.column_text (type);
@@ -2278,11 +2440,10 @@ namespace Gabut {
 
     private string set_dbsetting (DBSettings type, string value) {
         Sqlite.Statement stmt;
-        string sql = @"UPDATE settings SET $(type.get_name ()) = \"$(value)\" WHERE id = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 (@"UPDATE settings SET $(type.get_name ()) = \"$(value)\" WHERE id = ?", -1, out stmt);
         res = stmt.bind_int (1, 1);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
         return value;
@@ -2301,7 +2462,7 @@ namespace Gabut {
     private void add_db_download (DownloadRow download) {
         Sqlite.Statement stmt;
         string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBDownload.URL, download.url);
         res = stmt.bind_int (DBDownload.STATUS, download.status);
         res = stmt.bind_text (DBDownload.ARIAGID, download.ariagid);
@@ -2314,7 +2475,7 @@ namespace Gabut {
         res = stmt.bind_text (DBDownload.FILEORDIR, download.fileordir == null? "" : download.fileordir);
         res = stmt.bind_text (DBDownload.LABELTRANSFER, download.labeltransfer == null? "" : download.labeltransfer);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
@@ -2324,7 +2485,7 @@ namespace Gabut {
         var buildstr = new StringBuilder ();
         buildstr.append ("UPDATE download SET");
         uint empty_hash = buildstr.str.hash ();
-        int res = GabutApp.db.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, download.url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             if (stmt.column_int (DBDownload.STATUS) != download.status) {
@@ -2389,21 +2550,20 @@ namespace Gabut {
             }
         }
         buildstr.append (" WHERE url = ?");
-        res = GabutApp.db.prepare_v2 (buildstr.str, -1, out stmt);
+        res = gabutdb.prepare_v2 (buildstr.str, -1, out stmt);
         res = stmt.bind_text (1, download.url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
 
     private void remove_download (string url) {
         Sqlite.Statement stmt;
-        string sql = "DELETE FROM download WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("DELETE FROM download WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
@@ -2411,9 +2571,9 @@ namespace Gabut {
     private GLib.List<DownloadRow> get_download () {
         var downloads = new GLib.List<DownloadRow> ();
         Sqlite.Statement stmt;
-        int res = GabutApp.db.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer FROM download ORDER BY url;", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer FROM download ORDER BY url;", -1, out stmt);
         if (res != Sqlite.OK) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         while (stmt.step () == Sqlite.ROW) {
             downloads.append (new DownloadRow (stmt));
@@ -2424,8 +2584,7 @@ namespace Gabut {
 
     private bool db_download_exist (string url) {
         Sqlite.Statement stmt;
-        string sql = "SELECT * FROM download WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return true;
@@ -2437,8 +2596,7 @@ namespace Gabut {
     private Gee.HashMap<string, string> get_dboptions (string url) {
         Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
         Sqlite.Statement stmt;
-        string sql = "SELECT * FROM options WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             string dir = stmt.column_text (DBOption.DIR);
@@ -2562,7 +2720,7 @@ namespace Gabut {
     private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
         Sqlite.Statement stmt;
         string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, proxyusr, proxypass, httpusr, httppass, ftpusr, ftppass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp, integrity, unverified, proxytype) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBOption.URL, url);
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
             res = stmt.bind_text (DBOption.MAGNETBACKUP, hashoptions.@get (AriaOptions.BT_SAVE_METADATA.get_name ()));
@@ -2693,18 +2851,17 @@ namespace Gabut {
             res = stmt.bind_text (DBOption.UNVERIFIED, "");
         }
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
 
     private void remove_dboptions (string url) {
         Sqlite.Statement stmt;
-        string sql = "DELETE FROM options WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("DELETE FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
@@ -2714,7 +2871,7 @@ namespace Gabut {
         var buildstr = new StringBuilder ();
         buildstr.append ("UPDATE options SET");
         uint empty_hash = buildstr.str.hash ();
-        int res = GabutApp.db.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.get_name ())) {
@@ -3059,18 +3216,17 @@ namespace Gabut {
             }
         }
         buildstr.append (" WHERE url = ?");
-        res = GabutApp.db.prepare_v2 (buildstr.str, -1, out stmt);
+        res = gabutdb.prepare_v2 (buildstr.str, -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
-            warning ("Error: %d: %s", GabutApp.db.errcode (), GabutApp.db.errmsg ());
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
     }
 
     private bool db_option_exist (string url) {
         Sqlite.Statement stmt;
-        string sql = "SELECT * FROM options WHERE url = ?";
-        int res = GabutApp.db.prepare_v2 (sql, -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
         res = stmt.bind_text (1, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return true;
@@ -3081,11 +3237,19 @@ namespace Gabut {
 
     private Pango.AttrList set_attribute (Pango.Weight weight, double scale = 0) {
         Pango.AttrList attrlist = new Pango.AttrList ();
-        Pango.Attribute attr = Pango.attr_weight_new (weight);
         if (scale != 0) {
-            attr = Pango.attr_scale_new (scale);
+            attrlist.insert (Pango.attr_scale_new (scale));
         }
-        attrlist.change ((owned) attr);
+        attrlist.insert (Pango.attr_weight_new (weight));
+        return attrlist;
+    }
+
+    private Pango.AttrList color_attribute (uint16 red, uint16 green, uint16 blue, bool bold = true) {
+        Pango.AttrList attrlist = new Pango.AttrList ();
+        if (bold) {
+            attrlist.insert (Pango.attr_weight_new (Pango.Weight.ULTRABOLD));
+        }
+        attrlist.insert (Pango.attr_foreground_new (red, green, blue));
         return attrlist;
     }
 
@@ -3130,8 +3294,9 @@ namespace Gabut {
             string addressstr = addressdata.print (true);
             MatchInfo match_info;
             Regex regex = new Regex ("<'(.*?)'>");
-            regex.match_full (addressstr, -1, 0, 0, out match_info);
-            return match_info.fetch (1);
+            if (regex.match_full (addressstr, -1, 0, 0, out match_info)) {
+                return match_info.fetch (1);
+            }
         } catch (Error e) {
             GLib.warning (e.message);
         }

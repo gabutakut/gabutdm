@@ -21,6 +21,7 @@
 
 namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
+        public signal void delete_me (DownloadRow row);
         private Gtk.Button start_button;
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
@@ -38,14 +39,15 @@ namespace Gabut {
             }
             set {
                 _linkmode = value;
+                imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
                 if (linkmode == LinkMode.METALINK) {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
+                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.metalink");
                 } else if (linkmode == LinkMode.MAGNETLINK) {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
+                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
                 } else if (linkmode == LinkMode.TORRENT) {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("application-x-bittorrent");
+                    badge_img.gicon = new ThemedIcon ("application-x-bittorrent");
                 } else {
-                    badge_img.gicon = imagefile.gicon = new ThemedIcon ("insert-link");
+                    badge_img.gicon = new ThemedIcon ("insert-link");
                 }
             }
         }
@@ -57,7 +59,7 @@ namespace Gabut {
             }
             set {
                 _fileordir = value;
-                if (value != "") {
+                if (value != null && value != "") {
                     imagefile.gicon = GLib.ContentType.get_icon (value);
                     rowbus.property_set (MenuItem.ICON_NAME.get_name (), GLib.ContentType.get_generic_icon_name (value));
                 }
@@ -83,7 +85,7 @@ namespace Gabut {
                 _status = value;
                 switch (value) {
                     case StatusMode.PAUSED:
-                        ((Gtk.Image) start_button.image).icon_name = "media-playback-pause";
+                        start_button.icon_name = "media-playback-pause";
                         start_button.tooltip_text = _("Paused");
                         remove_timeout ();
                         if (url != null && db_download_exist (url)) {
@@ -93,20 +95,23 @@ namespace Gabut {
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
                             if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
-                                ((Gtk.Image) start_button.image).icon_name = "com.github.gabutakut.gabutdm.seed";
+                                start_button.icon_name = "com.github.gabutakut.gabutdm.seed";
                                 start_button.tooltip_text = _("Seeding");
                                 return;
                             } else {
-                                ((Gtk.Image) start_button.image).icon_name = "process-completed";
+                                start_button.icon_name = "process-completed";
                                 start_button.tooltip_text = _("Complete");
                             }
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
-                                GabutApp.gabutwindow.application.activate_action ("destroy", new Variant.string (ariagid));
+                                var destroy = (SimpleAction) GLib.Application.get_default ().lookup_action ("destroy");
+                                destroy.activate (new Variant.string (ariagid));
                                 notify_app (_("Download Complete"), filename, imagefile.gicon);
                                 if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
-                                    send_dialog ();
+                                    if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
+                                        send_dialog ();
+                                    }
                                 }
                                 if (db_download_exist (url)) {
                                     update_download (this);
@@ -131,7 +136,7 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     case StatusMode.WAIT:
-                        ((Gtk.Image) start_button.image).icon_name = "preferences-system-time";
+                        start_button.icon_name = "preferences-system-time";
                         start_button.tooltip_text = _("Waiting");
                         remove_timeout ();
                         if (url != null && db_download_exist (url)) {
@@ -139,7 +144,7 @@ namespace Gabut {
                         }
                         break;
                     case StatusMode.ERROR:
-                        ((Gtk.Image) start_button.image).icon_name = "dialog-error";
+                        start_button.icon_name = "dialog-error";
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null) {
                             filepath = aria_str_files (AriaGetfiles.PATH, ariagid);
@@ -155,7 +160,7 @@ namespace Gabut {
                         }
                         break;
                     default:
-                        ((Gtk.Image) start_button.image).icon_name = "media-playback-start";
+                        start_button.icon_name = "media-playback-start";
                         start_button.tooltip_text = _("Downloading");
                         add_timeout ();
                         break;
@@ -180,8 +185,8 @@ namespace Gabut {
             }
             set {
                 _filepath = value;
-                var file = File.new_for_path (filepath);
-                if (status != StatusMode.ERROR) {
+                if (filepath != null && filepath != "") {
+                    var file = File.new_for_path (filepath);
                     if (linkmode == LinkMode.URL) {
                         if (_filepath != null) {
                             filename = file.get_basename ();
@@ -221,8 +226,8 @@ namespace Gabut {
             }
             set {
                 _filename = value;
-                filename_label.label = _filename;
-                rowbus.property_set (MenuItem.LABEL.get_name (), _filename);
+                filename_label.label = _filename != null? _filename : url;
+                rowbus.property_set (MenuItem.LABEL.get_name (), _filename != null? _filename : url);
             }
         }
 
@@ -268,7 +273,7 @@ namespace Gabut {
                     progressbar.fraction = fraction;
                 }
                 if (status == StatusMode.ACTIVE) {
-                    set_progress.begin (progressbar.fraction);
+                    set_progress_visible.begin (progressbar.fraction);
                 }
             }
         }
@@ -320,24 +325,25 @@ namespace Gabut {
             rowbus = new DbusmenuItem ();
             rowbus.item_activated.connect (download);
             imagefile = new Gtk.Image () {
-                icon_size = Gtk.IconSize.DND
+                icon_size = Gtk.IconSize.LARGE
             };
 
             badge_img = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
-                icon_size = Gtk.IconSize.MENU
+                icon_size = Gtk.IconSize.INHERIT
             };
 
-            var overlay = new Gtk.Overlay ();
+            var overlay = new Gtk.Overlay () {
+                child = imagefile
+            };
             overlay.add_overlay (badge_img);
-            overlay.add (imagefile);
 
             var openimage = new Gtk.Button () {
                 focus_on_click = false,
+                child = overlay,
                 tooltip_text = _("Open Details")
             };
-            openimage.add (overlay);
             openimage.clicked.connect (download);
 
             transfer_rate = new Gtk.Label (null) {
@@ -356,7 +362,7 @@ namespace Gabut {
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
 
-            start_button = new Gtk.Button.from_icon_name ("media-playback-start", Gtk.IconSize.SMALL_TOOLBAR) {
+            start_button = new Gtk.Button.from_icon_name ("media-playback-start") {
                 valign = Gtk.Align.CENTER
             };
             start_button.clicked.connect (()=> {
@@ -376,16 +382,20 @@ namespace Gabut {
                 }
             });
 
-            var remove_button = new Gtk.Button.from_icon_name ("edit-delete", Gtk.IconSize.SMALL_TOOLBAR) {
+            var remove_button = new Gtk.Button.from_icon_name ("edit-delete") {
                 valign = Gtk.Align.CENTER,
                 tooltip_text = _("Remove")
             };
             remove_button.clicked.connect (remove_down);
 
             var grid = new Gtk.Grid () {
-                margin = 6,
-                column_spacing = 6,
-                orientation = Gtk.Orientation.HORIZONTAL,
+                hexpand = true,
+                margin_start = 4,
+                margin_end = 4,
+                margin_top = 2,
+                margin_bottom = 2,
+                column_spacing = 4,
+                row_spacing = 2,
                 valign = Gtk.Align.CENTER
             };
             grid.attach (openimage, 0, 0, 1, 4);
@@ -394,7 +404,7 @@ namespace Gabut {
             grid.attach (transfer_rate, 1, 2, 1, 1);
             grid.attach (remove_button, 5, 0, 1, 4);
             grid.attach (start_button, 6, 0, 1, 4);
-            add (grid);
+            child = grid;
         }
 
         public void if_not_exist (string ariag, int linkm, int stats) {
@@ -532,15 +542,17 @@ namespace Gabut {
             remove_download (url);
             remove_dboptions (url);
             aria_deleteresult (ariagid);
-            this.destroy ();
+            delete_me (this);
+            destroy ();
         }
 
         public void download () {
-            GabutApp.gabutwindow.application.activate_action ("downloader", new Variant.string (ariagid));
+            var downloader = (SimpleAction) GLib.Application.get_default ().lookup_action ("downloader");
+            downloader.activate (new Variant.string (ariagid));
         }
 
         private uint timeout_id = 0;
-        public void add_timeout () {
+        private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = true;
                 timeout_id = Timeout.add_seconds (1, update_progress);
@@ -568,6 +580,8 @@ namespace Gabut {
             if (totalsize > 0 && transferrate > 0) {
                 uint64 remaining_time = (totalsize - transferred) / transferrate;
                 timedownload = @"- $(format_time ((int) remaining_time))";
+            } else {
+                timedownload = "";
             }
             if (status != StatusMode.ERROR) {
                 labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize)) $(duprate) $(downrate) $(timedownload)";
@@ -601,25 +615,23 @@ namespace Gabut {
         }
 
         private void send_dialog () {
-            var builder = new StringBuilder ();
+            var gabutinfo = new GabutSucces ();
             if (linkmode == LinkMode.TORRENT) {
                 if (url.has_prefix ("magnet:?")) {
-                    builder.append (url);
+                    gabutinfo.set_info (url, InfoSucces.ADDRESS);
                 } else {
-                    builder.append ("File Torrent");
+                    gabutinfo.set_info ("File Torrent", InfoSucces.ADDRESS);
                 }
             } else if (linkmode == LinkMode.METALINK) {
-                builder.append ("File Metalink");
+                gabutinfo.set_info ("File Metalink", InfoSucces.ADDRESS);
             } else {
-                builder.append (url);
+                gabutinfo.set_info (url, InfoSucces.ADDRESS);
             }
-            builder.append ("<gabut>");
-            builder.append (pathname);
-            builder.append ("<gabut>");
-            builder.append (totalsize.to_string ());
-            builder.append ("<gabut>");
-            builder.append (fileordir);
-            GabutApp.gabutwindow.application.activate_action ("succes", new Variant.string (builder.str));
+            gabutinfo.set_info (pathname, InfoSucces.FILEPATH);
+            gabutinfo.set_info (totalsize.to_string (), InfoSucces.FILESIZE);
+            gabutinfo.set_info (fileordir, InfoSucces.ICONNAME);
+            var succes = (SimpleAction) GLib.Application.get_default ().lookup_action ("succes");
+            succes.activate (new Variant.string (gabutinfo.get_info ()));
         }
     }
 }

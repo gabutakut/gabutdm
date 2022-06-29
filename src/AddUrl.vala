@@ -56,8 +56,8 @@ namespace Gabut {
         private Gtk.CheckButton encrypt;
         private Gtk.CheckButton integrity;
         private Gtk.CheckButton unverified;
-        private Gtk.FileChooserButton folder_location;
-        private Gtk.FileChooserButton cookie_location;
+        private Gtk.Button folder_location;
+        private Gtk.Button cookie_location;
         public DialogType dialogtype { get; construct; }
         private Gee.HashMap<string, string> hashoptions;
         public DownloadRow row;
@@ -118,6 +118,34 @@ namespace Gabut {
             }
         }
 
+        File _selectfd = null;
+        File selectfd {
+            get {
+                return _selectfd;
+            }
+            set {
+                _selectfd = value;
+                if (selectfd != null) {
+                    folder_location.child = button_chooser (selectfd);
+                }
+            }
+        }
+
+        File _selectcook = null;
+        File selectcook {
+            get {
+                return _selectcook;
+            }
+            set {
+                _selectcook = value;
+                if (selectcook != null) {
+                    cookie_location.child = button_chooser (selectcook);
+                } else {
+                    cookie_location.child = none_chooser (_("Press and Select Cookie"));
+                }
+            }
+        }
+
         public AddUrl (Gtk.Application application) {
             Object (application: application,
                     dialogtype: DialogType.ADDURL,
@@ -137,9 +165,7 @@ namespace Gabut {
         construct {
             hashoptions = new Gee.HashMap<string, string> ();
             var view_mode = new ModeButton () {
-                hexpand = false,
-                margin = 2,
-                width_request = 350
+                hexpand = true
             };
             view_mode.append_text (_("Address"));
             view_mode.append_text (_("Proxy"));
@@ -151,17 +177,15 @@ namespace Gabut {
             view_mode.selected = 0;
 
             var header = get_header_bar ();
-            header.has_subtitle = false;
-            header.show_close_button = false;
-            header.set_custom_title (view_mode);
+            header.title_widget = view_mode;
+            header.decoration_layout = "none";
 
             status_image = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
-                pixel_size = 64,
-                margin = 10
+                pixel_size = 64
             };
 
-            sizelabel = new Gtk.Label ("?") {
+            sizelabel = new Gtk.Label (null) {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 10,
                 use_markup = true,
@@ -172,249 +196,239 @@ namespace Gabut {
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
 
-            var overlay = new Gtk.Overlay ();
-            overlay.add (status_image);
+            var overlay = new Gtk.Overlay () {
+                child = status_image
+            };
             overlay.add_overlay (sizelabel);
 
             link_entry = new MediaEntry ("insert-link", "edit-paste") {
-                width_request = 380,
+                width_request = 420,
                 margin_end = 74,
                 placeholder_text = _("Url or Magnet")
             };
 
             name_entry = new MediaEntry ("dialog-information", "edit-paste") {
-                width_request = 380,
+                width_request = 420,
                 margin_end = 74,
                 placeholder_text = _("Follow source name")
             };
 
-            var save_metadt = new Gtk.Grid ();
-            save_metadt.add (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.SMALL_TOOLBAR));
-            save_metadt.add (new HeaderLabel (_("Backup Magnet, Torrent, Metalink to File"), 200));
-
-            save_meta = new Gtk.CheckButton () {
+            save_meta = new Gtk.CheckButton.with_label ("Backup Magnet, Torrent, Metalink to File") {
                 margin_top = 5
             };
-            save_meta.add (save_metadt);
+            ((Gtk.Label) save_meta.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
 
             var alllink = new Gtk.Grid () {
-                expand = true,
+                column_spacing = 10,
                 height_request = 130,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
             alllink.attach (overlay, 0, 0, 1, 5);
-            alllink.attach (new HeaderLabel (_("Address:"), 380), 1, 1, 1, 1);
+            alllink.attach (headerlabel (_("Address:"), 420), 1, 1, 1, 1);
             alllink.attach (link_entry, 1, 2, 1, 1);
-            alllink.attach (new HeaderLabel (_("Filename:"), 380), 1, 3, 1, 1);
+            alllink.attach (headerlabel (_("Filename:"), 420), 1, 3, 1, 1);
             alllink.attach (name_entry, 1, 4, 1, 1);
             alllink.attach (save_meta, 1, 5, 1, 1);
 
-            prometh_button = new Gtk.MenuButton ();
             method_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-                margin = 10
-            };
-            var method_popover = new Gtk.Popover (prometh_button) {
-                position = Gtk.PositionType.TOP,
                 width_request = 70
             };
-            method_popover.add (method_flow);
+            var method_popover = new Gtk.Popover () {
+                position = Gtk.PositionType.TOP,
+                width_request = 70,
+                child = method_flow
+            };
             method_popover.show.connect (() => {
                 if (proxymethod != null) {
                     method_flow.select_child (proxymethod);
                     proxymethod.grab_focus ();
                 }
             });
-            prometh_button.popover = method_popover;
+            prometh_button = new Gtk.MenuButton () {
+                popover = method_popover
+            };
             foreach (var method in ProxyMethods.get_all ()) {
-                method_flow.add (new ProxyMethod (method));
+                method_flow.append (new ProxyMethod (method));
             }
-            method_flow.show_all ();
+            method_flow.show ();
             method_flow.child_activated.connect ((method)=> {
                 proxymethod = method as ProxyMethod;
                 method_popover.hide ();
             });
-            proxymethod = method_flow.get_children ().nth_data (0) as ProxyMethod;
+            proxymethod = method_flow.get_child_at_index (0) as ProxyMethod;
 
-            type_button = new Gtk.MenuButton ();
             type_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70,
-                margin = 10
             };
-            var type_popover = new Gtk.Popover (type_button) {
+            var type_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70
+                width_request = 70,
+                child = type_flow
             };
-            type_popover.add (type_flow);
             type_popover.show.connect (() => {
                 if (proxytype != null) {
                     type_flow.select_child (proxytype);
                     proxytype.grab_focus ();
                 }
             });
-            type_button.popover = type_popover;
+            type_button = new Gtk.MenuButton () {
+                popover = type_popover
+            };
             foreach (var typepr in ProxyTypes.get_all ()) {
-                type_flow.add (new ProxyType (typepr));
+                type_flow.append (new ProxyType (typepr));
             }
-            type_flow.show_all ();
+            type_flow.show ();
             type_flow.child_activated.connect ((typepr)=> {
                 proxytype = typepr as ProxyType;
                 type_popover.hide ();
             });
-            proxytype = type_flow.get_children ().nth_data (0) as ProxyType;
+            proxytype = type_flow.get_child_at_index (0) as ProxyType;
 
             proxy_entry = new MediaEntry ("user-home", "edit-paste") {
-                width_request = 140,
+                width_request = 180,
                 placeholder_text = _("Address")
             };
 
             port_entry = new Gtk.SpinButton.with_range (0, 999999, 1) {
-                width_request = 140,
-                primary_icon_name = "dialog-information"
+                width_request = 180
             };
 
             user_entry = new MediaEntry ("avatar-default", "edit-paste") {
-                width_request = 140,
+                width_request = 180,
                 placeholder_text = _("Username")
             };
 
             pass_entry = new MediaEntry ("dialog-password", "edit-paste") {
-                width_request = 140,
+                width_request = 180,
                 placeholder_text = _("Password")
             };
 
             var proxygrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
-                column_spacing = 10
+                column_spacing = 10,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             proxygrid.attach (prometh_button, 0, 1, 1, 1);
             proxygrid.attach (type_button, 1, 1, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Host:"), 140), 0, 2, 1, 1);
+            proxygrid.attach (headerlabel (_("Host:"), 180), 0, 2, 1, 1);
             proxygrid.attach (proxy_entry, 0, 3, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Port:"), 140), 1, 2, 1, 1);
+            proxygrid.attach (headerlabel (_("Port:"), 180), 1, 2, 1, 1);
             proxygrid.attach (port_entry, 1, 3, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Username:"), 140), 0, 4, 1, 1);
+            proxygrid.attach (headerlabel (_("Username:"), 180), 0, 4, 1, 1);
             proxygrid.attach (user_entry, 0, 5, 1, 1);
-            proxygrid.attach (new HeaderLabel (_("Password:"), 140), 1, 4, 1, 1);
+            proxygrid.attach (headerlabel (_("Password:"), 180), 1, 4, 1, 1);
             proxygrid.attach (pass_entry, 1, 5, 1, 1);
 
-            login_button = new Gtk.MenuButton ();
             login_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-                margin = 10
+                width_request = 70
             };
-            var login_popover = new Gtk.Popover (login_button) {
+            var login_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 140
+                width_request = 70,
+                child = login_flow
             };
-            login_popover.add (login_flow);
             login_popover.show.connect (() => {
                 if (loginuser != null) {
                     login_flow.select_child (loginuser);
                     loginuser.grab_focus ();
                 }
             });
-            login_button.popover = login_popover;
+            login_button = new Gtk.MenuButton () {
+                popover = login_popover
+            };
             foreach (var logn in LoginUsers.get_all ()) {
-                login_flow.add (new LoginUser (logn));
+                login_flow.append (new LoginUser (logn));
             }
-            login_flow.show_all ();
+            login_flow.show ();
 
             login_flow.child_activated.connect ((logn)=> {
                 loginuser = logn as LoginUser;
                 login_popover.hide ();
             });
-            loginuser = login_flow.get_children ().nth_data (0) as LoginUser;
+            loginuser = login_flow.get_child_at_index (0) as LoginUser;
 
             loguser_entry = new MediaEntry ("avatar-default", "edit-paste") {
-                width_request = 310,
+                width_request = 350,
                 placeholder_text = _("User")
             };
 
             logpass_entry = new MediaEntry ("dialog-password", "edit-paste") {
-                width_request = 310,
+                width_request = 350,
                 placeholder_text = _("Password")
             };
 
             var logingrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
             logingrid.attach (login_button, 1, 0, 1, 1);
-            logingrid.attach (new HeaderLabel (_("User:"), 310), 1, 1, 1, 1);
+            logingrid.attach (headerlabel (_("User:"), 350), 1, 1, 1, 1);
             logingrid.attach (loguser_entry, 1, 2, 1, 1);
-            logingrid.attach (new HeaderLabel (_("Password:"), 310), 1, 3, 1, 1);
+            logingrid.attach (headerlabel (_("Password:"), 350), 1, 3, 1, 1);
             logingrid.attach (logpass_entry, 1, 4, 1, 1);
 
             useragent_entry = new MediaEntry ("avatar-default", "edit-paste") {
-                width_request = 300,
+                width_request = 340,
                 placeholder_text = _("User Agent")
             };
 
             refer_entry = new MediaEntry ("emblem-symbolic-link", "edit-paste") {
-                width_request = 300,
+                width_request = 340,
                 placeholder_text = _("Referer")
             };
 
             var moregrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            moregrid.attach (new HeaderLabel (_("User Agent:"), 300), 1, 0, 1, 1);
+            moregrid.attach (headerlabel (_("User Agent:"), 340), 1, 0, 1, 1);
             moregrid.attach (useragent_entry, 1, 1, 1, 1);
-            moregrid.attach (new HeaderLabel (_("Referer:"), 300), 1, 2, 1, 1);
+            moregrid.attach (headerlabel (_("Referer:"), 340), 1, 2, 1, 1);
             moregrid.attach (refer_entry, 1, 3, 1, 1);
 
-            cookie_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.OPEN);
-            var all_file = new Gtk.FileFilter ();
-            all_file.set_filter_name (_("All Files"));
-            all_file.add_pattern ("*");
-            cookie_location.set_filter (all_file);
-
-            var open_cook = new Gtk.Grid ();
-            open_cook.add (new Gtk.Image.from_icon_name ("document-open", Gtk.IconSize.SMALL_TOOLBAR));
-            open_cook.add (new HeaderLabel (_("Cookie"), 200));
-
-            usecookie = new Gtk.CheckButton () {
-                width_request = 300
+            cookie_location = new Gtk.Button ();
+            cookie_location.clicked.connect (()=> {
+                var file = run_open_all (this);
+                if (file != null) {
+                    selectcook = file;
+                }
+            });
+            selectcook = null;
+            usecookie = new Gtk.CheckButton.with_label (_("Cookie")) {
+                width_request = 340
             };
-            usecookie.add (open_cook);
             usecookie.toggled.connect (()=> {
                 cookie_location.sensitive = usecookie.active;
             });
             cookie_location.sensitive = usecookie.active;
 
-            folder_location = new Gtk.FileChooserButton (_("Open"), Gtk.FileChooserAction.SELECT_FOLDER);
-            var filter_folder = new Gtk.FileFilter ();
-            filter_folder.add_mime_type ("inode/directory");
-            folder_location.set_filter (filter_folder);
-            folder_location.set_uri (File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/")).get_uri ());
+            folder_location = new Gtk.Button ();
+            folder_location.clicked.connect (()=> {
+                var file = run_open_fd (this, selectfd);
+                if (file != null) {
+                    selectfd = file;
+                }
+            });
+            selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/"));
 
-            var folder_used = new Gtk.Grid ();
-            folder_used.add (new Gtk.Image.from_icon_name ("document-save", Gtk.IconSize.SMALL_TOOLBAR));
-            folder_used.add (new HeaderLabel (_("Save to Folder"), 200));
-
-            usefolder = new Gtk.CheckButton () {
-                width_request = 300
+            usefolder = new Gtk.CheckButton.with_label (_("Save to Folder")) {
+                width_request = 340
             };
-            usefolder.add (folder_used);
 
             usefolder.toggled.connect (()=> {
                 folder_location.sensitive = usefolder.active;
             });
             folder_location.sensitive = usefolder.active;
             var foldergrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
+                row_spacing = 8,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
@@ -423,16 +437,14 @@ namespace Gabut {
             foldergrid.attach (usefolder, 1, 2, 1, 1);
             foldergrid.attach (folder_location, 1, 3, 1, 1);
 
-            checksum_button = new Gtk.MenuButton ();
             checksums_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                margin = 10
+                orientation = Gtk.Orientation.HORIZONTAL
             };
-            var checksums_popover = new Gtk.Popover (checksum_button) {
+            var checksums_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 200
+                width_request = 70,
+                child = checksums_flow
             };
-            checksums_popover.add (checksums_flow);
             checksums_popover.show.connect (() => {
                 checksums_popover.width_request = checksum_button.get_allocated_width ();
                 if (checksumtype != null) {
@@ -440,104 +452,90 @@ namespace Gabut {
                     checksumtype.grab_focus ();
                 }
             });
-            checksum_button.popover = checksums_popover;
+            checksum_button = new Gtk.MenuButton () {
+                popover = checksums_popover
+            };
             foreach (var checksum in AriaChecksumTypes.get_all ()) {
-                checksums_flow.add (new ChecksumType (checksum));
+                checksums_flow.append (new ChecksumType (checksum));
             }
-            checksums_flow.show_all ();
+            checksums_flow.show ();
 
             checksum_entry = new MediaEntry ("emblem-symbolic-link", "edit-paste") {
-                width_request = 300,
+                width_request = 340,
                 placeholder_text = _("Hash")
             };
             checksums_flow.child_activated.connect ((checksum)=> {
                 checksumtype = checksum as ChecksumType;
                 checksums_popover.hide ();
             });
-            checksumtype = checksums_flow.get_children ().nth_data (0) as ChecksumType;
+            checksumtype = checksums_flow.get_child_at_index (0) as ChecksumType;
 
             var checksumgrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            checksumgrid.attach (new HeaderLabel (_("Type:"), 300), 1, 0, 1, 1);
+            checksumgrid.attach (headerlabel (_("Type:"), 340), 1, 0, 1, 1);
             checksumgrid.attach (checksum_button, 1, 1, 1, 1);
-            checksumgrid.attach (new HeaderLabel (_("Hash:"), 300), 1, 2, 1, 1);
+            checksumgrid.attach (headerlabel (_("Hash:"), 340), 1, 2, 1, 1);
             checksumgrid.attach (checksum_entry, 1, 3, 1, 1);
 
-            var integimg = new Gtk.Grid ();
-            integimg.add (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.seed", Gtk.IconSize.SMALL_TOOLBAR));
-            integimg.add (new Gtk.Label (_("BT Seed")));
-
-            integrity = new Gtk.CheckButton () {
-                width_request = 300,
+            integrity = new Gtk.CheckButton.with_label (_("BT Seed")) {
+                width_request = 340,
                 margin_bottom = 5
             };
-            integrity.add (integimg);
 
-            var unveimg = new Gtk.Grid ();
-            unveimg.add (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.seed", Gtk.IconSize.SMALL_TOOLBAR));
-            unveimg.add (new Gtk.Label (_("BT Seed Unverified")));
-            unverified = new Gtk.CheckButton () {
-                width_request = 300
+            unverified = new Gtk.CheckButton.with_label (_("BT Seed Unverified")) {
+                width_request = 340
             };
-            unverified.add (unveimg);
 
-            encrypt_button = new Gtk.MenuButton ();
             encrypt_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70
+            };
+            var encrypt_popover = new Gtk.Popover () {
                 width_request = 70,
-                margin = 10
+                child = encrypt_flow
             };
-            var encrypt_popover = new Gtk.Popover (encrypt_button) {
-                position = Gtk.PositionType.TOP,
-                width_request = 150
-            };
-            encrypt_popover.add (encrypt_flow);
             encrypt_popover.show.connect (() => {
                 if (btencrypt != null) {
                     encrypt_flow.select_child (btencrypt);
                     btencrypt.grab_focus ();
                 }
             });
-            encrypt_button.popover = encrypt_popover;
+            encrypt_button = new Gtk.MenuButton () {
+                direction = Gtk.ArrowType.UP,
+                popover = encrypt_popover
+            };
             foreach (var encrp in BTEncrypts.get_all ()) {
-                encrypt_flow.add (new BTEncrypt (encrp));
+                encrypt_flow.append (new BTEncrypt (encrp));
             }
-            encrypt_flow.show_all ();
+            encrypt_flow.show ();
 
             encrypt_flow.child_activated.connect ((encrp)=> {
                 btencrypt = encrp as BTEncrypt;
                 encrypt_popover.hide ();
             });
-            btencrypt = encrypt_flow.get_children ().nth_data (0) as BTEncrypt;
+            btencrypt = encrypt_flow.get_child_at_index (0) as BTEncrypt;
 
-            var encryptimg = new Gtk.Grid ();
-            encryptimg.add (new Gtk.Image.from_icon_name ("channel-secure", Gtk.IconSize.SMALL_TOOLBAR));
-            encryptimg.add (new Gtk.Label (_("BT Require Crypto")));
-
-            encrypt = new Gtk.CheckButton () {
-                width_request = 300,
+            encrypt = new Gtk.CheckButton.with_label (_("BT Require Crypto")) {
+                width_request = 340,
                 margin_bottom = 5
             };
-            encrypt.add (encryptimg);
             encrypt.toggled.connect (()=> {
                 encrypt_button.sensitive = encrypt.active;
             });
             encrypt_button.sensitive = encrypt.active;
 
             var encryptgrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 130,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            encryptgrid.attach (new HeaderLabel (_("BitTorrent Seed:"), 300), 1, 0, 1, 1);
+            encryptgrid.attach (headerlabel (_("BitTorrent Seed:"), 340), 1, 0, 1, 1);
             encryptgrid.attach (integrity, 1, 1, 1, 1);
             encryptgrid.attach (unverified, 1, 2, 1, 1);
-            encryptgrid.attach (new HeaderLabel (_("BitTorrent Encryption:"), 300), 1, 3, 1, 1);
+            encryptgrid.attach (headerlabel (_("BitTorrent Encryption:"), 340), 1, 3, 1, 1);
             encryptgrid.attach (encrypt, 1, 4, 1, 1);
             encryptgrid.attach (encrypt_button, 1, 5, 1, 1);
 
@@ -553,43 +551,47 @@ namespace Gabut {
             stack.add_named (checksumgrid, "checksumgrid");
             stack.add_named (encryptgrid, "encryptgrid");
             stack.visible_child = alllink;
-            stack.show_all ();
+            stack.show ();
 
             var close_button = new Gtk.Button.with_label (_("Cancel")) {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
-                destroy ();
+                close ();
             });
 
             var start_button = new Gtk.Button.with_label (_("Download")) {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) start_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             start_button.clicked.connect (()=> {
                 set_option ();
                 download_send.begin (false);
-                destroy ();
+                close ();
             });
 
             var later_button = new Gtk.Button.with_label (_("Download Later")) {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) later_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             later_button.clicked.connect (()=> {
                 set_option ();
                 download_send.begin (true);
-                destroy ();
+                close ();
             });
 
             save_button = new Gtk.Button.with_label (_("Save")) {
                 width_request = 120,
                 height_request = 25
             };
+            ((Gtk.Label) save_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             save_button.clicked.connect (()=> {
                 set_option (true);
-                destroy ();
+                close ();
             });
             var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
                 margin_top = 10,
@@ -598,28 +600,30 @@ namespace Gabut {
 
             switch (dialogtype) {
                 case DialogType.PROPERTY:
-                    box_action.pack_end (close_button, false, false, 0);
-                    box_action.pack_end (save_button, false, false, 0);
+                    box_action.append (save_button);
+                    box_action.append (close_button);
+                    box_action.halign = Gtk.Align.END;
                     break;
                 default:
-                    box_action.pack_start (start_button, false, false, 0);
-                    box_action.pack_start (later_button, false, false, 0);
-                    box_action.pack_end (close_button, false, false, 0);
+                    box_action.append (start_button);
+                    box_action.append (later_button);
+                    box_action.append (close_button);
+                    box_action.halign = Gtk.Align.CENTER;
                     break;
             }
 
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
+                hexpand = true,
                 margin_start = 10,
-                margin_end = 10,
-                expand = true
+                margin_end = 10
             };
-            maingrid.add (stack);
-            maingrid.add (box_action);
+            maingrid.attach (stack, 0, 0);
+            maingrid.attach (box_action, 0, 1);
 
-            get_content_area ().add (maingrid);
-            move_widget (this);
+            child = maingrid;
+
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:
@@ -700,14 +704,14 @@ namespace Gabut {
                 }
             }
             if (usefolder.active) {
-                hashoptions[AriaOptions.DIR.get_name ()] = folder_location.get_file ().get_path ().replace ("/", "\\/");
+                hashoptions[AriaOptions.DIR.get_name ()] = selectfd.get_path ().replace ("/", "\\/");
             } else {
                 if (hashoptions.has_key (AriaOptions.DIR.get_name ())) {
                     hashoptions.unset (AriaOptions.DIR.get_name ());
                 }
             }
             if (usecookie.active) {
-                hashoptions[AriaOptions.COOKIE.get_name ()] = cookie_location.get_file ().get_path ().replace ("/", "\\/");
+                hashoptions[AriaOptions.COOKIE.get_name ()] = selectcook.get_path ().replace ("/", "\\/");
             } else {
                 if (hashoptions.has_key (AriaOptions.COOKIE.get_name ())) {
                     hashoptions.unset (AriaOptions.COOKIE.get_name ());
@@ -756,8 +760,8 @@ namespace Gabut {
                 hashoptions[AriaOptions.SEED_TIME.get_name ()] = get_dbsetting (DBSettings.SEEDTIME);
             }
             if (save) {
-                aria_set_option (row.ariagid, AriaOptions.COOKIE, usecookie.active? cookie_location.get_file ().get_path ().replace ("/", "\\/") : "");
-                aria_set_option (row.ariagid, AriaOptions.DIR, usefolder.active? folder_location.get_file ().get_path ().replace ("/", "\\/") : get_dbsetting (DBSettings.DIR));
+                aria_set_option (row.ariagid, AriaOptions.COOKIE, usecookie.active? selectcook.get_path ().replace ("/", "\\/") : "");
+                aria_set_option (row.ariagid, AriaOptions.DIR, usefolder.active? selectfd.get_path ().replace ("/", "\\/") : get_dbsetting (DBSettings.DIR));
                 aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text);
                 if (name_entry.text.strip () != "") {
                     aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text);
@@ -880,11 +884,6 @@ namespace Gabut {
             }
         }
 
-        public override void show () {
-            base.show ();
-            set_keep_above (true);
-        }
-
         private async void download_send (bool start) throws Error {
             string url = link_entry.text;
             if (url.has_prefix ("file://") && url.has_suffix (".torrent")) {
@@ -910,6 +909,10 @@ namespace Gabut {
             status_image.gicon = new ThemedIcon (icon);
         }
 
+        public string get_link () {
+            return link_entry.text;
+        }
+
         public void server_link (MatchInfo match_info) {
             link_entry.text = match_info.fetch (PostServer.URL);
             name_entry.text = match_info.fetch (PostServer.FILENAME);
@@ -929,7 +932,7 @@ namespace Gabut {
             string httpproxy = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY);
             string hsproxy = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY);
             if (myproxy != "") {
-                proxytype = type_flow.get_children ().nth_data (0) as ProxyType;
+                proxytype = type_flow.get_child_at_index (0) as ProxyType;
                 int lastprox = myproxy.last_index_of (":");
                 string proxytext = myproxy.slice (0, lastprox);
                 proxy_entry.text = proxytext.contains ("\\/")? proxytext.replace ("\\/", "/") : proxytext;
@@ -937,7 +940,7 @@ namespace Gabut {
                 user_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYUSER);
                 pass_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYPASSWORD);
             } else if (ftpproxy != "") {
-                proxytype = type_flow.get_children ().nth_data (3) as ProxyType;
+                proxytype = type_flow.get_child_at_index (3) as ProxyType;
                 int flastprox = ftpproxy.last_index_of (":");
                 string fproxytext = ftpproxy.slice (0, flastprox);
                 proxy_entry.text = fproxytext.contains ("\\/")? fproxytext.replace ("\\/", "/") : fproxytext;
@@ -945,7 +948,7 @@ namespace Gabut {
                 user_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_USER);
                 pass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_PASSWD);
             } else if (httpproxy != "") {
-                proxytype = type_flow.get_children ().nth_data (1) as ProxyType;
+                proxytype = type_flow.get_child_at_index (1) as ProxyType;
                 int hlastprox = httpproxy.last_index_of (":");
                 string hproxytext = httpproxy.slice (0, hlastprox);
                 proxy_entry.text = hproxytext.contains ("\\/")? hproxytext.replace ("\\/", "/") : hproxytext;
@@ -953,7 +956,7 @@ namespace Gabut {
                 user_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_USER);
                 pass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_PASSWD);
             } else if (hsproxy != "") {
-                proxytype = type_flow.get_children ().nth_data (2) as ProxyType;
+                proxytype = type_flow.get_child_at_index (2) as ProxyType;
                 int hslastprox = hsproxy.last_index_of (":");
                 string hsproxytext = hsproxy.slice (0, hslastprox);
                 proxy_entry.text = hsproxytext.contains ("\\/")? hsproxytext.replace ("\\/", "/") : hsproxytext;
@@ -963,23 +966,23 @@ namespace Gabut {
             }
             string httpusr = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
             if (httpusr != "") {
-                loginuser = login_flow.get_children ().nth_data (0) as LoginUser;
+                loginuser = login_flow.get_child_at_index (0) as LoginUser;
                 loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
                 logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PASSWD);
             }
             string ftpusr = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
             if (ftpusr != "") {
-                loginuser = login_flow.get_children ().nth_data (1) as LoginUser;
+                loginuser = login_flow.get_child_at_index (1) as LoginUser;
                 loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
                 logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PASSWD);
             }
             usefolder.active = hashoptions.has_key (AriaOptions.DIR.get_name ());
             if (usefolder.active) {
-                folder_location.set_uri (File.new_for_path (hashoptions.@get (AriaOptions.DIR.get_name ()).replace ("\\/", "/")).get_uri ());
+                selectfd = File.new_for_path (hashoptions.@get (AriaOptions.DIR.get_name ()).replace ("\\/", "/"));
             }
             usecookie.active = hashoptions.has_key (AriaOptions.COOKIE.get_name ());
             if (usecookie.active) {
-                cookie_location.set_uri (File.new_for_path (hashoptions.@get (AriaOptions.COOKIE.get_name ()).replace ("\\/", "/")).get_uri ());
+                selectcook = File.new_for_path (hashoptions.@get (AriaOptions.COOKIE.get_name ()).replace ("\\/", "/"));
             }
             string reffer = aria_get_option (row.ariagid, AriaOptions.REFERER);
             if (reffer != "") {
@@ -993,23 +996,27 @@ namespace Gabut {
             encrypt.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO));
             integrity.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.CHECK_INTEGRITY));
             unverified.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED));
-            foreach (var method in method_flow.get_children ()) {
-                if (((ProxyMethod) method).method.get_name ().down () == aria_get_option (row.ariagid, AriaOptions.PROXY_METHOD).down ()) {
-                    proxymethod = method as ProxyMethod;
+            for (int b = 0; b <= ProxyMethods.TUNNEL; b++) {
+                var promed = method_flow.get_child_at_index (b);
+                if (((ProxyMethod) promed).method.get_name ().down () == aria_get_option (row.ariagid, AriaOptions.PROXY_METHOD).down ()) {
+                    proxymethod = promed as ProxyMethod;
                 }
-            };
-            foreach (var checksum in checksums_flow.get_children ()) {
-                if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksum).checksums.get_name ())) {
-                    checksumtype = checksum as ChecksumType;
+            }
+
+            for (int a = 0; a <= AriaChecksumTypes.SHA512; a++) {
+                var checksflow = checksums_flow.get_child_at_index (a);
+                if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksflow).checksums.get_name ())) {
+                    checksumtype = checksflow as ChecksumType;
                     checksum_entry.text = aria_get_option (row.ariagid, AriaOptions.CHECKSUM).split ("=")[1];
                 }
-            };
+            }
             if (encrypt.active) {
-                foreach (var encrp in encrypt_flow.get_children ()) {
+                for (int c = 0; c <= BTEncrypts.ARC4; c++) {
+                    var encrp = encrypt_flow.get_child_at_index (c);
                     if (aria_get_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL).contains (((BTEncrypt) encrp).btencrypt.get_name ().down ())) {
                         btencrypt = encrp as BTEncrypt;
                     }
-                };
+                }
             }
             save_meta.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA)) | bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA));
         }

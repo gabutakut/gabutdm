@@ -68,34 +68,40 @@ namespace Gabut {
                     case StatusMode.PAUSED:
                         start_button.set_label (_("Start"));
                         statuslabel.label = _("Paused");
+                        statuslabel.attributes = color_attribute (60000, 37000, 0);
                         remove_timeout ();
                         break;
                     case StatusMode.COMPLETE:
                         statuslabel.label = _("Complete");
                         start_button.set_label (_("Complete"));
+                        statuslabel.attributes = color_attribute (60000, 30000, 19764);
                         remove_timeout ();
                         if (aria_str_files (AriaGetfiles.PATH, ariagid).contains ("[METADATA]")) {
-                            destroy ();
+                            close ();
                         }
                         break;
                     case StatusMode.WAIT:
                         start_button.set_label (_("Wait"));
                         statuslabel.label = _("Waiting");
+                        statuslabel.attributes = color_attribute (0, 0, 42588);
                         remove_timeout ();
                         break;
                     case StatusMode.ERROR:
                         statuslabel.label = _("Error");
+                        statuslabel.attributes = color_attribute (60000, 0, 0);
                         remove_timeout ();
-                        destroy ();
+                        close ();
                         break;
                     case StatusMode.NOTHING:
                         statuslabel.label = _("Nothing Process!, Press Download for continue");
+                        statuslabel.attributes = color_attribute (28705, 4000, 9882);
                         download_rev.reveal_child = true;
                         remove_timeout ();
                         break;
                     default:
                         start_button.set_label (_("Pause"));
                         statuslabel.label = _("Downloading");
+                        statuslabel.attributes = color_attribute (0, 60000, 0);
                         add_timeout ();
                         break;
                 }
@@ -169,8 +175,7 @@ namespace Gabut {
 
         construct {
             var view_mode = new ModeButton () {
-                hexpand = false,
-                margin = 2
+                hexpand = false
             };
             view_mode.append_text (_("Download Status"));
             view_mode.append_text (_("Torrent Info"));
@@ -179,9 +184,8 @@ namespace Gabut {
             view_mode.append_text (_("Speed Limiter"));
             view_mode.selected = 0;
             var header = get_header_bar ();
-            header.has_subtitle = false;
-            header.show_close_button = false;
-            header.set_custom_title (view_mode);
+            header.decoration_layout = "none";
+            header.title_widget = view_mode;
 
             progressbar = new Gtk.ProgressBar () {
                 hexpand = true,
@@ -241,21 +245,20 @@ namespace Gabut {
                 width_request = 450
             };
             var downstatusgrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 150,
                 margin_bottom = 5
             };
-            downstatusgrid.attach (new HeaderLabel (_("Status"), 100), 0, 0, 1, 1);
+            downstatusgrid.attach (headerlabel (_("Status"), 100), 0, 0, 1, 1);
             downstatusgrid.attach (statuslabel, 1, 0, 1, 1);
-            downstatusgrid.attach (new HeaderLabel (_("File Size"), 100), 0, 1, 1, 1);
+            downstatusgrid.attach (headerlabel (_("File Size"), 100), 0, 1, 1, 1);
             downstatusgrid.attach (filesize, 1, 1, 1, 1);
-            downstatusgrid.attach (new HeaderLabel (_("Downloaded"), 100), 0, 2, 1, 1);
+            downstatusgrid.attach (headerlabel (_("Downloaded"), 100), 0, 2, 1, 1);
             downstatusgrid.attach (downloaded, 1, 2, 1, 1);
-            downstatusgrid.attach (new HeaderLabel (_("Transferate"), 100), 0, 3, 1, 1);
+            downstatusgrid.attach (headerlabel (_("Transferate"), 100), 0, 3, 1, 1);
             downstatusgrid.attach (transfer_rate, 1, 3, 1, 1);
-            downstatusgrid.attach (new HeaderLabel (_("Time Left"), 100), 0, 4, 1, 1);
+            downstatusgrid.attach (headerlabel (_("Time Left"), 100), 0, 4, 1, 1);
             downstatusgrid.attach (timeleft, 1, 4, 1, 1);
-            downstatusgrid.attach (new HeaderLabel (_("Connection"), 100), 0, 5, 1, 1);
+            downstatusgrid.attach (headerlabel (_("Connection"), 100), 0, 5, 1, 1);
             downstatusgrid.attach (connectlabel, 1, 5, 1, 1);
 
             torrentmode = new Gtk.Label (null) {
@@ -286,23 +289,23 @@ namespace Gabut {
             };
 
             infotorrent.append_column (text_column (_("Name"), 0));
-            var infoscr = new Gtk.ScrolledWindow (null, null) {
-                height_request = 120
+            var infoscr = new Gtk.ScrolledWindow () {
+                height_request = 120,
+                child = infotorrent
             };
-            infoscr.add (infotorrent);
 
-            commenttext = new Gtk.TextView ();
-            commenttext.set_wrap_mode (Gtk.WrapMode.WORD_CHAR);
+            commenttext = new Gtk.TextView () {
+                wrap_mode = Gtk.WrapMode.WORD_CHAR
+            };
 
-            var comment = new Gtk.ScrolledWindow (null, null) {
+            var comment = new Gtk.ScrolledWindow () {
                 width_request = 250,
                 height_request = 120,
-                margin_bottom = 10
+                margin_bottom = 10,
+                child = commenttext
             };
-            comment.add (commenttext);
 
             var torrentinfo = new Gtk.Grid () {
-                expand = true,
                 column_homogeneous = true,
                 height_request = 140,
                 column_spacing = 10,
@@ -310,10 +313,10 @@ namespace Gabut {
                 width_request = 550
             };
             torrentinfo.attach (torrentmode, 0, 0, 1, 1);
-            torrentinfo.attach (new HeaderLabel (_("Announce:"), 250), 0, 1, 1, 1);
+            torrentinfo.attach (headerlabel (_("Announce:"), 250), 0, 1, 1, 1);
             torrentinfo.attach (infoscr, 0, 2, 1, 1);
             torrentinfo.attach (timecreation, 1, 0, 1, 1);
-            torrentinfo.attach (new HeaderLabel (_("Comment:"), 250), 1, 1, 1, 1);
+            torrentinfo.attach (headerlabel (_("Comment:"), 250), 1, 1, 1, 1);
             torrentinfo.attach (comment, 1, 2, 1, 1);
 
             peerstore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
@@ -327,14 +330,13 @@ namespace Gabut {
             peerstree.append_column (text_column (_("D"), TorrentPeers.DOWNLOADSPEED));
             peerstree.append_column (text_column (_("U"), TorrentPeers.UPLOADSPEED));
 
-            var peerscrolled = new Gtk.ScrolledWindow (null, null) {
-                expand = true,
+            var peerscrolled = new Gtk.ScrolledWindow () {
                 width_request = 550,
                 height_request = 140,
                 margin_bottom = 5,
-                margin_top = 5
+                margin_top = 5,
+                child = peerstree
             };
-            peerscrolled.add (peerstree);
 
             torrstore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
             torrenttree = new Gtk.TreeView () {
@@ -350,44 +352,37 @@ namespace Gabut {
             torrenttree.append_column (text_column (_("Uris"), FileCol.URIS));
             torrenttree.set_tooltip_column (FileCol.FILEPATH);
 
-            var torrscrolled = new Gtk.ScrolledWindow (null, null) {
-                expand = true,
+            var torrscrolled = new Gtk.ScrolledWindow () {
                 width_request = 550,
                 height_request = 140,
                 margin_bottom = 5,
-                margin_top = 5
+                margin_top = 5,
+                child = torrenttree
             };
-            torrscrolled.add (torrenttree);
 
             down_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
-                hexpand = true,
-                primary_icon_tooltip_text = _("0 Means Unlimited"),
-                primary_icon_name = "go-down"
+                hexpand = true
             };
 
             up_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
-                hexpand = true,
-                primary_icon_tooltip_text = _("0 Means Unlimited"),
-                primary_icon_name = "go-up"
+                hexpand = true
             };
 
             bt_req_limit = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 550,
-                hexpand = true,
-                primary_icon_name = "application-x-bittorrent"
+                hexpand = true
             };
 
             var limitergrid = new Gtk.Grid () {
-                expand = true,
                 height_request = 150
             };
-            limitergrid.attach (new HeaderLabel (_("Max Download Limit (in Kb):"), 550), 0, 0, 1, 1);
+            limitergrid.attach (headerlabel (_("Max Download Limit (in Kb):"), 550), 0, 0, 1, 1);
             limitergrid.attach (down_limit, 0, 1, 1, 1);
-            limitergrid.attach (new HeaderLabel (_("Max Upload Limit (in Kb):"), 550), 0, 2, 1, 1);
+            limitergrid.attach (headerlabel (_("Max Upload Limit (in Kb):"), 550), 0, 2, 1, 1);
             limitergrid.attach (up_limit, 0, 3, 1, 1);
-            limitergrid.attach (new HeaderLabel (_("BitTorrent Request Peer Speed Limit (in Kb):"), 550), 0, 4, 1, 1);
+            limitergrid.attach (headerlabel (_("BitTorrent Request Peer Speed Limit (in Kb):"), 550), 0, 4, 1, 1);
             limitergrid.attach (bt_req_limit, 0, 5, 1, 1);
 
             down_limit.value_changed.connect (()=> {
@@ -412,64 +407,69 @@ namespace Gabut {
             stack.add_named (torrscrolled, "torrscrolled");
             stack.add_named (limitergrid, "limitergrid");
             stack.visible_child = downstatusgrid;
-            stack.show_all ();
+            stack.show ();
 
             var boxstatus = new Gtk.Grid () {
                 halign = Gtk.Align.CENTER,
                 orientation = Gtk.Orientation.VERTICAL
             };
-            boxstatus.add (linklabel);
-            boxstatus.add (stack);
-            boxstatus.add (progressbar);
+            boxstatus.attach (linklabel, 0, 0);
+            boxstatus.attach (stack, 0, 1);
+            boxstatus.attach (progressbar, 0, 2);
 
             var download = new Gtk.Button.with_label (_("Redownload")) {
                 width_request = 120,
-                height_request = 25
+                height_request = 25,
+                halign = Gtk.Align.START
             };
+            ((Gtk.Label) download.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             download.clicked.connect (()=> {
                 sendselected (ariagid, "");
                 remove_timeout ();
-                destroy ();
+                close ();
             });
             download_rev = new Gtk.Revealer () {
-                transition_type = Gtk.RevealerTransitionType.CROSSFADE
+                transition_type = Gtk.RevealerTransitionType.CROSSFADE,
+                child = download
             };
-            download_rev.add (download);
             var close_button = new Gtk.Button.with_label (_("Close")) {
                 width_request = 120,
-                height_request = 25
+                height_request = 25,
+                halign = Gtk.Align.END
             };
+            ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
                 remove_timeout ();
-                destroy ();
+                close ();
             });
 
             start_button = new Gtk.Button.with_label (_("Pause")) {
                 width_request = 120,
-                height_request = 25
+                height_request = 25,
+                halign = Gtk.Align.END
             };
+            ((Gtk.Label) start_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             start_button.clicked.connect (action_status);
 
             var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
-                width_request = 250,
+                halign = Gtk.Align.END,
                 margin_top = 10,
                 margin_bottom = 10
             };
-            box_action.pack_start (download_rev, false, false, 0);
-            box_action.pack_end (close_button, false, false, 0);
-            box_action.pack_end (start_button, false, false, 5);
+            box_action.append (download_rev);
+            box_action.append (start_button);
+            box_action.append (close_button);
 
             var maingrid = new Gtk.Grid () {
-                orientation = Gtk.Orientation.VERTICAL,
                 halign = Gtk.Align.CENTER,
+                hexpand = true,
                 margin_start = 10,
                 margin_end = 10
             };
-            maingrid.add (boxstatus);
-            maingrid.add (box_action);
+            maingrid.attach (boxstatus, 0, 0);
+            maingrid.attach (box_action, 0, 1);
+            child = maingrid;
 
-            get_content_area ().add (maingrid);
-            move_widget (this);
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:
@@ -493,7 +493,6 @@ namespace Gabut {
 
         public override void show () {
             base.show ();
-            set_badge.begin (int64.parse (aria_globalstat (GlobalStat.NUMACTIVE)));
             Idle.add (()=> {
                 update_progress ();
                 add_timeout ();
@@ -570,6 +569,10 @@ namespace Gabut {
             return server_coll;
         }
 
+        public void get_active_status () {
+            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
+        }
+
         private void action_status () {
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status == StatusMode.ACTIVE) {
@@ -584,7 +587,7 @@ namespace Gabut {
                 add_timeout ();
             } else {
                 remove_timeout ();
-                destroy ();
+                close ();
             }
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status != StatusMode.COMPLETE) {
@@ -597,9 +600,9 @@ namespace Gabut {
             down_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT)) / 1024;
             up_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT)) / 1024;
             bt_req_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT)) / 1024;
-            torrentmode.label = _("<b>Mode: </b> %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
+            torrentmode.label = _("Mode: %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
             var timesn = new GLib.DateTime.from_unix_local (int64.parse (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE)));
-            timecreation.label = _("<b>Time Creation: </b> %s").printf (timesn.to_string ());
+            timecreation.label = _("Time Creation: %s").printf (timesn.format ("%I:%M %p %x"));
 
             foreach (string announce in aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST).split ("+")) {
                 if (announce != "") {
@@ -609,11 +612,11 @@ namespace Gabut {
                 }
             }
             var commenttorrent = aria_tell_bittorent (ariagid, TellBittorrent.COMMENT);
-            commenttext.buffer.text = commenttorrent.contains ("\\/")? Soup.URI.decode (commenttorrent.replace ("\\/", "/")) : commenttorrent;
+            commenttext.buffer.text = commenttorrent.contains ("\\/")? GLib.Uri.unescape_string (commenttorrent.replace ("\\/", "/")) : commenttorrent;
         }
 
         private uint timeout_id = 0;
-        public void add_timeout () {
+        private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = true;
                 timeout_id = Timeout.add (500, update_progress);
@@ -681,10 +684,16 @@ namespace Gabut {
                 string index, name, download, size, uris, pathname;
                 int persen;
                 model.get (iter, FileCol.FILEPATH, out pathname);
+                if (pathname == "" || pathname == null) {
+                    return false;
+                }
                 if (pathname.contains ("[METADATA]")) {
                     return false;
                 }
-                model.get (iter, FileCol.SELECTED, out select, FileCol.ROW, out index, FileCol.NAME, out name, FileCol.FILEPATH, out pathname, FileCol.DOWNLOADED, out download, FileCol.SIZE, out size, FileCol.PERCEN, out persen, FileCol.URIS, out uris);
+                model.get (iter, FileCol.SELECTED, out select, FileCol.ROW, out index, FileCol.NAME, out name, FileCol.DOWNLOADED, out download, FileCol.SIZE, out size, FileCol.PERCEN, out persen, FileCol.URIS, out uris);
+                if (name == null || download == null || size == null) {
+                    return false;
+                }
                 if (!liststore_exist (select, index, Markup.escape_text (name), Markup.escape_text (pathname), download, size, persen.abs (), Markup.escape_text (uris))) {
                     Gtk.TreeIter iters;
                     torrstore.append (out iters);
@@ -692,7 +701,6 @@ namespace Gabut {
                 }
                 return false;
             });
-            aria_files_store (ariagid);
             if (totalsize > 0 && transferrate > 0) {
                 uint64 remaining_time = (totalsize - transferred) / transferrate;
                 timeleft.label = format_time ((int) remaining_time);

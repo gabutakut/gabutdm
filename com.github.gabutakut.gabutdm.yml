@@ -1,7 +1,7 @@
 app-id: com.github.gabutakut.gabutdm
 
 runtime: io.elementary.Platform
-runtime-version: '6'
+runtime-version: '7'
 sdk: io.elementary.Sdk
 
 command: com.github.gabutakut.gabutdm

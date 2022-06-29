@@ -23,8 +23,9 @@
 </p>
 
 <h1 align="center">🤖 GabutDM 🤖</h1>
+<h2 align="center">🤖 GTK4 🤖</h2>
 <p align="center">
-Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
+Gabut Download Manager application that can download all you need like Link URLs Metallink Magnetlink Torrents using Aria2c and,
 an application that has a local server service interface. also file transfers from smartphones.
 This application prioritizes convenience, full of features and an attractive appearance.
 </p>
@@ -44,7 +45,7 @@ This application prioritizes convenience, full of features and an attractive app
 <h1 align="center">👦 Torrent Peers of GabutDM 🙈</h1>
 <p align="center">
     <img src="Screenshot3.png" alt="Home">
-<h1 align="center">🏡 Gabut Sharing of GabutDM 🙈</h1>
+<h1 align="center">🏡 Sharing of GabutDM 🙈</h1>
 <p align="center">
     <img src="Screenshot4.png" alt="Home">
 </p>

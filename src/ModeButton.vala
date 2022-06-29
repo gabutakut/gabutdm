@@ -14,13 +14,8 @@ namespace Gabut {
             public Item (int index) {
                 Object (index: index);
             }
-            construct {
-                add_events (Gdk.EventMask.SCROLL_MASK);
-            }
         }
 
-        public signal void mode_added (int index, Gtk.Widget widget);
-        public signal void mode_removed (int index, Gtk.Widget widget);
         public signal void mode_changed (Gtk.Widget widget);
 
         private int _selected = -1;
@@ -48,29 +43,27 @@ namespace Gabut {
         }
 
         public int append_pixbuf (Gdk.Pixbuf pixbuf) {
-            return append (new Gtk.Image.from_pixbuf (pixbuf));
+            return appends (new Gtk.Image.from_pixbuf (pixbuf));
         }
 
         public int append_text (string text) {
-            var label = new Gtk.Label (text) {
-                attributes = set_attribute (Pango.Weight.MEDIUM)
-            };
-            return append (label);
+            return appends (new Gtk.Label (text));
         }
 
         public int append_icon (string icon_name, Gtk.IconSize size) {
-            return append (new Gtk.Image.from_icon_name (icon_name, size));
+            var img = new Gtk.Image.from_icon_name (icon_name) {
+                icon_size = size,
+                pixel_size = 32
+            };
+            return appends (img);
         }
 
-        public int append (Gtk.Widget w) {
+        public int appends (Gtk.Widget w) {
             int index;
             for (index = item_map.size; item_map.has_key (index); index++);
-            assert (item_map[index] == null);
-
-            var item = new Item (index);
-            item.scroll_event.connect (on_scroll_event);
-            item.add (w);
-
+            var item = new Item (index) {
+                child = w
+            };
             item.toggled.connect (() => {
                 if (item.active) {
                     selected = item.index;
@@ -79,15 +72,13 @@ namespace Gabut {
                 }
             });
             item_map[index] = item;
-            add (item);
-            item.show_all ();
-            mode_added (index, w);
+            append (item);
+            item.show ();
             return index;
         }
 
         private void clear_selected () {
             _selected = -1;
-
             foreach (var item in item_map.values) {
                 if (item != null && item.active) {
                     item.set_active (false);
@@ -100,97 +91,25 @@ namespace Gabut {
                 clear_selected ();
                 return;
             }
-
-            return_if_fail (item_map.has_key (new_active_index));
             var new_item = item_map[new_active_index] as Item;
-
             if (new_item != null) {
-                assert (new_item.index == new_active_index);
                 new_item.set_active (true);
-
+                if (new_item.child.name == "GtkLabel") {
+                    ((Gtk.Label) new_item.child).attributes = color_attribute (60000, 0, 0);
+                }
                 if (_selected == new_active_index) {
                     return;
                 }
                 var old_item = item_map[_selected] as Item;
                 _selected = new_active_index;
-
                 if (old_item != null) {
+                    if (old_item.child.name == "GtkLabel") {
+                        ((Gtk.Label) old_item.child).attributes = null;
+                    }
                     old_item.set_active (false);
                 }
                 mode_changed (new_item.get_child ());
             }
-        }
-
-        public void set_item_visible (int index, bool val) {
-            return_if_fail (item_map.has_key (index));
-            var item = item_map[index] as Item;
-
-            if (item != null) {
-                assert (item.index == index);
-                item.no_show_all = !val;
-                item.visible = val;
-            }
-        }
-
-        public new void remove (int index) {
-            return_if_fail (item_map.has_key (index));
-            var item = item_map[index] as Item;
-
-            if (item != null) {
-                assert (item.index == index);
-                item_map.unset (index);
-                mode_removed (index, item.get_child ());
-                item.destroy ();
-            }
-        }
-
-        public void clear_children () {
-            foreach (weak Gtk.Widget button in get_children ()) {
-                button.hide ();
-                if (button.get_parent () != null) {
-                    base.remove (button);
-                }
-            }
-            item_map.clear ();
-            _selected = -1;
-        }
-
-        private bool on_scroll_event (Gtk.Widget widget, Gdk.EventScroll ev) {
-            int offset;
-            switch (ev.direction) {
-                case Gdk.ScrollDirection.DOWN:
-                case Gdk.ScrollDirection.RIGHT:
-                    offset = 1;
-                    break;
-                case Gdk.ScrollDirection.UP:
-                case Gdk.ScrollDirection.LEFT:
-                    offset = -1;
-                    break;
-                default:
-                    return false;
-            }
-
-            var children = get_children ();
-            uint n_children = children.length ();
-
-            var selected_item = item_map[selected];
-            if (selected_item == null) {
-                return false;
-            }
-            int new_item = children.index (selected_item);
-            if (new_item < 0) {
-                return false;
-            }
-            do {
-                new_item += offset;
-                var item = children.nth_data (new_item) as Item;
-
-                if (item != null && item.visible && item.sensitive) {
-                    selected = item.index;
-                    break;
-                }
-            } while (new_item >= 0 && new_item < n_children);
-            return false;
         }
     }
 }

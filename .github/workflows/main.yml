@@ -6,7 +6,7 @@ jobs:
   flatpak:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/elementary/flatpak-platform/runtime:6
+      image: ghcr.io/elementary/flatpak-platform/runtime:7
       options: --privileged
     steps:
     - uses: actions/checkout@v2
