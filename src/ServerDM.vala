@@ -20,13 +20,42 @@
 */
 
 namespace Gabut {
-    public string get_dm (string pathname, string htmlstr) {
+    public string get_dm (string pathname, string htmlstr, string javascr) {
+        string errordm = "<div align=\"center\"><a class=\"icon error\"></a><h1>Nothing Error file Download</h1></div>";
+        string activedm = "<div align=\"center\"><a class=\"icon playing\"></a><h1>Nothing Active file Download</h1></div>";
+        string pauseddm = "<div align=\"center\"><a class=\"icon paused\"></a><h1>Nothing Paused file Download</h1></div>";
+        string waitdm = "<div align=\"center\"><a class=\"icon waiting\"></a><h1>No Waiting file Download</h1></div>";
+        string completedm = "<div align=\"center\"><a class=\"icon complete\"></a><h1>Nothing Complete file Download</h1></div>";
+        if (pathname == "Downloading") {
+            if (htmlstr != "") {
+                activedm = htmlstr;
+            }
+        } else if (pathname == "Paused") {
+            if (htmlstr != "") {
+                pauseddm = htmlstr;
+            }
+        } else if (pathname == "Complete") {
+            if (htmlstr != "") {
+                completedm = htmlstr;
+            }
+        } else if (pathname == "Waiting") {
+            if (htmlstr != "") {
+                waitdm = htmlstr;
+            }
+        } else if (pathname == "Error") {
+            if (htmlstr != "") {
+                errordm = htmlstr;
+            }
+        }
         return @"
         <html>
         <head>
             <title>Gabut Download Manager</title>
         </head>
         <body>
+        <style>
+            $(get_gbt_css ())
+        </style>
         <div class=\"container\">
             <div class=\"navigation\" id=\"navigation-scroll\">
                 <div class=\"row\">
@@ -49,43 +78,43 @@ namespace Gabut {
             <button class=\"tablink btn btn-primary btn-lg active\" onclick=\"openPage(\'Error\', this, \'#165391\')\"id=\"error\">Error</button>
         </header>
         <div id=\"Downloading\" class=\"tabcontent\">
-            $(htmlstr)
+            $(activedm)
         </div>
 
         <div id=\"Paused\" class=\"tabcontent\">
-            $(htmlstr)
+            $(pauseddm)
         </div>
-    
+
         <div id=\"Complete\" class=\"tabcontent\">
-            $(htmlstr)
+            $(completedm)
         </div>
 
         <div id=\"Waiting\" class=\"tabcontent\">
-            $(htmlstr)
+            $(waitdm)
         </div>
 
         <div id=\"Error\" class=\"tabcontent\">
-            $(htmlstr)
+            $(errordm)
         </div>
         <div id=\"myOverlay\" class=\"overlay animated fadeInDownBig\">
             <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close Overlay\"> <i class=\"icon closew\"></i></span>
         <div class=\"overlay-content\">
-                <nav>
+            <nav>
                 <ul>
-                <h2 id=\"metadata\">Insert address</h2>
-                <form class=\"text\" action=\"$(pathname)\" method=\"post\" enctype=\"text/plain\">
-                    <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"gabutlink\">
-                    <button class=\"btn btn-primary btn-lg active\">Open</button>
-                </form>
-                <h2 id=\"metadata\">Torrent or Metalink</h2>
-                <form class=\"files\"  action=\"$(pathname)\" method=\"post\" enctype=\"multipart/form-data\">
-                    <input class=\"form-control\" type=\"file\" id=\"uploader\" name=\"file[]\" accept=\".torrent, application/x-bittorrent, .metalink, application/metalink+xml\"/>
-                    <button class=\"btn btn-primary btn-lg active\">Open</button>
-                </form>
+                    <h2 id=\"metadata\">Insert address</h2>
+                    <form class=\"text\" action=\"$(pathname)\" method=\"post\" enctype=\"text/plain\">
+                        <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"gabutlink\">
+                        <button class=\"btn btn-primary btn-lg active\">Open</button>
+                    </form>
+                    <h2 id=\"metadata\">Torrent or Metalink</h2>
+                    <form class=\"files\"  action=\"$(pathname)\" method=\"post\" enctype=\"multipart/form-data\">
+                        <input class=\"form-control\" type=\"file\" id=\"uploader\" name=\"file[]\" accept=\".torrent, application/x-bittorrent, .metalink, application/metalink+xml\"/>
+                        <button class=\"btn btn-primary btn-lg active\">Open</button>
+                    </form>
                 </ul>
             </nav>
-            </div>
         </div>
+        $(javascr)
         <script>
             function openMenu() {
                 document.getElementById(\"myOverlay\").style.display = \"block\";
@@ -111,9 +140,6 @@ namespace Gabut {
             }
             document.getElementById (\"$(pathname.down ())\").click();
         </script>
-        <style>
-            $(get_gbt_css ())
-        </style>
         <style>
             $(get_css(file_config (".bootstrap.min.css")))
         </style>

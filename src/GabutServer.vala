@@ -21,6 +21,8 @@
 
 namespace Gabut {
     public class GabutServer : Soup.Server {
+        public signal void updat_row (string ariagid);
+        public signal void delete_row (string ariagid);
         public signal void send_post_data (MatchInfo match_info);
         public signal void address_url (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
         public signal GLib.List<DownloadRow> get_dl_row (int status);
@@ -86,7 +88,7 @@ namespace Gabut {
                     if (filename != null && filename != "") {
                         File filed = GLib.File.new_build_filename (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/"), filename);
                         if (!filed.query_exists ()) {
-                            write_file.begin (body, filename);
+                            write_file.begin (body, filed.get_path ());
                             notify_app (_("File Transfered"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
                         } else {
                             notify_app (_("File Exist"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
@@ -167,35 +169,7 @@ namespace Gabut {
 
         private void gabut_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
-            string pathname = "";
-            var htmlstr = "<div class=\"append\">";
-            if (path.contains ("Downloading")) {
-                pathname = path.split ("/")[1].strip ();
-                get_dl_row (StatusMode.ACTIVE).foreach ((row)=> {
-                    htmlstr += dm_div (row, "playing");
-                });
-            } else if (path.contains ("Paused")) {
-                pathname = path.split ("/")[1].strip ();
-                get_dl_row (StatusMode.PAUSED).foreach ((row)=> {
-                    htmlstr += dm_div (row, "paused");
-                });
-            } else if (path.contains ("Complete")) {
-                pathname = path.split ("/")[1].strip ();
-                get_dl_row (StatusMode.COMPLETE).foreach ((row)=> {
-                    htmlstr += dm_div (row, "complete");
-                });
-            } else if (path.contains ("Waiting")) {
-                pathname = path.split ("/")[1].strip ();
-                get_dl_row (StatusMode.WAIT).foreach ((row)=> {
-                    htmlstr += dm_div (row, "waiting");
-                });
-            } else if (path.contains ("Error")) {
-                pathname = path.split ("/")[1].strip ();
-                get_dl_row (StatusMode.ERROR).foreach ((row)=> {
-                    htmlstr += dm_div (row, "error");
-                });
-            }
-            htmlstr += "</div>";
+            string pathname = path.split ("/")[1].strip ();
             self.pause_message (msg);
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
@@ -211,7 +185,7 @@ namespace Gabut {
                             address_url (reslink, hashoption, false, LinkMode.URL);
                         }
                     }
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, htmlstr).data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
                     msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } else if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
@@ -230,7 +204,17 @@ namespace Gabut {
                             address_url (bencode, hashoption, false, LinkMode.METALINK);
                         }
                     }
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, htmlstr).data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
+                    msg.set_status (Soup.Status.OK, "OK");
+                    self.unpause_message (msg);
+                } else if (result.contains ("actiondm")) {
+                    updat_row (result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")));
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
+                    msg.set_status (Soup.Status.OK, "OK");
+                    self.unpause_message (msg);
+                } else if (result.contains ("actiondelete")) {
+                    delete_row (result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")));
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
                     msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } else {
@@ -238,10 +222,82 @@ namespace Gabut {
                     self.unpause_message (msg);
                 }
             } else if (msg.get_method () == "GET") {
-                msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, htmlstr).data);
+                msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
                 msg.set_status (Soup.Status.OK, "OK");
                 self.unpause_message (msg);
             }
+        }
+
+        private string html_dm (string path) {
+            var htmlstr = "";
+            if (path == "/Downloading") {
+                var dlist = get_dl_row (StatusMode.ACTIVE);
+                if (dlist.length () > 0) {
+                    htmlstr = "<div class=\"append\">";
+                }
+                dlist.foreach ((row)=> {
+                    htmlstr += dm_div (row, "Pause", path);
+                });
+                if (dlist.length () > 0) {
+                    htmlstr += "</div>";
+                }
+            } else if (path == "/Paused") {
+                var dlist = get_dl_row (StatusMode.PAUSED);
+                if (dlist.length () > 0) {
+                    htmlstr = "<div class=\"append\">";
+                }
+                dlist.foreach ((row)=> {
+                    htmlstr += dm_div (row, "Start", path);
+                });
+                if (dlist.length () > 0) {
+                    htmlstr += "</div>";
+                }
+            } else if (path == "/Complete") {
+                var dlist = get_dl_row (StatusMode.COMPLETE);
+                if (dlist.length () > 0) {
+                    htmlstr = "<div class=\"append\">";
+                }
+                dlist.foreach ((row)=> {
+                    htmlstr += dm_div (row, "Complete", path);
+                });
+                if (dlist.length () > 0) {
+                    htmlstr += "</div>";
+                }
+            } else if (path == "/Waiting") {
+                var dlist = get_dl_row (StatusMode.WAIT);
+                if (dlist.length () > 0) {
+                    htmlstr = "<div class=\"append\">";
+                }
+                dlist.foreach ((row)=> {
+                    htmlstr += dm_div (row, "Waiting", path);
+                });
+                if (dlist.length () > 0) {
+                    htmlstr += "</div>";
+                }
+            } else if (path == "Error") {
+                var dlist = get_dl_row (StatusMode.ERROR);
+                if (dlist.length () > 0) {
+                    htmlstr = "<div class=\"append\">";
+                }
+                dlist.foreach ((row)=> {
+                    htmlstr += dm_div (row, "Error", path);
+                });
+                if (dlist.length () > 0) {
+                    htmlstr += "</div>";
+                }
+            }
+            return htmlstr;
+        }
+
+        private string javascr_dm (string path) {
+            var script = "";
+            if (path == "/Downloading") {
+                if (get_dl_row (StatusMode.ACTIVE).length () > 0) {
+                    script += @"<script>setInterval(function () { window.location.reload (); }, 1300); </script>";
+                    script += "<script> if ( window.history.replaceState ) { window.history.replaceState( null, null, window.location.href ); } </script>";
+                }
+            }
+            return script;
         }
 
         private void share_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
@@ -265,14 +321,34 @@ namespace Gabut {
             self.unpause_message (msg);
         }
 
-        private string dm_div (DownloadRow? row, string icon) {
+        private string dm_div (DownloadRow? row, string action, string path) {
+            double fraction = ((double) row.transferred / (double) row.totalsize);
             var sbuilder = new StringBuilder ("<div class=\"item\">");
-            sbuilder.append (@"<a class=\"icon $(get_mime_css (row.fileordir) != null? get_mime_css (row.fileordir) : "file")\"></a>");
-            sbuilder.append (@"<div class=\"name\"><h2 title=\"$(row.pathname != null? row.pathname : "Loading Informatioan")\">$(row.filename != null? row.filename : "Loading Informatioan")</h2></div>");
-            sbuilder.append (@"<div class=\"size\">$(GLib.format_size (row.transferred).to_ascii ())</div>");
-            sbuilder.append (@"<div class=\"size\">$(GLib.format_size (row.totalsize).to_ascii ())</div>");
-            sbuilder.append (@"<div class=\"icon $(icon)\"></div>");
-            sbuilder.append ("</div>");
+            if (row.fileordir != null) {
+                sbuilder.append (@"<a class=\"icon $(get_mime_css (row.fileordir))\"></a>");
+            } else {
+                sbuilder.append ("<a class=\"icon file\"></a>");
+            }
+            sbuilder.append (@"<ul class=\"name\">");
+            if (row.filename != null && row.pathname != null) {
+                sbuilder.append (@"<li><h4 title=\"$(row.pathname)\">$(row.filename)</h4></li>");
+            } else {
+                sbuilder.append (@"<li><h4 title=\"Loading Informatioan\">\"Loading Informatioan\"</h4></li>");
+            }
+            if (row.totalsize > 0) {
+                sbuilder.append (@"<li><progress id=\"file\" value=\"$(fraction * 100)\" max=\"100\"></progress></li>");
+            } else {
+                sbuilder.append (@"<li><progress></progress></li>");
+            }
+            if (row.labeltransfer != null) {
+                sbuilder.append (@"<li>$(row.labeltransfer.to_ascii ())</li>");
+            } else {
+                sbuilder.append ("<li>\"Loading file...\"</li>");
+            }
+            sbuilder.append (@"</ul>");
+            sbuilder.append (@"<div class=\"deleteb\"><form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondelete $(row.ariagid)\" value=\"Delete\" class=\"btn btn-primary btn-lg active\"/></form></div>");
+            sbuilder.append (@"<form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondm $(row.ariagid)\" value=\"$(action)\" class=\"btn btn-primary btn-lg active\"/></form>");
+            sbuilder.append ("</div>\n");
             return sbuilder.str;
         }
 
@@ -281,7 +357,7 @@ namespace Gabut {
             var filesorter = new Gtk.ListStore (FSorter.N_COLUMNS, typeof (string), typeof (string), typeof (bool), typeof (int64), typeof (int), typeof (FileInfo), typeof (string));
             FileEnumerator enumerator = file.enumerate_children ("*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             FileInfo info = null;
-            while (((info = enumerator.next_file (null)) != null)) {
+            while ((info = enumerator.next_file ()) != null) {
                 if (info.get_is_hidden ()) {
                     continue;
                 }
@@ -407,7 +483,7 @@ namespace Gabut {
             } else {
                 sbuilder.append (@"<div class=\"name\"><a title=\"Go Up\" href=\"$(GLib.Uri.unescape_string (path))\">Go Up</a></div>");
             }
-            sbuilder.append ("</div>");
+            sbuilder.append ("</div>\n");
             return sbuilder.str;
         }
 

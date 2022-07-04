@@ -258,7 +258,7 @@ namespace Gabut {
         COMPLETE = 2,
         WAIT = 3,
         ERROR = 4,
-        NOTHING
+        NOTHING = 5
     }
 
     private enum AriaOptions {
@@ -371,7 +371,8 @@ namespace Gabut {
         HTTP_PROXY_PASSWD = 106,
         HTTPS_PROXY = 107,
         HTTPS_PROXY_USER = 108,
-        HTTPS_PROXY_PASSWD = 109;
+        HTTPS_PROXY_PASSWD = 109,
+        OPTIMIZE_CONCURRENT_DOWNLOADS = 110;
 
         public string get_name () {
             switch (this) {
@@ -593,6 +594,8 @@ namespace Gabut {
                     return "https-proxy-user";
                 case HTTPS_PROXY_PASSWD:
                     return "https-proxy-passwd";
+                case OPTIMIZE_CONCURRENT_DOWNLOADS:
+                    return "optimize-concurrent-downloads";
                 default:
                     return "allow-overwrite";
             }
@@ -1805,6 +1808,57 @@ namespace Gabut {
         });
     }
 
+    private void glob_to_opt (string ariagid) {
+        if (get_dbsetting (DBSettings.MAXTRIES) != aria_get_option (ariagid, AriaOptions.MAX_TRIES)) {
+            aria_set_option (ariagid, AriaOptions.MAX_TRIES, get_dbsetting (DBSettings.MAXTRIES));
+        }
+        if (get_dbsetting (DBSettings.CONNSERVER) != aria_get_option (ariagid, AriaOptions.MAX_CONNECTION_PER_SERVER)) {
+            aria_set_option (ariagid, AriaOptions.MAX_CONNECTION_PER_SERVER, get_dbsetting (DBSettings.CONNSERVER));
+        }
+        if (get_dbsetting (DBSettings.TIMEOUT) != aria_get_option (ariagid, AriaOptions.TIMEOUT)) {
+            aria_set_option (ariagid, AriaOptions.TIMEOUT, get_dbsetting (DBSettings.TIMEOUT));
+        }
+        if (get_dbsetting (DBSettings.RETRY) != aria_get_option (ariagid, AriaOptions.RETRY_WAIT)) {
+            aria_set_option (ariagid, AriaOptions.RETRY_WAIT, get_dbsetting (DBSettings.RETRY));
+        }
+        if (get_dbsetting (DBSettings.BTMAXPEERS) != aria_get_option (ariagid, AriaOptions.BT_MAX_PEERS)) {
+            aria_set_option (ariagid, AriaOptions.BT_MAX_PEERS, get_dbsetting (DBSettings.BTMAXPEERS));
+        }
+        if (get_dbsetting (DBSettings.BTTIMEOUTTRACK) != aria_get_option (ariagid, AriaOptions.BT_TRACKER_TIMEOUT)) {
+            aria_set_option (ariagid, AriaOptions.BT_TRACKER_TIMEOUT, get_dbsetting (DBSettings.BTTIMEOUTTRACK));
+        }
+        if (get_dbsetting (DBSettings.SPLIT) != aria_get_option (ariagid, AriaOptions.SPLIT)) {
+            aria_set_option (ariagid, AriaOptions.SPLIT, get_dbsetting (DBSettings.SPLIT));
+        }
+        if (get_dbsetting (DBSettings.SEEDTIME) != aria_get_option (ariagid, AriaOptions.SEED_TIME)) {
+            aria_set_option (ariagid, AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
+        }
+        if (get_dbsetting (DBSettings.OVERWRITE) != aria_get_option (ariagid, AriaOptions.ALLOW_OVERWRITE)) {
+            aria_set_option (ariagid, AriaOptions.ALLOW_OVERWRITE, get_dbsetting (DBSettings.OVERWRITE));
+        }
+        if (get_dbsetting (DBSettings.AUTORENAMING) != aria_get_option (ariagid, AriaOptions.AUTO_FILE_RENAMING)) {
+            aria_set_option (ariagid, AriaOptions.AUTO_FILE_RENAMING, get_dbsetting (DBSettings.AUTORENAMING));
+        }
+        if (get_dbsetting (DBSettings.BTTRACKER) != aria_get_option (ariagid, AriaOptions.BT_TRACKER)) {
+            aria_set_option (ariagid, AriaOptions.BT_TRACKER, get_dbsetting (DBSettings.BTTRACKER));
+        }
+        if (get_dbsetting (DBSettings.BTTRACKEREXC) != aria_get_option (ariagid, AriaOptions.BT_EXCLUDE_TRACKER)) {
+            aria_set_option (ariagid, AriaOptions.BT_EXCLUDE_TRACKER, get_dbsetting (DBSettings.BTTRACKEREXC));
+        }
+        if (get_dbsetting (DBSettings.SPLITSIZE) != aria_get_option (ariagid, AriaOptions.MIN_SPLIT_SIZE)) {
+            aria_set_option (ariagid, AriaOptions.MIN_SPLIT_SIZE, get_dbsetting (DBSettings.SPLITSIZE));
+        }
+        if (get_dbsetting (DBSettings.LOWESTSPEED) != aria_get_option (ariagid, AriaOptions.LOWEST_SPEED_LIMIT)) {
+            aria_set_option (ariagid, AriaOptions.LOWEST_SPEED_LIMIT, get_dbsetting (DBSettings.LOWESTSPEED));
+        }
+        if (get_dbsetting (DBSettings.URISELECTOR) != aria_get_option (ariagid, AriaOptions.URI_SELECTOR)){
+            aria_set_option (ariagid, AriaOptions.URI_SELECTOR, get_dbsetting (DBSettings.URISELECTOR));
+        }
+        if (get_dbsetting (DBSettings.PIECESELECTOR) != aria_get_option (ariagid, AriaOptions.STREAM_PIECE_SELECTOR)) {
+            aria_set_option (ariagid, AriaOptions.STREAM_PIECE_SELECTOR, get_dbsetting (DBSettings.PIECESELECTOR));
+        }
+    }
+
     private void set_startup () {
         do {
             aria_set_globalops (AriaOptions.MAX_TRIES, get_dbsetting (DBSettings.MAXTRIES));
@@ -1888,7 +1942,7 @@ namespace Gabut {
         try {
             FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             FileInfo info = null;
-            while (((info = enumerator.next_file (null)) != null)) {
+            while ((info = enumerator.next_file ()) != null) {
                 if (info.get_is_hidden ()) {
                     continue;
                 }

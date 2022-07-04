@@ -22,6 +22,7 @@
 namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
         public signal void delete_me (DownloadRow row);
+        public signal void update_agid (string ariagid, string newgid);
         private Gtk.Button start_button;
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
@@ -123,6 +124,7 @@ namespace Gabut {
                                 if (ariagid == aria_tell_status (strgid, TellStatus.FOLLOWING)) {
                                     status = status_aria (aria_tell_status (strgid, TellStatus.STATUS));
                                     filename = aria_tell_bittorent (strgid, TellBittorrent.NAME);
+                                    update_agid (ariagid, strgid);
                                     ariagid = strgid;
                                     linkmode = LinkMode.TORRENT;
                                     progressbar.fraction = 0.0;
@@ -268,12 +270,16 @@ namespace Gabut {
             }
             set {
                 _transferred = value.abs ();
-                double fraction = (double) transferred / (double) totalsize;
-                if (fraction > 0.0) {
-                    progressbar.fraction = fraction;
-                }
-                if (status == StatusMode.ACTIVE) {
-                    set_progress_visible.begin (progressbar.fraction);
+                if (totalsize > 0) {
+                    double fraction = (double) transferred / (double) totalsize;
+                    if (fraction > 0.0) {
+                        progressbar.fraction = fraction;
+                    }
+                    if (status == StatusMode.ACTIVE) {
+                        set_progress_visible.begin (progressbar.fraction);
+                    }
+                } else {
+                    progressbar.pulse ();
                 }
             }
         }
@@ -352,7 +358,8 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             progressbar = new Gtk.ProgressBar () {
-                hexpand = true
+                hexpand = true,
+                pulse_step = 0.2
             };
 
             filename_label = new Gtk.Label (filename) {
@@ -366,20 +373,7 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             start_button.clicked.connect (()=> {
-                if (status == StatusMode.COMPLETE) {
-                    send_dialog ();
-                    return;
-                }
-                if (linkmode != LinkMode.URL) {
-                    action_dowload ();
-                } else {
-                    if (aria_geturis (ariagid) != "") {
-                        action_dowload ();
-                    } else {
-                        ariagid = aria_url (url, hashoption);
-                        status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
-                    }
-                }
+                action_btn ();
             });
 
             var remove_button = new Gtk.Button.from_icon_name ("edit-delete") {
@@ -405,6 +399,15 @@ namespace Gabut {
             grid.attach (remove_button, 5, 0, 1, 4);
             grid.attach (start_button, 6, 0, 1, 4);
             child = grid;
+        }
+
+        public string action_btn (int stats = 2) {
+            if (stats != StatusMode.NOTHING && status == StatusMode.COMPLETE) {
+                send_dialog ();
+                return ariagid;
+            }
+            action_dowload ();
+            return ariagid;
         }
 
         public void if_not_exist (string ariag, int linkm, int stats) {
@@ -448,11 +451,7 @@ namespace Gabut {
         }
 
         public void idle_progress () {
-            Idle.add (()=> {
-                update_progress ();
-                add_timeout ();
-                return false;
-            });
+            Idle.add (()=> { update_progress (); return false; });
         }
 
         private void action_dowload () {

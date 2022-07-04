@@ -123,6 +123,14 @@ namespace Gabut {
                     gabutserver.stop_server ();
                     gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 });
+                gabutwindow.update_agid.connect ((ariagid, newgid)=> {
+                    downloaders.foreach ((downloader)=> {
+                        if (downloader.ariagid == ariagid) {
+                            downloader.ariagid = newgid;
+                            downloader.get_active_status ();
+                        }
+                    });
+                });
                 gabutserver.address_url.connect ((url, options, later, linkmode)=> {
                     gabutwindow.add_url_box (url, options, later, linkmode);
                 });
@@ -137,12 +145,6 @@ namespace Gabut {
                     }
                 });
                 add_action (action_download);
-                var action_status = new SimpleAction ("status", VariantType.STRING);
-                action_status.activate.connect ((parameter) => {
-                    string aria_gid = parameter.get_string (null);
-                    gabutwindow.fast_respond (aria_gid);
-                });
-                add_action (action_status);
                 var action_succes = new SimpleAction ("succes", VariantType.STRING);
                 action_succes.activate.connect ((parameter) => {
                     string succes = parameter.get_string (null);
@@ -159,6 +161,12 @@ namespace Gabut {
                 add_action (close_dialog);
                 gabutserver.get_dl_row.connect ((status)=> {
                     return gabutwindow.get_dl_row (status);
+                });
+                gabutserver.updat_row.connect ((status)=> {
+                    gabutwindow.server_action (status);
+                });
+                gabutserver.delete_row.connect ((status)=> {
+                    gabutwindow.remove_item (status);
                 });
                 clipboard = gabutwindow.get_display ().get_clipboard ();
                 clipboard.changed.connect (on_clipboard);
@@ -353,6 +361,9 @@ namespace Gabut {
             });
             downloader.sendselected.connect ((ariagid, selected)=> {
                 return gabutwindow.set_selected (ariagid, selected);
+            });
+            downloader.actions_button.connect ((ariagid, status)=> {
+                return gabutwindow.server_action (ariagid, status);
             });
         }
 
