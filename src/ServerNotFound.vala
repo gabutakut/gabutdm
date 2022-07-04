@@ -27,6 +27,9 @@ namespace Gabut {
             <title>Not Found</title>
         </head>
         <body>
+        <style>
+            $(get_gbt_css ())
+        </style>
         <div class=\"container\">
             <div class=\"navigation\" id=\"navigation-scroll\">
                 <div class=\"row\">
@@ -68,9 +71,6 @@ namespace Gabut {
                 </nav>
             </div>
         </div>
-        <style>
-            $(get_gbt_css ())
-        </style>
         <style>
             $(get_css(file_config (".bootstrap.min.css")))
         </style>

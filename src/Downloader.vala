@@ -22,6 +22,7 @@
 namespace Gabut {
     public class Downloader : Gtk.Dialog {
         public signal string sendselected (string ariagid, string selected);
+        public signal string actions_button (string ariagid, int status);
         private Gtk.Button start_button;
         private Gtk.ProgressBar progressbar;
         private Gtk.Label transfer_rate;
@@ -43,7 +44,6 @@ namespace Gabut {
         private Gtk.TreeView infotorrent;
         private Gtk.TreeView peerstree;
         private Gtk.TextView commenttext;
-        private Gtk.Revealer download_rev;
         private bool stoptimer;
 
         private string _url;
@@ -72,30 +72,27 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     case StatusMode.COMPLETE:
+                        start_button.set_label (_("Open"));
                         statuslabel.label = _("Complete");
-                        start_button.set_label (_("Complete"));
                         statuslabel.attributes = color_attribute (60000, 30000, 19764);
                         remove_timeout ();
-                        if (aria_str_files (AriaGetfiles.PATH, ariagid).contains ("[METADATA]")) {
-                            close ();
-                        }
                         break;
                     case StatusMode.WAIT:
-                        start_button.set_label (_("Wait"));
+                        start_button.set_label (_("Pause"));
                         statuslabel.label = _("Waiting");
                         statuslabel.attributes = color_attribute (0, 0, 42588);
                         remove_timeout ();
                         break;
                     case StatusMode.ERROR:
+                        start_button.set_label (_("Resume"));
                         statuslabel.label = _("Error");
                         statuslabel.attributes = color_attribute (60000, 0, 0);
                         remove_timeout ();
-                        close ();
                         break;
                     case StatusMode.NOTHING:
-                        statuslabel.label = _("Nothing Process!, Press Download for continue");
-                        statuslabel.attributes = color_attribute (28705, 4000, 9882);
-                        download_rev.reveal_child = true;
+                        start_button.set_label (_("New Process"));
+                        statuslabel.label = _("Nothing Process!");
+                        statuslabel.attributes = color_attribute (49647, 22352, 44235);
                         remove_timeout ();
                         break;
                     default:
@@ -148,9 +145,13 @@ namespace Gabut {
             set {
                 _transferred = value;
                 downloaded.label = GLib.format_size (_transferred, GLib.FormatSizeFlags.LONG_FORMAT);
-                double fraction = (double) transferred / (double) totalsize;
-                if (fraction > 0.0) {
-                    progressbar.fraction = fraction;
+                if (totalsize > 0) {
+                    double fraction = (double) transferred / (double) totalsize;
+                    if (fraction > 0.0) {
+                        progressbar.fraction = fraction;
+                    }
+                } else {
+                    progressbar.pulse ();
                 }
             }
         }
@@ -189,6 +190,7 @@ namespace Gabut {
 
             progressbar = new Gtk.ProgressBar () {
                 hexpand = true,
+                pulse_step = 0.2,
                 width_request = 600
             };
 
@@ -417,21 +419,6 @@ namespace Gabut {
             boxstatus.attach (stack, 0, 1);
             boxstatus.attach (progressbar, 0, 2);
 
-            var download = new Gtk.Button.with_label (_("Redownload")) {
-                width_request = 120,
-                height_request = 25,
-                halign = Gtk.Align.START
-            };
-            ((Gtk.Label) download.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
-            download.clicked.connect (()=> {
-                sendselected (ariagid, "");
-                remove_timeout ();
-                close ();
-            });
-            download_rev = new Gtk.Revealer () {
-                transition_type = Gtk.RevealerTransitionType.CROSSFADE,
-                child = download
-            };
             var close_button = new Gtk.Button.with_label (_("Close")) {
                 width_request = 120,
                 height_request = 25,
@@ -449,14 +436,17 @@ namespace Gabut {
                 halign = Gtk.Align.END
             };
             ((Gtk.Label) start_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
-            start_button.clicked.connect (action_status);
+            start_button.clicked.connect (()=> {
+                string agid = actions_button (ariagid, status);
+                ariagid = agid;
+                get_active_status ();
+            });
 
             var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
                 halign = Gtk.Align.END,
                 margin_top = 10,
                 margin_bottom = 10
             };
-            box_action.append (download_rev);
             box_action.append (start_button);
             box_action.append (close_button);
 
@@ -493,11 +483,7 @@ namespace Gabut {
 
         public override void show () {
             base.show ();
-            Idle.add (()=> {
-                update_progress ();
-                add_timeout ();
-                return false;
-            });
+            Idle.add (()=> { update_progress (); return false; });
         }
 
         private Gtk.TreeViewColumn text_column (string title, int column) {
@@ -571,28 +557,6 @@ namespace Gabut {
 
         public void get_active_status () {
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
-        }
-
-        private void action_status () {
-            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
-            if (status == StatusMode.ACTIVE) {
-                aria_pause (ariagid);
-                remove_timeout ();
-            } else if (status == StatusMode.PAUSED) {
-                aria_unpause (ariagid);
-                add_timeout ();
-            } else if (status == StatusMode.COMPLETE) {
-                remove_timeout ();
-            } else if (status == StatusMode.WAIT) {
-                add_timeout ();
-            } else {
-                remove_timeout ();
-                close ();
-            }
-            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
-            if (status != StatusMode.COMPLETE) {
-                application.activate_action ("status", new Variant.string (ariagid));
-            }
         }
 
         public void aria_gid (string ariagid) {

@@ -24,6 +24,7 @@ namespace Gabut {
         public signal void restart_server ();
         public signal void restart_process ();
         public signal void max_active ();
+        public signal void global_opt ();
         private Gtk.MenuButton allocate_button;
         private Gtk.MenuButton piecesel_button;
         private Gtk.MenuButton urisel_button;
@@ -724,6 +725,7 @@ namespace Gabut {
             notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 9, 1, 1);
             notifyopt.attach (allowrepl, 0, 10, 1, 1);
             notifyopt.attach (autorename, 0, 11, 1, 1);
+
             var notyscr = new Gtk.ScrolledWindow () {
                 width_request = 455,
                 vexpand = true,
@@ -809,6 +811,7 @@ namespace Gabut {
                     restart_server ();
                     close ();
                 } else {
+                    global_opt ();
                     close ();
                 }
             });

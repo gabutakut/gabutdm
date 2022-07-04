@@ -31,6 +31,9 @@ namespace Gabut {
         </head>
         <meta http-equiv=\"Content-Type\" content=\"text/html; charset=big5\"/>
         <body>
+        <style>
+            $(get_gbt_css ())
+        </style>
         <div class=\"container\">
             <div class=\"navigation\" id=\"navigation-scroll\">
                 <div class=\"row\">
@@ -77,9 +80,6 @@ namespace Gabut {
                 </nav>
             </div>
         </div>
-        <style>
-            $(get_gbt_css ())
-        </style>
         <style>
             $(get_css(file_config (".bootstrap.min.css")))
         </style>

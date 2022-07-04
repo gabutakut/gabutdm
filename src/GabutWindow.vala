@@ -26,6 +26,7 @@ namespace Gabut {
         public signal void restart_server ();
         public signal void open_show ();
         public signal bool active_downloader (string ariagid);
+        public signal void update_agid (string ariagid, string newgid);
         public signal string get_host ();
         private Gtk.ListBox list_box;
         private Gtk.Stack headerstack;
@@ -141,17 +142,15 @@ namespace Gabut {
                         restart_server ();
                     });
                     preferences.restart_process.connect (()=> {
-                        listrow.foreach ((lrow)=> {
-                            list_box.select_row (lrow);
-                            var row = (DownloadRow) list_box.get_selected_row ();
-                            if (row != null) {
-                                list_box.unselect_row (row);
-                                row.if_not_exist (row.ariagid, row.linkmode, row.status);
-                            }
+                        listrow.foreach ((row)=> {
+                            row.if_not_exist (row.ariagid, row.linkmode, row.status);
                         });
                     });
                     preferences.max_active.connect (()=> {
                         next_download ();
+                    });
+                    preferences.global_opt.connect (()=> {
+                        update_options ();
                     });
                     preferences.close.connect (()=> {
                         if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
@@ -403,54 +402,52 @@ namespace Gabut {
 
         public GLib.List<DownloadRow> get_dl_row (int status) {
             var rowlist = new GLib.List<DownloadRow> ();
-            int total = (int) listrow.length ();
-            for (int i = 0; i < total; i++) {
-                list_box.select_row (list_box.get_row_at_index (i));
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.status == status) {
-                        rowlist.append (row);
-                    }
+            for (int i = 0; i < (int) listrow.length (); i++) {
+                if (listrow.nth_data (i).status == status) {
+                    rowlist.append (listrow.nth_data (i));
                 }
             }
             return rowlist;
         }
 
-        private void next_download () {
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.status == StatusMode.WAIT) {
-                        aria_unpause (row.ariagid);
-                        row.idle_progress ();
-                    }
+        private void update_options () {
+            listrow.foreach ((row)=> {
+                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                    glob_to_opt (row.ariagid);
                 }
             });
         }
 
-        public void fast_respond (string ariagid) {
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.ariagid == ariagid) {
-                        row.idle_progress ();
-                    }
+        private void next_download () {
+            listrow.foreach ((row)=> {
+                if (row.status == StatusMode.WAIT) {
+                    row.update_progress ();
                 }
             });
+        }
+
+        public string server_action (string ariagid, int status = 2) {
+            var agid = ariagid;
+            listrow.foreach ((row)=> {
+                if (row.ariagid == ariagid) {
+                    agid = row.action_btn (status);
+                }
+            });
+            return agid;
+        }
+
+        public void remove_item (string ariagid) {
+            listrow.foreach ((row)=> {
+                if (row.ariagid == ariagid) {
+                    row.remove_down ();
+                }
+            });
+            aria_purge_all ();
         }
 
         public void remove_all () {
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    row.remove_down ();
-                }
+            listrow.foreach ((row)=> {
+                row.remove_down ();
             });
             aria_purge_all ();
         }
@@ -499,6 +496,9 @@ namespace Gabut {
                         listrow.delete_link (listrow.find (rw));
                         stop_launcher ();
                     });
+                    row.update_agid.connect ((ariagid, newgid)=> {
+                        update_agid (ariagid, newgid);
+                    });
                 }
             });
         }
@@ -544,6 +544,9 @@ namespace Gabut {
                 listrow.delete_link (listrow.find (rw));
                 stop_launcher ();
             });
+            row.update_agid.connect ((ariagid, newgid)=> {
+                update_agid (ariagid, newgid);
+            });
             if (list_box.get_selected_row () == null) {
                 list_box.select_row (row);
                 list_box.row_activated (row);
@@ -558,90 +561,60 @@ namespace Gabut {
 
         private bool get_exist (string url) {
             bool linkexist = false;
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.url == url) {
-                        linkexist = true;
-                    }
+            listrow.foreach ((row)=> {
+                if (row.url == url) {
+                    linkexist = true;
                 }
             });
             return linkexist;
         }
 
         private void start_all () {
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                        aria_unpause (row.ariagid);
-                        row.idle_progress ();
-                    }
+            listrow.foreach ((row)=> {
+                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                    aria_unpause (row.ariagid);
+                    row.update_progress ();
                 }
             });
             view_status ();
         }
 
         private void stop_all () {
-            aria_pause_all ();
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                        aria_pause (row.ariagid);
-                        row.update_progress ();
-                    }
+            listrow.foreach ((row)=> {
+                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                    aria_pause (row.ariagid);
+                    row.idle_progress ();
                 }
             });
+            aria_pause_all ();
             view_status ();
         }
 
         public string set_selected (string ariagid, string selected) {
             string aria_gid = "";
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.ariagid == ariagid) {
-                        aria_gid = row.set_selected (selected);
-                    }
+            listrow.foreach ((row)=> {
+                if (row.ariagid == ariagid) {
+                    aria_gid = row.set_selected (selected);
                 }
             });
             return aria_gid;
         }
 
         public void append_row (string ariagid) {
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.ariagid == ariagid) {
-                        if (row.status == StatusMode.ACTIVE) {
-                            append_dbus.begin (row.rowbus);
-                        }
+            listrow.foreach ((row)=> {
+                if (row.ariagid == ariagid) {
+                    if (row.status == StatusMode.ACTIVE) {
+                        append_dbus.begin (row.rowbus);
                     }
                 }
             });
         }
 
         public void remove_row (string ariagid) {
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    list_box.unselect_row (row);
-                    if (row.ariagid == ariagid) {
-                        if (row.status == StatusMode.ACTIVE) {
-                            remove_dbus.begin (row.rowbus);
-                        }
+            listrow.foreach ((row)=> {
+                if (row.ariagid == ariagid) {
+                    if (row.status == StatusMode.ACTIVE) {
+                        remove_dbus.begin (row.rowbus);
                     }
                 }
             });

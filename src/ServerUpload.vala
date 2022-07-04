@@ -27,6 +27,9 @@ namespace Gabut {
             <title>Share File To Computer</title>
         </head>
         <body>
+        <style>
+            $(get_gbt_css ())
+        </style>
         <div class=\"container\">
             <div class=\"navigation\" id=\"navigation-scroll\">
                 <div class=\"row\">
@@ -83,9 +86,6 @@ namespace Gabut {
                 document.getElementById(\"myOverlay\").style.display = \"none\";
             }
         </script>
-        <style>
-            $(get_gbt_css ())
-        </style>
         <style>
             $(get_css(file_config (".bootstrap.min.css")))
         </style>
