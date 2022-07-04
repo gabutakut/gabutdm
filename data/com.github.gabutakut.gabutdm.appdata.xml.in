@@ -9,25 +9,35 @@
   <description>
     <p>Download whatever you want.</p>
       <p>
-        Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
+        Gabut Download Manager application that can download all you need like Link URLs Metallink Magnetlink Torrents using Aria2c and,
         an application that has a local server service interface.
-        can also accept file transfers from smartphones.
-
+        can also accept file transfers from smartphones and explore manager file sharing with authentication.
       </p>
       <p>Features:</p>
       <ul>
         <li>Torrent.</li>
         <li>Metalink.</li>
         <li>Magnetlink.</li>
-        <li>URIs.</li>
+        <li>URLs.</li>
         <li>Local server.</li>
         <li>File Transfer.</li>
+        <li>File Sharing.</li>
+        <li>Web Download Manager.</li>
+        <li>Clipboard Manger.</li>
+        <li>Open link in Pc.</li>
+        <li>Dbus Menu.</li>
+        <li>Support extention Firefox and chrome.</li>
     </ul>
   </description>
   <provides>
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.8.5" date="2022-7-4">
+      <description>
+        <p>New With Gtk4</p>
+      </description>
+    </release>
     <release version="1.7.5" date="2022-6-29">
       <description>
         <p>Last Update For Gtk3</p>
