@@ -40,6 +40,7 @@ namespace Gabut {
             authenti.add_path ("/Complete");
             authenti.add_path ("/Waiting");
             authenti.add_path ("/Error");
+            authenti.add_path ("/Dialog");
             authenti.set_auth_callback (authentication);
             this.add_auth_domain (authenti);
             this.add_handler ("/", home_handler);
@@ -50,6 +51,7 @@ namespace Gabut {
             this.add_handler ("/Complete", gabut_handler);
             this.add_handler ("/Waiting", gabut_handler);
             this.add_handler ("/Error", gabut_handler);
+            this.add_handler ("/Dialog", dialog_handler);
             if (!bool.parse (get_dbsetting (DBSettings.IPLOCAL))) {
                 this.listen_all (port, Soup.ServerListenOptions.IPV4_ONLY);
             } else {
@@ -77,6 +79,7 @@ namespace Gabut {
             unowned GabutServer self = server as GabutServer;
             self.pause_message (msg);
             if (msg.get_method () == "POST") {
+                string result = (string) msg.get_request_body ().data;
                 if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
                     var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
                     Soup.MessageHeaders headers;
@@ -93,13 +96,44 @@ namespace Gabut {
                         } else {
                             notify_app (_("File Exist"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
                         }
+                        msg.set_status (Soup.Status.OK, "OK");
+                        self.unpause_message (msg);
                     }
+                } else if (Regex.match_simple ("openlink=(.*?)", result)) {
+                    string reslink = result.replace ("openlink=", "").strip ();
+                    if (reslink != "") {
+                        if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
+                            notify_app (_("Open Link"), reslink, new ThemedIcon ("insert-link"));
+                            open_fileman.begin (reslink);
+                        }
+                    }
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_upload ().data);
+                    msg.set_status (Soup.Status.OK, "OK");
+                    self.unpause_message (msg);
+                } else {
+                    msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
+                    self.unpause_message (msg);
                 }
-                msg.set_status (Soup.Status.OK, "OK");
-                self.unpause_message (msg);
             } else if (msg.get_method () == "GET") {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_upload ().data);
                 msg.set_status (Soup.Status.OK, "OK");
+                self.unpause_message (msg);
+            }
+        }
+
+        private void dialog_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
+            unowned GabutServer self = server as GabutServer;
+            self.pause_message (msg);
+            if (msg.get_method () == "POST") {
+                string result = (string) msg.get_request_body ().data;
+                get_dl_row (StatusMode.COMPLETE).foreach ((row)=> {
+                    if (row.ariagid == result.slice (result.last_index_of ("+") + 1, result.last_index_of ("="))) {
+                        msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
+                        msg.set_status (Soup.Status.OK, "OK");
+                    } else {
+                        msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
+                    }
+                });
                 self.unpause_message (msg);
             }
         }
@@ -142,15 +176,6 @@ namespace Gabut {
                     if (regex.match_full (result, -1, 0, 0, out match_info)) {
                         msg.set_status (Soup.Status.OK, "OK");
                         send_post_data (match_info);
-                    } else if (Regex.match_simple ("openlink=(.*?)", result)) {
-                        msg.set_status (Soup.Status.OK, "OK");
-                        string reslink = result.replace ("openlink=", "").strip ();
-                        if (reslink != "") {
-                            if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
-                                notify_app (_("Open Link"), reslink, new ThemedIcon ("insert-link"));
-                                open_fileman.begin (reslink);
-                            }
-                        }
                     } else {
                         msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                     }
@@ -293,8 +318,7 @@ namespace Gabut {
             var script = "";
             if (path == "/Downloading") {
                 if (get_dl_row (StatusMode.ACTIVE).length () > 0) {
-                    script += @"<script>setInterval(function () { window.location.reload (); }, 1300); </script>";
-                    script += "<script> if ( window.history.replaceState ) { window.history.replaceState( null, null, window.location.href ); } </script>";
+                    script = "<script>setInterval(function () { window.location.reload (); }, 1300); </script>\n";
                 }
             }
             return script;
@@ -329,25 +353,25 @@ namespace Gabut {
             } else {
                 sbuilder.append ("<a class=\"icon file\"></a>");
             }
-            sbuilder.append (@"<ul class=\"name\">");
+            sbuilder.append ("<ul class=\"name\">");
             if (row.filename != null && row.pathname != null) {
                 sbuilder.append (@"<li><h4 title=\"$(row.pathname)\">$(row.filename)</h4></li>");
             } else {
-                sbuilder.append (@"<li><h4 title=\"Loading Informatioan\">\"Loading Informatioan\"</h4></li>");
+                sbuilder.append ("<li><h4 title=\"Loading Informatioan\">\"Loading Informatioan\"</h4></li>");
             }
             if (row.totalsize > 0) {
-                sbuilder.append (@"<li><progress id=\"file\" value=\"$(fraction * 100)\" max=\"100\"></progress></li>");
+                sbuilder.append (@"<li><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" style=\"width:$(fraction * 100)%\"></div></div></li>");
             } else {
-                sbuilder.append (@"<li><progress></progress></li>");
+                sbuilder.append ("<li><div class=\"progress\"></div></li>");
             }
             if (row.labeltransfer != null) {
                 sbuilder.append (@"<li>$(row.labeltransfer.to_ascii ())</li>");
             } else {
                 sbuilder.append ("<li>\"Loading file...\"</li>");
             }
-            sbuilder.append (@"</ul>");
-            sbuilder.append (@"<div class=\"deleteb\"><form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondelete $(row.ariagid)\" value=\"Delete\" class=\"btn btn-primary btn-lg active\"/></form></div>");
-            sbuilder.append (@"<form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondm $(row.ariagid)\" value=\"$(action)\" class=\"btn btn-primary btn-lg active\"/></form>");
+            sbuilder.append ("</ul>");
+            sbuilder.append (@"<div class=\"deleteb\"><form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondelete $(row.ariagid)\" value=\"Delete\" class=\"btn btn-danger btn-lg active\"/></form></div>");
+            sbuilder.append (@"<form action=\"$(action != "Complete"? path : "/Dialog")\" method=\"post\"> <input type=\"submit\" name=\"actiondm $(row.ariagid)\" value=\"$(action)\" class=\"btn btn-primary btn-lg active\"/></form>");
             sbuilder.append ("</div>\n");
             return sbuilder.str;
         }
@@ -374,14 +398,14 @@ namespace Gabut {
             var pathfile = @"$(file.get_path ().split (sourcef.get_path ())[1])/";
             var htmlstr = "";
             if (pathfile == "/") {
-                htmlstr = _(@"<header><a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\" href=\"/Home\">Home/</a></header>");
+                htmlstr = _("<header><a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\" href=\"/Home\">Home/</a></header>");
             } else {
                 htmlstr += "<header>";
                 foreach (string path in pathfile.split ("/")) {
                     if (path != "") {
                         var strpath = pathfile.split (path)[0];
                         if (strpath == "/") {
-                            htmlstr += @"<a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\" href=\"/Home\">Home/</a>";
+                            htmlstr += "<a class=\"icon myhome\" title=Home href=\"/Home\"></a><a class=\"shortfd\" href=\"/Home\">Home/</a>";
                         }
                         htmlstr += @"<a class=\"shortfd\" title=\"$(path)\" href=\"$(GLib.Uri.unescape_string (strpath+path))\">$(path)/</a>";
                     }

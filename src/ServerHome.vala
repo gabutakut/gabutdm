@@ -83,11 +83,6 @@ namespace Gabut {
             <div class=\"overlay-content\">
                 <nav>
                 <ul>
-                    <h2 id=\"metadata\">Open link On Browser PC</h2>
-                    <form class=\"text\" action=\"/\" method=\"post\" enctype=\"text/plain\">
-                        <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"openlink\">
-                        <button class=\"btn btn-primary btn-lg active\">Open</button>
-                    </form>
                 </ul>
             </nav>
             </div>
