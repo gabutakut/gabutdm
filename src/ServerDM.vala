@@ -102,12 +102,12 @@ namespace Gabut {
             <nav>
                 <ul>
                     <h2 id=\"metadata\">Insert address</h2>
-                    <form class=\"text\" action=\"$(pathname)\" method=\"post\" enctype=\"text/plain\">
+                    <form class=\"text\" action=\"/$(pathname)\" method=\"post\" enctype=\"text/plain\">
                         <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"gabutlink\">
                         <button class=\"btn btn-primary btn-lg active\">Open</button>
                     </form>
                     <h2 id=\"metadata\">Torrent or Metalink</h2>
-                    <form class=\"files\"  action=\"$(pathname)\" method=\"post\" enctype=\"multipart/form-data\">
+                    <form class=\"files\"  action=\"/$(pathname)\" method=\"post\" enctype=\"multipart/form-data\">
                         <input class=\"form-control\" type=\"file\" id=\"uploader\" name=\"file[]\" accept=\".torrent, application/x-bittorrent, .metalink, application/metalink+xml\"/>
                         <button class=\"btn btn-primary btn-lg active\">Open</button>
                     </form>
@@ -139,6 +139,11 @@ namespace Gabut {
                 }
             }
             document.getElementById (\"$(pathname.down ())\").click();
+        </script>
+        <script>
+            if ( window.history.replaceState ) {
+                window.history.replaceState( null, null, window.location.href );
+            }
         </script>
         <style>
             $(get_css(file_config (".bootstrap.min.css")))

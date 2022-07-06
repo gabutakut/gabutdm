@@ -338,10 +338,12 @@ namespace Gabut {
             bool statact = globalactive > 0;
             set_count_visible.begin (globalactive);
             if (!statact) {
+                int stoped = 3;
                 Timeout.add (500, ()=> {
                     set_progress_visible.begin (0.0, false);
                     set_count_visible.begin (globalactive);
-                    return false;
+                    stoped--;
+                    return stoped != 0;
                 });
             }
             if (timeout_id != 0) {

@@ -31,5 +31,6 @@ sources = files (
     'ModeTogle.vala',
     'GabutSucces.vala',
     'ServerShare.vala',
-    'ServerNotFound.vala'
+    'ServerNotFound.vala',
+    'ServerComplete.vala'
 )

@@ -2250,6 +2250,8 @@ namespace Gabut {
             return "text";
         } else if (mime.contains ("pdf")) {
             return "pdf";
+        } else if (mime.contains ("directory")) {
+            return "folder";
         } else if (mime.contains ("translation")) {
             return "po";
         } else if (mime.contains ("/zip") || mime.contains ("/gzip") || mime.contains ("compressed")) {
