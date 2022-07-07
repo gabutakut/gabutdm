@@ -96,9 +96,9 @@ namespace Gabut {
                         } else {
                             notify_app (_("File Exist"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
                         }
-                        msg.set_status (Soup.Status.OK, "OK");
-                        self.unpause_message (msg);
                     }
+                    msg.set_status (Soup.Status.OK, "OK");
+                    self.unpause_message (msg);
                 } else if (Regex.match_simple ("openlink=(.*?)", result)) {
                     string reslink = result.replace ("openlink=", "").strip ();
                     if (reslink != "") {
@@ -174,13 +174,12 @@ namespace Gabut {
                     MatchInfo match_info;
                     Regex regex = new Regex ("link:(.*?),filename:(.*?),referrer:(.*?),mimetype:(.*?),filesize:(.*?),resumable:(.*?),");
                     if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                        msg.set_status (Soup.Status.OK, "OK");
                         send_post_data (match_info);
+                        msg.set_response ("text/html", Soup.MemoryUse.COPY, get_home ().data);
+                        msg.set_status (Soup.Status.OK, "OK");
                     } else {
                         msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                     }
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_home ().data);
-                    msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } catch (Error e) {
                     GLib.warning (e.message);
@@ -327,22 +326,22 @@ namespace Gabut {
         private void share_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             unowned GabutServer self = server as GabutServer;
             self.pause_message (msg);
-            if (msg.get_method () == "GET" && !bool.parse (get_dbsetting (DBSettings.SWITCHDIR))) {
+            if (bool.parse (get_dbsetting (DBSettings.SWITCHDIR))) {
+                if (msg.get_method () == "POST") {
+                    var meseg = (string) msg.get_request_body ().data;
+                    if (!meseg.contains ("+") && meseg.contains ("sort")) {
+                        update_user (username, UserID.SHORTBY, meseg.split ("=")[1]);
+                    }
+                }
+                msg.set_status (Soup.Status.OK, _("OK"));
+                File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
+                directory_mode.begin (msg, sourcef, sourcef);
+                self.unpause_message (msg);
+            } else {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                 msg.set_status (Soup.Status.OK, "OK");
                 self.unpause_message (msg);
-                return;
             }
-            if (msg.get_method () == "POST") {
-                var meseg = (string) msg.get_request_body ().data;
-                if (!meseg.contains ("+") && meseg.contains ("sort")) {
-                    update_user (username, UserID.SHORTBY, meseg.split ("=")[1]);
-                }
-            }
-            msg.set_status (Soup.Status.OK, _("OK"));
-            File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
-            directory_mode.begin (msg, sourcef, sourcef);
-            self.unpause_message (msg);
         }
 
         private string dm_div (DownloadRow? row, string action, string path) {
