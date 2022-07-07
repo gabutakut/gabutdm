@@ -14,7 +14,7 @@ package-repositories:
     components: [main]
     suites: [focal]
     key-id: 2B067CC53533F081B664BF72F6CBED8742796C8E
-    url: http://ppa.launchpad.net/torik-habib/gabutdm/ubuntu
+    url: http://ppa.launchpad.net/torik-habib/libdgbt/ubuntu
 parts:
   gabutdm:
     after: [desktop-gnome-platform]
