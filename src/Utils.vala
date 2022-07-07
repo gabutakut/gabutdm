@@ -1574,7 +1574,7 @@ namespace Gabut {
                         return namefile;
                     }
                 }
-            } else if (tellbit == TellBittorrent.MODE || tellbit == TellBittorrent.COMMENT || tellbit == TellBittorrent.NAME) {
+            } else {
                 Regex regex = new Regex (@"\"$(tellbit.get_name ())\":\"(.*?)\"");
                 if (regex.match_full (result, -1, 0, 0, out match_info)) {
                     string namefile = match_info.fetch (1);
