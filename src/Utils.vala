@@ -2111,7 +2111,6 @@ namespace Gabut {
 
         filechooser.add_filter (torrent);
         filechooser.add_filter (metalink);
-        filechooser.set_transient_for (window);
 
         File[] files = null;
         filechooser.response.connect ((pos)=> {
