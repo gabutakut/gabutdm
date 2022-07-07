@@ -1,5 +1,5 @@
 name: gabutdm
-version: "1.6.5"
+version: "1.8.5"
 grade: stable
 base: core20
 summary: Simple and Faster Download Manager
@@ -30,17 +30,15 @@ parts:
         - valac
         - gobject-introspection
         - gettext
-        - libsoup2.4-dev
+        - libsoup-3.0-dev
         - libcanberra-dev
         - libcairo2-dev
         - libsqlite3-dev
         - libqrencode-dev
-        - libxtst-dev
-        - libx11-dev
         - libgee-0.8-dev
         - libjson-glib-dev
         - libgdk-pixbuf2.0-dev
-        - libhandy-1-dev
+        - libgtk-4-dev
     stage-packages:
         - libx11-dev
         - libxau-dev
