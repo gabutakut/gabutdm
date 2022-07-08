@@ -294,7 +294,7 @@ namespace Gabut {
                     });
                     htmlstr += "</div>";
                 }
-            } else if (path == "Error") {
+            } else if (path == "/Error") {
                 var dlist = get_dl_row (StatusMode.ERROR);
                 if (dlist.length () > 0) {
                     htmlstr = "<div class=\"append\">";
@@ -453,7 +453,7 @@ namespace Gabut {
                 int64 fsize;
                 bool filordir;
                 FileInfo infofile;
-                filesorter.get (iter, FSorter.NAME, out name, FSorter.MIMETYPE, out mime, FSorter.FILEORDIR, out filordir, FSorter.SIZE, out fsize, FSorter.FILEINDIR, out infolder, FSorter.FILEINFO, out infofile);
+                model.get (iter, FSorter.NAME, out name, FSorter.MIMETYPE, out mime, FSorter.FILEORDIR, out filordir, FSorter.SIZE, out fsize, FSorter.FILEINDIR, out infolder, FSorter.FILEINFO, out infofile);
                 switch (dirfirst) {
                     case 1:
                         if (filordir) {
