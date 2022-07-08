@@ -321,11 +321,8 @@ namespace Gabut {
                 tooltip_text = _("Fix to Tracker")
             };
             fformat_tr.clicked.connect (() => {
-                trackertext.buffer.text = trackertext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
-                trackertext.buffer.text = trackertext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
-                trackertext.buffer.text = trackertext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
-                trackertext.buffer.text = trackertext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
-                trackertext.buffer.text = trackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+                var formatclr = fixtoformat (trackertext.buffer.text);
+                trackertext.buffer.text = formatclr;
             });
 
             var clear_tr = new Gtk.Button.from_icon_name ("edit-clear") {
@@ -376,11 +373,8 @@ namespace Gabut {
                 tooltip_text = _("Fix to Tracker")
             };
             fformat_etr.clicked.connect (() => {
-                etrackertext.buffer.text = etrackertext.buffer.text.replace (" ", "").replace ("\n", ",").replace (",,", ",");
-                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
-                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
-                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
-                etrackertext.buffer.text = etrackertext.buffer.text.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+                var formatclr = fixtoformat (etrackertext.buffer.text);
+                etrackertext.buffer.text = formatclr;
             });
             var clear_etr = new Gtk.Button.from_icon_name ("edit-clear") {
                 tooltip_text = _("Clear Text Tracker")

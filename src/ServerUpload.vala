@@ -31,46 +31,34 @@ namespace Gabut {
             $(get_gbt_css ())
         </style>
         <div class=\"container\">
-            <div class=\"navigation\" id=\"navigation-scroll\">
-                <div class=\"row\">
-                    <div class=\"col-md-11 col-xs-10\">
-                        <a href=\"/\"><span id=\"logo\"><strong class=\"strong\">G</strong>ABUT</span></a>
-                        </div>
-                        <div class=\"col-md-1 col-xs-2\">
-                            <p class=\"nav-button\">
-                            <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
-                            <i class=\"icon open\"></i>
-                    </div>
+            <div class=\"row\">
+                <div class=\"col-md-11 col-xs-10\"><a href=\"/\"><span class=\"logo\"><strong class=\"strong\">G</strong>ABUT</span></a></div>
+                <div class=\"col-md-1 col-xs-2\">
+                    <p class=\"nav-button\">
+                    <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
+                    <i class=\"icon open\"></i>
                 </div>
             </div>
         </div>
-        <section id=\"header\" class=\"header\">
-            <div class=\"top-bar\">
-                <div class=\"container\">
-                    <div class=\"starting\">
-                        <div class=\"row\">
-                            <div id=\"labelsend\"><h2 class=\"fadeInLeft animated\">Send Multiple File</h2></div>
-                            <form id=\"gabut-dropzone\" action=\"/Upload\" class=\"dropzone fadeInLeft animated\">
-                                <div class=\"fallback\">
-                                    <input name=\"file\" type=\"file\" multiple />
-                                </div>
-                            </form>
-                        </div>
+        <div class=\"container\">
+            <div class=\"row\">
+                <h2 class=\"strong fadeInLeft animated\">Send Multiple File</h2>
+                <form id=\"gabut-dropzone\" action=\"/Upload\" class=\"dropzone fadeInLeft animated\">
+                    <div class=\"fallback\">
+                        <input name=\"file\" type=\"file\" multiple />
                     </div>
-                </div>
+                </form>
             </div>
-        </section>
+        </div>
         <div id=\"myOverlay\" class=\"overlay animated fadeInDownBig\">
             <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close\"> <i class=\"icon closew\"></i></span>
             <div class=\"overlay-content\">
                 <nav>
-                    <ul>
-                        <h2 id=\"metadata\">Open link On Browser PC</h2>
-                        <form class=\"text\" action=\"/Upload\" method=\"post\" enctype=\"text/plain\">
-                            <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"openlink\">
-                            <button class=\"btn btn-primary btn-lg active\">Open</button>
-                        </form>
-                    </ul>
+                    <h2 class=\"metadata\">Open link On Browser PC</h2>
+                    <form class=\"text\" action=\"/Upload\" method=\"post\" enctype=\"text/plain\">
+                        <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"openlink\">
+                        <button class=\"btn btn-primary btn-lg active\">Open</button>
+                    </form>
                 </nav>
             </div>
         </div>

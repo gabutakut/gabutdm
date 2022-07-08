@@ -126,14 +126,18 @@ namespace Gabut {
             self.pause_message (msg);
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
-                get_dl_row (StatusMode.COMPLETE).foreach ((row)=> {
-                    if (row.ariagid == result.slice (result.last_index_of ("+") + 1, result.last_index_of ("="))) {
-                        msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
-                        msg.set_status (Soup.Status.OK, "OK");
-                    } else {
-                        msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
-                    }
-                });
+                if (result.contains ("actiondm")) {
+                    get_dl_row (StatusMode.COMPLETE).foreach ((row)=> {
+                        if (row.ariagid == result.slice (result.last_index_of ("+") + 1, result.last_index_of ("="))) {
+                            msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
+                            msg.set_status (Soup.Status.OK, "OK");
+                        } else {
+                            msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
+                        }
+                    });
+                } else {
+                    msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
+                }
                 self.unpause_message (msg);
             }
         }
@@ -258,55 +262,45 @@ namespace Gabut {
                 var dlist = get_dl_row (StatusMode.ACTIVE);
                 if (dlist.length () > 0) {
                     htmlstr = "<div class=\"append\">";
-                }
-                dlist.foreach ((row)=> {
-                    htmlstr += dm_div (row, "Pause", path);
-                });
-                if (dlist.length () > 0) {
+                    dlist.foreach ((row)=> {
+                        htmlstr += dm_div (row, "Pause", path);
+                    });
                     htmlstr += "</div>";
                 }
             } else if (path == "/Paused") {
                 var dlist = get_dl_row (StatusMode.PAUSED);
                 if (dlist.length () > 0) {
                     htmlstr = "<div class=\"append\">";
-                }
-                dlist.foreach ((row)=> {
-                    htmlstr += dm_div (row, "Start", path);
-                });
-                if (dlist.length () > 0) {
+                    dlist.foreach ((row)=> {
+                        htmlstr += dm_div (row, "Start", path);
+                    });
                     htmlstr += "</div>";
                 }
             } else if (path == "/Complete") {
                 var dlist = get_dl_row (StatusMode.COMPLETE);
                 if (dlist.length () > 0) {
                     htmlstr = "<div class=\"append\">";
-                }
-                dlist.foreach ((row)=> {
-                    htmlstr += dm_div (row, "Complete", path);
-                });
-                if (dlist.length () > 0) {
+                    dlist.foreach ((row)=> {
+                        htmlstr += dm_div (row, "Complete", path);
+                    });
                     htmlstr += "</div>";
                 }
             } else if (path == "/Waiting") {
                 var dlist = get_dl_row (StatusMode.WAIT);
                 if (dlist.length () > 0) {
                     htmlstr = "<div class=\"append\">";
-                }
-                dlist.foreach ((row)=> {
-                    htmlstr += dm_div (row, "Waiting", path);
-                });
-                if (dlist.length () > 0) {
+                    dlist.foreach ((row)=> {
+                        htmlstr += dm_div (row, "Waiting", path);
+                    });
                     htmlstr += "</div>";
                 }
             } else if (path == "Error") {
                 var dlist = get_dl_row (StatusMode.ERROR);
                 if (dlist.length () > 0) {
                     htmlstr = "<div class=\"append\">";
-                }
-                dlist.foreach ((row)=> {
-                    htmlstr += dm_div (row, "Error", path);
-                });
-                if (dlist.length () > 0) {
+                    dlist.foreach ((row)=> {
+                        htmlstr += dm_div (row, "Error", path);
+                    });
                     htmlstr += "</div>";
                 }
             }
@@ -317,7 +311,7 @@ namespace Gabut {
             var script = "";
             if (path == "/Downloading") {
                 if (get_dl_row (StatusMode.ACTIVE).length () > 0) {
-                    script = "<script>setInterval(function () { window.location.reload (); }, 1300); </script>\n";
+                    script = "<script>setInterval(function () { if (document.getElementById(\"myOverlay\").style.display != \"block\") {window.location.reload ();} }, 1300); </script>\n";
                 }
             }
             return script;

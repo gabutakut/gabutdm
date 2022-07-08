@@ -2004,6 +2004,15 @@ namespace Gabut {
         return new Variant.boolean (data);
     }
 
+    private string fixtoformat (string tracker) {
+        var tracker0 = tracker.replace (" ", "").replace ("\n", ",").replace (",,", ",");
+        var tracker1 = tracker0.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
+        var tracker2 = tracker1.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
+        var tracker3 = tracker2.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
+        var tracker4 = tracker3.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
+        return tracker4;
+    }
+
     private async void set_count_visible (int64 count) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("count-visible", v_b (count > 0));
