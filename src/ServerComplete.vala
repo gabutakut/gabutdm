@@ -60,14 +60,14 @@ namespace Gabut {
                 font-size: 0.8rem;
             }
             .card{
-                max-width: 1000px;
+                max-width: 1200px;
                 width: 100%;
                 padding: 4rem;
                 background: #2C3539;
                 color: white;
                 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)
             }
-            @media(max-width:750px){
+            @media(max-width:800px){
                 .card{
                     width: 100%;
                     padding: 1.5rem
@@ -84,7 +84,7 @@ namespace Gabut {
                 padding: 6vh 0vh
             }
 
-            @media(max-width:750px){
+            @media(max-width:800px){
                 .info{
                     padding: 0
                 }
@@ -94,7 +94,7 @@ namespace Gabut {
                 width: 75%;
                 padding: 1rem
             }
-            @media(max-width:750px){
+            @media(max-width:800px){
                 bigicon{
                     padding: 2.5rem 0
                 }
