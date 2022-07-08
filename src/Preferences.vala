@@ -137,13 +137,13 @@ namespace Gabut {
                 value = double.parse (aria_get_globalops (AriaOptions.TIMEOUT))
             };
 
-            var retry = new Gtk.SpinButton.with_range (0, 100, 1) {
+            var retry = new Gtk.SpinButton.with_range (0, 600, 1) {
                 width_request = 220,
                 hexpand = true,
                 value = double.parse (aria_get_globalops (AriaOptions.RETRY_WAIT))
             };
 
-            var split = new Gtk.SpinButton.with_range (0, 200, 1) {
+            var split = new Gtk.SpinButton.with_range (0, 6000, 1) {
                 width_request = 220,
                 hexpand = true,
                 value = double.parse (aria_get_globalops (AriaOptions.SPLIT))
