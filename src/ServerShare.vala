@@ -45,7 +45,7 @@ namespace Gabut {
             </div>
         </div>
         <div class=\"container\">
-            <div class=\"row active animated $(opcl)\">
+            <div class=\"active animated $(opcl)\">
                 $(share)
             </div>
         </div>
