@@ -33,8 +33,9 @@ namespace Gabut {
         <div class=\"container\">
             <div class=\"card\">
                 <div class=\"path\"><h4 class=\"dialog complete\">$(row.url)</h4></div>
-                    <div class=\"row\"> <div class=\"col-md-6 text-center align-self-center\"><img class=\"img-fluid icon $(get_mime_css (row.fileordir))\"></div>
-                        <div class=\"col-md-6 info dialog complete\"><div class=\"row title\">
+                <div class=\"row\"><div class=\"col-md-6 text-center align-self-center\"><bigicon class=\"icon $(get_mime_css (row.fileordir))\"></div>
+                    <div class=\"col-md-6 info dialog complete\">
+                        <div class=\"row title\">
                             <div class=\"col\"><h2>$(row.filename)</h2></div>
                             <div class=\"col\"><h4>Size:$(GLib.format_size (row.totalsize, GLib.FormatSizeFlags.LONG_FORMAT).to_ascii ())</h4></div>
                             <div class=\"col\"><h4>Transfered:$(GLib.format_size (row.transferred, GLib.FormatSizeFlags.LONG_FORMAT).to_ascii ())</h4></div>
@@ -66,32 +67,35 @@ namespace Gabut {
                 color: white;
                 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)
             }
-            @media(max-width:768px){
+            @media(max-width:750px){
                 .card{
-                    width: 100%;padding: 1.5rem
-                }
-                }.row{
-                    margin: 0
-                }.path{
-                    color: grey;margin-bottom: 1rem
-                }.path a{
-                    color: #ffffff
-                }.info{
-                    padding: 6vh 0vh
+                    width: 100%;
+                    padding: 1.5rem
                 }
             }
-            @media(max-width:768px){
+            .row{
+                margin: 0
+            }
+            .path{
+                color: grey;
+                margin-bottom: 1rem
+            }
+            .info{
+                padding: 6vh 0vh
+            }
+
+            @media(max-width:750px){
                 .info{
                     padding: 0
                 }
             }
-            img{
+            bigicon{
                 height: fit-content;
                 width: 75%;
                 padding: 1rem
             }
-            @media(max-width:768px){
-                img{
+            @media(max-width:750px){
+                bigicon{
                     padding: 2.5rem 0
                 }
             }

@@ -37,47 +37,25 @@ namespace Gabut {
             width: 100%;
             height: 100%;
         }
-        *{box-sizing: border-box}
-        #Downloading {
-            background-color: transparent;
-        }
-        #Paused {
-            background-color: transparent;
-        }
-        #Complete {
-            background-color: transparent;
-        }
-        #Waiting {
-            background-color: transparent;
-        }
-        #Error {
-            background-color: transparent;
-        }
         form.files input[type=file] {
             font-size: 20px;
             float: left;
-            width: 80%;
-            height: 45px;
+            width: 75%;
+            height: 46px;
         }
         form.files button {
-            width: 20%;
-        }
-        progress {
-            width: 100%;
-        }
-        #labelsend {
-            color: white;
+            width: 25%;
         }
         form.text input[type=text] {
             font-size: 20px;
             float: left;
-            width: 80%;
-            height: 45px;
+            width: 75%;
+            height: 46px;
         }
         form.text button {
-            width: 20%;
+            width: 25%;
         }
-        #metadata {
+        .metadata {
             color: white;
             font-size: 20px;
             text-align: start;
@@ -118,9 +96,6 @@ namespace Gabut {
         p{
             font-size: 16px;
         }
-        .wrapper{
-            padding: 75px 0px;
-        }
         .button.buttonx {
             height: 50%;
         }
@@ -148,14 +123,10 @@ namespace Gabut {
             font-size: 40px;
             -webkit-transform: translateY(-50%);
             transform: translateY(-50%);
-        }
-        .overlay ul {
             list-style: none;
             padding: 0;
             margin: 0 auto;
             display: inline-block;
-            height: 50%;
-            position: relative;
         }
         .overlay-content {
             position: relative;
@@ -167,25 +138,13 @@ namespace Gabut {
         }
         .overlay .closebtn {
             position: absolute;
-            top: 10px;
+            top: 20px;
             right: 45px;
             font-size: 60px;
             cursor: pointer;
             color: white;
         }
-        .overlay .closebtn:hover {
-            color: #ccc;
-        }
-        .overlay button {
-            float: left;
-            width: 20%;
-            padding: 15px;
-            background: #ddd;
-            font-size: 17px;
-            border: none;
-            cursor: pointer;
-        }
-        #logo {
+        .logo {
             font-size: 80px;
             letter-spacing: 10px;
             font-weight: 100;
@@ -196,19 +155,7 @@ namespace Gabut {
         }
         .strong{
             font-weight: 400;
-        }
-        .top-bar{
-            width: 100%;
-        }
-        .fixed {
-            position: fixed;
-            background: transparent;
-            top: 0;
-            z-index: 99;
-            transition: 1s;
-        }
-        .fixed .nav-button{
-            margin: 15px 0px;
+            color: white;
         }
         .nav-button{
             max-width: 600px;
@@ -234,7 +181,7 @@ namespace Gabut {
         }
         .shortfd {
             color: white;
-            font-size: 30px;
+            font-size: 28px;
         }
         .append {
             color: white;

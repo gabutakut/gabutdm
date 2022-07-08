@@ -35,48 +35,33 @@ namespace Gabut {
             $(get_gbt_css ())
         </style>
         <div class=\"container\">
-            <div class=\"navigation\" id=\"navigation-scroll\">
-                <div class=\"row\">
-                    <div class=\"col-md-11 col-xs-10\">
-                        <a href=\"/\"><span id=\"logo\"><strong class=\"strong\">G</strong>ABUT</span></a>
-                        </div>
-                            <div class=\"col-md-1 col-xs-2\">
-                                <p class=\"nav-button\">
-                                <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
-                                <i class=\"icon open\"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            <div class=\"row\">
+                <div class=\"col-md-11 col-xs-10\"><a href=\"/\"><span class=\"logo\"><strong class=\"strong\">G</strong>ABUT</span></a></div>
+                <div class=\"col-md-1 col-xs-2\">
+                    <p class=\"nav-button\">
+                    <button id=\"trigger-overlay\" onclick=\"openMenu()\" type=\"button\">
+                    <i class=\"icon open\"></i>
                 </div>
             </div>
         </div>
-        <section id=\"header\" class=\"header\">
-            <div class=\"top-bar\">
-                <div class=\"container\">
-                    <div class=\"starting\">
-                        <div class=\"row active animated $(opcl)\">
-                            $(share)
-                        </div>
-                    </div>
-                </div>
+        <div class=\"container\">
+            <div class=\"row active animated $(opcl)\">
+                $(share)
             </div>
-        </section>
+        </div>
         <div id=\"myOverlay\" class=\"overlay animated fadeInDownBig\">
-            <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close\"> <i class=\"icon closew\"></i></span>
+            <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close\"><i class=\"icon closew\"></i></span>
             <div class=\"overlay-content\">
                 <nav>
-                    <ul>
-                        <form action=\"$(path)\" method=\"POST\">
-                            <select id=\"cars\" name=\"sort\">
-                                <option $(get_shorted (0, username))Sort By Name</option>
-                                <option $(get_shorted (1, username))Sort By Type</option>
-                                <option $(get_shorted (2, username))Sort By Size</option>
-                                <option $(get_shorted (3, username))Sort By Date</option>
-                            </select>
-                            <input type=\"submit\" class=\"btn btn-primary btn-lg active button buttonx\" value=\"Submit\">
-                        </form>
-                    </ul>
+                    <form action=\"$(path)\" method=\"POST\">
+                        <select name=\"sort\">
+                            <option $(get_shorted (0, username))Sort By Name</option>
+                            <option $(get_shorted (1, username))Sort By Type</option>
+                            <option $(get_shorted (2, username))Sort By Size</option>
+                            <option $(get_shorted (3, username))Sort By Date</option>
+                        </select>
+                        <input type=\"submit\" class=\"btn btn-primary btn-lg active\" value=\"Submit\">
+                    </form>
                 </nav>
             </div>
         </div>
