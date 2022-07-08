@@ -78,15 +78,10 @@ namespace Gabut {
         }
 
         public void property_set_variant (string property, Variant value) {
-            string hash_key;
-            Variant hash_variant;
-            bool inhash = properties.lookup_extended (property, out hash_key, out hash_variant);
             if (value != null) {
-                if (!inhash || (hash_variant != null && !hash_variant.equal (value))) {
+                if (properties.contains (property)) {
                     properties.replace (property.dup (), value);
-                }
-            } else {
-                if (inhash) {
+                } else {
                     properties[property.dup ()] = value;
                 }
             }
