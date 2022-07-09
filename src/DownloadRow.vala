@@ -106,8 +106,7 @@ namespace Gabut {
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
-                                var destroy = (SimpleAction) GLib.Application.get_default ().lookup_action ("destroy");
-                                destroy.activate (new Variant.string (ariagid));
+                                GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
                                 notify_app (_("Download Complete"), filename, imagefile.gicon);
                                 if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                     if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
@@ -542,12 +541,12 @@ namespace Gabut {
             remove_dboptions (url);
             aria_deleteresult (ariagid);
             delete_me (this);
+            GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
             destroy ();
         }
 
         public void download () {
-            var downloader = (SimpleAction) GLib.Application.get_default ().lookup_action ("downloader");
-            downloader.activate (new Variant.string (ariagid));
+            GLib.Application.get_default ().lookup_action ("downloader").activate (new Variant.string (ariagid));
         }
 
         private uint timeout_id = 0;
@@ -629,8 +628,7 @@ namespace Gabut {
             gabutinfo.set_info (pathname, InfoSucces.FILEPATH);
             gabutinfo.set_info (totalsize.to_string (), InfoSucces.FILESIZE);
             gabutinfo.set_info (fileordir, InfoSucces.ICONNAME);
-            var succes = (SimpleAction) GLib.Application.get_default ().lookup_action ("succes");
-            succes.activate (new Variant.string (gabutinfo.get_info ()));
+            GLib.Application.get_default ().lookup_action ("succes").activate (new Variant.string (gabutinfo.get_info ()));
         }
     }
 }
