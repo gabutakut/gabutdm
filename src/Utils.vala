@@ -2013,6 +2013,45 @@ namespace Gabut {
         return tracker4;
     }
 
+    private void set_account (Gtk.Grid usergrid, UsersID user, int userid) {
+        var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
+            width_request = 220,
+            margin_bottom = 4,
+            text = user.user,
+            secondary_icon_name = user.activate? "media-playback-start" : "process-stop",
+            secondary_icon_tooltip_text = !user.activate? _("Reject") : _("Accept")
+        };
+        bool activable = user.activate;
+        user_entry.sclicked.connect (()=> {
+            activable = !activable;
+            user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
+            user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
+            update_user_id (user.id, UserID.ACTIVE, activable.to_string ());
+        });
+        user_entry.changed.connect (()=> {
+            update_user_id (user.id, UserID.USER, user_entry.text);
+        });
+        var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
+            width_request = 220,
+            margin_bottom = 4,
+            secondary_icon_tooltip_text = _("Delete Authentication"),
+            text = user.passwd
+        };
+        pass_entry.changed.connect (()=> {
+            update_user_id (user.id, UserID.PASSWD, pass_entry.text);
+        });
+        pass_entry.sclicked.connect (()=> {
+            remove_user (user.id);
+            userid--;
+            usergrid.remove (user_entry);
+            usergrid.remove (pass_entry);
+            user_entry.destroy ();
+            pass_entry.destroy ();
+        });
+        usergrid.attach (user_entry, 0, userid);
+        usergrid.attach (pass_entry, 1, userid);
+    }
+
     private async void set_count_visible (int64 count) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
         instance.set_app_property ("count-visible", v_b (count > 0));
@@ -2419,7 +2458,7 @@ namespace Gabut {
         return ncols;
     }
 
-    private void add_db_user (int64 id) {
+    private int64 add_db_user (int64 id) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 ("INSERT OR IGNORE INTO users (id, active, user, passwd, shortby) VALUES (?, ?, ?, ?, ?);", -1, out stmt);
         res = stmt.bind_int64 (1, id);
@@ -2431,6 +2470,7 @@ namespace Gabut {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         stmt.reset ();
+        return id;
     }
 
     private void remove_user (int64 id) {
