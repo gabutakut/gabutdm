@@ -384,20 +384,16 @@ namespace Gabut {
 
         public void save_all_download () {
             var downloads = new GLib.List<DownloadRow> ();
-            listrow.foreach ((lrow)=> {
-                list_box.select_row (lrow);
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    if (row.url == "") {
-                        return;
-                    }
-                    if (!db_option_exist (row.url)) {
-                        set_dboptions (row.url, row.hashoption);
-                    } else {
-                        update_optionts (row.url, row.hashoption);
-                    }
-                    downloads.append (row);
+            listrow.foreach ((row)=> {
+                if (row.url == "") {
+                    return;
                 }
+                if (!db_option_exist (row.url)) {
+                    set_dboptions (row.url, row.hashoption);
+                } else {
+                    update_optionts (row.url, row.hashoption);
+                }
+                downloads.append (row);
             });
             set_download (downloads);
         }

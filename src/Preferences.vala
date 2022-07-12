@@ -451,83 +451,17 @@ namespace Gabut {
             int userid = 0;
             get_users ().foreach ((user)=> {
                 userid++;
-                var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
-                    width_request = 220,
-                    margin_bottom = 4,
-                    text = user.user,
-                    secondary_icon_name = user.activate? "media-playback-start" : "process-stop",
-                    secondary_icon_tooltip_text = !user.activate? _("Reject") : _("Accept")
-                };
-                bool activable = user.activate;
-                user_entry.sclicked.connect (()=> {
-                    activable = !activable;
-                    user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
-                    user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
-                    update_user_id (user.id, UserID.ACTIVE, activable.to_string ());
-                });
-                user_entry.changed.connect (()=> {
-                    update_user_id (user.id, UserID.USER, user_entry.text);
-                });
-                var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
-                    width_request = 220,
-                    margin_bottom = 4,
-                    secondary_icon_tooltip_text = _("Delete Authentication"),
-                    text = user.passwd
-                };
-                pass_entry.changed.connect (()=> {
-                    update_user_id (user.id, UserID.PASSWD, pass_entry.text);
-                });
-                pass_entry.sclicked.connect (()=> {
-                    remove_user (user.id);
-                    userid--;
-                    usergrid.remove (user_entry);
-                    usergrid.remove (pass_entry);
-                    user_entry.destroy ();
-                    pass_entry.destroy ();
-                });
-                usergrid.attach (user_entry, 0, userid);
-                usergrid.attach (pass_entry, 1, userid);
+                set_account (usergrid, user, userid);
             });
 
             add_auth.clicked.connect (()=> {
                 userid++;
-                int64 menemonic = get_real_time ();
-                add_db_user (menemonic);
-                bool activable = false;
-                var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
-                    width_request = 220,
-                    margin_bottom = 4,
-                    placeholder_text = _("Username"),
-                    secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept")
-                };
-                user_entry.sclicked.connect (()=> {
-                    activable = !activable;
-                    user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
-                    user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
-                    update_user_id (menemonic, UserID.ACTIVE, activable.to_string ());
-                });
-                user_entry.changed.connect (()=> {
-                    update_user_id (menemonic, UserID.USER, user_entry.text);
-                });
-                var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
-                    width_request = 220,
-                    margin_bottom = 4,
-                    secondary_icon_tooltip_text = _("Delete Authentication"),
-                    placeholder_text = _("Password")
-                };
-                pass_entry.changed.connect (()=> {
-                    update_user_id (menemonic, UserID.PASSWD, pass_entry.text);
-                });
-                pass_entry.sclicked.connect (()=> {
-                    remove_user (menemonic);
-                    userid--;
-                    usergrid.remove (user_entry);
-                    usergrid.remove (pass_entry);
-                    user_entry.destroy ();
-                    pass_entry.destroy ();
-                });
-                usergrid.attach (user_entry, 0, userid);
-                usergrid.attach (pass_entry, 1, userid);
+                var users = UsersID ();
+                users.id = add_db_user (get_real_time ());;
+                users.activate = false;
+                users.user = "";
+                users.passwd = "";
+                set_account (usergrid, users, userid);
             });
 
             var sharebutton = new Gtk.CheckButton.with_label (_("Folder Sharing:")) {

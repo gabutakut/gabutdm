@@ -38,8 +38,8 @@ namespace Gabut {
 
         construct {
             GLib.OptionEntry [] options = new GLib.OptionEntry [3];
-            options [0] = { "startingup", 's', 0, OptionArg.NONE, null, null, "Run App on Startup" };
-            options [1] = { GLib.OPTION_REMAINING, 0, 0, GLib.OptionArg.FILENAME_ARRAY, null, null, "Open File or URIs" };
+            options [0] = { "startingup", 's', 0, GLib.OptionArg.NONE, null, null, "Run App on Startup" };
+            options [1] = { GLib.OPTION_REMAINING, 0, 0, GLib.OptionArg.STRING_ARRAY, null, null, "Open File or URIs" };
             options [2] = { null };
             add_main_option_entries (options);
         }
@@ -50,7 +50,7 @@ namespace Gabut {
                 startingup = true;
             }
             if (dict.contains (GLib.OPTION_REMAINING)) {
-                foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, VariantType.BYTESTRING_ARRAY).get_bytestring_array ()) {
+                foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, VariantType.STRING_ARRAY).get_strv ()) {
                     if (GLib.FileUtils.test (arg_file, GLib.FileTest.EXISTS)) {
                         dialog_url (File.new_for_path (arg_file).get_uri ());
                     } else {
@@ -155,8 +155,7 @@ namespace Gabut {
                 add_action (action_succes);
                 var close_dialog = new SimpleAction ("destroy", VariantType.STRING);
                 close_dialog.activate.connect ((parameter) => {
-                    string aria_gid = parameter.get_string (null);
-                    destroy_active (aria_gid);
+                    destroy_active (parameter.get_string (null));
                 });
                 add_action (close_dialog);
                 gabutserver.get_dl_row.connect ((status)=> {
@@ -283,8 +282,9 @@ namespace Gabut {
             } else {
                 return;
             }
-            var addurl = new AddUrl (this);
-            addurl.set_transient_for (gabutwindow);
+            var addurl = new AddUrl (this) {
+                transient_for = gabutwindow
+            };
             addurl.add_link (link, icon);
             addurl.show ();
             addurls.append (addurl);
