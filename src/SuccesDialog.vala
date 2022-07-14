@@ -122,8 +122,7 @@ namespace Gabut {
             };
             ((Gtk.Label) open_file.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             open_file.clicked.connect (()=> {
-                string[] datastrs = datastr.split ("<gabut>");
-                open_fileman.begin (File.new_for_path (datastrs[1]).get_uri ());
+                open_fileman.begin (File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH)).get_uri ());
                 close ();
             });
             var close_button = new Gtk.Button.with_label (_("Close")) {

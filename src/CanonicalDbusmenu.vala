@@ -66,7 +66,7 @@ namespace Gabut {
                 children += set_layouts (menuitem.id, menuitem.properties, {});
                 dbusmenumenuitem += set_item (menuitem.id, menuitem.properties);
             });
-            items_properties_updated ({set_item (root.id, set_item_prop ({"children-display"}, {v_s ("submenu")}))}, {});
+            items_properties_updated ({set_item (root.id, set_item_prop ({"children-display"}, {new Variant.string ("submenu")}))}, {});
         }
 
         internal MenuItemLayout set_layouts (int id, GLib.HashTable<string, GLib.Variant> menu, Variant[] variant) {

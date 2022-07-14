@@ -38,9 +38,9 @@ namespace Gabut {
 
         public DbusmenuItem () {
             properties = new GLib.HashTable <string, Variant> (str_hash, str_equal);
-            properties["label"] = v_s ("Label Empty");
-            properties["enabled"] = v_b (true);
-            properties["visible"] = v_b (true);
+            properties["label"] = new Variant.string ("Label Empty");
+            properties["enabled"] = new Variant.boolean (true);
+            properties["visible"] = new Variant.boolean (true);
         }
 
         public string? property_get (string property) {
@@ -102,7 +102,7 @@ namespace Gabut {
         public void child_append (DbusmenuItem child) {
             if (menuchildren == null) {
                 menuchildren = new GLib.List<DbusmenuItem> ();
-                properties["children-display"] = v_s ("submenu");
+                properties["children-display"] = new Variant.string ("submenu");
             }
             if (!get_exist (child)) {
                 menuchildren.foreach ((item)=> {

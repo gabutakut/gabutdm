@@ -78,7 +78,7 @@ namespace Gabut {
 
             nodown_alert = new AlertView (
                 _("No File Download"),
-                _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
+                _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                 "com.github.gabutakut.gabutdm"
             );
             nodown_alert.show ();
@@ -660,7 +660,7 @@ namespace Gabut {
                 if (!item_visible) {
                     var empty_alert = new AlertView (
                         _("No Search Found"),
-                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
+                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "system-search"
                     );
                     empty_alert.show ();
@@ -675,7 +675,7 @@ namespace Gabut {
                     });
                     var active_alert = new AlertView (
                         _("No Active Download"),
-                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
+                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.active"
                     );
                     active_alert.show ();
@@ -687,7 +687,7 @@ namespace Gabut {
                     });
                     var nopause_alert = new AlertView (
                         _("No Paused Download"),
-                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
+                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.pause"
                     );
                     nopause_alert.show ();
@@ -699,7 +699,7 @@ namespace Gabut {
                     });
                     var nocomp_alerst = new AlertView (
                         _("No Complete Download"),
-                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
+                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.complete"
                     );
                     nocomp_alerst.show ();
@@ -711,7 +711,7 @@ namespace Gabut {
                     });
                     var nowait_alert = new AlertView (
                         _("No Waiting Download"),
-                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
+                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.waiting"
                     );
                     nowait_alert.show ();
@@ -723,7 +723,7 @@ namespace Gabut {
                     });
                     var noerr_alert = new AlertView (
                         _("No Error Download"),
-                        _("insert Link, open file or Drag and Drop Torrent, Metalink, Magnet URIs."),
+                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.error"
                     );
                     noerr_alert.show ();

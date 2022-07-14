@@ -1997,13 +1997,6 @@ namespace Gabut {
         return data.split ("<gabut>")[succes];
     }
 
-    private Variant v_s (string data) {
-        return new Variant.string (data);
-    }
-    private Variant v_b (bool data) {
-        return new Variant.boolean (data);
-    }
-
     private string fixtoformat (string tracker) {
         var tracker0 = tracker.replace (" ", "").replace ("\n", ",").replace (",,", ",");
         var tracker1 = tracker0.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
@@ -2013,7 +2006,7 @@ namespace Gabut {
         return tracker4;
     }
 
-    private void set_account (Gtk.Grid usergrid, UsersID user, int userid) {
+    private void set_account (Gtk.Grid usergrid, UsersID user, int rowpos) {
         var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
             width_request = 220,
             margin_bottom = 4,
@@ -2042,25 +2035,24 @@ namespace Gabut {
         });
         pass_entry.sclicked.connect (()=> {
             remove_user (user.id);
-            userid--;
             usergrid.remove (user_entry);
             usergrid.remove (pass_entry);
             user_entry.destroy ();
             pass_entry.destroy ();
         });
-        usergrid.attach (user_entry, 0, userid);
-        usergrid.attach (pass_entry, 1, userid);
+        usergrid.attach (user_entry, 0, rowpos);
+        usergrid.attach (pass_entry, 1, rowpos);
     }
 
     private async void set_count_visible (int64 count) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("count-visible", v_b (count > 0));
+        instance.set_app_property ("count-visible", new Variant.boolean (count > 0));
         instance.set_app_property ("count", new GLib.Variant.int64 (count));
     }
 
     private async void set_progress_visible (double progress, bool visible = true) throws GLib.Error {
         unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("progress-visible", v_b (visible));
+        instance.set_app_property ("progress-visible", new Variant.boolean (visible));
         instance.set_app_property ("progress", new GLib.Variant.double (progress));
     }
 
@@ -2072,7 +2064,7 @@ namespace Gabut {
         quicksource = open_quicklist.callback;
         unowned UnityLauncherEntry entrydbus = yield UnityLauncherEntry.get_instance ();
         dbusserver.set_root (menuitem);
-        entrydbus.set_app_property ("quicklist", v_s (dbusserver.dbus_object));
+        entrydbus.set_app_property ("quicklist", new Variant.string (dbusserver.dbus_object));
         yield;
     }
 
@@ -2085,7 +2077,7 @@ namespace Gabut {
             return "";
         }
         try {
-            FileInfo infos = fileinput.query_info ("standard::*", 0);
+            FileInfo infos = fileinput.query_info ("standard::*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             return infos.get_content_type ();
         } catch (Error e) {
             GLib.warning (e.message);
@@ -2104,7 +2096,7 @@ namespace Gabut {
     }
 
     private string config_folder (string folder) {
-        var config_dir = File.new_for_path (GLib.Path.build_path (GLib.Path.DIR_SEPARATOR_S, Environment.get_user_config_dir (), folder));
+        var config_dir = File.new_build_filename (Environment.get_user_config_dir (), folder);
         if (!config_dir.query_exists ()) {
             try {
                 config_dir.make_directory_with_parents ();

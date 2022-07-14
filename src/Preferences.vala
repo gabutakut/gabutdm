@@ -448,20 +448,20 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            int userid = 0;
+            int rowpos = 0;
             get_users ().foreach ((user)=> {
-                userid++;
-                set_account (usergrid, user, userid);
+                rowpos++;
+                set_account (usergrid, user, rowpos);
             });
 
             add_auth.clicked.connect (()=> {
-                userid++;
+                rowpos++;
                 var users = UsersID ();
                 users.id = add_db_user (get_real_time ());;
                 users.activate = false;
                 users.user = "";
                 users.passwd = "";
-                set_account (usergrid, users, userid);
+                set_account (usergrid, users, rowpos);
             });
 
             var sharebutton = new Gtk.CheckButton.with_label (_("Folder Sharing:")) {

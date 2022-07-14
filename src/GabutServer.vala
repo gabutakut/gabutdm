@@ -81,7 +81,7 @@ namespace Gabut {
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
                 if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
-                    var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
+                    var multipart = new Soup.Multipart.from_message (msg.get_request_headers (), msg.get_request_body ().flatten ());
                     Soup.MessageHeaders headers;
                     GLib.Bytes body;
                     multipart.get_part (0, out headers, out body);
