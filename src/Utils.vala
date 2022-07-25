@@ -1560,7 +1560,7 @@ namespace Gabut {
                     while (match_info.matches ()) {
                         string matchgid = match_info.fetch (0);
                         if (matchgid != null) {
-                            liststring += matchgid.replace ("\\/", "/").replace ("\"", "") + "+";
+                            liststring += matchgid.replace ("\\/", "/").replace ("\"", "") + "\n";
                         }
                         match_info.next ();
                     }
