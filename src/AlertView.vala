@@ -1,5 +1,5 @@
 namespace Gabut {
-    public class AlertView : Gtk.Grid {
+    public class AlertView : Gtk.Box {
         public string title {
             get {
                 return title_label.label;
@@ -25,12 +25,8 @@ namespace Gabut {
             set {
                 if (value != null && value != "") {
                     image.set_from_icon_name (value);
-                    image.icon_size = Gtk.IconSize.LARGE;
-                    image.pixel_size = 64;
-                    image.visible = true;
                     image.show ();
                 } else {
-                    image.visible = false;
                     image.hide ();
                 }
             }
@@ -66,7 +62,9 @@ namespace Gabut {
 
             image = new Gtk.Image () {
                 margin_top = 6,
-                valign = Gtk.Align.START
+                valign = Gtk.Align.START,
+                icon_size = Gtk.IconSize.LARGE,
+                pixel_size = 64
             };
 
             var layout = new Gtk.Grid () {
@@ -81,7 +79,7 @@ namespace Gabut {
             layout.attach (title_label, 2, 1, 1, 1);
             layout.attach (description_label, 2, 2, 1, 1);
 
-            attach (layout, 0, 0);
+            append (layout);
         }
     }
 }

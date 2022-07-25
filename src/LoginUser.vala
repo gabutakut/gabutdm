@@ -21,15 +21,10 @@
 
 namespace Gabut {
     public class LoginUser : Gtk.FlowBoxChild {
-        private Gtk.Grid content;
         public LoginUsers loginuser { get; private set; }
 
         construct {
-            content = new Gtk.Grid () {
-                row_spacing = 12,
-                halign = Gtk.Align.CENTER
-            };
-            child = content;
+            halign = Gtk.Align.CENTER;
         }
 
         public LoginUser (LoginUsers loginuser) {
@@ -44,7 +39,7 @@ namespace Gabut {
                 margin_end = 12,
                 width_request = 100
             };
-            content.attach (title, 0, 0);
+            child = title;
             show ();
         }
     }

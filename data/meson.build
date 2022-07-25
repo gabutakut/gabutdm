@@ -21,7 +21,8 @@ actions = [
     '.waiting.svg',
     '.auto-symbolic.svg',
     '.seed.svg',
-    '.metalink.svg'
+    '.metalink.svg',
+    '.torrent.svg'
 ]
 
 foreach m : actions

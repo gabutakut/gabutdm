@@ -21,15 +21,10 @@
 
 namespace Gabut {
     public class ChecksumType : Gtk.FlowBoxChild {
-        private Gtk.Grid content;
         public AriaChecksumTypes checksums { get; private set; }
 
         construct {
-            content = new Gtk.Grid () {
-                row_spacing = 12,
-                halign = Gtk.Align.CENTER
-            };
-            child = content;
+            halign = Gtk.Align.CENTER;
         }
 
         public ChecksumType (AriaChecksumTypes checksums) {
@@ -42,9 +37,9 @@ namespace Gabut {
                 margin_bottom = 6,
                 margin_start = 12,
                 margin_end = 12,
-                width_request = 100
+                width_request = 124
             };
-            content.attach (title, 0, 0);
+            child = title;
             show ();
         }
     }
