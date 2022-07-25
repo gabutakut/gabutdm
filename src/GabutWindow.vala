@@ -346,7 +346,7 @@ namespace Gabut {
             bool statact = globalactive > 0;
             set_count_visible.begin (globalactive);
             if (!statact) {
-                int stoped = 3;
+                int stoped = 5;
                 Timeout.add (500, ()=> {
                     set_progress_visible.begin (0.0, false);
                     set_count_visible.begin (globalactive);
