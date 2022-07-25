@@ -29,6 +29,7 @@ namespace Gabut {
         public signal void update_agid (string ariagid, string newgid);
         public signal string get_host ();
         private Gtk.ListBox list_box;
+        private Gtk.Label labelall;
         private Gtk.Stack headerstack;
         private Gtk.Revealer property_rev;
         private Preferences preferences;
@@ -106,9 +107,16 @@ namespace Gabut {
             headerstack.visible_child_name = "mode";
             headerstack.show ();
 
+            labelall = new Gtk.Label ("Active: 0 Download: 0 Upload: 0") {
+                ellipsize = Pango.EllipsizeMode.END,
+                hexpand = true,
+                attributes = set_attribute (Pango.Weight.SEMIBOLD)
+            };
+
             var mainwindow = new Gtk.Grid ();
-            mainwindow.attach (headerstack, 0, 0);
+            mainwindow.attach (labelall, 0, 0);
             mainwindow.attach (scrolled, 0, 1);
+            mainwindow.attach (headerstack, 0, 2);
             child = mainwindow;
             hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
             close_request.connect (() => {
@@ -342,6 +350,7 @@ namespace Gabut {
                 Timeout.add (500, ()=> {
                     set_progress_visible.begin (0.0, false);
                     set_count_visible.begin (globalactive);
+                    update_info ();
                     stoped--;
                     return stoped != 0;
                 });
@@ -478,9 +487,11 @@ namespace Gabut {
                                     }
                                     view_status ();
                                 }
+                                update_info ();
                                 return;
                         }
                         view_status ();
+                        update_info ();
                     });
                     if (list_box.get_selected_row () == null) {
                         list_box.select_row (row);
@@ -530,9 +541,11 @@ namespace Gabut {
                             }
                             view_status ();
                         }
+                        update_info ();
                         return;
                 }
                 view_status ();
+                update_info ();
             });
             row.delete_me.connect ((rw)=> {
                 list_box.remove (rw);
@@ -555,6 +568,10 @@ namespace Gabut {
             } else {
                 aria_pause (row.ariagid);
             }
+        }
+
+        private void update_info () {
+            labelall.label = @"Active: $(int64.parse (aria_globalstat (GlobalStat.NUMACTIVE))) Download: $(GLib.format_size (int64.parse (aria_globalstat (GlobalStat.DOWNLOADSPEED)))) Upload: $(GLib.format_size (int64.parse (aria_globalstat (GlobalStat.UPLOADSPEED))))";
         }
 
         private bool get_exist (string url) {

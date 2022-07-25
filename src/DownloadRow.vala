@@ -46,7 +46,7 @@ namespace Gabut {
                 } else if (linkmode == LinkMode.MAGNETLINK) {
                     badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
                 } else if (linkmode == LinkMode.TORRENT) {
-                    badge_img.gicon = new ThemedIcon ("application-x-bittorrent");
+                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.torrent");
                 } else {
                     badge_img.gicon = new ThemedIcon ("insert-link");
                 }
@@ -147,7 +147,7 @@ namespace Gabut {
                     case StatusMode.ERROR:
                         start_button.icon_name = "dialog-error";
                         start_button.tooltip_text = _("Error");
-                        if (ariagid != null) {
+                        if (ariagid != null && url != null) {
                             filepath = aria_str_files (AriaGetfiles.PATH, ariagid);
                             labeltransfer = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
                             if (filename != null) {

@@ -211,8 +211,9 @@ namespace Gabut {
         }
 
         public void dialog_succes (string strdata) {
-            var succesdl = new SuccesDialog (this);
-            succesdl.set_transient_for (gabutwindow);
+            var succesdl = new SuccesDialog (this) {
+                transient_for = gabutwindow
+            };
             succesdl.set_dialog (strdata);
             succesdl.show ();
             succesdls.append (succesdl);
@@ -239,8 +240,9 @@ namespace Gabut {
             if (url_active (match_info.fetch (PostServer.URL))) {
                 return;
             }
-            var addurl = new AddUrl (this);
-            addurl.set_transient_for (gabutwindow);
+            var addurl = new AddUrl (this) {
+                transient_for = gabutwindow
+            };
             addurl.server_link (match_info);
             addurl.show ();
             addurls.append (addurl);
@@ -274,7 +276,7 @@ namespace Gabut {
                 icon = "com.github.gabutakut.gabutdm.magnet";
                 link.replace ("tr.N=", "tr=");
             } else if (link.has_suffix (".torrent")) {
-                icon = "application-x-bittorrent";
+                icon = "com.github.gabutakut.gabutdm.torrent";
             } else if (link.has_suffix (".metalink")) {
                 icon = "com.github.gabutakut.gabutdm";
             } else if (link == "") {
@@ -332,8 +334,9 @@ namespace Gabut {
         }
 
         private void download (string aria_gid) {
-            var downloader = new Downloader (this);
-            downloader.set_transient_for (gabutwindow);
+            var downloader = new Downloader (this)  {
+                transient_for = gabutwindow
+            };
             downloader.aria_gid (aria_gid);
             downloaders.append (downloader);
             downloader.show.connect (()=> {

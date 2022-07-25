@@ -297,6 +297,7 @@ namespace Gabut {
             };
 
             commenttext = new Gtk.TextView () {
+                editable = false,
                 wrap_mode = Gtk.WrapMode.WORD_CHAR
             };
 
@@ -630,18 +631,32 @@ namespace Gabut {
             transferrate = int.parse (aria_tell_status (ariagid, TellStatus.DOWNLOADSPEED));
             aconnection = int.parse (aria_tell_status (ariagid, TellStatus.CONNECTIONS));
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
-            peerstore.clear ();
+            peerstore.foreach ((model, path, iter) => {
+                string host;
+                model.get (iter, TorrentPeers.HOST, out host);
+                if (!aria_peers (host)) {
+                    Gtk.TreeIter iters;
+                    peerstore.get_iter (out iters, path);
+                    peerstore.remove (ref iters);
+                }
+                return false;
+            });
             aria_get_peers (ariagid).foreach ((model, path, iter) => {
                 string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
                 model.get (iter, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
-                Gtk.TreeIter iters;
-                peerstore.append (out iters);
-                peerstore.set (iters, TorrentPeers.HOST, host, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
+                if (!peers_exist (host)) {
+                    Gtk.TreeIter iters;
+                    peerstore.append (out iters);
+                    peerstore.set (iters, TorrentPeers.HOST, host, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
+                }
                 return false;
             });
             url = aria_geturis (ariagid);
             if (url == "") {
                 url = aria_tell_status (ariagid, TellStatus.INFOHASH);
+            }
+            if (status == StatusMode.ERROR) {
+                url = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
             }
             aria_files_store (ariagid).foreach ((model, path, iter) => {
                 bool select;
@@ -670,6 +685,40 @@ namespace Gabut {
                 timeleft.label = format_time ((int) remaining_time);
             }
             return stoptimer;
+        }
+
+        private bool aria_peers (string host) {
+            bool exist = false;
+            aria_get_peers (ariagid).foreach ((model, path, iter) => {
+                string hosts, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
+                model.get (iter, TorrentPeers.HOST, out hosts, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
+                if (host == hosts) {
+                    exist = true;
+                    peerstore.foreach ((model, path, iter) => {
+                        string hostt;
+                        model.get (iter, TorrentPeers.HOST, out hostt);
+                        if (host == hostt) {
+                            peerstore.set (iter, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
+                        }
+                        return false;
+                    });
+                }
+                return false;
+            });
+            return exist;
+        }
+
+        private bool peers_exist (string host) {
+            bool exist = false;
+            peerstore.foreach ((model, path, iter) => {
+                string hosts;
+                model.get (iter, TorrentPeers.HOST, out hosts);
+                if (host == hosts) {
+                    exist = true;
+                }
+                return false;
+            });
+            return exist;
         }
 
         private bool liststore_exist (bool select, string index, string name, string pathname, string download, string size, int persen, string uris) {

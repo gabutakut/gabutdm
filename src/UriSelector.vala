@@ -21,15 +21,10 @@
 
 namespace Gabut {
     public class UriSelector : Gtk.FlowBoxChild {
-        private Gtk.Grid content;
         public UriSelectors selector { get; private set; }
 
         construct {
-            content = new Gtk.Grid () {
-                row_spacing = 12,
-                halign = Gtk.Align.CENTER
-            };
-            child = content;
+            halign = Gtk.Align.CENTER;
         }
 
         public UriSelector (UriSelectors selector) {
@@ -44,7 +39,7 @@ namespace Gabut {
                 margin_end = 12,
                 width_request = 100
             };
-            content.attach (title, 0, 0);
+            child = title;
             show ();
         }
     }

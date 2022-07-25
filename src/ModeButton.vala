@@ -16,8 +16,6 @@ namespace Gabut {
             }
         }
 
-        public signal void mode_changed (Gtk.Widget widget);
-
         private int _selected = -1;
         public int selected {
             get {
@@ -53,7 +51,7 @@ namespace Gabut {
         public int append_icon (string icon_name, Gtk.IconSize size) {
             var img = new Gtk.Image.from_icon_name (icon_name) {
                 icon_size = size,
-                pixel_size = 32
+                pixel_size = size
             };
             return appends (img);
         }
@@ -108,7 +106,6 @@ namespace Gabut {
                     }
                     old_item.set_active (false);
                 }
-                mode_changed (new_item.get_child ());
             }
         }
     }
