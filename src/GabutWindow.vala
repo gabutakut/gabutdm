@@ -228,7 +228,6 @@ namespace Gabut {
                         var property = new AddUrl.Property (application) {
                             transient_for = this
                         };
-                        property.show ();
                         properties.append (property);
                         property.property (row);
                         property.save_button.clicked.connect (()=> {
@@ -249,6 +248,7 @@ namespace Gabut {
                             });
                             return false;
                         });
+                        property.show ();
                     }
                 }
             });
@@ -384,7 +384,6 @@ namespace Gabut {
             bool active = false;
             properties.foreach ((propet)=> {
                 if (propet.row == row) {
-                    propet.present ();
                     active = true;
                 }
             });
