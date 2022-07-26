@@ -226,10 +226,10 @@ namespace Gabut {
                 if (row != null) {
                     if (!property_active (row)) {
                         var property = new AddUrl.Property (application) {
-                            transient_for = this
+                            transient_for = this,
+                            row = row
                         };
                         properties.append (property);
-                        property.property (row);
                         property.save_button.clicked.connect (()=> {
                             row = property.row;
                         });
@@ -346,7 +346,7 @@ namespace Gabut {
             bool statact = globalactive > 0;
             set_count_visible.begin (globalactive);
             if (!statact) {
-                int stoped = 5;
+                int stoped = 10;
                 Timeout.add (500, ()=> {
                     set_progress_visible.begin (0.0, false);
                     set_count_visible.begin (globalactive);
@@ -570,7 +570,8 @@ namespace Gabut {
         }
 
         private void update_info () {
-            labelall.label = @"Active: $(int64.parse (aria_globalstat (GlobalStat.NUMACTIVE))) Download: $(GLib.format_size (int64.parse (aria_globalstat (GlobalStat.DOWNLOADSPEED)))) Upload: $(GLib.format_size (int64.parse (aria_globalstat (GlobalStat.UPLOADSPEED))))";
+            var infol = aria_label_info ();
+            labelall.label = @"Active: $(int64.parse (infol[0])) Download: $(GLib.format_size (int64.parse (infol[1]))) Upload: $(GLib.format_size (int64.parse (infol[2])))";
         }
 
         private bool get_exist (string url) {

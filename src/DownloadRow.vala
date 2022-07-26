@@ -323,6 +323,7 @@ namespace Gabut {
             }
             this.url = url;
             add_db_download (this);
+            set_dboptions (url, hashoption);
             idle_progress ();
         }
 
@@ -570,7 +571,6 @@ namespace Gabut {
             transferred = int64.parse (aria_tell_status (ariagid, TellStatus.COMPELETEDLENGTH));
             transferrate = int.parse (aria_tell_status (ariagid, TellStatus.DOWNLOADSPEED));
             uprate = int.parse (aria_tell_status (ariagid, TellStatus.UPLOADSPEED));
-            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             filepath = aria_str_files (AriaGetfiles.PATH, ariagid);
             string duprate = uprate > 0? @"- U: $(GLib.format_size ((uint64) uprate))" : "";
             string downrate = transferrate > 0? @"- D: $(GLib.format_size ((uint64) transferrate))" : "";
@@ -581,6 +581,7 @@ namespace Gabut {
             } else {
                 timedownload = "";
             }
+            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status != StatusMode.ERROR) {
                 labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize)) $(duprate) $(downrate) $(timedownload)";
             }

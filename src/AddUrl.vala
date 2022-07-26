@@ -805,6 +805,7 @@ namespace Gabut {
                 } else {
                     aria_set_option (row.ariagid, AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
                 }
+                set_dboptions (row.url, hashoptions);
             }
         }
 
@@ -921,104 +922,106 @@ namespace Gabut {
             sizelabel.label = GLib.format_size (int64.parse (match_info.fetch (PostServer.FILESIZE)));
         }
 
-        public void property (DownloadRow row) {
-            this.row = row;
-            link_entry.text = row.url;
-            this.hashoptions = row.hashoption;
-            status_image.gicon = row.imagefile.gicon;
-            sizelabel.label = GLib.format_size (row.totalsize);
-            string myproxy = aria_get_option (row.ariagid, AriaOptions.PROXY);
-            string ftpproxy = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY);
-            string httpproxy = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY);
-            string hsproxy = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY);
-            if (myproxy != "") {
-                proxytype = type_flow.get_child_at_index (0) as ProxyType;
-                int lastprox = myproxy.last_index_of (":");
-                string proxytext = myproxy.slice (0, lastprox);
-                proxy_entry.text = proxytext.contains ("\\/")? proxytext.replace ("\\/", "/") : proxytext;
-                port_entry.value = int.parse (myproxy.slice (lastprox + 1, myproxy.length));
-                user_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYUSER);
-                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYPASSWORD);
-            } else if (ftpproxy != "") {
-                proxytype = type_flow.get_child_at_index (3) as ProxyType;
-                int flastprox = ftpproxy.last_index_of (":");
-                string fproxytext = ftpproxy.slice (0, flastprox);
-                proxy_entry.text = fproxytext.contains ("\\/")? fproxytext.replace ("\\/", "/") : fproxytext;
-                port_entry.value = int.parse (ftpproxy.slice (flastprox + 1, ftpproxy.length));
-                user_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_USER);
-                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_PASSWD);
-            } else if (httpproxy != "") {
-                proxytype = type_flow.get_child_at_index (1) as ProxyType;
-                int hlastprox = httpproxy.last_index_of (":");
-                string hproxytext = httpproxy.slice (0, hlastprox);
-                proxy_entry.text = hproxytext.contains ("\\/")? hproxytext.replace ("\\/", "/") : hproxytext;
-                port_entry.value = int.parse (httpproxy.slice (hlastprox + 1, httpproxy.length));
-                user_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_USER);
-                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_PASSWD);
-            } else if (hsproxy != "") {
-                proxytype = type_flow.get_child_at_index (2) as ProxyType;
-                int hslastprox = hsproxy.last_index_of (":");
-                string hsproxytext = hsproxy.slice (0, hslastprox);
-                proxy_entry.text = hsproxytext.contains ("\\/")? hsproxytext.replace ("\\/", "/") : hsproxytext;
-                port_entry.value = int.parse (hsproxy.slice (hslastprox + 1, hsproxy.length));
-                user_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY_USER);
-                pass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY_PASSWD);
-            }
-            string httpusr = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
-            if (httpusr != "") {
-                loginuser = login_flow.get_child_at_index (0) as LoginUser;
-                loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
-                logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PASSWD);
-            }
-            string ftpusr = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
-            if (ftpusr != "") {
-                loginuser = login_flow.get_child_at_index (1) as LoginUser;
-                loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
-                logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PASSWD);
-            }
-            usefolder.active = hashoptions.has_key (AriaOptions.DIR.get_name ());
-            if (usefolder.active) {
-                selectfd = File.new_for_path (hashoptions.@get (AriaOptions.DIR.get_name ()).replace ("\\/", "/"));
-            }
-            usecookie.active = hashoptions.has_key (AriaOptions.COOKIE.get_name ());
-            if (usecookie.active) {
-                selectcook = File.new_for_path (hashoptions.@get (AriaOptions.COOKIE.get_name ()).replace ("\\/", "/"));
-            }
-            string reffer = aria_get_option (row.ariagid, AriaOptions.REFERER);
-            if (reffer != "") {
-                refer_entry.text = reffer.contains ("\\/")? reffer.replace ("\\/", "/") : reffer;
-            }
-            string agntusr = aria_get_option (row.ariagid, AriaOptions.USER_AGENT);
-            if (agntusr != "") {
-                useragent_entry.text = agntusr.contains ("\\/")? agntusr.replace ("\\/", "/") : agntusr;
-            }
-            name_entry.text = aria_get_option (row.ariagid, AriaOptions.OUT);
-            encrypt.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO));
-            integrity.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.CHECK_INTEGRITY));
-            unverified.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED));
-            for (int b = 0; b <= ProxyMethods.TUNNEL; b++) {
-                var promed = method_flow.get_child_at_index (b);
-                if (((ProxyMethod) promed).method.get_name ().down () == aria_get_option (row.ariagid, AriaOptions.PROXY_METHOD).down ()) {
-                    proxymethod = promed as ProxyMethod;
+        public override void show () {
+            base.show ();
+            if (row != null) {
+                link_entry.text = row.url;
+                this.hashoptions = row.hashoption;
+                status_image.gicon = row.imagefile.gicon;
+                sizelabel.label = GLib.format_size (row.totalsize);
+                string myproxy = aria_get_option (row.ariagid, AriaOptions.PROXY);
+                string ftpproxy = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY);
+                string httpproxy = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY);
+                string hsproxy = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY);
+                if (myproxy != "") {
+                    proxytype = type_flow.get_child_at_index (0) as ProxyType;
+                    int lastprox = myproxy.last_index_of (":");
+                    string proxytext = myproxy.slice (0, lastprox);
+                    proxy_entry.text = proxytext.contains ("\\/")? proxytext.replace ("\\/", "/") : proxytext;
+                    port_entry.value = int.parse (myproxy.slice (lastprox + 1, myproxy.length));
+                    user_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYUSER);
+                    pass_entry.text = aria_get_option (row.ariagid, AriaOptions.PROXYPASSWORD);
+                } else if (ftpproxy != "") {
+                    proxytype = type_flow.get_child_at_index (3) as ProxyType;
+                    int flastprox = ftpproxy.last_index_of (":");
+                    string fproxytext = ftpproxy.slice (0, flastprox);
+                    proxy_entry.text = fproxytext.contains ("\\/")? fproxytext.replace ("\\/", "/") : fproxytext;
+                    port_entry.value = int.parse (ftpproxy.slice (flastprox + 1, ftpproxy.length));
+                    user_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_USER);
+                    pass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY_PASSWD);
+                } else if (httpproxy != "") {
+                    proxytype = type_flow.get_child_at_index (1) as ProxyType;
+                    int hlastprox = httpproxy.last_index_of (":");
+                    string hproxytext = httpproxy.slice (0, hlastprox);
+                    proxy_entry.text = hproxytext.contains ("\\/")? hproxytext.replace ("\\/", "/") : hproxytext;
+                    port_entry.value = int.parse (httpproxy.slice (hlastprox + 1, httpproxy.length));
+                    user_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_USER);
+                    pass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PROXY_PASSWD);
+                } else if (hsproxy != "") {
+                    proxytype = type_flow.get_child_at_index (2) as ProxyType;
+                    int hslastprox = hsproxy.last_index_of (":");
+                    string hsproxytext = hsproxy.slice (0, hslastprox);
+                    proxy_entry.text = hsproxytext.contains ("\\/")? hsproxytext.replace ("\\/", "/") : hsproxytext;
+                    port_entry.value = int.parse (hsproxy.slice (hslastprox + 1, hsproxy.length));
+                    user_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY_USER);
+                    pass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTPS_PROXY_PASSWD);
                 }
-            }
-
-            for (int a = 0; a <= AriaChecksumTypes.SHA512; a++) {
-                var checksflow = checksums_flow.get_child_at_index (a);
-                if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksflow).checksums.get_name ())) {
-                    checksumtype = checksflow as ChecksumType;
-                    checksum_entry.text = aria_get_option (row.ariagid, AriaOptions.CHECKSUM).split ("=")[1];
+                string httpusr = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
+                if (httpusr != "") {
+                    loginuser = login_flow.get_child_at_index (0) as LoginUser;
+                    loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_USER);
+                    logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.HTTP_PASSWD);
                 }
-            }
-            if (encrypt.active) {
-                for (int c = 0; c <= BTEncrypts.ARC4; c++) {
-                    var encrp = encrypt_flow.get_child_at_index (c);
-                    if (aria_get_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL).contains (((BTEncrypt) encrp).btencrypt.get_name ().down ())) {
-                        btencrypt = encrp as BTEncrypt;
+                string ftpusr = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
+                if (ftpusr != "") {
+                    loginuser = login_flow.get_child_at_index (1) as LoginUser;
+                    loguser_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_USER);
+                    logpass_entry.text = aria_get_option (row.ariagid, AriaOptions.FTP_PASSWD);
+                }
+                usefolder.active = hashoptions.has_key (AriaOptions.DIR.get_name ());
+                if (usefolder.active) {
+                    selectfd = File.new_for_path (hashoptions.@get (AriaOptions.DIR.get_name ()).replace ("\\/", "/"));
+                }
+                usecookie.active = hashoptions.has_key (AriaOptions.COOKIE.get_name ());
+                if (usecookie.active) {
+                    selectcook = File.new_for_path (hashoptions.@get (AriaOptions.COOKIE.get_name ()).replace ("\\/", "/"));
+                }
+                string reffer = aria_get_option (row.ariagid, AriaOptions.REFERER);
+                if (reffer != "") {
+                    refer_entry.text = reffer.contains ("\\/")? reffer.replace ("\\/", "/") : reffer;
+                }
+                string agntusr = aria_get_option (row.ariagid, AriaOptions.USER_AGENT);
+                if (agntusr != "") {
+                    useragent_entry.text = agntusr.contains ("\\/")? agntusr.replace ("\\/", "/") : agntusr;
+                }
+                name_entry.text = aria_get_option (row.ariagid, AriaOptions.OUT);
+                encrypt.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO));
+                integrity.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.CHECK_INTEGRITY));
+                unverified.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED));
+                for (int b = 0; b <= ProxyMethods.TUNNEL; b++) {
+                    var promed = method_flow.get_child_at_index (b);
+                    if (((ProxyMethod) promed).method.get_name ().down () == aria_get_option (row.ariagid, AriaOptions.PROXY_METHOD).down ()) {
+                        proxymethod = promed as ProxyMethod;
                     }
                 }
+
+                for (int a = 0; a <= AriaChecksumTypes.SHA512; a++) {
+                    var checksflow = checksums_flow.get_child_at_index (a);
+                    if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksflow).checksums.get_name ())) {
+                        checksumtype = checksflow as ChecksumType;
+                        checksum_entry.text = aria_get_option (row.ariagid, AriaOptions.CHECKSUM).split ("=")[1];
+                    }
+                }
+                if (encrypt.active) {
+                    for (int c = 0; c <= BTEncrypts.ARC4; c++) {
+                        var encrp = encrypt_flow.get_child_at_index (c);
+                        if (aria_get_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL).contains (((BTEncrypt) encrp).btencrypt.get_name ().down ())) {
+                            btencrypt = encrp as BTEncrypt;
+                        }
+                    }
+                }
+                save_meta.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA)) | bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA));
             }
-            save_meta.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA)) | bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA));
         }
     }
 }

@@ -335,9 +335,9 @@ namespace Gabut {
 
         private void download (string aria_gid) {
             var downloader = new Downloader (this)  {
-                transient_for = gabutwindow
+                transient_for = gabutwindow,
+                ariagid = aria_gid
             };
-            downloader.aria_gid (aria_gid);
             downloaders.append (downloader);
             downloader.show.connect (()=> {
                 gabutwindow.remove_row (downloader.ariagid);
