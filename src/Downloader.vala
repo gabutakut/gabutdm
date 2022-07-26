@@ -184,6 +184,33 @@ namespace Gabut {
             view_mode.append_text (_("Files"));
             view_mode.append_text (_("Speed Limiter"));
             view_mode.selected = 0;
+            view_mode.notify["selected"].connect (() => {
+                switch (view_mode.selected) {
+                    case 1:
+                        torrentmode.label = _("Mode: %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
+                        var timesn = new GLib.DateTime.from_unix_local (int64.parse (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE)));
+                        timecreation.label = _("Time Creation: %s").printf (timesn.format ("%I:%M %p %x"));
+                        infotorrent.buffer.text = aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST).strip ();
+                        var commenttorrent = aria_tell_bittorent (ariagid, TellBittorrent.COMMENT);
+                        commenttext.buffer.text = commenttorrent.contains ("\\/")? GLib.Uri.unescape_string (commenttorrent.replace ("\\/", "/")) : commenttorrent;
+                        break;
+                    case 2:
+                        peerstore.clear ();
+                        show_peers ();
+                        break;
+                    case 3:
+                        torrstore.clear ();
+                        show_files ();
+                        break;
+                    case 4:
+                        down_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT)) / 1024;
+                        up_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT)) / 1024;
+                        bt_req_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT)) / 1024;
+                        break;
+                    default:
+                        break;
+                }
+            });
             var header = get_header_bar ();
             header.decoration_layout = "none";
             header.title_widget = view_mode;
@@ -349,7 +376,7 @@ namespace Gabut {
             torrenttree.append_column (text_column (_("Downloaded"), FileCol.DOWNLOADED));
             torrenttree.append_column (text_column (_("Size"), FileCol.SIZE));
             torrenttree.append_column (progress_column (_("%"), FileCol.PERCEN));
-            torrenttree.append_column (text_column (_("Uris"), FileCol.URIS));
+            torrenttree.append_column (text_column (_("Info"), FileCol.URIS));
             torrenttree.set_tooltip_column (FileCol.FILEPATH);
 
             var torrscrolled = new Gtk.ScrolledWindow () {
@@ -557,19 +584,6 @@ namespace Gabut {
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
         }
 
-        public void aria_gid (string ariagid) {
-            this.ariagid = ariagid;
-            down_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT)) / 1024;
-            up_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_UPLOAD_LIMIT)) / 1024;
-            bt_req_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.BT_REQUEST_PEER_SPEED_LIMIT)) / 1024;
-            torrentmode.label = _("Mode: %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
-            var timesn = new GLib.DateTime.from_unix_local (int64.parse (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE)));
-            timecreation.label = _("Time Creation: %s").printf (timesn.format ("%I:%M %p %x"));
-            infotorrent.buffer.text = aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST);
-            var commenttorrent = aria_tell_bittorent (ariagid, TellBittorrent.COMMENT);
-            commenttext.buffer.text = commenttorrent.contains ("\\/")? GLib.Uri.unescape_string (commenttorrent.replace ("\\/", "/")) : commenttorrent;
-        }
-
         private uint timeout_id = 0;
         private void add_timeout () {
             if (timeout_id == 0) {
@@ -615,70 +629,84 @@ namespace Gabut {
             }
         }
 
+        int64 delaytime = 0;
         private bool update_progress () {
             totalsize = int64.parse (aria_tell_status (ariagid, TellStatus.TOTALLENGTH));
-            transferred = int64.parse (aria_tell_status (ariagid, TellStatus.COMPELETEDLENGTH));
             transferrate = int.parse (aria_tell_status (ariagid, TellStatus.DOWNLOADSPEED));
-            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (view_mode.selected == 0) {
+                transferred = int64.parse (aria_tell_status (ariagid, TellStatus.COMPELETEDLENGTH));
                 aconnection = int.parse (aria_tell_status (ariagid, TellStatus.CONNECTIONS));
+                if (totalsize > 0 && transferrate > 0) {
+                    uint64 remaining_time = (totalsize - transferred) / transferrate;
+                    timeleft.label = format_time ((int) remaining_time);
+                }
+                url = aria_geturis (ariagid);
+                if (url == "") {
+                    url = aria_tell_status (ariagid, TellStatus.INFOHASH);
+                }
             } else if (view_mode.selected == 2) {
-                peerstore.foreach ((model, path, iter) => {
-                    string host;
-                    model.get (iter, TorrentPeers.HOST, out host);
-                    if (!aria_peers (host)) {
-                        Gtk.TreeIter iters;
-                        peerstore.get_iter (out iters, path);
-                        peerstore.remove (ref iters);
-                    }
-                    return false;
-                });
-                aria_get_peers (ariagid).foreach ((model, path, iter) => {
-                    if (!peers_exist (model, iter)) {
-                        string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
-                        model.get (iter, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
-                        Gtk.TreeIter iters;
-                        peerstore.append (out iters);
-                        peerstore.set (iters, TorrentPeers.HOST, host, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
-                    }
-                    return false;
-                });
+                if (delaytime % 2 == 0) {
+                    show_peers ();
+                }
             } else if (view_mode.selected == 3) {
-                aria_files_store (ariagid).foreach ((model, path, iter) => {
-                    bool select;
-                    string index, name, download, size, uris, pathname;
-                    int persen;
-                    model.get (iter, FileCol.FILEPATH, out pathname);
-                    if (pathname == "" || pathname == null) {
-                        return false;
-                    }
-                    if (pathname.contains ("[METADATA]")) {
-                        return false;
-                    }
-                    model.get (iter, FileCol.SELECTED, out select, FileCol.ROW, out index, FileCol.NAME, out name, FileCol.DOWNLOADED, out download, FileCol.SIZE, out size, FileCol.PERCEN, out persen, FileCol.URIS, out uris);
-                    if (name == null || download == null || size == null) {
-                        return false;
-                    }
-                    if (!liststore_exist (select, index, Markup.escape_text (name), Markup.escape_text (pathname), download, size, persen.abs (), Markup.escape_text (uris))) {
-                        Gtk.TreeIter iters;
-                        torrstore.append (out iters);
-                        torrstore.set (iters, FileCol.SELECTED, select, FileCol.ROW, index, FileCol.NAME, Markup.escape_text (name), FileCol.FILEPATH, Markup.escape_text (pathname), FileCol.DOWNLOADED, download, FileCol.SIZE, size, FileCol.PERCEN, persen.abs (), FileCol.URIS, Markup.escape_text (uris));
-                    }
-                    return false;
-                });
+                show_files ();
             }
-            url = aria_geturis (ariagid);
-            if (url == "") {
-                url = aria_tell_status (ariagid, TellStatus.INFOHASH);
-            }
+            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status == StatusMode.ERROR) {
                 url = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
             }
-            if (totalsize > 0 && transferrate > 0) {
-                uint64 remaining_time = (totalsize - transferred) / transferrate;
-                timeleft.label = format_time ((int) remaining_time);
-            }
+            delaytime++;
             return stoptimer;
+        }
+
+        private void show_peers () {
+            peerstore.foreach ((model, path, iter) => {
+                string host;
+                model.get (iter, TorrentPeers.HOST, out host);
+                if (!aria_peers (host)) {
+                    Gtk.TreeIter iters;
+                    peerstore.get_iter (out iters, path);
+                    if (peerstore.iter_is_valid (iter)) {
+                        peerstore.remove (ref iters);
+                    }
+                }
+                return false;
+            });
+            aria_get_peers (ariagid).foreach ((model, path, iter) => {
+                if (!peers_exist (model, iter)) {
+                    string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
+                    model.get (iter, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
+                    Gtk.TreeIter iters;
+                    peerstore.append (out iters);
+                    peerstore.set (iters, TorrentPeers.HOST, host, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
+                }
+                return false;
+            });
+        }
+
+        private void show_files () {
+            aria_files_store (ariagid).foreach ((model, path, iter) => {
+                bool select;
+                string index, name, download, size, uris, pathname;
+                int persen;
+                model.get (iter, FileCol.FILEPATH, out pathname);
+                if (pathname == "" || pathname == null) {
+                    return false;
+                }
+                if (pathname.contains ("[METADATA]")) {
+                    return false;
+                }
+                model.get (iter, FileCol.SELECTED, out select, FileCol.ROW, out index, FileCol.NAME, out name, FileCol.DOWNLOADED, out download, FileCol.SIZE, out size, FileCol.PERCEN, out persen, FileCol.URIS, out uris);
+                if (name == null || download == null || size == null) {
+                    return false;
+                }
+                if (!files_exist (select, index, Markup.escape_text (name), Markup.escape_text (pathname), download, size, persen.abs (), Markup.escape_text (uris))) {
+                    Gtk.TreeIter iters;
+                    torrstore.append (out iters);
+                    torrstore.set (iters, FileCol.SELECTED, select, FileCol.ROW, index, FileCol.NAME, Markup.escape_text (name), FileCol.FILEPATH, Markup.escape_text (pathname), FileCol.DOWNLOADED, download, FileCol.SIZE, size, FileCol.PERCEN, persen.abs (), FileCol.URIS, Markup.escape_text (uris));
+                }
+                return false;
+            });
         }
 
         private bool aria_peers (string host) {
@@ -694,9 +722,9 @@ namespace Gabut {
             return exist;
         }
 
-        private bool peers_exist (Gtk.TreeModel model, Gtk.TreeIter ite) {
+        private bool peers_exist (Gtk.TreeModel mode, Gtk.TreeIter ite) {
             string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
-            model.get (ite, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
+            mode.get (ite, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
             bool exist = false;
             peerstore.foreach ((model, path, iter) => {
                 string hosts;
@@ -710,7 +738,7 @@ namespace Gabut {
             return exist;
         }
 
-        private bool liststore_exist (bool select, string index, string name, string pathname, string download, string size, int persen, string uris) {
+        private bool files_exist (bool select, string index, string name, string pathname, string download, string size, int persen, string uris) {
             bool exist = false;
             torrstore.foreach ((model, path, iter) => {
                 string filename;
