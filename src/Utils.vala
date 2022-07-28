@@ -58,7 +58,8 @@ namespace Gabut {
         PIECESELECTOR = 34,
         CLIPBOARD = 35,
         SHAREDIR = 36,
-        SWITCHDIR = 37;
+        SWITCHDIR = 37,
+        SORTBY = 38;
 
         public string get_name () {
             switch (this) {
@@ -136,6 +137,8 @@ namespace Gabut {
                     return "sharedir";
                 case SWITCHDIR:
                     return "switchdir";
+                case SORTBY:
+                    return "sortby";
                 default:
                     return "id";
             }
@@ -916,7 +919,8 @@ namespace Gabut {
         TRANSFERRED = 8,
         LINKMODE = 9,
         FILEORDIR = 10,
-        LABELTRANSFER = 11;
+        LABELTRANSFER = 11,
+        TIMEADDED = 12;
 
         public string get_name () {
             switch (this) {
@@ -942,6 +946,8 @@ namespace Gabut {
                     return "fileordir";
                 case LABELTRANSFER:
                     return "labeltransfer";
+                case TIMEADDED:
+                    return "timeadded";
                 default:
                     return "id";
             }
@@ -1260,6 +1266,30 @@ namespace Gabut {
 
         public static ProxyTypes [] get_all () {
             return { ALL, HTTP, HTTPS, FTP };
+        }
+    }
+
+    public enum SortbyWindow {
+        NAME = 0,
+        SIZE = 1,
+        TYPE = 2,
+        TIMEADDED = 3;
+
+        public string get_name () {
+            switch (this) {
+                case SIZE:
+                    return "Size";
+                case TYPE:
+                    return "Type";
+                case TIMEADDED:
+                    return "Time Added";
+                default:
+                    return "Name";
+            }
+        }
+
+        public static SortbyWindow [] get_all () {
+            return { NAME, SIZE, TYPE, TIMEADDED};
         }
     }
 
@@ -2295,6 +2325,14 @@ namespace Gabut {
         return grid;
     }
 
+    private Gtk.Image image_btn (string name, int size) {
+        var imginf = new Gtk.Image () {
+            pixel_size = size,
+            gicon = new ThemedIcon (name)
+        };
+        return imginf;
+    }
+
     private string get_mime_css (string mime) {
         if (mime.contains ("image/")) {
             return "image";
@@ -2367,7 +2405,8 @@ namespace Gabut {
             transferred    INT64   NOT NULL,
             linkmode       INT     NOT NULL,
             fileordir      TEXT    NOT NULL,
-            labeltransfer  TEXT    NOT NULL);");
+            labeltransfer  TEXT    NOT NULL,
+            timeadded      INT64   NOT NULL);");
     }
 
     private int table_options (Sqlite.Database db) {
@@ -2438,20 +2477,21 @@ namespace Gabut {
             pieceselector  TEXT    NOT NULL,
             clipboard      TEXT    NOT NULL,
             sharedir       TEXT    NOT NULL,
-            switchdir      TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\");");
+            switchdir      TEXT    NOT NULL,
+            sortby         TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.SWITCHDIR) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.SORTBY) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
     }
 
     private void download_table () {
-        if ((db_get_cols ("download") - 1) != DBDownload.LABELTRANSFER) {
+        if ((db_get_cols ("download") - 1) != DBDownload.TIMEADDED) {
             gabutdb.exec ("DROP TABLE download;");
             table_download (gabutdb);
         }
@@ -2578,7 +2618,7 @@ namespace Gabut {
 
     private void add_db_download (DownloadRow download) {
         Sqlite.Statement stmt;
-        string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer, timeadded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         int res = gabutdb.prepare_v2 (sql, -1, out stmt);
         res = stmt.bind_text (DBDownload.URL, download.url);
         res = stmt.bind_int (DBDownload.STATUS, download.status);
@@ -2591,6 +2631,7 @@ namespace Gabut {
         res = stmt.bind_int (DBDownload.LINKMODE, download.linkmode);
         res = stmt.bind_text (DBDownload.FILEORDIR, download.fileordir == null? "" : download.fileordir);
         res = stmt.bind_text (DBDownload.LABELTRANSFER, download.labeltransfer == null? "" : download.labeltransfer);
+        res = stmt.bind_int64 (DBDownload.TIMEADDED, download.timeadded);
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
@@ -2626,7 +2667,7 @@ namespace Gabut {
                 }
                 buildstr.append (@" $(DBDownload.FILENAME.get_name ()) = \"$(download.filename)\"");
             }
-            if (stmt.column_int (DBDownload.TOTALSIZE) != download.totalsize) {
+            if (stmt.column_int64 (DBDownload.TOTALSIZE) != download.totalsize) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
@@ -2638,7 +2679,7 @@ namespace Gabut {
                 }
                 buildstr.append (@" $(DBDownload.TRANSFERRATE.get_name ()) = $(download.transferrate)");
             }
-            if (stmt.column_int (DBDownload.TRANSFERRED) != download.transferred) {
+            if (stmt.column_int64 (DBDownload.TRANSFERRED) != download.transferred) {
                 if (buildstr.str.hash () != empty_hash) {
                     buildstr.append (",");
                 }
@@ -2661,6 +2702,12 @@ namespace Gabut {
                     buildstr.append (",");
                 }
                 buildstr.append (@" $(DBDownload.LABELTRANSFER.get_name ()) = \"$(download.labeltransfer)\"");
+            }
+            if (stmt.column_int64 (DBDownload.TIMEADDED) != download.timeadded) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                buildstr.append (@" $(DBDownload.TIMEADDED.get_name ()) = \"$(download.timeadded)\"");
             }
             if (buildstr.str.hash () == empty_hash) {
                 return;
@@ -2688,7 +2735,7 @@ namespace Gabut {
     private GLib.List<DownloadRow> get_download () {
         var downloads = new GLib.List<DownloadRow> ();
         Sqlite.Statement stmt;
-        int res = gabutdb.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer FROM download ORDER BY url;", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer, timeadded FROM download ORDER BY url;", -1, out stmt);
         if (res != Sqlite.OK) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }

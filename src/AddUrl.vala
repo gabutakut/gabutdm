@@ -593,22 +593,24 @@ namespace Gabut {
                 set_option (true);
                 close ();
             });
-            var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
+            var box_action = new Gtk.CenterBox () {
                 margin_top = 10,
                 margin_bottom = 10
             };
 
             switch (dialogtype) {
                 case DialogType.PROPERTY:
-                    box_action.append (save_button);
-                    box_action.append (close_button);
-                    box_action.halign = Gtk.Align.END;
+                    var box_end = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
+                    box_end.append (save_button);
+                    box_end.append (close_button);
+                    box_action.set_end_widget (box_end);
                     break;
                 default:
-                    box_action.append (start_button);
-                    box_action.append (later_button);
-                    box_action.append (close_button);
-                    box_action.halign = Gtk.Align.CENTER;
+                    var box_satart = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
+                    box_satart.append (start_button);
+                    box_satart.append (later_button);
+                    box_action.set_start_widget (box_satart);
+                    box_action.set_end_widget (close_button);
                     break;
             }
 
