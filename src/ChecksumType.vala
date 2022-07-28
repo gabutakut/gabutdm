@@ -23,12 +23,9 @@ namespace Gabut {
     public class ChecksumType : Gtk.FlowBoxChild {
         public AriaChecksumTypes checksums { get; private set; }
 
-        construct {
-            halign = Gtk.Align.CENTER;
-        }
-
         public ChecksumType (AriaChecksumTypes checksums) {
             this.checksums = checksums;
+            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (checksums.get_name ().up ().replace ("=", "").replace ("-", "")) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,

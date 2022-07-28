@@ -23,12 +23,9 @@ namespace Gabut {
     public class LoginUser : Gtk.FlowBoxChild {
         public LoginUsers loginuser { get; private set; }
 
-        construct {
-            halign = Gtk.Align.CENTER;
-        }
-
         public LoginUser (LoginUsers loginuser) {
             this.loginuser = loginuser;
+            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (loginuser.get_name ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,

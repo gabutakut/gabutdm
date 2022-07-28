@@ -23,12 +23,9 @@ namespace Gabut {
     public class BTEncrypt : Gtk.FlowBoxChild {
         public BTEncrypts btencrypt { get; private set; }
 
-        construct {
-            halign = Gtk.Align.CENTER;
-        }
-
         public BTEncrypt (BTEncrypts btencrypt) {
             this.btencrypt = btencrypt;
+            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (btencrypt.get_name ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,

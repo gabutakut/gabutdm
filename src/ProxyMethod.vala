@@ -23,12 +23,9 @@ namespace Gabut {
     public class ProxyMethod : Gtk.FlowBoxChild {
         public ProxyMethods method { get; private set; }
 
-        construct {
-            halign = Gtk.Align.CENTER;
-        }
-
         public ProxyMethod (ProxyMethods method) {
             this.method = method;
+            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (method.get_name ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
