@@ -33,6 +33,11 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.8.7" date="2022-7-28">
+      <description>
+        <p>New Style</p>
+      </description>
+    </release>
     <release version="1.8.6" date="2022-7-14">
       <description>
         <p>New With Gtk4</p>
