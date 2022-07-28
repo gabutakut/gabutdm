@@ -23,12 +23,9 @@ namespace Gabut {
     public class PieceSelector : Gtk.FlowBoxChild {
         public PieceSelectors selector { get; private set; }
 
-        construct {
-            halign = Gtk.Align.CENTER;
-        }
-
         public PieceSelector (PieceSelectors selector) {
             this.selector = selector;
+            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (selector.get_name ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,

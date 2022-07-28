@@ -23,12 +23,9 @@ namespace Gabut {
     public class FileAllocation : Gtk.FlowBoxChild {
         public FileAllocations fileallocation { get; private set; }
 
-        construct {
-            halign = Gtk.Align.CENTER;
-        }
-
         public FileAllocation (FileAllocations fileallocation) {
             this.fileallocation = fileallocation;
+            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (fileallocation.get_name ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,

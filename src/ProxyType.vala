@@ -23,12 +23,9 @@ namespace Gabut {
     public class ProxyType : Gtk.FlowBoxChild {
         public ProxyTypes proxytype { get; private set; }
 
-        construct {
-            halign = Gtk.Align.CENTER;
-        }
-
         public ProxyType (ProxyTypes proxytype) {
             this.proxytype = proxytype;
+            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (proxytype.get_name ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
