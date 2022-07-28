@@ -294,6 +294,16 @@ namespace Gabut {
             }
         }
 
+        private int64 _timeadded;
+        public int64 timeadded {
+            get {
+                return _timeadded;
+            }
+            set {
+                _timeadded = value;
+            }
+        }
+
         public DownloadRow (Sqlite.Statement stmt) {
             linkmode = stmt.column_int (DBDownload.LINKMODE);
             ariagid = stmt.column_text (DBDownload.ARIAGID);
@@ -306,6 +316,7 @@ namespace Gabut {
             url = stmt.column_text (DBDownload.URL);
             fileordir = stmt.column_text (DBDownload.FILEORDIR);
             labeltransfer = stmt.column_text (DBDownload.LABELTRANSFER);
+            timeadded = stmt.column_int64 (DBDownload.TIMEADDED);
             hashoption = get_dboptions (url);
             if_not_exist (ariagid, linkmode, status);
         }

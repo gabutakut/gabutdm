@@ -32,5 +32,6 @@ sources = files (
     'GabutSucces.vala',
     'ServerShare.vala',
     'ServerNotFound.vala',
-    'ServerComplete.vala'
+    'ServerComplete.vala',
+    'SortBy.vala'
 )

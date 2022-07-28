@@ -44,6 +44,19 @@ namespace Gabut {
         private DbusmenuItem startmenu;
         private DbusmenuItem pausemenu;
         private CanonicalDbusmenu dbusserver;
+        private Gtk.MenuButton shortbutton;
+        private Gtk.FlowBox sort_flow;
+
+        SortBy _sorttype = null;
+        SortBy sorttype {
+            get {
+                return _sorttype;
+            }
+            set {
+                _sorttype = value;
+                set_dbsetting (DBSettings.SORTBY, _sorttype.get_index ().to_string ());
+            }
+        }
 
         public GabutWindow (Gtk.Application application) {
             Object (application: application,
@@ -88,6 +101,7 @@ namespace Gabut {
                 activate_on_single_click = true,
                 selection_mode = Gtk.SelectionMode.BROWSE
             };
+            list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
             list_box.set_placeholder (nodown_alert);
 
             var scrolled = new Gtk.ScrolledWindow () {
@@ -98,11 +112,11 @@ namespace Gabut {
             };
 
             headerstack = new Gtk.Stack () {
-                transition_type = Gtk.StackTransitionType.SLIDE_DOWN,
+                transition_type = Gtk.StackTransitionType.SLIDE_UP,
                 transition_duration = 500,
                 hhomogeneous = false
             };
-            headerstack.add_named (mode_headerbar (), "mode");
+            headerstack.add_named (bottom_action (), "mode");
             headerstack.add_named (saarch_headerbar (), "search");
             headerstack.visible_child_name = "mode";
             headerstack.show ();
@@ -217,7 +231,52 @@ namespace Gabut {
                     });
                 }
             });
-            var property_button = new Gtk.Button.from_icon_name ("document-properties") {
+            var add_button = new Gtk.Button.from_icon_name ("insert-link") {
+                tooltip_text = _("add link")
+            };
+            add_button.clicked.connect (()=> {
+                send_file ("");
+            });
+            headerbar.pack_start (add_button);
+            var torrentbutton = new Gtk.Button.from_icon_name ("document-open") {
+                tooltip_text = _("Open .torrent .metalink file")
+            };
+            headerbar.pack_start (torrentbutton);
+            torrentbutton.clicked.connect (()=> {
+                var files = run_open_file (this);
+                foreach (var file in files) {
+                    send_file (file.get_uri ());
+                }
+            });
+            var resumeall_button = new Gtk.Button.from_icon_name ("media-playback-start") {
+                tooltip_text = _("Start All")
+            };
+            headerbar.pack_start (resumeall_button);
+            resumeall_button.clicked.connect (start_all);
+
+            var stopall_button = new Gtk.Button.from_icon_name ("media-playback-pause") {
+                tooltip_text = _("Pause All")
+            };
+            headerbar.pack_start (stopall_button);
+            stopall_button.clicked.connect (stop_all);
+
+            var removeall_button = new Gtk.Button.from_icon_name ("edit-delete") {
+                tooltip_text = _("Remove All")
+            };
+            headerbar.pack_start (removeall_button);
+            removeall_button.clicked.connect (remove_all);
+            return headerbar;
+        }
+
+        private Gtk.CenterBox bottom_action () {
+            var actionbar = new Gtk.CenterBox () {
+                hexpand = true,
+                margin_top = 4,
+                margin_bottom = 4
+            };
+            var property_button = new Gtk.Button () {
+                child = image_btn ("document-properties", 16),
+                margin_start = 10,
                 tooltip_text = _("Property")
             };
             properties = new GLib.List<AddUrl> ();
@@ -256,55 +315,10 @@ namespace Gabut {
                 transition_type = Gtk.RevealerTransitionType.CROSSFADE,
                 child = property_button
             };
-            headerbar.pack_end (property_rev);
+            actionbar.set_start_widget (property_rev);
             list_box.row_selected.connect ((row)=> {
                 property_rev.reveal_child = row != null? true : false;
             });
-            var add_button = new Gtk.Button.from_icon_name ("insert-link") {
-                tooltip_text = _("add link")
-            };
-            add_button.clicked.connect (()=> {
-                send_file ("");
-            });
-            headerbar.pack_start (add_button);
-            var torrentbutton = new Gtk.Button.from_icon_name ("document-open") {
-                tooltip_text = _("Open .torrent .metalink file")
-            };
-            headerbar.pack_start (torrentbutton);
-            torrentbutton.clicked.connect (()=> {
-                var files = run_open_file (this);
-                foreach (var file in files) {
-                    send_file (file.get_uri ());
-                }
-            });
-            var resumeall_button = new Gtk.Button.from_icon_name ("media-playback-start") {
-                tooltip_text = _("Start All")
-            };
-            headerbar.pack_start (resumeall_button);
-            resumeall_button.clicked.connect (start_all);
-
-            var stopall_button = new Gtk.Button.from_icon_name ("media-playback-pause") {
-                tooltip_text = _("Pause All")
-            };
-            headerbar.pack_start (stopall_button);
-            stopall_button.clicked.connect (stop_all);
-
-            var removeall_button = new Gtk.Button.from_icon_name ("edit-delete") {
-                tooltip_text = _("Remove All")
-            };
-            headerbar.pack_start (removeall_button);
-            removeall_button.clicked.connect (remove_all);
-            return headerbar;
-        }
-
-        private Gtk.Box mode_headerbar () {
-            var headerbar = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
-                hexpand = true,
-                margin_top = 4,
-                margin_bottom = 4,
-                halign = Gtk.Align.CENTER,
-                valign = Gtk.Align.CENTER
-            };
             view_mode = new ModeButton () {
                 hexpand = false
             };
@@ -315,9 +329,46 @@ namespace Gabut {
             view_mode.append_text (_("Waiting"));
             view_mode.append_text (_("Error"));
             view_mode.selected = 0;
-            headerbar.append (view_mode);
+            actionbar.set_center_widget (view_mode);
             view_mode.notify["selected"].connect (view_status);
-            return headerbar;
+            shortbutton = new Gtk.MenuButton () {
+                direction = Gtk.ArrowType.UP,
+                child = image_btn ("format-justify-fill", 16),
+                margin_end = 10,
+                popover = get_menu (),
+                tooltip_text = _("Sort by")
+            };
+            actionbar.set_end_widget (shortbutton);
+            return actionbar;
+        }
+
+        public Gtk.Popover get_menu () {
+            sort_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70,
+            };
+            var sort_popover = new Gtk.Popover () {
+                position = Gtk.PositionType.TOP,
+                width_request = 70,
+                child = sort_flow
+            };
+            sort_popover.show.connect (() => {
+                if (sorttype != null) {
+                    sort_flow.select_child (sorttype);
+                    sorttype.grab_focus ();
+                }
+            });
+            foreach (var shorty in SortbyWindow.get_all ()) {
+                sort_flow.append (new SortBy (shorty));
+            }
+            sort_flow.show ();
+            sort_flow.child_activated.connect ((shorty)=> {
+                sorttype = shorty as SortBy;
+                sort_popover.hide ();
+                list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
+            });
+            sorttype = sort_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.SORTBY))) as SortBy;
+            return sort_popover;
         }
 
         private Gtk.Box saarch_headerbar () {
@@ -515,7 +566,9 @@ namespace Gabut {
             if (get_exist (url)) {
                 return;
             }
-            var row = new DownloadRow.Url (url, options, linkmode);
+            var row = new DownloadRow.Url (url, options, linkmode) {
+                timeadded = new GLib.DateTime.now_local ().to_unix ()
+            };
             list_box.append (row);
             listrow.append (row);
             row.show ();
@@ -649,6 +702,56 @@ namespace Gabut {
             yield open_quicklist (dbusserver, menudbus);
         }
 
+        [CCode (instance_pos = -1)]
+        private int sort_dm (DownloadRow row1, DownloadRow row2) {
+            if (sorttype.get_index () == 0) {
+                if (row1.filename != null && row2.filename != null) {
+                    var name1 = row1.filename.down ();
+                    var name2 = row2.filename.down ();
+                    if (name1 > name2) {
+                        return 1;
+                    }
+                    if (name1 < name2) {
+                        return -1;
+                    }
+                } else {
+                    return 0;
+                }
+            } else if (sorttype.get_index () == 1) {
+                var total1 = row1.totalsize;
+                var total2 = row2.totalsize;
+                if (total1 > total2) {
+                    return 1;
+                }
+                if (total1 < total2) {
+                    return -1;
+                }
+            } else if (sorttype.get_index () == 2) {
+                if (row1.fileordir != null && row2.fileordir != null) {
+                    var fordir1 = row1.fileordir.down ();
+                    var fordir2 = row2.fileordir.down ();
+                    if (fordir1 > fordir2) {
+                        return 1;
+                    }
+                    if (fordir1 < fordir2) {
+                        return -1;
+                    }
+                } else {
+                    return 0;
+                }
+            } else {
+                var timeadded1 = row1.timeadded;
+                var timeadded2 = row2.timeadded;
+                if (timeadded1 > timeadded2) {
+                    return -1;
+                }
+                if (timeadded1 < timeadded2) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
         public void view_status () {
             if (headerstack.visible_child_name == "search") {
                 if (search_entry.text.strip () == "") {
@@ -697,7 +800,7 @@ namespace Gabut {
                     );
                     active_alert.show ();
                     list_box.set_placeholder (active_alert);
-                    return;
+                    break;
                 case 2:
                     list_box.set_filter_func ((item) => {
                         return ((DownloadRow) item).status == StatusMode.PAUSED;
@@ -709,7 +812,7 @@ namespace Gabut {
                     );
                     nopause_alert.show ();
                     list_box.set_placeholder (nopause_alert);
-                    return;
+                    break;
                 case 3:
                     list_box.set_filter_func ((item) => {
                         return ((DownloadRow) item).status == StatusMode.COMPLETE;
@@ -721,7 +824,7 @@ namespace Gabut {
                     );
                     nocomp_alerst.show ();
                     list_box.set_placeholder (nocomp_alerst);
-                    return;
+                    break;
                 case 4:
                     list_box.set_filter_func ((item) => {
                         return ((DownloadRow) item).status == StatusMode.WAIT;
@@ -733,7 +836,7 @@ namespace Gabut {
                     );
                     nowait_alert.show ();
                     list_box.set_placeholder (nowait_alert);
-                    return;
+                    break;
                 case 5:
                     list_box.set_filter_func ((item) => {
                         return ((DownloadRow) item).status == StatusMode.ERROR;
@@ -745,7 +848,7 @@ namespace Gabut {
                     );
                     noerr_alert.show ();
                     list_box.set_placeholder (noerr_alert);
-                    return;
+                    break;
                 default:
                     bool hide_alert = false;
                     list_box.set_filter_func ((item)=> {
@@ -757,8 +860,9 @@ namespace Gabut {
                     if (!hide_alert) {
                         list_box.set_placeholder (nodown_alert);
                     }
-                    return;
+                    break;
             }
+            list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
         }
     }
 }
