@@ -212,9 +212,9 @@ namespace Gabut {
 
         public void dialog_succes (string strdata) {
             var succesdl = new SuccesDialog (this) {
-                transient_for = gabutwindow
+                transient_for = gabutwindow,
+                datastr = strdata
             };
-            succesdl.set_dialog (strdata);
             succesdl.show ();
             succesdls.append (succesdl);
             succesdl.close.connect (()=> {

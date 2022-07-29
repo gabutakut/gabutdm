@@ -81,7 +81,7 @@ namespace Gabut {
             set {
                 _checksumtype = value;
                 checksum_button.label = _("%s").printf (_checksumtype.checksums.get_name ().up ().replace ("=", "").replace ("-", ""));
-                checksum_entry.sensitive = checksumtype.checksums.get_name () == "none"? false : true;
+                checksum_entry.editable = checksumtype.checksums.get_name () == "none"? false : true;
             }
         }
 

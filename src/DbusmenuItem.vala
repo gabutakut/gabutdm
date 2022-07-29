@@ -37,7 +37,7 @@ namespace Gabut {
         public GLib.HashTable<string, Variant> properties;
 
         public DbusmenuItem () {
-            properties = new GLib.HashTable <string, Variant> (str_hash, str_equal);
+            properties = new GLib.HashTable <string, Variant> (GLib.str_hash, GLib.str_equal);
             properties["label"] = new Variant.string ("Label Empty");
             properties["enabled"] = new Variant.boolean (true);
             properties["visible"] = new Variant.boolean (true);

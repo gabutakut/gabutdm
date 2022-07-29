@@ -31,7 +31,6 @@ namespace Gabut {
         private Gtk.ListBox list_box;
         private Gtk.Label labelall;
         private Gtk.Stack headerstack;
-        private Gtk.Revealer property_rev;
         private Preferences preferences;
         private QrCode qrcode;
         private Gtk.SearchEntry search_entry;
@@ -124,6 +123,8 @@ namespace Gabut {
             labelall = new Gtk.Label ("Active: 0 Download: 0 Upload: 0") {
                 ellipsize = Pango.EllipsizeMode.END,
                 hexpand = true,
+                margin_top = 4,
+                margin_bottom = 4,
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
 
@@ -311,13 +312,9 @@ namespace Gabut {
                     }
                 }
             });
-            property_rev = new Gtk.Revealer () {
-                transition_type = Gtk.RevealerTransitionType.CROSSFADE,
-                child = property_button
-            };
-            actionbar.set_start_widget (property_rev);
+            actionbar.set_start_widget (property_button);
             list_box.row_selected.connect ((row)=> {
-                property_rev.reveal_child = row != null? true : false;
+                property_button.sensitive = row != null? true : false;
             });
             view_mode = new ModeButton () {
                 hexpand = false
