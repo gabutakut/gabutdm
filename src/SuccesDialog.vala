@@ -172,8 +172,8 @@ namespace Gabut {
             child = maingrid;
         }
 
-        public void set_dialog (string datastr) {
-            this.datastr = datastr;
+        public override void show () {
+            base.show ();
             address.text = info_succes (datastr, InfoSucces.ADDRESS);
             directory.text = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH)).get_path ();
             filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (info_succes (datastr, InfoSucces.FILESIZE)), GLib.FormatSizeFlags.LONG_FORMAT));

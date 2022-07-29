@@ -508,7 +508,7 @@ namespace Gabut {
 
         public override void show () {
             base.show ();
-            Idle.add (()=> { update_progress (); return false; });
+            update_progress ();
         }
 
         private Gtk.TreeViewColumn text_column (string title, int column) {
@@ -525,41 +525,36 @@ namespace Gabut {
 
         private Gtk.TreeViewColumn toggle_column (string title, int column) {
             var selected = new Gtk.CellRendererToggle ();
-            selected.toggled.connect (()=> {
-                Idle.add (()=> {
-                    Gtk.TreeIter iter;
-                    torrenttree.get_selection ().get_selected (null, out iter);
-                    if (!torrstore.iter_is_valid (iter)) {
-                        return false;
-                    }
-                    bool active;
-                    torrstore.get (iter, 0, out active);
-                    torrstore.set (iter, 0, !active);
-                    var builder = new StringBuilder ();
-                    uint hashb = builder.str.hash ();
-                    torrstore.foreach ((model, path, ite) => {
-                        string index;
-                        bool activaated;
-                        model.get (ite, 0, out activaated, 1, out index);
-                        if (activaated) {
-                            if (hashb == builder.str.hash ()) {
-                                builder.append (index);
-                            } else {
-                                builder.append (",");
-                                builder.append (index);
-                            }
+            selected.toggled.connect ((path)=> {
+                Gtk.TreeIter iter;
+                bool active;
+                torrstore.get_iter (out iter, new Gtk.TreePath.from_string (path));
+                torrstore.get (iter, 0, out active);
+                torrstore.set (iter, 0, !active);
+                var builder = new StringBuilder ();
+                uint hashb = builder.str.hash ();
+                torrstore.foreach ((model, path, ite) => {
+                    string index;
+                    bool activated;
+                    model.get (ite, 0, out activated, 1, out index);
+                    if (activated) {
+                        if (hashb == builder.str.hash ()) {
+                            builder.append (index);
+                        } else {
+                            builder.append (",");
+                            builder.append (index);
                         }
-                        return false;
-                    });
-                    if (hashb == builder.str.hash ()) {
-                        return false;
                     }
-                    string aria_gid = sendselected (ariagid, builder.str);
-                    this.ariagid = aria_gid;
-                    update_progress ();
                     return false;
                 });
+                if (hashb == builder.str.hash ()) {
+                    return;
+                }
+                string aria_gid = sendselected (ariagid, builder.str);
+                this.ariagid = aria_gid;
+                update_progress ();
             });
+
             var server_coll = new Gtk.TreeViewColumn.with_attributes (title, selected, "active", column) {
                 resizable = true,
                 clickable = true,
