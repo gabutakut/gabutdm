@@ -46,6 +46,8 @@ namespace Gabut {
         private Gtk.MenuButton shortbutton;
         private Gtk.FlowBox sort_flow;
         private Gtk.FlowBox deas_flow;
+        private Gtk.CheckButton showtime;
+        private Gtk.CheckButton showdate;
 
         SortBy _sorttype = null;
         SortBy sorttype {
@@ -364,16 +366,26 @@ namespace Gabut {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
             };
-            var showdatetime = new Gtk.CheckButton.with_label (_("Time")) {
+            showtime = new Gtk.CheckButton.with_label (_("Time")) {
                 margin_start = 6,
-                margin_top = 6,
+                margin_top = 4,
                 margin_bottom = 4,
                 margin_end = 4,
                 active = bool.parse (get_dbsetting (DBSettings.SHOWTIME))
             };
-            ((Gtk.Label) showdatetime.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
-            ((Gtk.Label) showdatetime.get_last_child ()).halign = Gtk.Align.CENTER;
-            ((Gtk.Label) showdatetime.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
+            ((Gtk.Label) showtime.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
+            ((Gtk.Label) showtime.get_last_child ()).halign = Gtk.Align.CENTER;
+            ((Gtk.Label) showtime.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
+            showdate = new Gtk.CheckButton.with_label (_("Date")) {
+                margin_start = 6,
+                margin_top = 4,
+                margin_bottom = 4,
+                margin_end = 4,
+                active = bool.parse (get_dbsetting (DBSettings.SHOWDATE))
+            };
+            ((Gtk.Label) showdate.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
+            ((Gtk.Label) showdate.get_last_child ()).halign = Gtk.Align.CENTER;
+            ((Gtk.Label) showdate.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
             var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
                 margin_top = 4,
                 margin_bottom = 4
@@ -382,8 +394,8 @@ namespace Gabut {
             box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
             box.append (deas_flow);
             box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            box.append (showdatetime);
-
+            box.append (showtime);
+            box.append (showdate);
             var sort_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
                 width_request = 70,
@@ -398,20 +410,17 @@ namespace Gabut {
                     deas_flow.unselect_child (deascend);
                 }
             });
-            showdatetime.toggled.connect (()=> {
+            showdate.toggled.connect (()=> {
                 sort_popover.hide ();
-                if (showdatetime.active) {
-                    list_box.set_header_func ((Gtk.ListBoxUpdateHeaderFunc) header_dm);
-                } else {
-                    list_box.set_header_func (null);
-                }
-                set_dbsetting (DBSettings.SHOWTIME, showdatetime.active.to_string ());
+                set_dbsetting (DBSettings.SHOWDATE, showdate.active.to_string ());
+                set_listheader ();
             });
-            if (showdatetime.active) {
-                list_box.set_header_func ((Gtk.ListBoxUpdateHeaderFunc) header_dm);
-            } else {
-                list_box.set_header_func (null);
-            }
+            showtime.toggled.connect (()=> {
+                sort_popover.hide ();
+                set_dbsetting (DBSettings.SHOWTIME, showtime.active.to_string ());
+                set_listheader ();
+            });
+            set_listheader ();
             foreach (var shorty in SortbyWindow.get_all ()) {
                 sort_flow.append (new SortBy (shorty));
             }
@@ -440,6 +449,14 @@ namespace Gabut {
             deascend = deas_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.ASCEDESCEN))) as DeAscending;
             ((DeAscending) deas_flow.get_child_at_index (deascend.get_index ())).activebtn = true;
             return sort_popover;
+        }
+
+        private void set_listheader () {
+            if (showtime.active || showdate.active) {
+                list_box.set_header_func ((Gtk.ListBoxUpdateHeaderFunc) header_dm);
+            } else {
+                list_box.set_header_func (null);
+            }
         }
 
         private Gtk.Box saarch_headerbar () {
@@ -855,22 +872,21 @@ namespace Gabut {
         [CCode (instance_pos = -1)]
         private void header_dm (DownloadRow row1, DownloadRow? row2) {
             var date1 = new GLib.DateTime.from_unix_local (row1.timeadded);
+            var label = new Gtk.Label (date1.format (@"%A $(showdate.active? "- %d %B %Y" : "") $(showtime.active? "- %I:%M %p" : "")")) {
+                xalign = 0,
+                margin_start = 5,
+                attributes = color_attribute (60000, 30000, 19764)
+            };
             if (row2 == null) {
-                var label = new Gtk.Label (date1.format ("%A, %d %B %Y - %I:%M %p - %d/%m/%Y")) {
-                    xalign = 0,
-                    margin_start = 5,
-                    attributes = color_attribute (60000, 30000, 19764)
-                };
                 row1.set_header (label);
             } else if (row2 == null || date1.format ("%x") != new GLib.DateTime.from_unix_local (row2.timeadded).format ("%x")) {
-                var label = new Gtk.Label (date1.format ("%A, %d %B %Y - %I:%M %p - %d/%m/%Y")) {
-                    xalign = 0,
-                    margin_start = 5,
-                    attributes = color_attribute (60000, 30000, 19764)
-                };
                 row1.set_header (label);
             } else {
-                row1.set_header (null);
+                if (showtime.active) {
+                    row1.set_header (label);
+                } else {
+                    row1.set_header (null);
+                }
             }
         }
 
