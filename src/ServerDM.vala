@@ -20,7 +20,7 @@
 */
 
 namespace Gabut {
-    public string get_dm (string pathname, string htmlstr, string javascr) {
+    public string get_dm (string pathname, string htmlstr, string javascr, string username) {
         string errordm = "<div align=\"center\"><a class=\"icon error\"></a><h1>Nothing Error file Download</h1></div>";
         string activedm = "<div align=\"center\"><a class=\"icon playing\"></a><h1>Nothing Active file Download</h1></div>";
         string pauseddm = "<div align=\"center\"><a class=\"icon paused\"></a><h1>Nothing Paused file Download</h1></div>";
@@ -92,6 +92,15 @@ namespace Gabut {
             <span class=\"closebtn\" onclick=\"closeMenu()\" title=\"Close Overlay\"> <i class=\"icon closew\"></i></span>
         <div class=\"overlay-content\">
             <nav>
+                <form action=\"/$(pathname)\" method=\"POST\">
+                    <select name=\"sort\">
+                        <option $(get_shorted (0, username))Sort By Name</option>
+                        <option $(get_shorted (1, username))Sort By Size</option>
+                        <option $(get_shorted (2, username))Sort By Type</option>
+                        <option $(get_shorted (3, username))Sort By Date</option>
+                    </select>
+                    <input type=\"submit\" class=\"btn btn-primary btn-lg active\" value=\"Submit\">
+                </form>
                 <h2 class=\"metadata\">Insert address</h2>
                 <form class=\"text\" action=\"/$(pathname)\" method=\"post\" enctype=\"text/plain\">
                     <input class=\"form-control\" type=\"text\" placeholder=\"Paste Here..\" name=\"gabutlink\">

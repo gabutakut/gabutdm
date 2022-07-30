@@ -37,7 +37,7 @@ namespace Gabut {
         private ModeButton view_mode;
         private AlertView nodown_alert;
         private GLib.List<AddUrl> properties;
-        private GLib.List<DownloadRow> listrow;
+        private Gee.ArrayList<DownloadRow> listrow;
         private DbusmenuItem menudbus;
         private DbusmenuItem openmenu;
         private DbusmenuItem startmenu;
@@ -45,6 +45,7 @@ namespace Gabut {
         private CanonicalDbusmenu dbusserver;
         private Gtk.MenuButton shortbutton;
         private Gtk.FlowBox sort_flow;
+        private Gtk.FlowBox deas_flow;
 
         SortBy _sorttype = null;
         SortBy sorttype {
@@ -57,8 +58,20 @@ namespace Gabut {
             }
         }
 
+        DeAscending _deascend = null;
+        DeAscending deascend {
+            get {
+                return _deascend;
+            }
+            set {
+                _deascend = value;
+                set_dbsetting (DBSettings.ASCEDESCEN, _deascend.get_index ().to_string ());
+            }
+        }
+
         public GabutWindow (Gtk.Application application) {
             Object (application: application,
+                    hide_on_close: bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)),
                     title: _("Gabut Download Manager")
             );
         }
@@ -95,7 +108,8 @@ namespace Gabut {
                 "com.github.gabutakut.gabutdm"
             );
             nodown_alert.show ();
-            listrow = new GLib.List<DownloadRow> ();
+            listrow = new Gee.ArrayList<DownloadRow> ();
+            listrow.sort (sort_dm);
             list_box = new Gtk.ListBox () {
                 activate_on_single_click = true,
                 selection_mode = Gtk.SelectionMode.BROWSE
@@ -133,7 +147,6 @@ namespace Gabut {
             mainwindow.attach (scrolled, 0, 1);
             mainwindow.attach (headerstack, 0, 2);
             child = mainwindow;
-            hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
             close_request.connect (() => {
                 if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
                     append_dbus.begin (openmenu);
@@ -167,6 +180,7 @@ namespace Gabut {
                     preferences.restart_process.connect (()=> {
                         listrow.foreach ((row)=> {
                             row.if_not_exist (row.ariagid, row.linkmode, row.status);
+                            return true;
                         });
                     });
                     preferences.max_active.connect (()=> {
@@ -343,18 +357,61 @@ namespace Gabut {
             sort_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70,
+                margin_top = 4,
+                margin_bottom = 4
             };
+            deas_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                width_request = 70
+            };
+            var showdatetime = new Gtk.CheckButton.with_label (_("Time")) {
+                margin_start = 6,
+                margin_top = 6,
+                margin_bottom = 4,
+                margin_end = 4,
+                active = bool.parse (get_dbsetting (DBSettings.SHOWTIME))
+            };
+            ((Gtk.Label) showdatetime.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
+            ((Gtk.Label) showdatetime.get_last_child ()).halign = Gtk.Align.CENTER;
+            ((Gtk.Label) showdatetime.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
+            var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_top = 4,
+                margin_bottom = 4
+            };
+            box.append (sort_flow);
+            box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+            box.append (deas_flow);
+            box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+            box.append (showdatetime);
+
             var sort_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
                 width_request = 70,
-                child = sort_flow
+                child = box
             };
             sort_popover.show.connect (() => {
                 if (sorttype != null) {
                     sort_flow.select_child (sorttype);
                     sorttype.grab_focus ();
                 }
+                if (deascend != null) {
+                    deas_flow.unselect_child (deascend);
+                }
             });
+            showdatetime.toggled.connect (()=> {
+                sort_popover.hide ();
+                if (showdatetime.active) {
+                    list_box.set_header_func ((Gtk.ListBoxUpdateHeaderFunc) header_dm);
+                } else {
+                    list_box.set_header_func (null);
+                }
+                set_dbsetting (DBSettings.SHOWTIME, showdatetime.active.to_string ());
+            });
+            if (showdatetime.active) {
+                list_box.set_header_func ((Gtk.ListBoxUpdateHeaderFunc) header_dm);
+            } else {
+                list_box.set_header_func (null);
+            }
             foreach (var shorty in SortbyWindow.get_all ()) {
                 sort_flow.append (new SortBy (shorty));
             }
@@ -363,8 +420,25 @@ namespace Gabut {
                 sorttype = shorty as SortBy;
                 sort_popover.hide ();
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
+                listrow.sort (sort_dm);
             });
             sorttype = sort_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.SORTBY))) as SortBy;
+            foreach (var deas in DeAscend.get_all ()) {
+                deas_flow.append (new DeAscending (deas));
+            }
+            deas_flow.show ();
+            deas_flow.child_activated.connect ((deas)=> {
+                deascend = deas as DeAscending;
+                sort_popover.hide ();
+                for (int i = 0; i <= DeAscend.DESCENDING; i++) {
+                    ((DeAscending) deas_flow.get_child_at_index (i)).activebtn = false;    
+                }
+                ((DeAscending) deas_flow.get_child_at_index (deascend.get_index ())).activebtn = true;
+                list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
+                listrow.sort (sort_dm);
+            });
+            deascend = deas_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.ASCEDESCEN))) as DeAscending;
+            ((DeAscending) deas_flow.get_child_at_index (deascend.get_index ())).activebtn = true;
             return sort_popover;
         }
 
@@ -442,7 +516,7 @@ namespace Gabut {
             var downloads = new GLib.List<DownloadRow> ();
             listrow.foreach ((row)=> {
                 if (row.url == "") {
-                    return;
+                    return true;
                 }
                 if (!db_option_exist (row.url)) {
                     set_dboptions (row.url, row.hashoption);
@@ -450,17 +524,19 @@ namespace Gabut {
                     update_optionts (row.url, row.hashoption);
                 }
                 downloads.append (row);
+                return true;
             });
             set_download (downloads);
         }
 
-        public GLib.List<DownloadRow> get_dl_row (int status) {
-            var rowlist = new GLib.List<DownloadRow> ();
-            for (int i = 0; i < (int) listrow.length (); i++) {
-                if (listrow.nth_data (i).status == status) {
-                    rowlist.append (listrow.nth_data (i));
+        public Gee.ArrayList<DownloadRow> get_dl_row (int status) {
+            var rowlist = new Gee.ArrayList<DownloadRow> ();
+            listrow.foreach ((row)=> {
+                if (row.status == status) {
+                    rowlist.add (row);
                 }
-            }
+                return true;
+            });
             return rowlist;
         }
 
@@ -469,6 +545,7 @@ namespace Gabut {
                 if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                     glob_to_opt (row.ariagid);
                 }
+                return true;
             });
         }
 
@@ -477,6 +554,7 @@ namespace Gabut {
                 if (row.status == StatusMode.WAIT) {
                     row.update_progress ();
                 }
+                return true;
             });
         }
 
@@ -486,6 +564,7 @@ namespace Gabut {
                 if (row.ariagid == ariagid) {
                     agid = row.action_btn (status);
                 }
+                return true;
             });
             return agid;
         }
@@ -495,14 +574,16 @@ namespace Gabut {
                 if (row.ariagid == ariagid) {
                     row.remove_down ();
                 }
+                return true;
             });
             aria_purge_all ();
         }
 
         public void remove_all () {
-            listrow.foreach ((row)=> {
-                row.remove_down ();
-            });
+            int total = listrow.size;
+            for (int i = 0; i < total; i++) {
+                listrow.get (0).remove_down ();
+            }
             aria_purge_all ();
         }
 
@@ -510,7 +591,7 @@ namespace Gabut {
             get_download ().foreach ((row)=> {
                 if (!get_exist (row.url)) {
                     list_box.append (row);
-                    listrow.append (row);
+                    listrow.add (row);
                     row.show ();
                     row.notify_property ("status");
                     row.notify["status"].connect (()=> {
@@ -549,25 +630,27 @@ namespace Gabut {
                         remove_dbus.begin (rw.rowbus);
                         next_download ();
                         view_status ();
-                        listrow.delete_link (listrow.find (rw));
+                        listrow.remove (rw);
                         stop_launcher ();
                     });
                     row.update_agid.connect ((ariagid, newgid)=> {
                         update_agid (ariagid, newgid);
                     });
+                    row.activedm.connect (activedm);
                 }
             });
+            listrow.sort (sort_dm);
         }
 
         public void add_url_box (string url, Gee.HashMap<string, string> options, bool later, int linkmode) {
             if (get_exist (url)) {
                 return;
             }
-            var row = new DownloadRow.Url (url, options, linkmode) {
+            var row = new DownloadRow.Url (url, options, linkmode, activedm ()) {
                 timeadded = new GLib.DateTime.now_local ().to_unix ()
             };
             list_box.append (row);
-            listrow.append (row);
+            listrow.add (row);
             row.show ();
             row.notify["status"].connect (()=> {
                 switch (row.status) {
@@ -601,12 +684,13 @@ namespace Gabut {
                 remove_dbus.begin (rw.rowbus);
                 next_download ();
                 view_status ();
-                listrow.delete_link (listrow.find (rw));
+                listrow.remove (rw);
                 stop_launcher ();
             });
             row.update_agid.connect ((ariagid, newgid)=> {
                 update_agid (ariagid, newgid);
             });
+            row.activedm.connect (activedm);
             if (list_box.get_selected_row () == null) {
                 list_box.select_row (row);
                 list_box.row_activated (row);
@@ -617,6 +701,18 @@ namespace Gabut {
             } else {
                 aria_pause (row.ariagid);
             }
+            listrow.sort (sort_dm);
+        }
+
+        public int activedm () {
+            int count = 0;
+            listrow.foreach ((row)=> {
+                if (row.status == StatusMode.ACTIVE || row.status == StatusMode.WAIT) {
+                    count++;
+                }
+                return true;
+            });
+            return count;
         }
 
         private void update_info () {
@@ -630,6 +726,7 @@ namespace Gabut {
                 if (row.url == url) {
                     linkexist = true;
                 }
+                return true;
             });
             return linkexist;
         }
@@ -637,9 +734,11 @@ namespace Gabut {
         private void start_all () {
             listrow.foreach ((row)=> {
                 if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                    aria_position (row.ariagid, listrow.index_of (row));
                     aria_unpause (row.ariagid);
                     row.update_progress ();
                 }
+                return true;
             });
             view_status ();
         }
@@ -650,6 +749,7 @@ namespace Gabut {
                     aria_pause (row.ariagid);
                     row.idle_progress ();
                 }
+                return true;
             });
             aria_pause_all ();
             view_status ();
@@ -661,6 +761,7 @@ namespace Gabut {
                 if (row.ariagid == ariagid) {
                     aria_gid = row.set_selected (selected);
                 }
+                return true;
             });
             return aria_gid;
         }
@@ -672,6 +773,7 @@ namespace Gabut {
                         append_dbus.begin (row.rowbus);
                     }
                 }
+                return true;
             });
         }
 
@@ -682,6 +784,7 @@ namespace Gabut {
                         remove_dbus.begin (row.rowbus);
                     }
                 }
+                return true;
             });
         }
 
@@ -706,10 +809,10 @@ namespace Gabut {
                     var name1 = row1.filename.down ();
                     var name2 = row2.filename.down ();
                     if (name1 > name2) {
-                        return 1;
+                        return set_ascen (deascend);
                     }
                     if (name1 < name2) {
-                        return -1;
+                        return set_descen (deascend);
                     }
                 } else {
                     return 0;
@@ -718,20 +821,20 @@ namespace Gabut {
                 var total1 = row1.totalsize;
                 var total2 = row2.totalsize;
                 if (total1 > total2) {
-                    return 1;
+                    return set_ascen (deascend);
                 }
                 if (total1 < total2) {
-                    return -1;
+                    return set_descen (deascend);
                 }
             } else if (sorttype.get_index () == 2) {
                 if (row1.fileordir != null && row2.fileordir != null) {
                     var fordir1 = row1.fileordir.down ();
                     var fordir2 = row2.fileordir.down ();
                     if (fordir1 > fordir2) {
-                        return 1;
+                        return set_ascen (deascend);
                     }
                     if (fordir1 < fordir2) {
-                        return -1;
+                        return set_descen (deascend);
                     }
                 } else {
                     return 0;
@@ -740,13 +843,35 @@ namespace Gabut {
                 var timeadded1 = row1.timeadded;
                 var timeadded2 = row2.timeadded;
                 if (timeadded1 > timeadded2) {
-                    return -1;
+                    return set_ascen (deascend);
                 }
                 if (timeadded1 < timeadded2) {
-                    return 1;
+                    return set_descen (deascend);
                 }
             }
             return 0;
+        }
+
+        [CCode (instance_pos = -1)]
+        private void header_dm (DownloadRow row1, DownloadRow? row2) {
+            var date1 = new GLib.DateTime.from_unix_local (row1.timeadded);
+            if (row2 == null) {
+                var label = new Gtk.Label (date1.format ("%A %I:%M %p %d/%m/%Y")) {
+                    xalign = 0,
+                    margin_start = 5,
+                    attributes = color_attribute (60000, 30000, 19764)
+                };
+                row1.set_header (label);
+            } else if (row2 == null || date1.format ("%x") != new GLib.DateTime.from_unix_local (row2.timeadded).format ("%x")) {
+                var label = new Gtk.Label (date1.format ("%A %I:%M %p %d/%m/%Y")) {
+                    xalign = 0,
+                    margin_start = 5,
+                    attributes = color_attribute (60000, 30000, 19764)
+                };
+                row1.set_header (label);
+            } else {
+                row1.set_header (null);
+            }
         }
 
         public void view_status () {
@@ -860,6 +985,7 @@ namespace Gabut {
                     break;
             }
             list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
+            listrow.sort (sort_dm);
         }
     }
 }

@@ -33,5 +33,6 @@ sources = files (
     'ServerShare.vala',
     'ServerNotFound.vala',
     'ServerComplete.vala',
-    'SortBy.vala'
+    'SortBy.vala',
+    'DeAscending.vala'
 )

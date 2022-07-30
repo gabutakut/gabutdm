@@ -59,7 +59,9 @@ namespace Gabut {
         CLIPBOARD = 35,
         SHAREDIR = 36,
         SWITCHDIR = 37,
-        SORTBY = 38;
+        SORTBY = 38,
+        ASCEDESCEN = 39,
+        SHOWTIME = 40;
 
         public string get_name () {
             switch (this) {
@@ -139,6 +141,10 @@ namespace Gabut {
                     return "switchdir";
                 case SORTBY:
                     return "sortby";
+                case ASCEDESCEN:
+                    return "ascedescen";
+                case SHOWTIME:
+                    return "showtime";
                 default:
                     return "id";
             }
@@ -1293,6 +1299,24 @@ namespace Gabut {
         }
     }
 
+    public enum DeAscend {
+        ASCENDING = 0,
+        DESCENDING = 1;
+
+        public string get_name () {
+            switch (this) {
+                case DESCENDING:
+                    return "Descending";
+                default:
+                    return "Ascending";
+            }
+        }
+
+        public static DeAscend [] get_all () {
+            return { ASCENDING, DESCENDING};
+        }
+    }
+
     public enum MenuItem {
         VISIBLE = 0,
         ENABLED = 1,
@@ -1427,7 +1451,7 @@ namespace Gabut {
         return "";
     }
 
-    private string aria_url (string url, Gee.HashMap<string, string> options) {
+    private string aria_url (string url, Gee.HashMap<string, string> options, int arpos) {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1438,7 +1462,7 @@ namespace Gabut {
             stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
             return true;
         });
-        stringbuild.append ("}]}");
+        stringbuild.append (@"}, $(arpos)]}");
         string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
@@ -1446,7 +1470,7 @@ namespace Gabut {
         return result_ret (result);
     }
 
-    private string aria_torrent (string torr, Gee.HashMap<string, string> options) {
+    private string aria_torrent (string torr, Gee.HashMap<string, string> options, int arpos) {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1457,7 +1481,7 @@ namespace Gabut {
             stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
             return true;
         });
-        stringbuild.append ("}]}");
+        stringbuild.append (@"}, $(arpos)]}");
         string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
@@ -1465,7 +1489,7 @@ namespace Gabut {
         return result_ret (result);
     }
 
-    private string aria_metalink (string metal, Gee.HashMap<string, string> options) {
+    private string aria_metalink (string metal, Gee.HashMap<string, string> options, int arpos) {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
@@ -1476,7 +1500,7 @@ namespace Gabut {
             stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
             return true;
         });
-        stringbuild.append ("}]}");
+        stringbuild.append (@"}, $(arpos)]}");
         string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
             return "";
@@ -1526,6 +1550,14 @@ namespace Gabut {
 
     private string aria_unpause (string gid) {
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.unpause\", \"params\":[\"$(gid)\"]}");
+        if (!result.down ().contains ("result") || result == null) {
+            return "";
+        }
+        return result_ret (result);
+    }
+
+    private string aria_position (string gid, int arpos) {
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changePosition\", \"params\":[\"$(gid)\", $(arpos), \"POS_SET\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -2186,6 +2218,22 @@ namespace Gabut {
         return hlabel;
     }
 
+    private int set_ascen (DeAscending deascending) {
+        if (deascending.deascend == DeAscend.ASCENDING) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    private int set_descen (DeAscending deascending) {
+        if (deascending.deascend == DeAscend.DESCENDING) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
     private File[] run_open_file (Gtk.Window window) {
         var loopop = new GLib.MainLoop (null, false);
         var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
@@ -2478,13 +2526,15 @@ namespace Gabut {
             clipboard      TEXT    NOT NULL,
             sharedir       TEXT    NOT NULL,
             switchdir      TEXT    NOT NULL,
-            sortby         TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\");");
+            sortby         TEXT    NOT NULL,
+            ascedescen     TEXT    NOT NULL,
+            showtime       TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.SORTBY) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.SHOWTIME) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
