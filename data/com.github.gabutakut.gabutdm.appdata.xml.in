@@ -33,7 +33,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="1.8.7" date="2022-7-28">
+    <release version="1.8.8" date="2022-7-30">
       <description>
         <p>New Style</p>
       </description>
