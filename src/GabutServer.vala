@@ -25,7 +25,7 @@ namespace Gabut {
         public signal void delete_row (string ariagid);
         public signal void send_post_data (MatchInfo match_info);
         public signal void address_url (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
-        public signal GLib.List<DownloadRow> get_dl_row (int status);
+        public signal Gee.ArrayList<DownloadRow> get_dl_row (int status);
         private string username;
         private Soup.AuthDomainDigest authenti;
         private SourceFunc callback;
@@ -127,13 +127,16 @@ namespace Gabut {
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
                 if (result.contains ("actiondm")) {
-                    get_dl_row (StatusMode.COMPLETE).foreach ((row)=> {
+                    var dlist = get_dl_row (StatusMode.COMPLETE);
+                    dlist.sort (sort_dm);
+                    dlist.foreach ((row)=> {
                         if (row.ariagid == result.slice (result.last_index_of ("+") + 1, result.last_index_of ("="))) {
                             msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
                             msg.set_status (Soup.Status.OK, "OK");
                         } else {
                             msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                         }
+                        return true;
                     });
                 } else {
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
@@ -213,7 +216,7 @@ namespace Gabut {
                             address_url (reslink, hashoption, false, LinkMode.URL);
                         }
                     }
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } else if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
@@ -232,17 +235,22 @@ namespace Gabut {
                             address_url (bencode, hashoption, false, LinkMode.METALINK);
                         }
                     }
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } else if (result.contains ("actiondm")) {
                     updat_row (result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")));
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } else if (result.contains ("actiondelete")) {
                     delete_row (result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")));
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
+                    msg.set_status (Soup.Status.OK, "OK");
+                    self.unpause_message (msg);
+                } else if (!result.contains ("+") && result.contains ("sort")) {
+                    update_user (username, UserID.SHORTBY, result.split ("=")[1]);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } else {
@@ -250,7 +258,7 @@ namespace Gabut {
                     self.unpause_message (msg);
                 }
             } else if (msg.get_method () == "GET") {
-                msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path)).data);
+                msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                 msg.set_status (Soup.Status.OK, "OK");
                 self.unpause_message (msg);
             }
@@ -260,46 +268,56 @@ namespace Gabut {
             var htmlstr = "";
             if (path == "/Downloading") {
                 var dlist = get_dl_row (StatusMode.ACTIVE);
-                if (dlist.length () > 0) {
+                dlist.sort (sort_dm);
+                if (dlist.size > 0) {
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Pause", path);
+                        return true;
                     });
                     htmlstr += "</div>";
                 }
             } else if (path == "/Paused") {
                 var dlist = get_dl_row (StatusMode.PAUSED);
-                if (dlist.length () > 0) {
+                dlist.sort (sort_dm);
+                if (dlist.size > 0) {
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Start", path);
+                        return true;
                     });
                     htmlstr += "</div>";
                 }
             } else if (path == "/Complete") {
                 var dlist = get_dl_row (StatusMode.COMPLETE);
-                if (dlist.length () > 0) {
+                dlist.sort (sort_dm);
+                if (dlist.size > 0) {
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Complete", path);
+                        return true;
                     });
                     htmlstr += "</div>";
                 }
             } else if (path == "/Waiting") {
                 var dlist = get_dl_row (StatusMode.WAIT);
-                if (dlist.length () > 0) {
+                dlist.sort (sort_dm);
+                if (dlist.size > 0) {
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Waiting", path);
+                        return true;
                     });
                     htmlstr += "</div>";
                 }
             } else if (path == "/Error") {
                 var dlist = get_dl_row (StatusMode.ERROR);
-                if (dlist.length () > 0) {
+                dlist.sort (sort_dm);
+                if (dlist.size > 0) {
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Error", path);
+                        return true;
                     });
                     htmlstr += "</div>";
                 }
@@ -310,11 +328,60 @@ namespace Gabut {
         private string javascr_dm (string path) {
             var script = "";
             if (path == "/Downloading") {
-                if (get_dl_row (StatusMode.ACTIVE).length () > 0) {
+                if (get_dl_row (StatusMode.ACTIVE).size > 0) {
                     script = "<script>setInterval(function () { if (document.getElementById(\"myOverlay\").style.display != \"block\") {window.location.reload ();} }, 1300); </script>\n";
                 }
             }
             return script;
+        }
+
+        private int sort_dm (DownloadRow row1, DownloadRow row2) {
+            if (int.parse (get_db_user (UserID.SHORTBY, username)) == 0) {
+                if (row1.filename != null && row2.filename != null) {
+                    var name1 = row1.filename.down ();
+                    var name2 = row2.filename.down ();
+                    if (name1 > name2) {
+                        return 1;
+                    }
+                    if (name1 < name2) {
+                        return -1;
+                    }
+                } else {
+                    return 0;
+                }
+            } else if (int.parse (get_db_user (UserID.SHORTBY, username)) == 1) {
+                var total1 = row1.totalsize;
+                var total2 = row2.totalsize;
+                if (total1 > total2) {
+                    return 1;
+                }
+                if (total1 < total2) {
+                    return -1;
+                }
+            } else if (int.parse (get_db_user (UserID.SHORTBY, username)) == 2) {
+                if (row1.fileordir != null && row2.fileordir != null) {
+                    var fordir1 = row1.fileordir.down ();
+                    var fordir2 = row2.fileordir.down ();
+                    if (fordir1 > fordir2) {
+                        return 1;
+                    }
+                    if (fordir1 < fordir2) {
+                        return -1;
+                    }
+                } else {
+                    return 0;
+                }
+            } else {
+                var timeadded1 = row1.timeadded;
+                var timeadded2 = row2.timeadded;
+                if (timeadded1 > timeadded2) {
+                    return 1;
+                }
+                if (timeadded1 < timeadded2) {
+                    return -1;
+                }
+            }
+            return 0;
         }
 
         private void share_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
@@ -419,15 +486,15 @@ namespace Gabut {
             }
             switch (int.parse (get_db_user (UserID.SHORTBY, username))) {
                 case 1:
-                    filesorter.set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 1);
-                    filesorter.set_sort_column_id (FSorter.MIMETYPE, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 2);
-                    break;
-                case 2:
                     filesorter.set_sort_column_id (FSorter.FILEINDIR, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 1);
                     filesorter.set_sort_column_id (FSorter.SIZE, Gtk.SortType.ASCENDING);
+                    htmlstr += load_item (filesorter, pathfile, 2);
+                    break;
+                case 2:
+                    filesorter.set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
+                    htmlstr += load_item (filesorter, pathfile, 1);
+                    filesorter.set_sort_column_id (FSorter.MIMETYPE, Gtk.SortType.ASCENDING);
                     htmlstr += load_item (filesorter, pathfile, 2);
                     break;
                 case 3:

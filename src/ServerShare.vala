@@ -56,8 +56,8 @@ namespace Gabut {
                     <form action=\"$(path)\" method=\"POST\">
                         <select name=\"sort\">
                             <option $(get_shorted (0, username))Sort By Name</option>
-                            <option $(get_shorted (1, username))Sort By Type</option>
-                            <option $(get_shorted (2, username))Sort By Size</option>
+                            <option $(get_shorted (1, username))Sort By Size</option>
+                            <option $(get_shorted (2, username))Sort By Type</option>
                             <option $(get_shorted (3, username))Sort By Date</option>
                         </select>
                         <input type=\"submit\" class=\"btn btn-primary btn-lg active\" value=\"Submit\">

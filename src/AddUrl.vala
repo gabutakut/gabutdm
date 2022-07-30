@@ -784,19 +784,19 @@ namespace Gabut {
                     if (row.linkmode == LinkMode.TORRENT) {
                         if (row.url.has_prefix ("magnet:?")) {
                             row.linkmode = LinkMode.MAGNETLINK;
-                            row.ariagid = aria_url (row.url, hashoptions);
+                            row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
                         } else {
-                            row.ariagid = aria_torrent (row.url, hashoptions);
+                            row.ariagid = aria_torrent (row.url, hashoptions, row.activedm ());
                         }
                     } else if (row.linkmode == LinkMode.METALINK) {
-                        row.ariagid = aria_metalink (row.url, hashoptions);
+                        row.ariagid = aria_metalink (row.url, hashoptions, row.activedm ());
                     } else if (row.linkmode == LinkMode.URL) {
                         if (row.url.has_prefix ("magnet:?")) {
                             row.linkmode = LinkMode.MAGNETLINK;
-                            row.ariagid = aria_url (row.url, hashoptions);
+                            row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
                         } else {
                             row.linkmode = LinkMode.URL;
-                            row.ariagid = aria_url (row.url, hashoptions);
+                            row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
                         }
                     }
                 }

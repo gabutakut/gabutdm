@@ -21,6 +21,7 @@
 
 namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
+        public signal int activedm ();
         public signal void delete_me (DownloadRow row);
         public signal void update_agid (string ariagid, string newgid);
         private Gtk.Button start_button;
@@ -321,15 +322,15 @@ namespace Gabut {
             if_not_exist (ariagid, linkmode, status);
         }
 
-        public DownloadRow.Url (string url, Gee.HashMap<string, string> options, int linkmode) {
+        public DownloadRow.Url (string url, Gee.HashMap<string, string> options, int linkmode, int activedm) {
             this.hashoption = options;
             this.linkmode = linkmode;
             if (linkmode == LinkMode.TORRENT) {
-                ariagid = aria_torrent (url, hashoption);
+                ariagid = aria_torrent (url, hashoption, activedm);
             } else if (linkmode == LinkMode.METALINK) {
-                ariagid = aria_metalink (url, hashoption);
+                ariagid = aria_metalink (url, hashoption, activedm);
             } else if (linkmode == LinkMode.MAGNETLINK || linkmode == LinkMode.URL) {
-                ariagid = aria_url (url, hashoption);
+                ariagid = aria_url (url, hashoption, activedm);
                 filename = url;
             }
             this.url = url;
@@ -429,18 +430,18 @@ namespace Gabut {
                 if (linkm == LinkMode.TORRENT) {
                     if (url.has_prefix ("magnet:?")) {
                         linkmode = LinkMode.MAGNETLINK;
-                        ariagid = aria_url (url, hashoption);
+                        ariagid = aria_url (url, hashoption, activedm ());
                     } else {
-                        ariagid = aria_torrent (url, hashoption);
+                        ariagid = aria_torrent (url, hashoption, activedm ());
                     }
                 } else if (linkm == LinkMode.METALINK) {
-                    ariagid = aria_metalink (url, hashoption);
+                    ariagid = aria_metalink (url, hashoption, activedm ());
                 } else if (linkm == LinkMode.URL) {
                     if (url.has_prefix ("magnet:?")) {
                         linkmode = LinkMode.MAGNETLINK;
-                        ariagid = aria_url (url, hashoption);
+                        ariagid = aria_url (url, hashoption, activedm ());
                     } else {
-                        ariagid = aria_url (url, hashoption);
+                        ariagid = aria_url (url, hashoption, activedm ());
                     }
                 }
             }
@@ -472,21 +473,22 @@ namespace Gabut {
                     if (linkmode == LinkMode.TORRENT) {
                         if (url.has_prefix ("magnet:?")) {
                             linkmode = LinkMode.MAGNETLINK;
-                            ariagid = aria_url (url, hashoption);
+                            ariagid = aria_url (url, hashoption, activedm ());
                         } else {
-                            ariagid = aria_torrent (url, hashoption);
+                            ariagid = aria_torrent (url, hashoption, activedm ());
                         }
                     }
                 }
                 remove_timeout ();
             } else if (status == StatusMode.PAUSED) {
+                aria_position (ariagid, activedm ());
                 if (aria_unpause (ariagid) == "") {
                     if (linkmode == LinkMode.TORRENT) {
                         if (url.has_prefix ("magnet:?")) {
                             linkmode = LinkMode.MAGNETLINK;
-                            ariagid = aria_url (url, hashoption);
+                            ariagid = aria_url (url, hashoption, activedm ());
                         } else {
-                            ariagid = aria_torrent (url, hashoption);
+                            ariagid = aria_torrent (url, hashoption, activedm ());
                         }
                     }
                 }
@@ -500,18 +502,18 @@ namespace Gabut {
                 if (linkmode == LinkMode.TORRENT) {
                     if (url.has_prefix ("magnet:?")) {
                         linkmode = LinkMode.MAGNETLINK;
-                        ariagid = aria_url (url, hashoption);
+                        ariagid = aria_url (url, hashoption, activedm ());
                     } else {
-                        ariagid = aria_torrent (url, hashoption);
+                        ariagid = aria_torrent (url, hashoption, activedm ());
                     }
                 } else if (linkmode == LinkMode.METALINK) {
-                    ariagid = aria_metalink (url, hashoption);
+                    ariagid = aria_metalink (url, hashoption, activedm ());
                 } else if (linkmode == LinkMode.URL) {
                     if (url.has_prefix ("magnet:?")) {
                         linkmode = LinkMode.MAGNETLINK;
-                        ariagid = aria_url (url, hashoption);
+                        ariagid = aria_url (url, hashoption, activedm ());
                     } else {
-                        ariagid = aria_url (url, hashoption);
+                        ariagid = aria_url (url, hashoption, activedm ());
                     }
                 }
                 add_timeout ();
@@ -528,9 +530,9 @@ namespace Gabut {
                 }
                 if (url.has_prefix ("magnet:?")) {
                     linkmode = LinkMode.MAGNETLINK;
-                    this.ariagid = aria_url (url, hashoption);
+                    this.ariagid = aria_url (url, hashoption, activedm ());
                 } else {
-                    this.ariagid = aria_torrent (url, hashoption);
+                    this.ariagid = aria_torrent (url, hashoption, activedm ());
                 }
             } else if (linkmode == LinkMode.METALINK) {
                 aria_unpause (ariagid);
@@ -538,7 +540,7 @@ namespace Gabut {
                 if (selected != "") {
                     hashoption[AriaOptions.SELECT_FILE.get_name ()] = selected;
                 }
-                this.ariagid = aria_metalink (url, hashoption);
+                this.ariagid = aria_metalink (url, hashoption, activedm ());
             }
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             add_timeout ();
