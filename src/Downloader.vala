@@ -189,7 +189,7 @@ namespace Gabut {
                     case 1:
                         torrentmode.label = _("Mode: %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
                         var timesn = new GLib.DateTime.from_unix_local (int64.parse (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE)));
-                        timecreation.label = _("Time Creation: %s").printf (timesn.format ("%I:%M %p %x"));
+                        timecreation.label = _("Time Creation: %s").printf (timesn.format ("%a, %I:%M %p %x"));
                         infotorrent.buffer.text = aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST).strip ();
                         var commenttorrent = aria_tell_bittorent (ariagid, TellBittorrent.COMMENT);
                         commenttext.buffer.text = commenttorrent.contains ("\\/")? GLib.Uri.unescape_string (commenttorrent.replace ("\\/", "/")) : commenttorrent;

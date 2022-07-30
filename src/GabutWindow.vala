@@ -399,13 +399,13 @@ namespace Gabut {
                 }
             });
             showdatetime.toggled.connect (()=> {
+                sort_popover.hide ();
                 if (showdatetime.active) {
                     list_box.set_header_func ((Gtk.ListBoxUpdateHeaderFunc) header_dm);
                 } else {
                     list_box.set_header_func (null);
                 }
                 set_dbsetting (DBSettings.SHOWTIME, showdatetime.active.to_string ());
-                sort_popover.hide ();
             });
             if (showdatetime.active) {
                 list_box.set_header_func ((Gtk.ListBoxUpdateHeaderFunc) header_dm);
@@ -417,10 +417,10 @@ namespace Gabut {
             }
             sort_flow.show ();
             sort_flow.child_activated.connect ((shorty)=> {
+                sort_popover.hide ();
                 sorttype = shorty as SortBy;
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
                 listrow.sort (sort_dm);
-                sort_popover.hide ();
             });
             sorttype = sort_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.SORTBY))) as SortBy;
             foreach (var deas in DeAscend.get_all ()) {
@@ -428,6 +428,7 @@ namespace Gabut {
             }
             deas_flow.show ();
             deas_flow.child_activated.connect ((deas)=> {
+                sort_popover.hide ();
                 deascend = deas as DeAscending;
                 for (int i = 0; i <= DeAscend.DESCENDING; i++) {
                     ((DeAscending) deas_flow.get_child_at_index (i)).activebtn = false;    
@@ -435,7 +436,6 @@ namespace Gabut {
                 ((DeAscending) deas_flow.get_child_at_index (deascend.get_index ())).activebtn = true;
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
                 listrow.sort (sort_dm);
-                sort_popover.hide ();
             });
             deascend = deas_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.ASCEDESCEN))) as DeAscending;
             ((DeAscending) deas_flow.get_child_at_index (deascend.get_index ())).activebtn = true;
