@@ -1611,6 +1611,14 @@ namespace Gabut {
         return "";
     }
 
+    private string aria_v2_status (string gid) {
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\"]}");
+        if (!result.down ().contains ("result") || result == null) {
+            return "";
+        }
+        return result;
+    }
+
     private string aria_tell_bittorent (string gid, TellBittorrent tellbit) {
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}");
         if (!result.down ().contains ("result") || result == null) {
@@ -1773,6 +1781,14 @@ namespace Gabut {
         return "";
     }
 
+    private string aria_v2_globalops () {
+        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}");
+        if (!result.down ().contains ("result") || result == null) {
+            return "";
+        }
+        return result;
+    }
+
     private string aria_set_globalops (AriaOptions option, string value) {
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.changeGlobalOption\", \"params\":[{\"$(option.get_name ())\":\"$(value)\"}]}");
         if (!result.down ().contains ("result") || result == null) {
@@ -1787,26 +1803,6 @@ namespace Gabut {
             return "";
         }
         return result_ret (result);
-    }
-
-    private string aria_geturis (string gid) {
-        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getUris\", \"params\":[\"$(gid)\"]}");
-        if (!result.down ().contains ("result") || result == null) {
-            return "";
-        }
-        try {
-            MatchInfo match_info;
-            Regex regex = new Regex ("\"uri\":\"(.*?)\"");
-            if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                string statusuris = match_info.fetch (1);
-                if (statusuris != null) {
-                    return statusuris.replace ("\\/", "/");
-                }
-            }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
-        return "";
     }
 
     private string aria_globalstat (GlobalStat stat) {
@@ -2021,6 +2017,51 @@ namespace Gabut {
 
     private async void drop_zonemin () throws Error {
         yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", file_config (".dropzone.min.css"));
+    }
+
+    private string pharse_tells (string status, TellStatus type) {
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex (@"\"$(type.get_name ())\":\"(.*?)\"");
+            if (regex.match_full (status, -1, 0, 0, out match_info)) {
+                string tellus = match_info.fetch (1);
+                if (tellus != null) {
+                    return tellus;
+                }
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "";
+    }
+
+    private string pharse_files (string status, AriaGetfiles files) {
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
+            if (regex.match_full (status, -1, 0, 0, out match_info)) {
+                string getfile = match_info.fetch (1);
+                if (getfile != "" || getfile != null) {
+                    return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
+                }
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "";
+    }
+
+    private string pharse_options (string status, AriaOptions option) {
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex (@"\"$(option.get_name ())\":\"(.*?)\"");
+            if (regex.match_full (status, -1, 0, 0, out match_info)) {
+                return match_info.fetch (1);
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "";
     }
 
     private int get_container (File file) {

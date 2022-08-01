@@ -626,18 +626,20 @@ namespace Gabut {
 
         int64 delaytime = 0;
         private bool update_progress () {
-            totalsize = int64.parse (aria_tell_status (ariagid, TellStatus.TOTALLENGTH));
-            transferrate = int.parse (aria_tell_status (ariagid, TellStatus.DOWNLOADSPEED));
+            var pack_data = aria_v2_status (ariagid);
+            totalsize = int64.parse (pharse_tells (pack_data, TellStatus.TOTALLENGTH));
+            transferred = int64.parse (pharse_tells (pack_data, TellStatus.COMPELETEDLENGTH));
+            transferrate = int.parse (pharse_tells (pack_data, TellStatus.DOWNLOADSPEED));
             if (view_mode.selected == 0) {
-                transferred = int64.parse (aria_tell_status (ariagid, TellStatus.COMPELETEDLENGTH));
-                aconnection = int.parse (aria_tell_status (ariagid, TellStatus.CONNECTIONS));
+                transferred = int64.parse (pharse_tells (pack_data, TellStatus.COMPELETEDLENGTH));
+                aconnection = int.parse (pharse_tells (pack_data, TellStatus.CONNECTIONS));
                 if (totalsize > 0 && transferrate > 0) {
                     uint64 remaining_time = (totalsize - transferred) / transferrate;
                     timeleft.label = format_time ((int) remaining_time);
                 }
-                url = aria_geturis (ariagid);
+                url = pharse_files (pack_data, AriaGetfiles.URIS);
                 if (url == "") {
-                    url = aria_tell_status (ariagid, TellStatus.INFOHASH);
+                    url = pharse_tells (pack_data, TellStatus.INFOHASH);
                 }
             } else if (view_mode.selected == 2) {
                 if (delaytime % 2 == 0) {
@@ -648,7 +650,7 @@ namespace Gabut {
             }
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status == StatusMode.ERROR) {
-                url = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
+                url = get_aria_error (int.parse (pharse_tells (pack_data, TellStatus.ERRORCODE)));
             }
             delaytime++;
             return stoptimer;
