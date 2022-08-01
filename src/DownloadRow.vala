@@ -90,6 +90,7 @@ namespace Gabut {
                         start_button.icon_name = "media-playback-pause";
                         start_button.tooltip_text = _("Paused");
                         remove_timeout ();
+                        labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
                         if (url != null && db_download_exist (url)) {
                             update_download (this);
                         }
@@ -141,6 +142,7 @@ namespace Gabut {
                         start_button.icon_name = "preferences-system-time";
                         start_button.tooltip_text = _("Waiting");
                         remove_timeout ();
+                        labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
                         if (url != null && db_download_exist (url)) {
                             update_download (this);
                         }
@@ -596,10 +598,12 @@ namespace Gabut {
                 timedownload = "";
             }
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
-            if (status == StatusMode.PAUSED) {
-                labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
-            } else if (status != StatusMode.ERROR) {
-                labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize)) $(duprate) $(downrate) $(timedownload)";
+            if (status != StatusMode.ERROR) {
+                if (status != StatusMode.ACTIVE) {
+                    labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
+                } else {
+                    labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize)) $(duprate) $(downrate) $(timedownload)";
+                }
             }
             return stoptimer;
         }
