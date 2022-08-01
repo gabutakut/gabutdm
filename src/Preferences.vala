@@ -113,52 +113,53 @@ namespace Gabut {
             header.decoration_layout = "none";
             header.title_widget = view_mode;
 
+            var pack_data = aria_v2_globalops ();
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.MAX_TRIES))
+                value = double.parse (pharse_options (pack_data, AriaOptions.MAX_TRIES))
             };
 
             var numbconn = new Gtk.SpinButton.with_range (0, 16, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER))
+                value = double.parse (pharse_options (pack_data, AriaOptions.MAX_CONNECTION_PER_SERVER))
             };
 
             var maxcurrent = new Gtk.SpinButton.with_range (1, 50, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))
+                value = double.parse (pharse_options (pack_data, AriaOptions.MAX_CONCURRENT_DOWNLOADS))
             };
 
             var timeout = new Gtk.SpinButton.with_range (0, 600, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.TIMEOUT))
+                value = double.parse (pharse_options (pack_data, AriaOptions.TIMEOUT))
             };
 
             var retry = new Gtk.SpinButton.with_range (0, 600, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.RETRY_WAIT))
+                value = double.parse (pharse_options (pack_data, AriaOptions.RETRY_WAIT))
             };
 
             var split = new Gtk.SpinButton.with_range (0, 6000, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.SPLIT))
+                value = double.parse (pharse_options (pack_data, AriaOptions.SPLIT))
             };
 
             var splitsize = new Gtk.SpinButton.with_range (0, 9999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.MIN_SPLIT_SIZE)) / 1024
+                value = double.parse (pharse_options (pack_data, AriaOptions.MIN_SPLIT_SIZE)) / 1024
             };
 
             var lowestspd = new Gtk.SpinButton.with_range (0, 9999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.LOWEST_SPEED_LIMIT)) / 1024
+                value = double.parse (pharse_options (pack_data, AriaOptions.LOWEST_SPEED_LIMIT)) / 1024
             };
 
             var stream_flow = new Gtk.FlowBox () {
@@ -189,7 +190,7 @@ namespace Gabut {
             });
             for (int a = 0; a <= PieceSelectors.GEOM; a++) {
                 var piecesel = stream_flow.get_child_at_index (a);
-                if (((PieceSelector) piecesel).selector.get_name ().down () == aria_get_globalops (AriaOptions.STREAM_PIECE_SELECTOR)) {
+                if (((PieceSelector) piecesel).selector.get_name ().down () == pharse_options (pack_data, AriaOptions.STREAM_PIECE_SELECTOR)) {
                     pieceselector = piecesel as PieceSelector;
                 }
             }
@@ -222,7 +223,7 @@ namespace Gabut {
             });
             for (int a = 0; a <= UriSelectors.ADAPTIVE; a++) {
                 var urisel = urisel_flow.get_child_at_index (a);
-                if (((UriSelector) urisel).selector.get_name ().down () == aria_get_globalops (AriaOptions.URI_SELECTOR)) {
+                if (((UriSelector) urisel).selector.get_name ().down () == pharse_options (pack_data, AriaOptions.URI_SELECTOR)) {
                     uriselector = urisel as UriSelector;
                 }
             }
@@ -260,42 +261,42 @@ namespace Gabut {
             var maxopfile = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_OPEN_FILES))
+                value = double.parse (pharse_options (pack_data, AriaOptions.BT_MAX_OPEN_FILES))
             };
 
             var maxpeers = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.BT_MAX_PEERS))
+                value = double.parse (pharse_options (pack_data, AriaOptions.BT_MAX_PEERS))
             };
 
             var bt_timeout = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.BT_TRACKER_TIMEOUT))
+                value = double.parse (pharse_options (pack_data, AriaOptions.BT_TRACKER_TIMEOUT))
             };
 
             var bt_seedtime = new Gtk.SpinButton.with_range (0, 240, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.SEED_TIME))
+                value = double.parse (pharse_options (pack_data, AriaOptions.SEED_TIME))
             };
 
             var bt_upload = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT)) / 1024
+                value = double.parse (pharse_options (pack_data, AriaOptions.MAX_OVERALL_UPLOAD_LIMIT)) / 1024
             };
 
             var bt_download = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT)) / 1024
+                value = double.parse (pharse_options (pack_data, AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT)) / 1024
             };
             var trackertext = new Gtk.TextView () {
                 wrap_mode = Gtk.WrapMode.WORD_CHAR
             };
-            trackertext.buffer.text = aria_get_globalops (AriaOptions.BT_TRACKER).replace ("\\/", "/");
+            trackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_TRACKER).replace ("\\/", "/");
 
             var trackerscr = new Gtk.ScrolledWindow () {
                 width_request = 220,
@@ -348,7 +349,7 @@ namespace Gabut {
             var etrackertext = new Gtk.TextView () {
                 wrap_mode = Gtk.WrapMode.WORD_CHAR
             };
-            etrackertext.buffer.text = aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
+            etrackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
 
             var etrackerscr = new Gtk.ScrolledWindow () {
                 width_request = 220,
@@ -428,7 +429,7 @@ namespace Gabut {
                     selectfd = file;
                 }
             });
-            selectfd = File.new_for_path (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/"));
+            selectfd = File.new_for_path (pharse_options (pack_data, AriaOptions.DIR).replace ("\\/", "/"));
 
             folder_sharing = new Gtk.Button ();
             folder_sharing.clicked.connect (()=> {
@@ -498,7 +499,7 @@ namespace Gabut {
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
+                value = double.parse (pharse_options (pack_data, AriaOptions.RPC_LISTEN_PORT))
             };
 
             var local_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
@@ -510,25 +511,25 @@ namespace Gabut {
             var bt_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
+                value = double.parse (pharse_options (pack_data, AriaOptions.LISTEN_PORT))
             };
 
             var dht_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
+                value = double.parse (pharse_options (pack_data, AriaOptions.DHT_LISTEN_PORT))
             };
 
             var maxrequest = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))
+                value = double.parse (pharse_options (pack_data, AriaOptions.RPC_MAX_REQUEST_SIZE))
             };
 
             var diskcache = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
                 width_request = 220,
                 hexpand = true,
-                value = double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
+                value = double.parse (pharse_options (pack_data, AriaOptions.DISK_CACHE))
             };
 
             var allocate_flow = new Gtk.FlowBox () {
@@ -559,7 +560,7 @@ namespace Gabut {
             });
             for (int a = 0; a <= FileAllocations.FALLOC; a++) {
                 var allocate = allocate_flow.get_child_at_index (a);
-                if (((FileAllocation) allocate).fileallocation.get_name ().down () == aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
+                if (((FileAllocation) allocate).fileallocation.get_name ().down () == pharse_options (pack_data, AriaOptions.FILE_ALLOCATION)) {
                     fileallocation = allocate as FileAllocation;
                 }
             }
@@ -621,13 +622,13 @@ namespace Gabut {
             var allowrepl = new Gtk.CheckButton.with_label (_("Replace File")) {
                 margin_top = 5,
                 width_request = 450,
-                active = bool.parse (aria_get_globalops (AriaOptions.ALLOW_OVERWRITE))
+                active = bool.parse (pharse_options (pack_data, AriaOptions.ALLOW_OVERWRITE))
             };
 
             var autorename = new Gtk.CheckButton.with_label (_("Auto Rename")) {
                 margin_top = 5,
                 width_request = 450,
-                active = bool.parse (aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING))
+                active = bool.parse (pharse_options (pack_data, AriaOptions.AUTO_FILE_RENAMING))
             };
 
             var style_mode = new ModeTogle ();

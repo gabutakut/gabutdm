@@ -872,7 +872,7 @@ namespace Gabut {
         [CCode (instance_pos = -1)]
         private void header_dm (DownloadRow row1, DownloadRow? row2) {
             var date1 = new GLib.DateTime.from_unix_local (row1.timeadded);
-            var label = new Gtk.Label (date1.format (@"%A $(showdate.active? "- %d %B %Y" : "") $(showtime.active? "- %I:%M %p" : "")")) {
+            var label = new Gtk.Label (date1.format (@"%A $(showtime.active? "- %I:%M %p" : "") $(showdate.active? "- %d %B %Y" : "")")) {
                 xalign = 0,
                 margin_start = 5,
                 attributes = color_attribute (60000, 30000, 19764)
