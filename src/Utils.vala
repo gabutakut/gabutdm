@@ -898,7 +898,8 @@ namespace Gabut {
         PATH = 1,
         LENGTH = 2,
         COMPLETEDLENGTH = 3,
-        URIS = 4;
+        URIS = 4,
+        URI = 5;
 
         public string get_name () {
             switch (this) {
@@ -910,6 +911,8 @@ namespace Gabut {
                     return "completedlength";
                 case URIS:
                     return "uris";
+                case URI:
+                    return "uri";
                 default:
                     return "index";
             }
