@@ -637,7 +637,7 @@ namespace Gabut {
                     uint64 remaining_time = (totalsize - transferred) / transferrate;
                     timeleft.label = format_time ((int) remaining_time);
                 }
-                url = pharse_files (pack_data, AriaGetfiles.URIS);
+                url = pharse_files (pack_data, AriaGetfiles.URI);
                 if (url == "") {
                     url = pharse_tells (pack_data, TellStatus.INFOHASH);
                 }
