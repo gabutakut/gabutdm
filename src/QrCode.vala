@@ -23,6 +23,7 @@ namespace Gabut {
     public class QrCode : Gtk.Dialog {
         public signal string get_host (bool reboot);
         private Gtk.Image imageqr;
+        private Gtk.Image icon_badge;
         private Gtk.LinkButton linkbutton;
         private Gtk.Button host_button;
         private bool local_server;
@@ -42,11 +43,10 @@ namespace Gabut {
                 gicon = new ThemedIcon ("go-home")
             };
 
-            var icon_badge = new Gtk.Image () {
+            icon_badge = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
-                gicon = new ThemedIcon ("emblem-favorite"),
-                icon_size = Gtk.IconSize.LARGE
+                pixel_size = 24
             };
 
             var overlay = new Gtk.Overlay () {
@@ -162,9 +162,11 @@ namespace Gabut {
             if (local_server) {
                 host_button.label =_("Share Address");
                 ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 0, 0);
+                icon_badge.gicon = new ThemedIcon ("media-playback-pause");
             } else {
                 host_button.label = _("Stop Share");
                 ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 37000, 0);
+                icon_badge.gicon = new ThemedIcon ("media-playback-start");
             }
             string host = get_host (reboot);
             create_qrcode (host);

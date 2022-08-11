@@ -39,10 +39,14 @@ namespace Gabut {
         private Gtk.SpinButton bt_req_limit;
         private Gtk.ListStore torrstore;
         private Gtk.ListStore peerstore;
+        private Gtk.ListStore serverstore;
+        private Gtk.TreeView servertree;
         private Gtk.TreeView torrenttree;
         private Gtk.TreeView peerstree;
         private Gtk.TextView infotorrent;
         private Gtk.TextView commenttext;
+        private Gtk.Revealer revcon;
+        private Gtk.Button server_button;
         private ModeButton view_mode;
         private bool stoptimer;
 
@@ -218,7 +222,7 @@ namespace Gabut {
             progressbar = new Gtk.ProgressBar () {
                 hexpand = true,
                 pulse_step = 0.2,
-                width_request = 600
+                width_request = 650
             };
 
             linklabel = new Gtk.Label (null) {
@@ -354,7 +358,7 @@ namespace Gabut {
             peerstree.append_column (text_column (_("Host"), TorrentPeers.HOST));
             peerstree.append_column (text_column (_("Client"), TorrentPeers.PEERID));
             peerstree.append_column (text_column (_("Choking"), TorrentPeers.PEERCHOKING));
-            peerstree.append_column (text_column (_("D"), TorrentPeers.DOWNLOADSPEED));
+            peerstree.append_column (text_column (_("D"), TorrentPeers.DOWNLOADSPEED, true, true, 14, "text"));
             peerstree.append_column (text_column (_("U"), TorrentPeers.UPLOADSPEED));
 
             var peerscrolled = new Gtk.ScrolledWindow () {
@@ -371,7 +375,7 @@ namespace Gabut {
                 margin_bottom = 10
             };
             torrenttree.append_column (toggle_column (_("#"), FileCol.SELECTED));
-            torrenttree.append_column (text_column (_("Row"), FileCol.ROW));
+            torrenttree.append_column (text_column (_("N"), FileCol.ROW, false, false, 3));
             torrenttree.append_column (text_column (_("Name"), FileCol.NAME));
             torrenttree.append_column (text_column (_("Downloaded"), FileCol.DOWNLOADED));
             torrenttree.append_column (text_column (_("Size"), FileCol.SIZE));
@@ -468,13 +472,46 @@ namespace Gabut {
             });
 
             var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5) {
-                halign = Gtk.Align.END,
-                margin_top = 10,
-                margin_bottom = 10
+                halign = Gtk.Align.END
             };
             box_action.append (start_button);
             box_action.append (close_button);
 
+            server_button = new Gtk.Button.with_label (_("Connection")) {
+                width_request = 120,
+                height_request = 25
+            };
+            ((Gtk.Label) server_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
+
+            var centerbox = new Gtk.CenterBox () {
+                margin_top = 10,
+                margin_bottom = 10
+            };
+            centerbox.set_start_widget (server_button);
+            centerbox.set_end_widget (box_action);
+
+            serverstore = new Gtk.ListStore (ServersCol.N_COLUMNS, typeof (int), typeof (string), typeof (string), typeof (string));
+            servertree = new Gtk.TreeView () {
+                model = serverstore,
+                margin_bottom = 10
+            };
+            servertree.append_column (text_column (_("No"), ServersCol.NO, false, false, 1));
+            servertree.append_column (text_column (_("Download Speed"), ServersCol.DOWNLOADSPEED, false, false, 8, "text"));
+            servertree.append_column (text_column (_("Uris"), ServersCol.CURRENTURI));
+
+            var servscrolled = new Gtk.ScrolledWindow () {
+                width_request = 550,
+                height_request = 140,
+                margin_bottom = 5,
+                margin_top = 5,
+                child = servertree
+            };
+            revcon = new Gtk.Revealer () {
+                child = servscrolled
+            };
+            server_button.clicked.connect (()=> {
+                revcon.reveal_child = !revcon.child_revealed;
+            });
             var maingrid = new Gtk.Grid () {
                 halign = Gtk.Align.CENTER,
                 hexpand = true,
@@ -482,7 +519,8 @@ namespace Gabut {
                 margin_end = 10
             };
             maingrid.attach (boxstatus, 0, 0);
-            maingrid.attach (box_action, 0, 1);
+            maingrid.attach (centerbox, 0, 1);
+            maingrid.attach (revcon, 0, 2);
             child = maingrid;
 
             view_mode.notify["selected"].connect (() => {
@@ -511,14 +549,17 @@ namespace Gabut {
             update_progress ();
         }
 
-        private Gtk.TreeViewColumn text_column (string title, int column) {
-            var server_coll = new Gtk.TreeViewColumn.with_attributes (title, new Gtk.CellRendererText (), "markup", column) {
-                resizable = true,
+        private Gtk.TreeViewColumn text_column (string title, int column, bool resizable = true, bool expand = true, int width = 14, string markup = "markup") {
+            var celltext = new Gtk.CellRendererText () {
+                attributes = color_attribute (0, 60000, 0, false)
+            };
+            var server_coll = new Gtk.TreeViewColumn.with_attributes (title, celltext, markup, column) {
+                resizable = resizable,
                 clickable = true,
-                expand = true,
+                expand = expand,
                 sort_indicator = true,
                 sort_column_id = column,
-                min_width = 15
+                min_width = width
             };
             return server_coll;
         }
@@ -629,9 +670,8 @@ namespace Gabut {
             var pack_data = aria_v2_status (ariagid);
             totalsize = int64.parse (pharse_tells (pack_data, TellStatus.TOTALLENGTH));
             transferred = int64.parse (pharse_tells (pack_data, TellStatus.COMPELETEDLENGTH));
-            transferrate = int.parse (pharse_tells (pack_data, TellStatus.DOWNLOADSPEED));
             if (view_mode.selected == 0) {
-                transferred = int64.parse (pharse_tells (pack_data, TellStatus.COMPELETEDLENGTH));
+                transferrate = int.parse (pharse_tells (pack_data, TellStatus.DOWNLOADSPEED));
                 aconnection = int.parse (pharse_tells (pack_data, TellStatus.CONNECTIONS));
                 if (totalsize > 0 && transferrate > 0) {
                     uint64 remaining_time = (totalsize - transferred) / transferrate;
@@ -640,6 +680,7 @@ namespace Gabut {
                 url = pharse_files (pack_data, AriaGetfiles.URI);
                 if (url == "") {
                     url = pharse_tells (pack_data, TellStatus.INFOHASH);
+                    server_button.hide ();
                 }
             } else if (view_mode.selected == 2) {
                 if (delaytime % 2 == 0) {
@@ -651,6 +692,21 @@ namespace Gabut {
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status == StatusMode.ERROR) {
                 url = get_aria_error (int.parse (pharse_tells (pack_data, TellStatus.ERRORCODE)));
+            }
+            if (revcon.child_revealed) {
+                if (delaytime % 2 == 0) {
+                    int nfile = 0;
+                    serverstore.clear ();
+                    aria_servers_store (ariagid).foreach ((model, path, ite)=> {
+                        string uri, speed, curi;
+                        model.get (ite, ServersCol.URI, out uri, ServersCol.DOWNLOADSPEED, out speed, ServersCol.CURRENTURI, out curi);
+                        nfile++;
+                        Gtk.TreeIter iter;
+                        serverstore.append (out iter);
+                        serverstore.set (iter, ServersCol.NO, nfile, ServersCol.URI, Markup.escape_text (uri), ServersCol.DOWNLOADSPEED, GLib.format_size (int64.parse (speed)), ServersCol.CURRENTURI, curi != null? Markup.escape_text (curi.replace ("\\/", "/")) : curi);
+                        return false;
+                    });
+                }
             }
             delaytime++;
             return stoptimer;

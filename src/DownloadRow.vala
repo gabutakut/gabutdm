@@ -22,8 +22,8 @@
 namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
         public signal int activedm ();
-        public signal void delete_me (DownloadRow row);
         public signal void update_agid (string ariagid, string newgid);
+        public signal void myproperty ();
         private Gtk.Button start_button;
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
@@ -151,7 +151,6 @@ namespace Gabut {
                         start_button.icon_name = "dialog-error";
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null && url != null) {
-                            filepath = aria_str_files (AriaGetfiles.PATH, ariagid);
                             labeltransfer = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
                             if (filename != null) {
                                 notify_app (_("Download Error"), filename, imagefile.gicon);
@@ -455,12 +454,14 @@ namespace Gabut {
         public void start_notif () {
             if (linkmode == LinkMode.TORRENT) {
                 notify_app (_("Starting"),
-                            _("Torrent"), imagefile.gicon);
+                            _("Torrent"), new ThemedIcon ("com.github.gabutakut.gabutdm.torrent"));
             } else if (linkmode == LinkMode.METALINK) {
                 notify_app (_("Starting"),
-                            _("Metalink"), imagefile.gicon);
+                            _("Metalink"), new ThemedIcon ("com.github.gabutakut.gabutdm.metalink"));
+            } else if (linkmode == LinkMode.MAGNETLINK) {
+                notify_app (_("Starting"), url, new ThemedIcon ("com.github.gabutakut.gabutdm.magnet"));
             } else {
-                notify_app (_("Starting"), url, imagefile.gicon);
+                notify_app (_("Starting"), url, new ThemedIcon ("insert-link"));
             }
         }
 
@@ -556,7 +557,6 @@ namespace Gabut {
             remove_download (url);
             remove_dboptions (url);
             aria_deleteresult (ariagid);
-            delete_me (this);
             GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
             destroy ();
         }
@@ -650,6 +650,67 @@ namespace Gabut {
             gabutinfo.set_info (totalsize.to_string (), InfoSucces.FILESIZE);
             gabutinfo.set_info (fileordir, InfoSucces.ICONNAME);
             GLib.Application.get_default ().lookup_action ("succes").activate (new Variant.string (gabutinfo.get_info ()));
+        }
+
+        public Gtk.Popover get_menu () {
+            var btnopn = new Gtk.Button () {
+                child = box_btn ("folder-open", _("Open folder"))
+            };
+            var btnclr = new Gtk.Button () {
+                child = box_btn ("user-trash-full", _("Move to Trash"))
+            };
+            var btnprop = new Gtk.Button () {
+                child = box_btn ("document-properties", _("Properties"))
+            };
+            var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_top = 4,
+                margin_bottom = 4,
+                margin_start = 4,
+                margin_end = 4
+            };
+            box.append (btnopn);
+            box.append (btnclr);
+            box.append (btnprop);
+            var urisel_popover = new Gtk.Popover () {
+                child = box
+            };
+            urisel_popover.show.connect (()=> {
+                box.grab_focus ();
+            });
+            btnclr.clicked.connect (()=> {
+                if (pathname != null) {
+                    remove_down ();
+                    try {
+                        var filec = File.new_for_path (@"$(pathname).aria2");
+                        if (filec.query_exists ()) {
+                            filec.trash ();
+                        }
+                        var filep = File.new_for_path (pathname);
+                        if (filep.query_exists ()) {
+                            filep.trash ();
+                        }
+                    } catch (Error e) {
+                        GLib.warning (e.message);
+                    }
+                }
+                urisel_popover.hide ();
+            });
+            btnopn.clicked.connect (()=> {
+                if (pathname != null) {
+                    var file = File.new_for_path (pathname);
+                    if (fileordir == "inode/directory") {
+                        open_fileman.begin (file.get_uri ());
+                    } else {
+                        open_fileman.begin (file.get_parent ().get_uri ());
+                    }
+                }
+                urisel_popover.hide ();
+            });
+            btnprop.clicked.connect (()=> {
+                myproperty ();
+                urisel_popover.hide ();
+            });
+            return urisel_popover;
         }
     }
 }

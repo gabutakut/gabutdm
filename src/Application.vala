@@ -167,9 +167,10 @@ namespace Gabut {
                 gabutserver.delete_row.connect ((status)=> {
                     gabutwindow.remove_item (status);
                 });
-                clipboard = gabutwindow.get_display ().get_clipboard ();
+                var displaydm = gabutwindow.get_display ();
+                clipboard = displaydm.get_clipboard ();
                 clipboard.changed.connect (on_clipboard);
-                pantheon_theme.begin ();
+                pantheon_theme.begin (displaydm);
                 gabutwindow.load_dowanload ();
                 download_table ();
                 if (!startingup && !dontopen) {

@@ -202,13 +202,13 @@ namespace Gabut {
             overlay.add_overlay (sizelabel);
 
             link_entry = new MediaEntry ("insert-link", "edit-paste") {
-                width_request = 420,
+                width_request = 500,
                 margin_end = 74,
                 placeholder_text = _("Url or Magnet")
             };
 
             name_entry = new MediaEntry ("dialog-information", "edit-paste") {
-                width_request = 420,
+                width_request = 500,
                 margin_end = 74,
                 placeholder_text = _("Follow source name")
             };
@@ -225,9 +225,9 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             alllink.attach (overlay, 0, 0, 1, 5);
-            alllink.attach (headerlabel (_("Address:"), 420), 1, 1, 1, 1);
+            alllink.attach (headerlabel (_("Address:"), 500), 1, 1, 1, 1);
             alllink.attach (link_entry, 1, 2, 1, 1);
-            alllink.attach (headerlabel (_("Filename:"), 420), 1, 3, 1, 1);
+            alllink.attach (headerlabel (_("Filename:"), 500), 1, 3, 1, 1);
             alllink.attach (name_entry, 1, 4, 1, 1);
             alllink.attach (save_meta, 1, 5, 1, 1);
 
@@ -288,21 +288,21 @@ namespace Gabut {
             proxytype = type_flow.get_child_at_index (0) as ProxyType;
 
             proxy_entry = new MediaEntry ("user-home", "edit-paste") {
-                width_request = 180,
+                width_request = 250,
                 placeholder_text = _("Address")
             };
 
             port_entry = new Gtk.SpinButton.with_range (0, 999999, 1) {
-                width_request = 180
+                width_request = 250
             };
 
             user_entry = new MediaEntry ("avatar-default", "edit-paste") {
-                width_request = 180,
+                width_request = 250,
                 placeholder_text = _("Username")
             };
 
             pass_entry = new MediaEntry ("dialog-password", "edit-paste") {
-                width_request = 180,
+                width_request = 250,
                 placeholder_text = _("Password")
             };
 
@@ -314,13 +314,13 @@ namespace Gabut {
             };
             proxygrid.attach (prometh_button, 0, 1, 1, 1);
             proxygrid.attach (type_button, 1, 1, 1, 1);
-            proxygrid.attach (headerlabel (_("Host:"), 180), 0, 2, 1, 1);
+            proxygrid.attach (headerlabel (_("Host:"), 250), 0, 2, 1, 1);
             proxygrid.attach (proxy_entry, 0, 3, 1, 1);
-            proxygrid.attach (headerlabel (_("Port:"), 180), 1, 2, 1, 1);
+            proxygrid.attach (headerlabel (_("Port:"), 250), 1, 2, 1, 1);
             proxygrid.attach (port_entry, 1, 3, 1, 1);
-            proxygrid.attach (headerlabel (_("Username:"), 180), 0, 4, 1, 1);
+            proxygrid.attach (headerlabel (_("Username:"), 250), 0, 4, 1, 1);
             proxygrid.attach (user_entry, 0, 5, 1, 1);
-            proxygrid.attach (headerlabel (_("Password:"), 180), 1, 4, 1, 1);
+            proxygrid.attach (headerlabel (_("Password:"), 250), 1, 4, 1, 1);
             proxygrid.attach (pass_entry, 1, 5, 1, 1);
 
             login_flow = new Gtk.FlowBox () {
@@ -374,12 +374,12 @@ namespace Gabut {
             logingrid.attach (logpass_entry, 1, 4, 1, 1);
 
             useragent_entry = new MediaEntry ("avatar-default", "edit-paste") {
-                width_request = 340,
+                width_request = 350,
                 placeholder_text = _("User Agent")
             };
 
             refer_entry = new MediaEntry ("emblem-symbolic-link", "edit-paste") {
-                width_request = 340,
+                width_request = 350,
                 placeholder_text = _("Referer")
             };
 
@@ -388,9 +388,9 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            moregrid.attach (headerlabel (_("User Agent:"), 340), 1, 0, 1, 1);
+            moregrid.attach (headerlabel (_("User Agent:"), 350), 1, 0, 1, 1);
             moregrid.attach (useragent_entry, 1, 1, 1, 1);
-            moregrid.attach (headerlabel (_("Referer:"), 340), 1, 2, 1, 1);
+            moregrid.attach (headerlabel (_("Referer:"), 350), 1, 2, 1, 1);
             moregrid.attach (refer_entry, 1, 3, 1, 1);
 
             cookie_location = new Gtk.Button ();
@@ -402,7 +402,7 @@ namespace Gabut {
             });
             selectcook = null;
             usecookie = new Gtk.CheckButton.with_label (_("Cookie")) {
-                width_request = 340
+                width_request = 350
             };
             usecookie.toggled.connect (()=> {
                 cookie_location.sensitive = usecookie.active;
@@ -419,7 +419,7 @@ namespace Gabut {
             selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/"));
 
             usefolder = new Gtk.CheckButton.with_label (_("Save to Folder")) {
-                width_request = 340
+                width_request = 350
             };
 
             usefolder.toggled.connect (()=> {
@@ -461,7 +461,7 @@ namespace Gabut {
             checksums_flow.show ();
 
             checksum_entry = new MediaEntry ("emblem-symbolic-link", "edit-paste") {
-                width_request = 340,
+                width_request = 350,
                 placeholder_text = _("Hash")
             };
             checksums_flow.child_activated.connect ((checksum)=> {
@@ -475,18 +475,18 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            checksumgrid.attach (headerlabel (_("Type:"), 340), 1, 0, 1, 1);
+            checksumgrid.attach (headerlabel (_("Type:"), 350), 1, 0, 1, 1);
             checksumgrid.attach (checksum_button, 1, 1, 1, 1);
-            checksumgrid.attach (headerlabel (_("Hash:"), 340), 1, 2, 1, 1);
+            checksumgrid.attach (headerlabel (_("Hash:"), 350), 1, 2, 1, 1);
             checksumgrid.attach (checksum_entry, 1, 3, 1, 1);
 
             integrity = new Gtk.CheckButton.with_label (_("BT Seed")) {
-                width_request = 340,
+                width_request = 350,
                 margin_bottom = 5
             };
 
             unverified = new Gtk.CheckButton.with_label (_("BT Seed Unverified")) {
-                width_request = 340
+                width_request = 350
             };
 
             encrypt_flow = new Gtk.FlowBox () {
@@ -519,7 +519,7 @@ namespace Gabut {
             btencrypt = encrypt_flow.get_child_at_index (0) as BTEncrypt;
 
             encrypt = new Gtk.CheckButton.with_label (_("BT Require Crypto")) {
-                width_request = 340,
+                width_request = 350,
                 margin_bottom = 5
             };
             encrypt.toggled.connect (()=> {
@@ -532,10 +532,10 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            encryptgrid.attach (headerlabel (_("BitTorrent Seed:"), 340), 1, 0, 1, 1);
+            encryptgrid.attach (headerlabel (_("BitTorrent Seed:"), 350), 1, 0, 1, 1);
             encryptgrid.attach (integrity, 1, 1, 1, 1);
             encryptgrid.attach (unverified, 1, 2, 1, 1);
-            encryptgrid.attach (headerlabel (_("BitTorrent Encryption:"), 340), 1, 3, 1, 1);
+            encryptgrid.attach (headerlabel (_("BitTorrent Encryption:"), 350), 1, 3, 1, 1);
             encryptgrid.attach (encrypt, 1, 4, 1, 1);
             encryptgrid.attach (encrypt_button, 1, 5, 1, 1);
 
@@ -801,7 +801,6 @@ namespace Gabut {
                     }
                 }
                 row.status = row.status_aria (aria_tell_status (row.ariagid, TellStatus.STATUS));
-                row.filepath = aria_str_files (AriaGetfiles.PATH, row.ariagid);
                 if (!integrity.active && !unverified.active) {
                     aria_set_option (row.ariagid, AriaOptions.SEED_TIME, "0");
                 } else {
@@ -1006,7 +1005,6 @@ namespace Gabut {
                         proxymethod = promed as ProxyMethod;
                     }
                 }
-
                 for (int a = 0; a <= AriaChecksumTypes.SHA512; a++) {
                     var checksflow = checksums_flow.get_child_at_index (a);
                     if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksflow).checksums.get_name ())) {

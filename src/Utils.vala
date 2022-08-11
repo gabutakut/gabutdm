@@ -1081,6 +1081,14 @@ namespace Gabut {
         N_COLUMNS
     }
 
+    private enum ServersCol {
+        NO,
+        CURRENTURI,
+        DOWNLOADSPEED,
+        URI,
+        N_COLUMNS
+    }
+
     private enum PostServer {
         ALL,
         URL,
@@ -1689,26 +1697,6 @@ namespace Gabut {
         return listgid;
     }
 
-    private string aria_str_files (AriaGetfiles files, string gid) {
-        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
-        if (!result.down ().contains ("result") || result == null) {
-            return "";
-        }
-        try {
-            MatchInfo match_info;
-            Regex regex = new Regex (@"\"$(files.get_name ())\":\"(.*?)\"");
-            if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                string getfile = match_info.fetch (1);
-                if (getfile != "" || getfile != null) {
-                    return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
-                }
-            }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
-        return "";
-    }
-
     private Gtk.ListStore aria_files_store (string gid) {
         var liststore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
@@ -1730,6 +1718,29 @@ namespace Gabut {
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
                     liststore.append (out iter);
                     liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
+                    match_info.next ();
+                }
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return liststore;
+    }
+
+    private Gtk.ListStore aria_servers_store (string gid) {
+        var liststore = new Gtk.ListStore (ServersCol.N_COLUMNS, typeof (int), typeof (string), typeof (string), typeof (string));
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getServers\", \"params\":[\"$(gid)\"]}");
+        if (!result.down ().contains ("result") || result == null) {
+            return liststore;
+        }
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex ("{\"currentUri\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"uri\":\"(.*?)\"");
+            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                while (match_info.matches ()) {
+                    Gtk.TreeIter iter;
+                    liststore.append (out iter);
+                    liststore.set (iter, ServersCol.CURRENTURI, match_info.fetch (1), ServersCol.DOWNLOADSPEED, match_info.fetch (2), ServersCol.URI, match_info.fetch (3));
                     match_info.next ();
                 }
             }
@@ -1846,7 +1857,7 @@ namespace Gabut {
         return {};
     }
 
-    private bool aria_getverion () {
+    private bool aria_get_ready () {
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}");
         return result.down ().contains ("result");
     }
@@ -1862,7 +1873,6 @@ namespace Gabut {
     private string get_app_id () {
         return @"application://$(Environment.get_application_name ()).desktop";
     }
-
     private int max_exec = 1000;
     private void exec_aria () {
         setjsonrpchost ();
@@ -1872,8 +1882,8 @@ namespace Gabut {
                 aria_start.begin ();
             }
             start_exec++;
-        } while (!aria_getverion () && start_exec < max_exec);
-        if (aria_getverion ()) {
+        } while (!aria_get_ready () && start_exec < max_exec);
+        if (aria_get_ready ()) {
             set_startup ();
         }
     }
@@ -2071,8 +2081,8 @@ namespace Gabut {
         int files = 0;
         try {
             FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
-            FileInfo info = null;
-            while ((info = enumerator.next_file ()) != null) {
+            FileInfo info;
+            while (enumerator.iterate (out info, null) && info != null) {
                 if (info.get_is_hidden ()) {
                     continue;
                 }
@@ -2265,7 +2275,7 @@ namespace Gabut {
         return hlabel;
     }
 
-    private int set_ascen (DeAscending deascending) {
+    private int sort_a (DeAscending deascending) {
         if (deascending.deascend == DeAscend.ASCENDING) {
             return 1;
         } else {
@@ -2273,7 +2283,7 @@ namespace Gabut {
         }
     }
 
-    private int set_descen (DeAscending deascending) {
+    private int sort_b (DeAscending deascending) {
         if (deascending.deascend == DeAscend.DESCENDING) {
             return 1;
         } else {
@@ -2425,6 +2435,13 @@ namespace Gabut {
             pixel_size = size,
             gicon = new ThemedIcon (name)
         };
+        return imginf;
+    }
+
+    private Gtk.Box box_btn (string name, string labeln) {
+        var imginf = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 1);
+        imginf.append (image_btn (name, 16));
+        imginf.append (new Gtk.Label (labeln));
         return imginf;
     }
 
@@ -3566,11 +3583,11 @@ namespace Gabut {
     }
 
     private SourceFunc themecall;
-    private async void pantheon_theme () throws Error {
+    private async void pantheon_theme (Gdk.Display display) throws Error {
         if (themecall != null) {
             Idle.add ((owned)themecall);
         }
-        var gtk_settings = Gtk.Settings.get_default ();
+        var gtk_settings = Gtk.Settings.get_for_display (display);
         switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
             case 1:
                 gtk_settings.gtk_application_prefer_dark_theme = false;

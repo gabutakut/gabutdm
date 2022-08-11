@@ -336,7 +336,8 @@ namespace Gabut {
         }
 
         private int sort_dm (DownloadRow row1, DownloadRow row2) {
-            if (int.parse (get_db_user (UserID.SHORTBY, username)) == 0) {
+            var sortpos = int.parse (get_db_user (UserID.SHORTBY, username));
+            if (sortpos == 0) {
                 if (row1.filename != null && row2.filename != null) {
                     var name1 = row1.filename.down ();
                     var name2 = row2.filename.down ();
@@ -349,7 +350,7 @@ namespace Gabut {
                 } else {
                     return 0;
                 }
-            } else if (int.parse (get_db_user (UserID.SHORTBY, username)) == 1) {
+            } else if (sortpos == 1) {
                 var total1 = row1.totalsize;
                 var total2 = row2.totalsize;
                 if (total1 > total2) {
@@ -358,7 +359,7 @@ namespace Gabut {
                 if (total1 < total2) {
                     return -1;
                 }
-            } else if (int.parse (get_db_user (UserID.SHORTBY, username)) == 2) {
+            } else if (sortpos == 2) {
                 if (row1.fileordir != null && row2.fileordir != null) {
                     var fordir1 = row1.fileordir.down ();
                     var fordir2 = row2.fileordir.down ();
@@ -439,9 +440,10 @@ namespace Gabut {
         private int path_lenght = 0;
         private async void directory_mode (Soup.ServerMessage msg, File file, File sourcef) throws Error {
             var filesorter = new Gtk.ListStore (FSorter.N_COLUMNS, typeof (string), typeof (string), typeof (bool), typeof (int64), typeof (int), typeof (FileInfo), typeof (string));
-            FileEnumerator enumerator = file.enumerate_children ("*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
-            FileInfo info = null;
-            while ((info = enumerator.next_file ()) != null) {
+            GLib.FileEnumerator enumerator = file.enumerate_children ("*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            GLib.FileInfo info;
+            GLib.File fileout;
+            while (enumerator.iterate (out info, out fileout) && info != null) {
                 if (info.get_is_hidden ()) {
                     continue;
                 }
@@ -449,7 +451,7 @@ namespace Gabut {
                 int container = 0;
                 if (info.get_file_type () == FileType.DIRECTORY) {
                     fileordir = true;
-                    container = get_container (GLib.File.new_build_filename (file.get_path (), info.get_name ()));
+                    container = get_container (fileout);
                 }
                 Gtk.TreeIter iter;
                 filesorter.append (out iter);
@@ -541,34 +543,34 @@ namespace Gabut {
         }
 
         private string loaddiv (string path, FileInfo? fileinfo, bool goback = true, bool fileordir = false, string mime = "", int64 size = 0, int infolder = 0) {
-            var sbuilder = new StringBuilder ("<div class=\"item\">");
+            var sbuilder = "<div class=\"item\">";
             if (goback) {
-                sbuilder.append (@"<a class=\"icon up\" href=\"$(GLib.Uri.unescape_string (path))\"></a>");
+                sbuilder += @"<a class=\"icon up\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
             } else {
                 if (fileordir) {
-                    sbuilder.append (@"<a class=\"icon folder\" href=\"$(GLib.Uri.unescape_string (path))\"></a>");
+                    sbuilder += @"<a class=\"icon folder\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
                 } else {
-                    sbuilder.append (@"<a class=\"icon $(get_mime_css (mime))\" href=\"$(GLib.Uri.unescape_string (path))\"></a>");
+                    sbuilder += @"<a class=\"icon $(get_mime_css (mime))\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
                 }
             }
             if (fileinfo != null) {
-                sbuilder.append (@"<div class=\"name\"><a title=\"$(fileinfo.get_name ())\" href=\"$(GLib.Uri.unescape_string (path))\">$(fileinfo.get_name ())</a></div>");
+                sbuilder += @"<div class=\"name\"><a title=\"$(fileinfo.get_name ())\" href=\"$(GLib.Uri.unescape_string (path))\">$(fileinfo.get_name ())</a></div>";
                 if (!fileordir) {
-                    sbuilder.append (@"<div class=\"size\">$(GLib.format_size (size).to_ascii ())</div>");
+                    sbuilder += @"<div class=\"size\">$(GLib.format_size (size).to_ascii ())</div>";
                 } else {
                     authenti.add_path (path);
                     if (infolder != 0) {
-                        sbuilder.append (@"<div class=\"size\">$(infolder) items</div>");
+                        sbuilder += @"<div class=\"size\">$(infolder) items</div>";
                     } else {
-                        sbuilder.append ("<div class=\"size\">Empty</div>");
+                        sbuilder += "<div class=\"size\">Empty</div>";
                     }
                 }
-                sbuilder.append (@"<div class=\"modified\">$(fileinfo.get_modification_date_time ().format ("%I:%M %p %x"))</div>");
+                sbuilder += @"<div class=\"modified\">$(fileinfo.get_modification_date_time ().format ("%I:%M %p %x"))</div>";
             } else {
-                sbuilder.append (@"<div class=\"name\"><a title=\"Go Up\" href=\"$(GLib.Uri.unescape_string (path))\">Go Up</a></div>");
+                sbuilder += @"<div class=\"name\"><a title=\"Go Up\" href=\"$(GLib.Uri.unescape_string (path))\">Go Up</a></div>";
             }
-            sbuilder.append ("</div>\n");
-            return sbuilder.str;
+            sbuilder += "</div>\n";
+            return sbuilder;
         }
 
         public string get_address () {
