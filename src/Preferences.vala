@@ -475,6 +475,14 @@ namespace Gabut {
                 folder_sharing.sensitive = sharebutton.active;
             });
             folder_sharing.sensitive = sharebutton.active;
+            var boxuser = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+            boxuser.append (usergrid);
+            boxuser.append (add_auth);
+            var userscr = new Gtk.ScrolledWindow () {
+                width_request = 455,
+                vexpand = true,
+                child = boxuser
+            };
             var folderopt = new Gtk.Grid () {
                 height_request = 150,
                 margin_bottom = 5,
@@ -487,14 +495,7 @@ namespace Gabut {
             folderopt.attach (sharebutton, 1, 2, 1, 1);
             folderopt.attach (folder_sharing, 1, 3, 1, 1);
             folderopt.attach (headerlabel (_("Authentication:"), 450), 1, 4, 1, 1);
-            folderopt.attach (usergrid, 1, 5, 1, 1);
-            folderopt.attach (add_auth, 1, 6, 1, 1);
-
-            var folderscr = new Gtk.ScrolledWindow () {
-                width_request = 455,
-                vexpand = true,
-                child = folderopt
-            };
+            folderopt.attach (userscr, 1, 5, 1, 1);
 
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
                 width_request = 220,
@@ -667,7 +668,7 @@ namespace Gabut {
             };
             stack.add_child (settings);
             stack.add_child (bittorrent);
-            stack.add_child (folderscr);
+            stack.add_child (folderopt);
             stack.add_child (moreoptions);
             stack.add_child (notyscr);
             stack.visible_child = settings;
@@ -682,66 +683,68 @@ namespace Gabut {
             var save_button = new Gtk.Button.with_label (_("Save"));
             ((Gtk.Label) save_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             save_button.clicked.connect (()=> {
-                aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
-                aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, set_dbsetting (DBSettings.CONNSERVER, numbconn.value.to_string ()));
-                aria_set_globalops (AriaOptions.TIMEOUT, set_dbsetting (DBSettings.TIMEOUT, timeout.value.to_string ()));
-                aria_set_globalops (AriaOptions.RETRY_WAIT, set_dbsetting (DBSettings.RETRY, retry.value.to_string ()));
-                aria_set_globalops (AriaOptions.DIR, set_dbsetting (DBSettings.DIR, selectfd.get_path ().replace ("/", "\\/")));
-                aria_set_globalops (AriaOptions.BT_MAX_PEERS, set_dbsetting (DBSettings.BTMAXPEERS, maxpeers.value.to_string ()));
-                aria_set_globalops (AriaOptions.SPLIT, set_dbsetting (DBSettings.SPLIT, split.value.to_string ()));
-                aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, set_dbsetting (DBSettings.BTTIMEOUTTRACK, bt_timeout.value.to_string ()));
-                aria_set_globalops (AriaOptions.BT_MAX_OPEN_FILES, set_dbsetting (DBSettings.MAXOPENFILE, maxopfile.value.to_string ()));
-                aria_set_globalops (AriaOptions.SEED_TIME, set_dbsetting (DBSettings.SEEDTIME, bt_seedtime.value.to_string ()));
-                aria_set_globalops (AriaOptions.ALLOW_OVERWRITE, set_dbsetting (DBSettings.OVERWRITE, allowrepl.active.to_string ()));
-                aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, set_dbsetting (DBSettings.AUTORENAMING, autorename.active.to_string ()));
-                aria_set_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, set_dbsetting (DBSettings.UPLOADLIMIT, (bt_upload.value * 1024).to_string ()));
-                aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, set_dbsetting (DBSettings.DOWNLOADLIMIT, (bt_download.value * 1024).to_string ()));
-                aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, trackertext.buffer.text.replace ("/", "\\/")));
-                aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, etrackertext.buffer.text.replace ("/", "\\/")));
-                aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, set_dbsetting (DBSettings.SPLITSIZE, (splitsize.value * 1024).to_string ()));
-                aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
-                aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
-                aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.get_name ().down ()));
+                set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
                 set_dbsetting (DBSettings.CLIPBOARD, appclipboard.active.to_string ());
+                set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
+                set_dbsetting (DBSettings.STARTUP, appstartup.active.to_string ());
                 set_dbsetting (DBSettings.SHAREDIR, selectfs.get_path ());
                 set_dbsetting (DBSettings.SWITCHDIR, sharebutton.active.to_string ());
-                set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
-                set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
-                set_dbsetting (DBSettings.STARTUP, appstartup.active.to_string ());
-                set_dbsetting (DBSettings.RPCPORT, rpc_port.value.to_string ());
-                set_dbsetting (DBSettings.RPCSIZE, maxrequest.value.to_string ());
-                set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());
-                set_dbsetting (DBSettings.BTLISTENPORT, bt_listenport.value.to_string ());
-                set_dbsetting (DBSettings.DHTLISTENPORT, dht_listenport.value.to_string ());
-                set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.get_name ());
-                if (maxcurrent.value != double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))) {
-                    aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.MAXACTIVE, maxcurrent.value.to_string ()));
-                    max_active ();
-                }
                 if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE))) {
                     set_dbsetting (DBSettings.STYLE, style_mode.id.to_string ());
-                    pantheon_theme.begin ();
+                    pantheon_theme.begin (get_display ());
                 }
-                if (diskcache.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
-                || maxrequest.value != double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))
-                || rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
-                || bt_listenport.value != double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
-                || dht_listenport.value != double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
-                || fileallocation.fileallocation.get_name ().down () != aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
-                    aria_shutdown ();
-                    do {
-                    } while (aria_getverion ());
-                    exec_aria ();
-                    restart_process ();
-                    close ();
-                } else if (local_port.value.to_string () != get_dbsetting (DBSettings.PORTLOCAL)) {
-                    set_dbsetting (DBSettings.PORTLOCAL, local_port.value.to_string ());
-                    restart_server ();
-                    close ();
-                } else {
-                    global_opt ();
-                    close ();
+                if (aria_get_ready ()) {
+                    aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
+                    aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, set_dbsetting (DBSettings.CONNSERVER, numbconn.value.to_string ()));
+                    aria_set_globalops (AriaOptions.TIMEOUT, set_dbsetting (DBSettings.TIMEOUT, timeout.value.to_string ()));
+                    aria_set_globalops (AriaOptions.RETRY_WAIT, set_dbsetting (DBSettings.RETRY, retry.value.to_string ()));
+                    aria_set_globalops (AriaOptions.DIR, set_dbsetting (DBSettings.DIR, selectfd.get_path ().replace ("/", "\\/")));
+                    aria_set_globalops (AriaOptions.BT_MAX_PEERS, set_dbsetting (DBSettings.BTMAXPEERS, maxpeers.value.to_string ()));
+                    aria_set_globalops (AriaOptions.SPLIT, set_dbsetting (DBSettings.SPLIT, split.value.to_string ()));
+                    aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, set_dbsetting (DBSettings.BTTIMEOUTTRACK, bt_timeout.value.to_string ()));
+                    aria_set_globalops (AriaOptions.BT_MAX_OPEN_FILES, set_dbsetting (DBSettings.MAXOPENFILE, maxopfile.value.to_string ()));
+                    aria_set_globalops (AriaOptions.SEED_TIME, set_dbsetting (DBSettings.SEEDTIME, bt_seedtime.value.to_string ()));
+                    aria_set_globalops (AriaOptions.ALLOW_OVERWRITE, set_dbsetting (DBSettings.OVERWRITE, allowrepl.active.to_string ()));
+                    aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, set_dbsetting (DBSettings.AUTORENAMING, autorename.active.to_string ()));
+                    aria_set_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, set_dbsetting (DBSettings.UPLOADLIMIT, (bt_upload.value * 1024).to_string ()));
+                    aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, set_dbsetting (DBSettings.DOWNLOADLIMIT, (bt_download.value * 1024).to_string ()));
+                    aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, trackertext.buffer.text.replace ("/", "\\/")));
+                    aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, etrackertext.buffer.text.replace ("/", "\\/")));
+                    aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, set_dbsetting (DBSettings.SPLITSIZE, (splitsize.value * 1024).to_string ()));
+                    aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
+                    aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
+                    aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.get_name ().down ()));
+                    set_dbsetting (DBSettings.RPCPORT, rpc_port.value.to_string ());
+                    set_dbsetting (DBSettings.RPCSIZE, maxrequest.value.to_string ());
+                    set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());
+                    set_dbsetting (DBSettings.BTLISTENPORT, bt_listenport.value.to_string ());
+                    set_dbsetting (DBSettings.DHTLISTENPORT, dht_listenport.value.to_string ());
+                    set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.get_name ());
+                    if (maxcurrent.value != double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))) {
+                        aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.MAXACTIVE, maxcurrent.value.to_string ()));
+                        max_active ();
+                    }
+                    if (diskcache.value != double.parse (aria_get_globalops (AriaOptions.DISK_CACHE))
+                    || maxrequest.value != double.parse (aria_get_globalops (AriaOptions.RPC_MAX_REQUEST_SIZE))
+                    || rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
+                    || bt_listenport.value != double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
+                    || dht_listenport.value != double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
+                    || fileallocation.fileallocation.get_name ().down () != aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
+                        aria_shutdown ();
+                        do {
+                        } while (aria_get_ready ());
+                        exec_aria ();
+                        restart_process ();
+                        close ();
+                    } else if (local_port.value.to_string () != get_dbsetting (DBSettings.PORTLOCAL)) {
+                        set_dbsetting (DBSettings.PORTLOCAL, local_port.value.to_string ());
+                        restart_server ();
+                        close ();
+                    } else {
+                        global_opt ();
+                        close ();
+                    }
                 }
             });
 
@@ -773,7 +776,7 @@ namespace Gabut {
                         stack.visible_child = bittorrent;
                         break;
                     case 2:
-                        stack.visible_child = folderscr;
+                        stack.visible_child = folderopt;
                         break;
                     case 3:
                         stack.visible_child = moreoptions;

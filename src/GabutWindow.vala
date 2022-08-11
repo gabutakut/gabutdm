@@ -171,7 +171,7 @@ namespace Gabut {
             };
             headerbar.pack_end (menu_button);
             menu_button.clicked.connect (()=> {
-                if (preferences == null && aria_getverion ()) {
+                if (preferences == null) {
                     preferences = new Preferences (application) {
                         transient_for = this
                     };
@@ -291,46 +291,49 @@ namespace Gabut {
                 margin_top = 4,
                 margin_bottom = 4
             };
-            var property_button = new Gtk.Button () {
-                child = image_btn ("document-properties", 16),
+            var property_button = new Gtk.MenuButton () {
+                child = image_btn ("format-justify-center", 16),
+                direction = Gtk.ArrowType.UP,
                 margin_start = 10,
                 tooltip_text = _("Property")
             };
             properties = new GLib.List<AddUrl> ();
-            property_button.clicked.connect (()=> {
-                var row = (DownloadRow) list_box.get_selected_row ();
-                if (row != null) {
-                    if (!property_active (row)) {
-                        var property = new AddUrl.Property (application) {
-                            transient_for = this,
-                            row = row
-                        };
-                        properties.append (property);
-                        property.save_button.clicked.connect (()=> {
-                            row = property.row;
-                        });
-                        property.close.connect (()=> {
-                            properties.foreach ((proper)=> {
-                                if (proper == property) {
-                                    properties.delete_link (properties.find (proper));
-                                }
-                            });
-                        });
-                        property.close_request.connect (()=> {
-                            properties.foreach ((proper)=> {
-                                if (proper == property) {
-                                    properties.delete_link (properties.find (proper));
-                                }
-                            });
-                            return false;
-                        });
-                        property.show ();
-                    }
-                }
-            });
             actionbar.set_start_widget (property_button);
-            list_box.row_selected.connect ((row)=> {
-                property_button.sensitive = row != null? true : false;
+            list_box.row_selected.connect ((rw)=> {
+                if (rw != null) {
+                    var row = (DownloadRow) rw;
+                    property_button.popover = row.get_menu ();
+                    row.myproperty.connect (()=> {
+                        if (!property_active (row)) {
+                            var property = new AddUrl.Property (application) {
+                                transient_for = this,
+                                row = row
+                            };
+                            properties.append (property);
+                            property.save_button.clicked.connect (()=> {
+                                row = property.row;
+                            });
+                            property.close.connect (()=> {
+                                properties.foreach ((proper)=> {
+                                    if (proper == property) {
+                                        properties.delete_link (properties.find (proper));
+                                    }
+                                });
+                            });
+                            property.close_request.connect (()=> {
+                                properties.foreach ((proper)=> {
+                                    if (proper == property) {
+                                        properties.delete_link (properties.find (proper));
+                                    }
+                                });
+                                return false;
+                            });
+                            property.show ();
+                        }
+                    });
+                } else {
+                    property_button.popover = null;
+                }
             });
             view_mode = new ModeButton () {
                 hexpand = false
@@ -642,12 +645,12 @@ namespace Gabut {
                         list_box.select_row (row);
                         list_box.row_activated (row);
                     }
-                    row.delete_me.connect ((rw)=> {
-                        list_box.remove (rw);
-                        remove_dbus.begin (rw.rowbus);
+                    row.destroy.connect (()=> {
+                        list_box.remove (row);
+                        remove_dbus.begin (row.rowbus);
                         next_download ();
                         view_status ();
-                        listrow.remove (rw);
+                        listrow.remove (row);
                         stop_launcher ();
                     });
                     row.update_agid.connect ((ariagid, newgid)=> {
@@ -696,12 +699,12 @@ namespace Gabut {
                 view_status ();
                 update_info ();
             });
-            row.delete_me.connect ((rw)=> {
-                list_box.remove (rw);
-                remove_dbus.begin (rw.rowbus);
+            row.destroy.connect (()=> {
+                list_box.remove (row);
+                remove_dbus.begin (row.rowbus);
                 next_download ();
                 view_status ();
-                listrow.remove (rw);
+                listrow.remove (row);
                 stop_launcher ();
             });
             row.update_agid.connect ((ariagid, newgid)=> {
@@ -734,7 +737,8 @@ namespace Gabut {
 
         private void update_info () {
             var infol = aria_label_info ();
-            labelall.label = @"Active: $(int64.parse (infol[0])) Download: $(GLib.format_size (int64.parse (infol[1]))) Upload: $(GLib.format_size (int64.parse (infol[2])))";
+            var activedmapp = int64.parse (infol[0]);
+            labelall.label = @"Active: $(activedmapp) Download: $(GLib.format_size (activedmapp > 0? int64.parse (infol[1]) : 0)) Upload: $(GLib.format_size (activedmapp > 0? int64.parse (infol[2]) : 0))";
         }
 
         private bool get_exist (string url) {
@@ -826,10 +830,10 @@ namespace Gabut {
                     var name1 = row1.filename.down ();
                     var name2 = row2.filename.down ();
                     if (name1 > name2) {
-                        return set_ascen (deascend);
+                        return sort_a (deascend);
                     }
                     if (name1 < name2) {
-                        return set_descen (deascend);
+                        return sort_b (deascend);
                     }
                 } else {
                     return 0;
@@ -838,20 +842,20 @@ namespace Gabut {
                 var total1 = row1.totalsize;
                 var total2 = row2.totalsize;
                 if (total1 > total2) {
-                    return set_ascen (deascend);
+                    return sort_a (deascend);
                 }
                 if (total1 < total2) {
-                    return set_descen (deascend);
+                    return sort_b (deascend);
                 }
             } else if (sorttype.get_index () == 2) {
                 if (row1.fileordir != null && row2.fileordir != null) {
                     var fordir1 = row1.fileordir.down ();
                     var fordir2 = row2.fileordir.down ();
                     if (fordir1 > fordir2) {
-                        return set_ascen (deascend);
+                        return sort_a (deascend);
                     }
                     if (fordir1 < fordir2) {
-                        return set_descen (deascend);
+                        return sort_b (deascend);
                     }
                 } else {
                     return 0;
@@ -860,10 +864,10 @@ namespace Gabut {
                 var timeadded1 = row1.timeadded;
                 var timeadded2 = row2.timeadded;
                 if (timeadded1 > timeadded2) {
-                    return set_ascen (deascend);
+                    return sort_a (deascend);
                 }
                 if (timeadded1 < timeadded2) {
-                    return set_descen (deascend);
+                    return sort_b (deascend);
                 }
             }
             return 0;
