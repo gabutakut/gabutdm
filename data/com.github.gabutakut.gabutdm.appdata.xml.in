@@ -33,7 +33,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="1.9.0" date="2022-8-12">
+    <release version="1.9.1" date="2022-8-12">
       <description>
         <p>Servers and Peers</p>
         <p>Menu Move to trash</p>
@@ -135,9 +135,6 @@
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot3.png</image>
-    </screenshot>
-    <screenshot>
-      <image>https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot4.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1">
