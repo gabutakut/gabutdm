@@ -42,9 +42,6 @@ This application prioritizes convenience, full of features and an attractive app
 <p align="center">
     <img src="Screenshot2.png" alt="Home">
 </p>
-<h1 align="center">👦 Torrent Peers of GabutDM 🙈</h1>
-<p align="center">
-    <img src="Screenshot3.png" alt="Home">
 <h1 align="center">🏡 Sharing of GabutDM 🙈</h1>
 <p align="center">
     <img src="Screenshot4.png" alt="Home">
