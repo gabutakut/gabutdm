@@ -1889,7 +1889,7 @@ namespace Gabut {
     }
 
     private async void aria_start () throws Error {
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true"};
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true", "--pause"};
         exec += @"--rpc-listen-port=$(get_dbsetting (DBSettings.RPCPORT))";
         exec += @"--rpc-max-request-size=$(get_dbsetting (DBSettings.RPCSIZE))";
         exec += @"--listen-port=$(get_dbsetting (DBSettings.BTLISTENPORT))";
@@ -2441,7 +2441,12 @@ namespace Gabut {
     private Gtk.Box box_btn (string name, string labeln) {
         var imginf = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 1);
         imginf.append (image_btn (name, 16));
-        imginf.append (new Gtk.Label (labeln));
+        var title = new Gtk.Label (labeln) {
+            halign = Gtk.Align.CENTER,
+            wrap_mode = Pango.WrapMode.WORD_CHAR,
+            attributes = set_attribute (Pango.Weight.BOLD)
+        };
+        imginf.append (title);
         return imginf;
     }
 

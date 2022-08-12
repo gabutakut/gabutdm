@@ -165,7 +165,9 @@ namespace Gabut {
         construct {
             hashoptions = new Gee.HashMap<string, string> ();
             var view_mode = new ModeButton () {
-                hexpand = true
+                hexpand = true,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
             view_mode.append_text (_("Address"));
             view_mode.append_text (_("Proxy"));
