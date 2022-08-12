@@ -537,7 +537,7 @@ namespace Gabut {
             var revcon = new Gtk.Revealer () {
                 hexpand = true,
                 valign = Gtk.Align.FILL,
-                transition_type = Gtk.RevealerTransitionType.SWING_UP,
+                transition_type = Gtk.RevealerTransitionType.SWING_DOWN,
                 child = connpeers
             };
             server_button.clicked.connect (()=> {
