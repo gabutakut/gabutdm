@@ -370,10 +370,10 @@ namespace Gabut {
                 model = peerstore
             };
             peerstree.append_column (text_column (_("Host"), TorrentPeers.HOST));
-            peerstree.append_column (text_column (_("Client"), TorrentPeers.PEERID));
+            peerstree.append_column (text_column (_("Client"), TorrentPeers.PEERID, true, 14, "text", color_attribute (60000, 37000, 0, false)));
             peerstree.append_column (text_column (_("Choking"), TorrentPeers.PEERCHOKING));
             peerstree.append_column (text_column (_("D"), TorrentPeers.DOWNLOADSPEED, true, 14, "text"));
-            peerstree.append_column (text_column (_("U"), TorrentPeers.UPLOADSPEED, true, 14, "text", color_attribute (60000, 30000, 19764)));
+            peerstree.append_column (text_column (_("U"), TorrentPeers.UPLOADSPEED, true, 14, "text", color_attribute (60000, 30000, 19764, false)));
 
             var peerscrolled = new Gtk.ScrolledWindow () {
                 hexpand = true,
@@ -446,7 +446,6 @@ namespace Gabut {
 
             var stack = new Gtk.Stack () {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT,
-                transition_duration = 500,
                 hexpand = true,
                 hhomogeneous = false,
                 margin_bottom = 2
@@ -501,7 +500,9 @@ namespace Gabut {
                 height_request = 25
             };
             ((Gtk.Label) server_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
-
+            server_button.clicked.connect (()=> {
+                switch_rev = !switch_rev;
+            });
             var centerbox = new Gtk.CenterBox () {
                 margin_top = 10,
                 margin_bottom = 10
@@ -540,9 +541,7 @@ namespace Gabut {
                 transition_type = Gtk.RevealerTransitionType.SWING_DOWN,
                 child = connpeers
             };
-            server_button.clicked.connect (()=> {
-                switch_rev = !switch_rev;
-            });
+
             var maingrid = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
                 hexpand = true,
                 margin_start = 10,
@@ -638,9 +637,9 @@ namespace Gabut {
             });
 
             var server_coll = new Gtk.TreeViewColumn.with_attributes (title, selected, "active", column) {
-                resizable = true,
+                resizable = false,
                 clickable = true,
-                expand = true,
+                expand = false,
                 sort_indicator = true,
                 sort_column_id = column
             };
@@ -738,15 +737,13 @@ namespace Gabut {
             if (switch_rev) {
                 if (delaytime % 2 == 0) {
                     if (connpeers.get_visible_child_name () == "serverconn") {
-                        int nfile = 0;
                         serverstore.clear ();
                         aria_servers_store (ariagid).foreach ((model, path, ite)=> {
                             string uri, speed, curi;
                             model.get (ite, ServersCol.URI, out uri, ServersCol.DOWNLOADSPEED, out speed, ServersCol.CURRENTURI, out curi);
-                            nfile++;
                             Gtk.TreeIter iter;
                             serverstore.append (out iter);
-                            serverstore.set (iter, ServersCol.NO, nfile, ServersCol.URI, Markup.escape_text (uri), ServersCol.DOWNLOADSPEED, GLib.format_size (int64.parse (speed)), ServersCol.CURRENTURI, curi != null? Markup.escape_text (curi.replace ("\\/", "/")) : curi);
+                            serverstore.set (iter, ServersCol.NO, serverstore.iter_n_children (null), ServersCol.URI, Markup.escape_text (uri), ServersCol.DOWNLOADSPEED, GLib.format_size (int64.parse (speed)), ServersCol.CURRENTURI, curi != null? Markup.escape_text (curi.replace ("\\/", "/")) : curi);
                             return false;
                         });
                     } else {
@@ -767,18 +764,22 @@ namespace Gabut {
         }
 
         private void show_peers () {
-            peerstore.foreach ((model, path, iter) => {
-                string host;
-                model.get (iter, TorrentPeers.HOST, out host);
-                if (!aria_peers (host)) {
-                    Gtk.TreeIter iters;
-                    peerstore.get_iter (out iters, path);
-                    if (peerstore.iter_is_valid (iter)) {
-                        peerstore.remove (ref iters);
+            var inc = peerstore.iter_n_children (null);
+            int decress = 0;
+            for (int n = 0; n < inc; n++) {
+                Gtk.TreeIter iter;
+                peerstore.get_iter_from_string (out iter, (n - decress).to_string ());
+                if (peerstore.iter_is_valid (iter)) {
+                    string host;
+                    peerstore.get (iter, TorrentPeers.HOST, out host);
+                    if (!aria_peers (host)) {
+                        if (peerstore.iter_is_valid (iter)) {
+                            peerstore.remove (ref iter);
+                            decress++;
+                        }
                     }
                 }
-                return false;
-            });
+            }
             aria_get_peers (ariagid).foreach ((model, path, iter) => {
                 if (!peers_exist (model, iter)) {
                     string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;

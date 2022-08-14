@@ -44,7 +44,7 @@ This application prioritizes convenience, full of features and an attractive app
 </p>
 <h1 align="center">🏡 Sharing of GabutDM 🙈</h1>
 <p align="center">
-    <img src="Screenshot4.png" alt="Home">
+    <img src="Screenshot3.png" alt="Home">
 </p>
 <h1 align="center">🧚 About Gabutdm 🧞</h1>
 <p align="center">
