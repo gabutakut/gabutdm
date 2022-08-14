@@ -1836,25 +1836,21 @@ namespace Gabut {
         return "";
     }
 
-    private string [] aria_label_info () {
-        string[] info = {};
+    private MatchInfo aria_label_info () {
+        MatchInfo match_info = null;
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}");
         if (!result.down ().contains ("result") || result == null) {
-            return {};
+            return match_info;
         }
         try {
-            MatchInfo match_info;
             Regex regex = new Regex (@"\"downloadSpeed\":\"(.*?)\",\"numActive\":\"(.*?)\",\"numStopped\":\"(.*?)\",\"numStoppedTotal\":\"(.*?)\",\"numWaiting\":\"(.*?)\",\"uploadSpeed\":\"(.*?)\"");
             if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                info[0] = match_info.fetch (2);
-                info[1] = match_info.fetch (1);
-                info[2] = match_info.fetch (6);
-                return info;
+                return match_info;
             }
         } catch (Error e) {
             GLib.warning (e.message);
         }
-        return {};
+        return match_info;
     }
 
     private bool aria_get_ready () {
@@ -1889,7 +1885,7 @@ namespace Gabut {
     }
 
     private async void aria_start () throws Error {
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true", "--pause"};
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true", "--pause", "--check-certificate=false"};
         exec += @"--rpc-listen-port=$(get_dbsetting (DBSettings.RPCPORT))";
         exec += @"--rpc-max-request-size=$(get_dbsetting (DBSettings.RPCSIZE))";
         exec += @"--listen-port=$(get_dbsetting (DBSettings.BTLISTENPORT))";

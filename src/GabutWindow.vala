@@ -737,8 +737,8 @@ namespace Gabut {
 
         private void update_info () {
             var infol = aria_label_info ();
-            var activedmapp = int64.parse (infol[0]);
-            labelall.label = @"Active: $(activedmapp) Download: $(GLib.format_size (activedmapp > 0? int64.parse (infol[1]) : 0)) Upload: $(GLib.format_size (activedmapp > 0? int64.parse (infol[2]) : 0))";
+            var activedmapp = int64.parse (infol.fetch (2));
+            labelall.label = @"Active: $(activedmapp) Download: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0)) Upload: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0))";
         }
 
         private bool get_exist (string url) {
