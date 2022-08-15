@@ -26,7 +26,7 @@ namespace Gabut {
         public LoginUser (LoginUsers loginuser) {
             this.loginuser = loginuser;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (loginuser.get_name ()) {
+            var title = new Gtk.Label (loginuser.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),

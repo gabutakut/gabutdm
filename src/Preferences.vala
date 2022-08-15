@@ -38,7 +38,7 @@ namespace Gabut {
             }
             set {
                 _fileallocation = value;
-                allocate_button.label = _fileallocation.fileallocation.get_name ();
+                allocate_button.label = _fileallocation.fileallocation.to_string ();
             }
         }
 
@@ -49,7 +49,7 @@ namespace Gabut {
             }
             set {
                 _pieceselector = value;
-                piecesel_button.label = _pieceselector.selector.get_name ();
+                piecesel_button.label = _pieceselector.selector.to_string ();
             }
         }
 
@@ -60,7 +60,7 @@ namespace Gabut {
             }
             set {
                 _uriselector = value;
-                urisel_button.label = _uriselector.selector.get_name ();
+                urisel_button.label = _uriselector.selector.to_string ();
             }
         }
 
@@ -190,7 +190,7 @@ namespace Gabut {
             });
             for (int a = 0; a <= PieceSelectors.GEOM; a++) {
                 var piecesel = stream_flow.get_child_at_index (a);
-                if (((PieceSelector) piecesel).selector.get_name ().down () == pharse_options (pack_data, AriaOptions.STREAM_PIECE_SELECTOR)) {
+                if (((PieceSelector) piecesel).selector.to_string ().down () == pharse_options (pack_data, AriaOptions.STREAM_PIECE_SELECTOR)) {
                     pieceselector = piecesel as PieceSelector;
                 }
             }
@@ -223,7 +223,7 @@ namespace Gabut {
             });
             for (int a = 0; a <= UriSelectors.ADAPTIVE; a++) {
                 var urisel = urisel_flow.get_child_at_index (a);
-                if (((UriSelector) urisel).selector.get_name ().down () == pharse_options (pack_data, AriaOptions.URI_SELECTOR)) {
+                if (((UriSelector) urisel).selector.to_string ().down () == pharse_options (pack_data, AriaOptions.URI_SELECTOR)) {
                     uriselector = urisel as UriSelector;
                 }
             }
@@ -561,7 +561,7 @@ namespace Gabut {
             });
             for (int a = 0; a <= FileAllocations.FALLOC; a++) {
                 var allocate = allocate_flow.get_child_at_index (a);
-                if (((FileAllocation) allocate).fileallocation.get_name ().down () == pharse_options (pack_data, AriaOptions.FILE_ALLOCATION)) {
+                if (((FileAllocation) allocate).fileallocation.to_string ().down () == pharse_options (pack_data, AriaOptions.FILE_ALLOCATION)) {
                     fileallocation = allocate as FileAllocation;
                 }
             }
@@ -713,14 +713,14 @@ namespace Gabut {
                     aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, etrackertext.buffer.text.replace ("/", "\\/")));
                     aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, set_dbsetting (DBSettings.SPLITSIZE, (splitsize.value * 1024).to_string ()));
                     aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
-                    aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.get_name ().down ()));
-                    aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.get_name ().down ()));
+                    aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.to_string ().down ()));
+                    aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.to_string ().down ()));
                     set_dbsetting (DBSettings.RPCPORT, rpc_port.value.to_string ());
                     set_dbsetting (DBSettings.RPCSIZE, maxrequest.value.to_string ());
                     set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());
                     set_dbsetting (DBSettings.BTLISTENPORT, bt_listenport.value.to_string ());
                     set_dbsetting (DBSettings.DHTLISTENPORT, dht_listenport.value.to_string ());
-                    set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.get_name ());
+                    set_dbsetting (DBSettings.FILEALLOCATION, fileallocation.fileallocation.to_string ());
                     if (maxcurrent.value != double.parse (aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS))) {
                         aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.MAXACTIVE, maxcurrent.value.to_string ()));
                         max_active ();
@@ -730,7 +730,7 @@ namespace Gabut {
                     || rpc_port.value != double.parse (aria_get_globalops (AriaOptions.RPC_LISTEN_PORT))
                     || bt_listenport.value != double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
                     || dht_listenport.value != double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
-                    || fileallocation.fileallocation.get_name ().down () != aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
+                    || fileallocation.fileallocation.to_string ().down () != aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
                         aria_shutdown ();
                         do {
                         } while (aria_get_ready ());

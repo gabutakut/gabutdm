@@ -81,23 +81,23 @@ namespace Gabut {
         construct {
             dbusserver = new CanonicalDbusmenu ();
             openmenu = new DbusmenuItem ();
-            openmenu.property_set (MenuItem.LABEL.get_name (), _("Gabut Download Manager"));
-            openmenu.property_set (MenuItem.ICON_NAME.get_name (), "com.github.gabutakut.gabutdm");
-            openmenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
+            openmenu.property_set (MenuItem.LABEL.to_string (), _("Gabut Download Manager"));
+            openmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm");
+            openmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             openmenu.item_activated.connect (()=> {
                 open_show ();
             });
 
             startmenu = new DbusmenuItem ();
-            startmenu.property_set (MenuItem.LABEL.get_name (), _("Start All"));
-            startmenu.property_set (MenuItem.ICON_NAME.get_name (), "media-playback-start");
-            startmenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
+            startmenu.property_set (MenuItem.LABEL.to_string (), _("Start All"));
+            startmenu.property_set (MenuItem.ICON_NAME.to_string (), "media-playback-start");
+            startmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             startmenu.item_activated.connect (start_all);
 
             pausemenu = new DbusmenuItem ();
-            pausemenu.property_set (MenuItem.LABEL.get_name (), _("Pause All"));
-            pausemenu.property_set (MenuItem.ICON_NAME.get_name (), "media-playback-pause");
-            pausemenu.property_set_bool (MenuItem.VISIBLE.get_name (), true);
+            pausemenu.property_set (MenuItem.LABEL.to_string (), _("Pause All"));
+            pausemenu.property_set (MenuItem.ICON_NAME.to_string (), "media-playback-pause");
+            pausemenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             pausemenu.item_activated.connect (stop_all);
             menudbus = new DbusmenuItem ();
             append_dbus.begin (openmenu);

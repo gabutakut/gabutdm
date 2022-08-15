@@ -38,7 +38,7 @@ namespace Gabut {
         public DeAscending (DeAscend deascend) {
             this.deascend = deascend;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (deascend.get_name ()) {
+            var title = new Gtk.Label (deascend.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),

@@ -63,7 +63,7 @@ namespace Gabut {
                 _fileordir = value;
                 if (value != null && value != "") {
                     imagefile.gicon = GLib.ContentType.get_icon (value);
-                    rowbus.property_set (MenuItem.ICON_NAME.get_name (), GLib.ContentType.get_generic_icon_name (value));
+                    rowbus.property_set (MenuItem.ICON_NAME.to_string (), GLib.ContentType.get_generic_icon_name (value));
                 }
             }
         }
@@ -230,7 +230,7 @@ namespace Gabut {
             set {
                 _filename = value;
                 filename_label.label = _filename != null? _filename : url;
-                rowbus.property_set (MenuItem.LABEL.get_name (), _filename != null? _filename : url);
+                rowbus.property_set (MenuItem.LABEL.to_string (), _filename != null? _filename : url);
             }
         }
 
@@ -529,7 +529,7 @@ namespace Gabut {
                 aria_unpause (ariagid);
                 aria_remove (ariagid);
                 if (selected != "") {
-                    hashoption[AriaOptions.SELECT_FILE.get_name ()] = selected;
+                    hashoption[AriaOptions.SELECT_FILE.to_string ()] = selected;
                 }
                 if (url.has_prefix ("magnet:?")) {
                     linkmode = LinkMode.MAGNETLINK;
@@ -541,7 +541,7 @@ namespace Gabut {
                 aria_unpause (ariagid);
                 aria_remove (ariagid);
                 if (selected != "") {
-                    hashoption[AriaOptions.SELECT_FILE.get_name ()] = selected;
+                    hashoption[AriaOptions.SELECT_FILE.to_string ()] = selected;
                 }
                 this.ariagid = aria_metalink (url, hashoption, activedm ());
             }

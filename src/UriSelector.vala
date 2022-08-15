@@ -26,7 +26,7 @@ namespace Gabut {
         public UriSelector (UriSelectors selector) {
             this.selector = selector;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (selector.get_name ()) {
+            var title = new Gtk.Label (selector.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),

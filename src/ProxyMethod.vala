@@ -26,7 +26,7 @@ namespace Gabut {
         public ProxyMethod (ProxyMethods method) {
             this.method = method;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (method.get_name ()) {
+            var title = new Gtk.Label (method.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),

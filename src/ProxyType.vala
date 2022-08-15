@@ -26,7 +26,7 @@ namespace Gabut {
         public ProxyType (ProxyTypes proxytype) {
             this.proxytype = proxytype;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (proxytype.get_name ()) {
+            var title = new Gtk.Label (proxytype.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),
