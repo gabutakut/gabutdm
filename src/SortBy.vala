@@ -26,7 +26,7 @@ namespace Gabut {
         public SortBy (SortbyWindow sortbywindow) {
             this.sortbywindow = sortbywindow;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (sortbywindow.get_name ()) {
+            var title = new Gtk.Label (sortbywindow.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),

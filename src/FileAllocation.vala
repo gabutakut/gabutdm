@@ -26,7 +26,7 @@ namespace Gabut {
         public FileAllocation (FileAllocations fileallocation) {
             this.fileallocation = fileallocation;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (fileallocation.get_name ()) {
+            var title = new Gtk.Label (fileallocation.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),

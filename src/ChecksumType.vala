@@ -26,7 +26,7 @@ namespace Gabut {
         public ChecksumType (AriaChecksumTypes checksums) {
             this.checksums = checksums;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (checksums.get_name ().up ().replace ("=", "").replace ("-", "")) {
+            var title = new Gtk.Label (checksums.to_string ().up ().replace ("=", "").replace ("-", "")) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),

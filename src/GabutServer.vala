@@ -205,8 +205,8 @@ namespace Gabut {
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
                 var hashoption = new Gee.HashMap<string, string> ();
-                hashoption[AriaOptions.BT_SAVE_METADATA.get_name ()] = "true";
-                hashoption[AriaOptions.RPC_SAVE_UPLOAD_METADATA.get_name ()] = "true";
+                hashoption[AriaOptions.BT_SAVE_METADATA.to_string ()] = "true";
+                hashoption[AriaOptions.RPC_SAVE_UPLOAD_METADATA.to_string ()] = "true";
                 if (Regex.match_simple ("gabutlink=(.*?)", result)) {
                     string reslink = result.replace ("gabutlink=", "").strip ();
                     if (reslink != "") {

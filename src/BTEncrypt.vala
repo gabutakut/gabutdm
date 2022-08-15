@@ -26,7 +26,7 @@ namespace Gabut {
         public BTEncrypt (BTEncrypts btencrypt) {
             this.btencrypt = btencrypt;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (btencrypt.get_name ()) {
+            var title = new Gtk.Label (btencrypt.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),
