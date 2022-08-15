@@ -1,4 +1,4 @@
-project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.9.0')
+project ('com.github.gabutakut.gabutdm','vala', 'c', version: '1.9.2')
 
 i18n = import ('i18n')
 
