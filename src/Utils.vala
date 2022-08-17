@@ -2611,7 +2611,7 @@ namespace Gabut {
             gabutdb.exec ("DROP TABLE download;");
             table_download (gabutdb);
         }
-        if ((db_get_cols ("options") - 1) != DBOption.UNVERIFIED) {
+        if ((db_get_cols ("options") - 1) != DBOption.PROXYTYPE) {
             gabutdb.exec ("DROP TABLE options;");
             table_options (gabutdb);
         }
@@ -2877,7 +2877,7 @@ namespace Gabut {
         Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
-        res = stmt.bind_text (1, url);
+        res = stmt.bind_text (DBOption.URL, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             string dir = stmt.column_text (DBOption.DIR);
             if (dir != "") {
@@ -3005,12 +3005,12 @@ namespace Gabut {
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.to_string ())) {
             res = stmt.bind_text (DBOption.MAGNETBACKUP, hashoptions.@get (AriaOptions.BT_SAVE_METADATA.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.MAGNETBACKUP, "");
+            res = stmt.bind_text (DBOption.MAGNETBACKUP, "false");
         }
         if (hashoptions.has_key (AriaOptions.RPC_SAVE_UPLOAD_METADATA.to_string ())) {
             res = stmt.bind_text (DBOption.TORRENTBACKUP, hashoptions.@get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.TORRENTBACKUP, "");
+            res = stmt.bind_text (DBOption.TORRENTBACKUP, "false");
         }
         if (hashoptions.has_key (AriaOptions.PROXY.to_string ())) {
             res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.PROXY.to_string ()));
@@ -3139,7 +3139,7 @@ namespace Gabut {
     private void remove_dboptions (string url) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 ("DELETE FROM options WHERE url = ?", -1, out stmt);
-        res = stmt.bind_text (1, url);
+        res = stmt.bind_text (DBOption.URL, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
@@ -3152,7 +3152,7 @@ namespace Gabut {
         buildstr.append ("UPDATE options SET");
         uint empty_hash = buildstr.str.hash ();
         int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
-        res = stmt.bind_text (1, url);
+        res = stmt.bind_text (DBOption.URL, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.to_string ())) {
                 string magnetbackup = hashoptions.@get (AriaOptions.BT_SAVE_METADATA.to_string ());
@@ -3491,13 +3491,14 @@ namespace Gabut {
                     buildstr.append (@" $(DBOption.UNVERIFIED.to_string ()) = \"$(unver)\"");
                 }
             }
-            if (buildstr.str.hash () == empty_hash) {
-                return;
-            }
+        }
+        if (buildstr.str.hash () == empty_hash) {
+            stmt.reset ();
+            return;
         }
         buildstr.append (" WHERE url = ?");
         res = gabutdb.prepare_v2 (buildstr.str, -1, out stmt);
-        res = stmt.bind_text (1, url);
+        res = stmt.bind_text (DBOption.URL, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
@@ -3507,7 +3508,7 @@ namespace Gabut {
     private bool db_option_exist (string url) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 ("SELECT * FROM options WHERE url = ?", -1, out stmt);
-        res = stmt.bind_text (1, url);
+        res = stmt.bind_text (DBOption.URL, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return true;
         }

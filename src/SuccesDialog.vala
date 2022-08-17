@@ -149,16 +149,16 @@ namespace Gabut {
                 close ();
             });
 
-            var box_action = new Gtk.Grid () {
-                margin_bottom = 10,
-                halign = Gtk.Align.END,
-                hexpand = true,
-                column_homogeneous = true,
-                column_spacing = 5
+            var box_action = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
+            box_action.append (open_file);
+            box_action.append (open_folder);
+
+            var centerbox = new Gtk.CenterBox () {
+                margin_top = 10,
+                margin_bottom = 10
             };
-            box_action.attach (open_file, 0, 0);
-            box_action.attach (open_folder, 1, 0);
-            box_action.attach (close_button, 2, 0);
+            centerbox.set_start_widget (box_action);
+            centerbox.set_end_widget (close_button);
 
             var maingrid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.VERTICAL,
@@ -168,7 +168,7 @@ namespace Gabut {
                 hexpand = true
             };
             maingrid.attach (dialogmain, 0, 0);
-            maingrid.attach (box_action, 0, 1);
+            maingrid.attach (centerbox, 0, 1);
             child = maingrid;
         }
 
