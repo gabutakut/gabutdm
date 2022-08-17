@@ -134,11 +134,13 @@ namespace Gabut {
                             msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
                             msg.set_status (Soup.Status.OK, "OK");
                         } else {
+                            msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                             msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                         }
                         return true;
                     });
                 } else {
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                 }
                 self.unpause_message (msg);
@@ -185,6 +187,7 @@ namespace Gabut {
                         msg.set_response ("text/html", Soup.MemoryUse.COPY, get_home ().data);
                         msg.set_status (Soup.Status.OK, "OK");
                     } else {
+                        msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                         msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                     }
                     self.unpause_message (msg);
@@ -254,6 +257,7 @@ namespace Gabut {
                     msg.set_status (Soup.Status.OK, "OK");
                     self.unpause_message (msg);
                 } else {
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                     self.unpause_message (msg);
                 }
@@ -408,33 +412,33 @@ namespace Gabut {
 
         private string dm_div (DownloadRow? row, string action, string path) {
             double fraction = ((double) row.transferred / (double) row.totalsize);
-            var sbuilder = new StringBuilder ("<div class=\"item\">");
+            var sbuilder = "<div class=\"item\">";
             if (row.fileordir != null) {
-                sbuilder.append (@"<a class=\"icon $(get_mime_css (row.fileordir))\"></a>");
+                sbuilder += @"<a class=\"icon $(get_mime_css (row.fileordir))\"></a>";
             } else {
-                sbuilder.append ("<a class=\"icon file\"></a>");
+                sbuilder += "<a class=\"icon file\"></a>";
             }
-            sbuilder.append ("<ul class=\"name\">");
+            sbuilder += "<ul class=\"name\">";
             if (row.filename != null && row.pathname != null) {
-                sbuilder.append (@"<li><h4 title=\"$(row.pathname)\">$(row.filename)</h4></li>");
+                sbuilder += @"<li><h4 title=\"$(row.pathname)\">$(row.filename)</h4></li>";
             } else {
-                sbuilder.append ("<li><h4 title=\"Loading Informatioan\">\"Loading Informatioan\"</h4></li>");
+                sbuilder += "<li><h4 title=\"Loading Informatioan\">\"Loading Informatioan\"</h4></li>";
             }
             if (row.totalsize > 0) {
-                sbuilder.append (@"<li><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" style=\"width:$(fraction * 100)%\"></div></div></li>");
+                sbuilder += @"<li><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" style=\"width:$(fraction * 100)%\"></div></div></li>";
             } else {
-                sbuilder.append ("<li><div class=\"progress\"></div></li>");
+                sbuilder += "<li><div class=\"progress\"></div></li>";
             }
             if (row.labeltransfer != null) {
-                sbuilder.append (@"<li>$(row.labeltransfer.to_ascii ())</li>");
+                sbuilder += @"<li>$(row.labeltransfer.to_ascii ())</li>";
             } else {
-                sbuilder.append ("<li>\"Loading file...\"</li>");
+                sbuilder += "<li>\"Loading file...\"</li>";
             }
-            sbuilder.append ("</ul>");
-            sbuilder.append (@"<div class=\"deleteb\"><form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondelete $(row.ariagid)\" value=\"Delete\" class=\"btn btn-danger btn-lg active\"/></form></div>");
-            sbuilder.append (@"<form action=\"$(action != "Complete"? path : "/Dialog")\" method=\"post\"> <input type=\"submit\" name=\"actiondm $(row.ariagid)\" value=\"$(action)\" class=\"btn btn-primary btn-lg active\"/></form>");
-            sbuilder.append ("</div>\n");
-            return sbuilder.str;
+            sbuilder += "</ul>";
+            sbuilder += @"<div class=\"deleteb\"><form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondelete $(row.ariagid)\" value=\"Delete\" class=\"btn btn-danger btn-lg active\"/></form></div>";
+            sbuilder += @"<form action=\"$(action != "Complete"? path : "/Dialog")\" method=\"post\"> <input type=\"submit\" name=\"actiondm $(row.ariagid)\" value=\"$(action)\" class=\"btn btn-primary btn-lg active\"/></form>";
+            sbuilder += "</div>\n";
+            return sbuilder;
         }
 
         private int path_lenght = 0;
