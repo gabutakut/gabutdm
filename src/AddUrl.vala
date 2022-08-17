@@ -592,7 +592,8 @@ namespace Gabut {
             };
             ((Gtk.Label) save_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             save_button.clicked.connect (()=> {
-                set_option (true);
+                set_option ();
+                savetoaria ();
                 close ();
             });
             var box_action = new Gtk.CenterBox () {
@@ -655,8 +656,8 @@ namespace Gabut {
             });
         }
 
-        private void set_option (bool save = false) {
-            clear_opts ();
+        private void set_option () {
+            hashoptions.clear ();
             if (proxy_entry.text.strip () != "") {
                 if (proxytype.proxytype.to_string () == "ALL") {
                     hashoptions[AriaOptions.PROXY.to_string ()] = @"$(proxy_entry.text.strip ()):$(port_entry.value)";
@@ -763,103 +764,57 @@ namespace Gabut {
             } else {
                 hashoptions[AriaOptions.SEED_TIME.to_string ()] = get_dbsetting (DBSettings.SEEDTIME);
             }
-            if (save) {
-                aria_set_option (row.ariagid, AriaOptions.COOKIE, usecookie.active? selectcook.get_path ().replace ("/", "\\/") : "");
-                aria_set_option (row.ariagid, AriaOptions.DIR, usefolder.active? selectfd.get_path ().replace ("/", "\\/") : get_dbsetting (DBSettings.DIR));
-                aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text);
-                if (name_entry.text.strip () != "") {
-                    aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text);
-                }
-                aria_set_option (row.ariagid, AriaOptions.PROXY_METHOD, proxymethod.method.to_string ().down ());
-                aria_set_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED, unverified.active.to_string ());
-                aria_set_option (row.ariagid, AriaOptions.CHECK_INTEGRITY, integrity.active.to_string ());
-                if (row.status == StatusMode.ACTIVE) {
-                    aria_pause (row.ariagid);
-                    set_options ();
-                    aria_unpause (row.ariagid);
-                } else {
-                    set_options ();
-                }
-                if (checksumtype.checksums.to_string () + checksum_entry.text.strip () != aria_get_option (row.ariagid, AriaOptions.CHECKSUM)
-                    || save_meta.active != bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SAVE_METADATA))) {
-                    aria_remove (row.ariagid);
-                    if (row.linkmode == LinkMode.TORRENT) {
-                        if (row.url.has_prefix ("magnet:?")) {
-                            row.linkmode = LinkMode.MAGNETLINK;
-                            row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
-                        } else {
-                            row.ariagid = aria_torrent (row.url, hashoptions, row.activedm ());
-                        }
-                    } else if (row.linkmode == LinkMode.METALINK) {
-                        row.ariagid = aria_metalink (row.url, hashoptions, row.activedm ());
-                    } else if (row.linkmode == LinkMode.URL) {
-                        if (row.url.has_prefix ("magnet:?")) {
-                            row.linkmode = LinkMode.MAGNETLINK;
-                            row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
-                        } else {
-                            row.linkmode = LinkMode.URL;
-                            row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
-                        }
-                    }
-                }
-                row.status = row.status_aria (aria_tell_status (row.ariagid, TellStatus.STATUS));
-                if (!integrity.active && !unverified.active) {
-                    aria_set_option (row.ariagid, AriaOptions.SEED_TIME, "0");
-                } else {
-                    aria_set_option (row.ariagid, AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
-                }
-                set_dboptions (row.url, hashoptions);
-            }
         }
 
-        private void clear_opts () {
-            if (hashoptions.has_key (AriaOptions.PROXY.to_string ())) {
-                hashoptions.unset (AriaOptions.PROXY.to_string ());
+        private void savetoaria () {
+            aria_set_option (row.ariagid, AriaOptions.COOKIE, usecookie.active? selectcook.get_path ().replace ("/", "\\/") : "");
+            aria_set_option (row.ariagid, AriaOptions.DIR, usefolder.active? selectfd.get_path ().replace ("/", "\\/") : get_dbsetting (DBSettings.DIR));
+            aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text);
+            if (name_entry.text.strip () != "") {
+                aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text);
             }
-            if (hashoptions.has_key (AriaOptions.PROXYUSER.to_string ())) {
-                hashoptions.unset (AriaOptions.PROXYUSER.to_string ());
+            aria_set_option (row.ariagid, AriaOptions.PROXY_METHOD, proxymethod.method.to_string ().down ());
+            aria_set_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED, unverified.active.to_string ());
+            aria_set_option (row.ariagid, AriaOptions.CHECK_INTEGRITY, integrity.active.to_string ());
+            if (row.status == StatusMode.ACTIVE) {
+                aria_pause (row.ariagid);
+                set_options ();
+                aria_unpause (row.ariagid);
+            } else {
+                set_options ();
             }
-            if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.to_string ())) {
-                hashoptions.unset (AriaOptions.PROXYPASSWORD.to_string ());
+            if (checksumtype.checksums.to_string () + checksum_entry.text.strip () != aria_get_option (row.ariagid, AriaOptions.CHECKSUM)
+                || save_meta.active != bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SAVE_METADATA))) {
+                aria_remove (row.ariagid);
+                if (row.linkmode == LinkMode.TORRENT) {
+                    if (row.url.has_prefix ("magnet:?")) {
+                        row.linkmode = LinkMode.MAGNETLINK;
+                        row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
+                    } else {
+                        row.ariagid = aria_torrent (row.url, hashoptions, row.activedm ());
+                    }
+                } else if (row.linkmode == LinkMode.METALINK) {
+                    row.ariagid = aria_metalink (row.url, hashoptions, row.activedm ());
+                } else if (row.linkmode == LinkMode.URL) {
+                    if (row.url.has_prefix ("magnet:?")) {
+                        row.linkmode = LinkMode.MAGNETLINK;
+                        row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
+                    } else {
+                        row.linkmode = LinkMode.URL;
+                        row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
+                    }
+                }
             }
-            if (hashoptions.has_key (AriaOptions.FTP_PROXY.to_string ())) {
-                hashoptions.unset (AriaOptions.FTP_PROXY.to_string ());
+            row.status = row.status_aria (aria_tell_status (row.ariagid, TellStatus.STATUS));
+            if (!integrity.active && !unverified.active) {
+                aria_set_option (row.ariagid, AriaOptions.SEED_TIME, "0");
+            } else {
+                aria_set_option (row.ariagid, AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
             }
-            if (hashoptions.has_key (AriaOptions.FTP_PROXY_USER.to_string ())) {
-                hashoptions.unset (AriaOptions.FTP_PROXY_USER.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.FTP_PROXY_PASSWD.to_string ())) {
-                hashoptions.unset (AriaOptions.FTP_PROXY_PASSWD.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTP_PROXY.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTP_PROXY.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTP_PROXY_USER.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTP_PROXY_USER.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTP_PROXY_PASSWD.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTP_PROXY_PASSWD.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTPS_PROXY.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTPS_PROXY.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_USER.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTPS_PROXY_USER.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_PASSWD.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTPS_PROXY_PASSWD.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.FTP_USER.to_string ())) {
-                hashoptions.unset (AriaOptions.FTP_USER.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.FTP_PASSWD.to_string ())) {
-                hashoptions.unset (AriaOptions.FTP_PASSWD.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTP_USER.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTP_USER.to_string ());
-            }
-            if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.to_string ())) {
-                hashoptions.unset (AriaOptions.HTTP_PASSWD.to_string ());
+            if (!db_option_exist (row.url)) {
+                set_dboptions (row.url, hashoptions);
+            } else {
+                update_optionts (row.url, hashoptions);
             }
         }
 
