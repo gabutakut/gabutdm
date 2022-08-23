@@ -264,7 +264,7 @@ namespace Gabut {
                 value = double.parse (pharse_options (pack_data, AriaOptions.BT_MAX_OPEN_FILES))
             };
 
-            var maxpeers = new Gtk.SpinButton.with_range (0, 100, 1) {
+            var maxpeers = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 220,
                 hexpand = true,
                 value = double.parse (pharse_options (pack_data, AriaOptions.BT_MAX_PEERS))
