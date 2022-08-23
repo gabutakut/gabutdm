@@ -109,6 +109,12 @@ namespace Gabut {
                         statuslabel.attributes = color_attribute (49647, 22352, 44235);
                         remove_timeout ();
                         break;
+                    case StatusMode.SEED:
+                        start_button.set_label (_("Pause"));
+                        statuslabel.label = _("Seeding");
+                        statuslabel.attributes = color_attribute (29647, 22352, 44235);
+                        add_timeout ();
+                        break;
                     default:
                         start_button.set_label (_("Pause"));
                         statuslabel.label = _("Downloading");
@@ -690,15 +696,14 @@ namespace Gabut {
                     return StatusMode.NOTHING;
                 default:
                     if (ariagid != null) {
-                        int statustorr = 0;
                         if (aria_tell_bittorent (ariagid, TellBittorrent.NAME) != "") {
                             if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
-                                statustorr = StatusMode.COMPLETE;
+                                return StatusMode.SEED;
                             } else {
-                                statustorr = StatusMode.ACTIVE;
+                                return StatusMode.ACTIVE;
                             }
                         }
-                        return statustorr;
+                        return StatusMode.ACTIVE;
                     } else {
                         return StatusMode.ACTIVE;
                     }
@@ -749,6 +754,7 @@ namespace Gabut {
                     } else {
                         show_peers ();
                     }
+                    delaytime = 0;
                 }
                 delaytime++;
             } else {

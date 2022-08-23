@@ -97,14 +97,8 @@ namespace Gabut {
                         break;
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
-                            if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
-                                start_button.icon_name = "com.github.gabutakut.gabutdm.seed";
-                                start_button.tooltip_text = _("Seeding");
-                                return;
-                            } else {
-                                start_button.icon_name = "process-completed";
-                                start_button.tooltip_text = _("Complete");
-                            }
+                            start_button.icon_name = "process-completed";
+                            start_button.tooltip_text = _("Complete");
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
@@ -161,6 +155,11 @@ namespace Gabut {
                         if (url != null && db_download_exist (url)) {
                             update_download (this);
                         }
+                        break;
+                    case StatusMode.SEED:
+                        start_button.icon_name = "com.github.gabutakut.gabutdm.seed";
+                        start_button.tooltip_text = _("Seeding");
+                        add_timeout ();
                         break;
                     default:
                         start_button.icon_name = "media-playback-start";
@@ -498,6 +497,9 @@ namespace Gabut {
                 add_timeout ();
             } else if (status == StatusMode.COMPLETE) {
                 remove_timeout ();
+            } else if (status == StatusMode.SEED) {
+                aria_pause (ariagid);
+                add_timeout ();
             } else if (status == StatusMode.WAIT) {
                 aria_pause (ariagid);
                 add_timeout ();
@@ -623,7 +625,7 @@ namespace Gabut {
                 default:
                     if (linkmode != LinkMode.URL && ariagid != null) {
                         if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
-                            return StatusMode.COMPLETE;
+                            return StatusMode.SEED;
                         } else {
                             return StatusMode.ACTIVE;
                         }
