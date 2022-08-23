@@ -328,6 +328,9 @@ namespace Gabut {
                                 });
                                 return false;
                             });
+                            property.update_agid.connect ((ariagid, newgid)=> {
+                                update_agid (ariagid, newgid);
+                            });
                             property.show ();
                         }
                     });

@@ -270,7 +270,8 @@ namespace Gabut {
         COMPLETE = 2,
         WAIT = 3,
         ERROR = 4,
-        NOTHING = 5
+        NOTHING = 5,
+        SEED = 6
     }
 
     private enum AriaOptions {
@@ -1885,7 +1886,7 @@ namespace Gabut {
     }
 
     private async void aria_start () throws Error {
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true", "--pause", "--check-certificate=false"};
+        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true", "--pause=true", "--check-certificate=false"};
         exec += @"--rpc-listen-port=$(get_dbsetting (DBSettings.RPCPORT))";
         exec += @"--rpc-max-request-size=$(get_dbsetting (DBSettings.RPCSIZE))";
         exec += @"--listen-port=$(get_dbsetting (DBSettings.BTLISTENPORT))";
@@ -3391,6 +3392,13 @@ namespace Gabut {
                     }
                     buildstr.append (@" $(DBOption.DIR.to_string ()) = \"$(dir)\"");
                 }
+            } else {
+                if (stmt.column_text (DBOption.DIR) != "") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.DIR.to_string ()) = \"\"");
+                }
             }
             if (hashoptions.has_key (AriaOptions.COOKIE.to_string ())) {
                 string cookie = hashoptions.@get (AriaOptions.COOKIE.to_string ());
@@ -3399,6 +3407,13 @@ namespace Gabut {
                         buildstr.append (",");
                     }
                     buildstr.append (@" $(DBOption.COOKIE.to_string ()) = \"$(cookie)\"");
+                }
+            } else {
+                if (stmt.column_text (DBOption.COOKIE) != "") {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.COOKIE.to_string ()) = \"\"");
                 }
             }
             if (hashoptions.has_key (AriaOptions.REFERER.to_string ())) {

@@ -26,6 +26,7 @@ namespace Gabut {
             PROPERTY
         }
         public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
+        public signal void update_agid (string ariagid, string newgid);
         public Gtk.Button save_button;
         private Gtk.Image status_image;
         private Gtk.Label sizelabel;
@@ -657,7 +658,13 @@ namespace Gabut {
         }
 
         private void set_option () {
-            hashoptions.clear ();
+            if (!hashoptions.has_key (AriaOptions.SELECT_FILE.to_string ())) {
+                hashoptions.clear ();
+            } else {
+                var selectedf = hashoptions.@get (AriaOptions.SELECT_FILE.to_string ());
+                hashoptions.clear ();
+                hashoptions[AriaOptions.SELECT_FILE.to_string ()] = selectedf;
+            }
             if (proxy_entry.text.strip () != "") {
                 if (proxytype.proxytype.to_string () == "ALL") {
                     hashoptions[AriaOptions.PROXY.to_string ()] = @"$(proxy_entry.text.strip ()):$(port_entry.value)";
@@ -767,79 +774,41 @@ namespace Gabut {
         }
 
         private void savetoaria () {
-            aria_set_option (row.ariagid, AriaOptions.COOKIE, usecookie.active? selectcook.get_path ().replace ("/", "\\/") : "");
-            aria_set_option (row.ariagid, AriaOptions.DIR, usefolder.active? selectfd.get_path ().replace ("/", "\\/") : get_dbsetting (DBSettings.DIR));
-            aria_set_option (row.ariagid, AriaOptions.REFERER, refer_entry.text);
-            if (name_entry.text.strip () != "") {
-                aria_set_option (row.ariagid, AriaOptions.OUT, name_entry.text);
-            }
-            aria_set_option (row.ariagid, AriaOptions.PROXY_METHOD, proxymethod.method.to_string ().down ());
-            aria_set_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED, unverified.active.to_string ());
-            aria_set_option (row.ariagid, AriaOptions.CHECK_INTEGRITY, integrity.active.to_string ());
-            if (row.status == StatusMode.ACTIVE) {
-                aria_pause (row.ariagid);
-                set_options ();
-                aria_unpause (row.ariagid);
-            } else {
-                set_options ();
-            }
-            if (checksumtype.checksums.to_string () + checksum_entry.text.strip () != aria_get_option (row.ariagid, AriaOptions.CHECKSUM)
-                || save_meta.active != bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SAVE_METADATA))) {
-                aria_remove (row.ariagid);
-                if (row.linkmode == LinkMode.TORRENT) {
-                    if (row.url.has_prefix ("magnet:?")) {
-                        row.linkmode = LinkMode.MAGNETLINK;
-                        row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
-                    } else {
-                        row.ariagid = aria_torrent (row.url, hashoptions, row.activedm ());
-                    }
-                } else if (row.linkmode == LinkMode.METALINK) {
-                    row.ariagid = aria_metalink (row.url, hashoptions, row.activedm ());
-                } else if (row.linkmode == LinkMode.URL) {
-                    if (row.url.has_prefix ("magnet:?")) {
-                        row.linkmode = LinkMode.MAGNETLINK;
-                        row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
-                    } else {
-                        row.linkmode = LinkMode.URL;
-                        row.ariagid = aria_url (row.url, hashoptions, row.activedm ());
-                    }
+            aria_unpause (row.ariagid);
+            aria_remove (row.ariagid);
+            if (row.linkmode == LinkMode.TORRENT) {
+                if (row.url.has_prefix ("magnet:?")) {
+                    row.linkmode = LinkMode.MAGNETLINK;
+                    var rowariagid = aria_url (row.url, hashoptions, row.activedm ());
+                    update_agid (row.ariagid, rowariagid);
+                    row.ariagid = rowariagid;
+                } else {
+                    var rowariagid = aria_torrent (row.url, hashoptions, row.activedm ());
+                    update_agid (row.ariagid, rowariagid);
+                    row.ariagid = rowariagid;
+                }
+            } else if (row.linkmode == LinkMode.METALINK) {
+                var rowariagid = aria_metalink (row.url, hashoptions, row.activedm ());
+                update_agid (row.ariagid, rowariagid);
+                row.ariagid = rowariagid;
+            } else if (row.linkmode == LinkMode.URL) {
+                if (row.url.has_prefix ("magnet:?")) {
+                    row.linkmode = LinkMode.MAGNETLINK;
+                    var rowariagid = aria_url (row.url, hashoptions, row.activedm ());
+                    update_agid (row.ariagid, rowariagid);
+                    row.ariagid = rowariagid;
+                } else {
+                    row.linkmode = LinkMode.URL;
+                    var rowariagid = aria_url (row.url, hashoptions, row.activedm ());
+                    update_agid (row.ariagid, rowariagid);
+                    row.ariagid = rowariagid;
                 }
             }
             row.status = row.status_aria (aria_tell_status (row.ariagid, TellStatus.STATUS));
-            if (!integrity.active && !unverified.active) {
-                aria_set_option (row.ariagid, AriaOptions.SEED_TIME, "0");
-            } else {
-                aria_set_option (row.ariagid, AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
-            }
             if (!db_option_exist (row.url)) {
                 set_dboptions (row.url, hashoptions);
             } else {
                 update_optionts (row.url, hashoptions);
-            }
-        }
-
-        private void set_options () {
-            aria_set_option (row.ariagid, AriaOptions.PROXY, proxytype.proxytype.to_string ().down () == "all"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.PROXYUSER, proxytype.proxytype.to_string ().down () == "all"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.PROXYPASSWORD, proxytype.proxytype.to_string ().down () == "all"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.FTP_PROXY, proxytype.proxytype.to_string ().down () == "ftp"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.FTP_PROXY_USER, proxytype.proxytype.to_string ().down () == "ftp"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.FTP_PROXY_PASSWD, proxytype.proxytype.to_string ().down () == "ftp"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.HTTP_PROXY, proxytype.proxytype.to_string ().down () == "http"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.HTTP_PROXY_USER, proxytype.proxytype.to_string ().down () == "http"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.HTTP_PROXY_PASSWD, proxytype.proxytype.to_string ().down () == "http"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.HTTPS_PROXY, proxytype.proxytype.to_string ().down () == "https"? proxy_entry.text.strip () != ""? @"$(proxy_entry.text):$(port_entry.value)" : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.HTTPS_PROXY_USER, proxytype.proxytype.to_string ().down () == "https"? proxy_entry.text.strip () != ""? user_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.HTTPS_PROXY_PASSWD, proxytype.proxytype.to_string ().down () == "https"? proxy_entry.text.strip () != ""? pass_entry.text : "" : "");
-            aria_set_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO, encrypt.active.to_string ());
-            aria_set_option (row.ariagid, AriaOptions.USER_AGENT, useragent_entry.text.strip ());
-            aria_set_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL, btencrypt.btencrypt.to_string ().down ());
-            if (loginuser.loginuser.to_string ().down () == "http") {
-                aria_set_option (row.ariagid, AriaOptions.HTTP_USER, loguser_entry.text);
-                aria_set_option (row.ariagid, AriaOptions.HTTP_PASSWD, logpass_entry.text);
-            } else {
-                aria_set_option (row.ariagid, AriaOptions.FTP_USER, loguser_entry.text);
-                aria_set_option (row.ariagid, AriaOptions.FTP_PASSWD, logpass_entry.text);
             }
         }
 
