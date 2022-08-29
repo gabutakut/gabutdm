@@ -1467,8 +1467,12 @@ namespace Gabut {
     }
 
     private string aria_url (string url, Gee.HashMap<string, string> options, int arpos) {
+        var nurl = url;
+        if (url.contains ("docs.googleusercontent.com/docs")) {
+            nurl = gdrive_pharse (url);
+        }
         var stringbuild = new StringBuilder ();
-        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
+        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(nurl)\"], {");
         uint hasempty = stringbuild.str.hash ();
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
@@ -2072,6 +2076,53 @@ namespace Gabut {
             GLib.warning (e.message);
         }
         return "";
+    }
+
+    private string gdrive_pharse (string url) {
+        var idgd = url.slice (url.last_index_of ("/") + 1, url.index_of ("?"));
+        var url_gdm = "";
+        try {
+            var session = new Soup.Session ();
+            var cookies = new SList<Soup.Cookie> ();
+            cookies.append (new Soup.Cookie ("soup-cookie", "my-val", "docs.google.com", "/", -1));
+            var message = new Soup.Message ("GET", @"https://docs.google.com/uc?export=download&id=$(idgd)");
+            Soup.cookies_to_response (cookies, message);
+            var ins = session.send (message);
+            if (message.response_headers.get_content_type (null) == "text/html") {
+                DataInputStream dis = new DataInputStream (ins);
+                string texthtml = "";
+                string ln;
+                while ((ln = dis.read_line_utf8 ()) != null) {
+                    texthtml += @"$(ln.strip ()) \n";
+                }
+                MatchInfo match_info;
+                Regex regex = new Regex ("action=\"(.*?)\"");
+                if (regex.match_full (texthtml, -1, 0, 0, out match_info)) {
+                    var fixchar = match_info.fetch (1).replace ("&amp;", "&").replace ("%3D", "=").replace ("%26", "&");
+                    if (fixchar.has_prefix ("https://")) {
+                        Soup.Message msg = new Soup.Message ("GET", fixchar);
+                        Soup.cookies_to_request (cookies, msg);
+                        session.send (msg);
+                        url_gdm = msg.get_uri ().to_string ();
+                    } else {
+                        Soup.Message msg = new Soup.Message ("GET", url);
+                        Soup.cookies_to_request (cookies, msg);
+                        session.send (msg);
+                        url_gdm = msg.get_uri ().to_string ();
+                    }
+                } else {
+                    Soup.Message msg = new Soup.Message ("GET", url);
+                    Soup.cookies_to_request (cookies, msg);
+                    session.send (msg);
+                    url_gdm = msg.get_uri ().to_string ();
+                }
+            } else {
+                url_gdm = message.get_uri ().to_string ();
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return url_gdm;
     }
 
     private int get_container (File file) {
