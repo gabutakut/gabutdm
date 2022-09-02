@@ -21,8 +21,8 @@
     <a href="https://addons.mozilla.org/en-US/firefox/addon/gabut-extentions/"><img
             src="https://addons.mozilla.org/static-frontend/c6276b7c0dc392e3ce8668f12e68b83c.svg" alt="Get it from the Add-ons"></a>
 </p>
-<p align="center"><a href="https://flatstat.mijorus.it/app/com.github.gabutakut.gabutdm"  align="center"><img width="150" src="https://img.shields.io/endpoint?url=https://flathub-stats-backend.vercel.app/badges/com.github.gabutakut.gabutdm/shields.io.json"></a></p>
 <h1 align="center">🤖 GabutDM 🤖</h1>
+<p align="center"><a href="https://flatstat.mijorus.it/app/com.github.gabutakut.gabutdm"  align="center"><img width="150" src="https://img.shields.io/endpoint?url=https://flathub-stats-backend.vercel.app/badges/com.github.gabutakut.gabutdm/shields.io.json"></a></p>
 <h2 align="center">🤖 GTK4 🤖</h2>
 <p align="center">
 Gabut Download Manager application that can download all you need like Link URLs Metallink Magnetlink Torrents using Aria2c and,
