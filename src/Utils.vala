@@ -2083,36 +2083,27 @@ namespace Gabut {
         var url_gdm = "";
         try {
             var session = new Soup.Session ();
-            var cookies = new SList<Soup.Cookie> ();
-            cookies.append (new Soup.Cookie ("soup-cookie", "my-val", "docs.google.com", "/", -1));
             var message = new Soup.Message ("GET", @"https://docs.google.com/uc?export=download&id=$(idgd)");
-            Soup.cookies_to_response (cookies, message);
             var ins = session.send (message);
             if (message.response_headers.get_content_type (null) == "text/html") {
-                DataInputStream dis = new DataInputStream (ins);
-                string texthtml = "";
-                string ln;
-                while ((ln = dis.read_line_utf8 ()) != null) {
-                    texthtml += @"$(ln.strip ()) \n";
-                }
                 MatchInfo match_info;
                 Regex regex = new Regex ("action=\"(.*?)\"");
-                if (regex.match_full (texthtml, -1, 0, 0, out match_info)) {
-                    var fixchar = match_info.fetch (1).replace ("&amp;", "&").replace ("%3D", "=").replace ("%26", "&");
+                if (regex.match_full ((string) ins.read_bytes (8192).get_data (), -1, 0, 0, out match_info)) {
+                    var fixchar = GLib.Uri.unescape_string (match_info.fetch (1).replace ("&amp;", "&"));
                     if (fixchar.has_prefix ("https://")) {
                         Soup.Message msg = new Soup.Message ("GET", fixchar);
-                        Soup.cookies_to_request (cookies, msg);
+                        Soup.cookies_to_request (Soup.cookies_from_request (message), msg);
                         session.send (msg);
                         url_gdm = msg.get_uri ().to_string ();
                     } else {
-                        Soup.Message msg = new Soup.Message ("GET", url);
-                        Soup.cookies_to_request (cookies, msg);
+                        Soup.Message msg = new Soup.Message ("GET", fixchar.replace ("/v3/signin/identifier?continue=", ""));
+                        Soup.cookies_to_request (Soup.cookies_from_request (message), msg);
                         session.send (msg);
                         url_gdm = msg.get_uri ().to_string ();
                     }
                 } else {
                     Soup.Message msg = new Soup.Message ("GET", url);
-                    Soup.cookies_to_request (cookies, msg);
+                    Soup.cookies_to_request (Soup.cookies_from_request (message), msg);
                     session.send (msg);
                     url_gdm = msg.get_uri ().to_string ();
                 }
@@ -2126,7 +2117,7 @@ namespace Gabut {
     }
 
     private int get_container (File file) {
-        int files = 0;
+        int n_files = 0;
         try {
             FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             FileInfo info;
@@ -2134,12 +2125,12 @@ namespace Gabut {
                 if (info.get_is_hidden ()) {
                     continue;
                 }
-                files++;
+                n_files++;
             }
         } catch (Error e) {
             GLib.warning (e.message);
         }
-        return files;
+        return n_files;
     }
 
     private async void open_file (Soup.ServerMessage msg, File file) throws Error {
