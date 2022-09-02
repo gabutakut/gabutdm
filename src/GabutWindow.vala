@@ -879,7 +879,8 @@ namespace Gabut {
         [CCode (instance_pos = -1)]
         private void header_dm (DownloadRow row1, DownloadRow? row2) {
             var date1 = new GLib.DateTime.from_unix_local (row1.timeadded);
-            var label = new Gtk.Label (date1.format (@"%A $(showtime.active? "- %I:%M %p" : "") $(showdate.active? "- %d %B %Y" : "")")) {
+            var formdate = date1.format (@"%A $(showtime.active? "- %I:%M %p" : "") $(showdate.active? "- %d %B %Y" : "")");
+            var label = new Gtk.Label (formdate) {
                 xalign = 0,
                 margin_start = 5,
                 attributes = color_attribute (60000, 30000, 19764)
@@ -890,7 +891,11 @@ namespace Gabut {
                 row1.set_header (label);
             } else {
                 if (showtime.active) {
-                    row1.set_header (label);
+                    if (formdate != new GLib.DateTime.from_unix_local (row2.timeadded).format (@"%A - %I:%M %p - %d %B %Y")) {
+                        row1.set_header (label);
+                    } else {
+                        row1.set_header (null);
+                    }
                 } else {
                     row1.set_header (null);
                 }

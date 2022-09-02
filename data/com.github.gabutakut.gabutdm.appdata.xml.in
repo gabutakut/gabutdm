@@ -33,7 +33,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="1.9.3" date="2022-8-15">
+    <release version="1.9.4" date="2022-9-5">
       <description>
         <p>Fix Error download at Google Drive</p>
       </description>
