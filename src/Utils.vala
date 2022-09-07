@@ -2130,6 +2130,7 @@ namespace Gabut {
                         } else {
                             res = curl_easy.getinfo (Native.Curl.Info.REDIRECT_URL, out locations);
                         }
+                        return locations;
                     }
                 } else {
                     if (locations == null) {
