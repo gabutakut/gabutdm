@@ -17,6 +17,7 @@ dependencies = [
     dependency ('libqrencode'),
     dependency ('gdk-pixbuf-2.0'),
     dependency ('cairo'),
+    dependency ('libcurl'),
 
     meson.get_compiler ('vala').find_library ('posix'),
 ]

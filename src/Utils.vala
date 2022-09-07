@@ -2078,42 +2078,72 @@ namespace Gabut {
         return "";
     }
 
+    private errordomain CurlError {
+        PERFORM_FAILED
+    }
+
+    private size_t write_function (char *contents, size_t size, size_t nmemb, void *userp) throws IOError {
+        size_t bytes = size * nmemb;
+        uint8[] buffer = new uint8[bytes];
+        Posix.memcpy ((void*) buffer, contents, bytes);
+        return ((OutputStream) userp).write (buffer);
+    }
+
+    private Native.Curl.EasyHandle curl_easy;
     private string gdrive_pharse (string url) {
         var idgd = url.slice (url.last_index_of ("/") + 1, url.index_of ("?"));
-        var url_gdm = "";
         try {
-            var session = new Soup.Session ();
-            var message = new Soup.Message ("GET", @"https://docs.google.com/uc?export=download&id=$(idgd)");
-            var ins = session.send (message);
-            if (message.response_headers.get_content_type (null) == "text/html") {
+            string locations;
+            var output_stream = new GdmOutstream ();
+            curl_easy.setopt (Native.Curl.Option.URL, @"https://docs.google.com/uc?export=download&id=$(idgd)");
+            curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, false);
+            curl_easy.setopt (Native.Curl.Option.WRITEFUNCTION, (Native.Curl.WriteCallback) write_function);
+            curl_easy.setopt (Native.Curl.Option.WRITEDATA, output_stream);
+            var res = curl_easy.perform ();
+            if (res != Native.Curl.Code.OK) {
+                throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
+            } else {
+                res = curl_easy.getinfo (Native.Curl.Info.REDIRECT_URL, out locations);
+            }
+            var content = (string) output_stream.stream.read_bytes (8192).get_data ();
+            if (content != "") {
                 MatchInfo match_info;
                 Regex regex = new Regex ("action=\"(.*?)\"");
-                if (regex.match_full ((string) ins.read_bytes (8192).get_data (), -1, 0, 0, out match_info)) {
+                if (regex.match_full (content, -1, 0, 0, out match_info)) {
                     var fixchar = GLib.Uri.unescape_string (match_info.fetch (1).replace ("&amp;", "&"));
                     if (fixchar.has_prefix ("https://")) {
-                        Soup.Message msg = new Soup.Message ("GET", fixchar);
-                        Soup.cookies_to_request (Soup.cookies_from_request (message), msg);
-                        session.send (msg);
-                        url_gdm = msg.get_uri ().to_string ();
+                        curl_easy.setopt (Native.Curl.Option.URL, fixchar);
+                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, false);
+                        res = curl_easy.perform ();
+                        if (res != Native.Curl.Code.OK) {
+                            throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
+                        } else {
+                            res = curl_easy.getinfo (Native.Curl.Info.REDIRECT_URL, out locations);
+                        }
+                        return locations;
                     } else {
-                        Soup.Message msg = new Soup.Message ("GET", fixchar.replace ("/v3/signin/identifier?continue=", ""));
-                        Soup.cookies_to_request (Soup.cookies_from_request (message), msg);
-                        session.send (msg);
-                        url_gdm = msg.get_uri ().to_string ();
+                        curl_easy.setopt (Native.Curl.Option.URL, fixchar.replace ("/v3/signin/identifier?continue=", ""));
+                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, false);
+                        res = curl_easy.perform ();
+                        if (res != Native.Curl.Code.OK) {
+                            throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
+                        } else {
+                            res = curl_easy.getinfo (Native.Curl.Info.REDIRECT_URL, out locations);
+                        }
                     }
                 } else {
-                    Soup.Message msg = new Soup.Message ("GET", url);
-                    Soup.cookies_to_request (Soup.cookies_from_request (message), msg);
-                    session.send (msg);
-                    url_gdm = msg.get_uri ().to_string ();
+                    if (locations == null) {
+                        res = curl_easy.getinfo (Native.Curl.Info.EFFECTIVE_URL, out locations);
+                    }
+                    return locations;
                 }
             } else {
-                url_gdm = message.get_uri ().to_string ();
+                return locations;
             }
         } catch (Error e) {
             GLib.warning (e.message);
         }
-        return url_gdm;
+        return url;
     }
 
     private int get_container (File file) {
