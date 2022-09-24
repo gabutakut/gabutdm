@@ -246,6 +246,7 @@ namespace Gabut {
                         qrcode = null;
                         return false;
                     });
+                    qrcode.load_host (false);
                 }
             });
             var add_button = new Gtk.Button.from_icon_name ("insert-link") {

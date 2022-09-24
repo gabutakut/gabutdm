@@ -147,9 +147,6 @@ namespace Gabut {
         public override void show () {
             base.show ();
             local_server = bool.parse (get_dbsetting (DBSettings.IPLOCAL));
-            Idle.add (()=> {
-                return load_host (false);
-            });
         }
 
         private void share_server () {
@@ -158,7 +155,7 @@ namespace Gabut {
             load_host (true);
         }
 
-        private bool load_host (bool reboot) {
+        public void load_host (bool reboot) {
             if (local_server) {
                 host_button.label =_("Share Address");
                 ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 0, 0);
@@ -172,7 +169,6 @@ namespace Gabut {
             create_qrcode (host);
             linkbutton.uri = host;
             linkbutton.label = host;
-            return false;
         }
 
         private void create_qrcode (string strinput) {
