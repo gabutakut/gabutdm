@@ -24,9 +24,8 @@
  * SUCH DAMAGE.
  */
 
-[CCode (cheader_filename = "curl/curl.h")]
 namespace Native.Curl {
-	[CCode (cname = "CURL", cprefix = "curl_easy_", cheader_filename = "curl/curl.h", free_function = "curl_free")]
+	[CCode (cname = "CURL", cprefix = "curl_easy_", cheader_filename = "curl/curl.h", free_function = "")]
 	[Compact]
 	public class EasyHandle {
 		[CCode (cname = "curl_easy_init")]
@@ -48,6 +47,8 @@ namespace Native.Curl {
 		public Curl.Code recv (void* buffer, size_t buflen, out size_t n);
 		[CCode (cname = "curl_easy_reset")]
 		public void reset ();
+		[CCode (cname = "curl_easy_upkeep")]
+		public Curl.Code upkeep ();
 		[CCode (cname = "curl_easy_send")]
 		public Curl.Code send (void* buffer, size_t buflen, out size_t n);
 		[CCode (cname = "curl_easy_setopt")]

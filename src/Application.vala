@@ -102,7 +102,6 @@ namespace Gabut {
                 var gabutserver = new GabutServer ();
                 gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 gabutserver.send_post_data.connect (dialog_server);
-                curl_easy = new Native.Curl.EasyHandle ();
                 gabutwindow = new GabutWindow (this);
 
                 var droptarget = new Gtk.DropTarget (Type.STRING, Gdk.DragAction.COPY);

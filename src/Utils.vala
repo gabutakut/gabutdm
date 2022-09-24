@@ -2089,16 +2089,16 @@ namespace Gabut {
         return ((OutputStream) userp).write (buffer);
     }
 
-    private Native.Curl.EasyHandle curl_easy;
     private string gdrive_pharse (string url) {
         var idgd = url.slice (url.last_index_of ("/") + 1, url.index_of ("?"));
         try {
             string locations;
             var output_stream = new GdmOutstream ();
+            Native.Curl.EasyHandle curl_easy = new Native.Curl.EasyHandle ();
             curl_easy.setopt (Native.Curl.Option.URL, @"https://docs.google.com/uc?export=download&id=$(idgd)");
-            curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, false);
+            curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, 0L);
             curl_easy.setopt (Native.Curl.Option.WRITEFUNCTION, (Native.Curl.WriteCallback) write_function);
-            curl_easy.setopt (Native.Curl.Option.WRITEDATA, output_stream);
+            curl_easy.setopt (Native.Curl.Option.WRITEDATA, (void*) output_stream);
             var res = curl_easy.perform ();
             if (res != Native.Curl.Code.OK) {
                 throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
@@ -2113,7 +2113,7 @@ namespace Gabut {
                     var fixchar = GLib.Uri.unescape_string (match_info.fetch (1).replace ("&amp;", "&"));
                     if (fixchar.has_prefix ("https://")) {
                         curl_easy.setopt (Native.Curl.Option.URL, fixchar);
-                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, false);
+                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, 0L);
                         res = curl_easy.perform ();
                         if (res != Native.Curl.Code.OK) {
                             throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
@@ -2123,7 +2123,7 @@ namespace Gabut {
                         return locations;
                     } else {
                         curl_easy.setopt (Native.Curl.Option.URL, fixchar.replace ("/v3/signin/identifier?continue=", ""));
-                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, false);
+                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, 0L);
                         res = curl_easy.perform ();
                         if (res != Native.Curl.Code.OK) {
                             throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
