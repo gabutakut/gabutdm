@@ -71,9 +71,20 @@ namespace Gabut {
             }
         }
 
+        private bool _dbmenu = false;
+        public bool dbmenu {
+            get {
+                return _dbmenu;
+            }
+            set {
+                _dbmenu = value;
+            }
+        }
+
         public GabutWindow (Gtk.Application application) {
             Object (application: application,
                     hide_on_close: bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)),
+                    dbmenu: bool.parse (get_dbsetting (DBSettings.DBUSMENU)),
                     title: _("Gabut Download Manager")
             );
         }
@@ -195,11 +206,17 @@ namespace Gabut {
                         if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
                             hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
                         }
+                        if (bool.parse (get_dbsetting (DBSettings.DBUSMENU)) != dbmenu) {
+                            dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
+                        }
                         preferences = null;
                     });
                     preferences.close_request.connect (()=> {
                         if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
                             hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
+                        }
+                        if (bool.parse (get_dbsetting (DBSettings.DBUSMENU)) != dbmenu) {
+                            dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
                         }
                         preferences = null;
                         return false;
@@ -488,26 +505,28 @@ namespace Gabut {
         }
 
         private bool set_menulauncher () {
-            var globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
-            bool statact = globalactive > 0;
-            set_count_visible.begin (globalactive);
-            if (!statact) {
-                int stoped = 10;
-                Timeout.add (500, ()=> {
-                    set_progress_visible.begin (0.0, false);
-                    set_count_visible.begin (globalactive);
-                    update_info ();
-                    stoped--;
-                    return stoped != 0;
-                });
-            }
-            if (timeout_id != 0) {
-                Source.remove (timeout_id);
-                timeout_id = 0;
-            }
-            if (rmtimeout_id != 0) {
-                Source.remove (rmtimeout_id);
-                rmtimeout_id = 0;
+            if (dbmenu) {
+                var globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
+                bool statact = globalactive > 0;
+                set_count_visible.begin (globalactive);
+                if (!statact) {
+                    int stoped = 3;
+                    Timeout.add (500, ()=> {
+                        set_progress_visible.begin (0.0, false);
+                        set_count_visible.begin (globalactive);
+                        update_info ();
+                        stoped--;
+                        return stoped != 0;
+                    });
+                }
+                if (timeout_id != 0) {
+                    Source.remove (timeout_id);
+                    timeout_id = 0;
+                }
+                if (rmtimeout_id != 0) {
+                    Source.remove (rmtimeout_id);
+                    rmtimeout_id = 0;
+                }
             }
             return false;
         }
@@ -639,6 +658,9 @@ namespace Gabut {
                                     }
                                     view_status ();
                                 }
+                                if (dbmenu) {
+                                    row.fraction_laucher ();
+                                }
                                 update_info ();
                                 return;
                         }
@@ -696,6 +718,9 @@ namespace Gabut {
                                 append_dbus.begin (row.rowbus);
                             }
                             view_status ();
+                        }
+                        if (dbmenu) {
+                            row.fraction_laucher ();
                         }
                         update_info ();
                         return;
@@ -817,14 +842,18 @@ namespace Gabut {
             if (!menudbus.get_exist (rowbus)) {
                 menudbus.child_append (rowbus);
             }
-            yield open_quicklist (dbusserver, menudbus);
+            if (dbmenu) {
+                yield open_quicklist (dbusserver, menudbus);
+            }
         }
 
         private async void remove_dbus (DbusmenuItem rowbus) throws GLib.Error {
             if (menudbus.get_exist (rowbus)) {
                 menudbus.child_delete (rowbus);
             }
-            yield open_quicklist (dbusserver, menudbus);
+            if (dbmenu) {
+                yield open_quicklist (dbusserver, menudbus);
+            }
         }
 
         [CCode (instance_pos = -1)]

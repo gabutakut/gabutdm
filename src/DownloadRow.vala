@@ -275,9 +275,6 @@ namespace Gabut {
                     if (fraction > 0.0) {
                         progressbar.fraction = fraction;
                     }
-                    if (status == StatusMode.ACTIVE) {
-                        set_progress_visible.begin (progressbar.fraction);
-                    }
                 } else {
                     progressbar.pulse ();
                 }
@@ -466,6 +463,10 @@ namespace Gabut {
 
         public void idle_progress () {
             Idle.add (()=> { update_progress (); return false; });
+        }
+
+        public void fraction_laucher () {
+            set_progress_visible.begin (progressbar.fraction);
         }
 
         private void action_dowload () {
