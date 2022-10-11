@@ -32,7 +32,7 @@ namespace Gabut {
         public GabutApp () {
             Object (
                 application_id: "com.github.gabutakut.gabutdm",
-                flags: ApplicationFlags.HANDLES_COMMAND_LINE
+                flags: GLib.ApplicationFlags.HANDLES_COMMAND_LINE
             );
         }
 
@@ -50,7 +50,7 @@ namespace Gabut {
                 startingup = true;
             }
             if (dict.contains (GLib.OPTION_REMAINING)) {
-                foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, VariantType.STRING_ARRAY).get_strv ()) {
+                foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY).get_strv ()) {
                     if (GLib.FileUtils.test (arg_file, GLib.FileTest.EXISTS)) {
                         dialog_url (File.new_for_path (arg_file).get_uri ());
                     } else {
