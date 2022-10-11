@@ -33,6 +33,11 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="1.9.5" date="2022-10-11">
+      <description>
+        <p>Menu for launcher</p>
+      </description>
+    </release>
     <release version="1.9.4" date="2022-9-5">
       <description>
         <p>Fix Error download at Google Drive</p>
