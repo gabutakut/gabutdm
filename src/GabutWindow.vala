@@ -84,12 +84,12 @@ namespace Gabut {
         public GabutWindow (Gtk.Application application) {
             Object (application: application,
                     hide_on_close: bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)),
-                    dbmenu: bool.parse (get_dbsetting (DBSettings.DBUSMENU)),
                     title: _("Gabut Download Manager")
             );
         }
 
         construct {
+            dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
             dbusserver = new CanonicalDbusmenu ();
             openmenu = new DbusmenuItem ();
             openmenu.property_set (MenuItem.LABEL.to_string (), _("Gabut Download Manager"));
