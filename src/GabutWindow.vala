@@ -619,7 +619,6 @@ namespace Gabut {
                 }
                 return true;
             });
-            aria_purge_all ();
         }
 
         public void remove_all () {

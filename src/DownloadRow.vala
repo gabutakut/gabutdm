@@ -63,7 +63,10 @@ namespace Gabut {
                 _fileordir = value;
                 if (value != null && value != "") {
                     imagefile.gicon = GLib.ContentType.get_icon (value);
-                    rowbus.property_set (MenuItem.ICON_NAME.to_string (), GLib.ContentType.get_generic_icon_name (value));
+                    var genricico = GLib.ContentType.get_generic_icon_name (value);
+                    if (genricico != null) {
+                        rowbus.property_set (MenuItem.ICON_NAME.to_string (), genricico);
+                    }
                 }
             }
         }
