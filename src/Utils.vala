@@ -63,7 +63,8 @@ namespace Gabut {
         ASCEDESCEN = 39,
         SHOWTIME = 40,
         SHOWDATE = 41,
-        DBUSMENU = 42;
+        DBUSMENU = 42,
+        TDEFAULT = 43;
 
         public string to_string () {
             switch (this) {
@@ -151,6 +152,8 @@ namespace Gabut {
                     return "showdate";
                 case DBUSMENU:
                     return "dbusmenu";
+                case TDEFAULT:
+                    return "tdefault";
                 default:
                     return "id";
             }
@@ -2672,13 +2675,14 @@ namespace Gabut {
             ascedescen     TEXT    NOT NULL,
             showtime       TEXT    NOT NULL,
             showdate       TEXT    NOT NULL,
-            dbusmenu       TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\");");
+            dbusmenu       TEXT    NOT NULL,
+            tdefault       TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.DBUSMENU) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.TDEFAULT) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
@@ -3682,11 +3686,18 @@ namespace Gabut {
             Idle.add ((owned)themecall);
         }
         var gtk_settings = Gtk.Settings.get_for_display (display);
+        var tdefault = bool.parse (get_dbsetting (DBSettings.TDEFAULT));
         switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
             case 1:
+                if (tdefault) {
+                    gtk_settings.gtk_theme_name = "Default";
+                }
                 gtk_settings.gtk_application_prefer_dark_theme = false;
                 break;
             case 2:
+                if (tdefault) {
+                    gtk_settings.gtk_theme_name = "Default-dark";
+                }
                 gtk_settings.gtk_application_prefer_dark_theme = true;
                 break;
             default:
@@ -3697,6 +3708,9 @@ namespace Gabut {
                     portalsettings.setting_changed.connect ((scheme, key, value) => {
                         if (scheme == "org.freedesktop.appearance" && key == "color-scheme") {
                             gtk_settings.gtk_application_prefer_dark_theme = value.get_uint32 () == 1? true : false;
+                            if (tdefault) {
+                                gtk_settings.gtk_theme_name = (value.get_uint32 () == 1? "Default-dark" : "Default");
+                            }
                         }
                     });
                     yield;
