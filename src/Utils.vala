@@ -3704,12 +3704,15 @@ namespace Gabut {
                 PortalSettings portalsettings = yield GLib.Bus.get_proxy (GLib.BusType.SESSION, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop");
                 if (portalsettings != null) {
                     themecall = pantheon_theme.callback;
+                    if (tdefault) {
+                        gtk_settings.gtk_theme_name = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? "Default-dark" : "Default";
+                    }
                     gtk_settings.gtk_application_prefer_dark_theme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? true : false;
                     portalsettings.setting_changed.connect ((scheme, key, value) => {
                         if (scheme == "org.freedesktop.appearance" && key == "color-scheme") {
                             gtk_settings.gtk_application_prefer_dark_theme = value.get_uint32 () == 1? true : false;
                             if (tdefault) {
-                                gtk_settings.gtk_theme_name = (value.get_uint32 () == 1? "Default-dark" : "Default");
+                                gtk_settings.gtk_theme_name = value.get_uint32 () == 1? "Default-dark" : "Default";
                             }
                         }
                     });
