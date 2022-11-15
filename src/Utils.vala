@@ -280,6 +280,16 @@ namespace Gabut {
         SEED = 6
     }
 
+    private enum OpenFiles {
+        OPENFILES = 0,
+        OPENPERDONLOADFOLDER = 1,
+        OPENCOOKIES = 2,
+        OPENGLOBALFOLDER = 3,
+        OPENFOLDERSHARING = 4,
+        OPENTEXTONE = 5,
+        OPENTEXTTWO = 6
+    }
+
     private enum AriaOptions {
         ALLOW_OVERWRITE = 0,
         ALLOW_PIECE_LENGTH_CHANGE = 1,
@@ -2372,7 +2382,13 @@ namespace Gabut {
         var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
             select_multiple = true
         };
-
+        if (db_lastop_exist (OpenFiles.OPENFILES)) {
+            try {
+                filechooser.set_current_folder (File.new_for_path (get_db_lastop (OpenFiles.OPENFILES)));
+            } catch (Error e) {
+                GLib.warning (e.message);
+            }
+        }
         var torrent = new Gtk.FileFilter ();
         torrent.set_filter_name (_("Torrent"));
         torrent.add_mime_type ("application/x-bittorrent");
@@ -2390,6 +2406,11 @@ namespace Gabut {
                 for (int i = 0; i < filechooser.get_files ().get_n_items (); i++) {
                     files += (File) filechooser.get_files ().get_item (i);
                 }
+                if (!db_lastop_exist (OpenFiles.OPENFILES)) {
+                    add_db_lastop (OpenFiles.OPENFILES, ((File) filechooser.get_files ().get_item (0)).get_parent ().get_path ());
+                } else {
+                    update_lastop_id (OpenFiles.OPENFILES, ((File) filechooser.get_files ().get_item (0)).get_parent ().get_path ());
+                }
                 filechooser.destroy ();
             }
             loopop.quit ();
@@ -2399,12 +2420,18 @@ namespace Gabut {
         return files;
     }
 
-    private File run_open_text (Gtk.Window window) {
+    private File run_open_text (Gtk.Window window, OpenFiles location) {
         var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+        var filechooser = new Gtk.FileChooserNative (_("Open Text Tracker"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
             select_multiple = false
         };
-
+        if (db_lastop_exist (location)) {
+            try {
+                filechooser.set_current_folder (File.new_for_path (get_db_lastop (location)));
+            } catch (Error e) {
+                GLib.warning (e.message);
+            }
+        }
         var text_filter = new Gtk.FileFilter ();
         text_filter.set_filter_name (_("Text"));
         text_filter.add_mime_type ("text/*");
@@ -2414,6 +2441,11 @@ namespace Gabut {
         filechooser.response.connect ((pos)=> {
             if (pos == Gtk.ResponseType.ACCEPT) {
                 file = filechooser.get_file ();
+                if (!db_lastop_exist (location)) {
+                    add_db_lastop (location, filechooser.get_file ().get_parent ().get_path ());
+                } else {
+                    update_lastop_id (location, filechooser.get_file ().get_parent ().get_path ());
+                }
                 filechooser.destroy ();
             }
             loopop.quit ();
@@ -2423,32 +2455,14 @@ namespace Gabut {
         return file;
     }
 
-    private File run_open_all (Gtk.Window window) {
+    private File run_open_all (Gtk.Window window, OpenFiles location) {
         var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
+        var filechooser = new Gtk.FileChooserNative (_("Open Cookies"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
             select_multiple = false
         };
-        File file = null;
-        filechooser.response.connect ((pos)=> {
-            if (pos == Gtk.ResponseType.ACCEPT) {
-                file = filechooser.get_file ();
-                filechooser.destroy ();
-            }
-            loopop.quit ();
-        });
-        filechooser.show ();
-        loopop.run ();
-        return file;
-    }
-
-    private File run_open_fd (Gtk.Window window, GLib.File current) {
-        var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Folder"), window, Gtk.FileChooserAction.SELECT_FOLDER, _("Open"), _("Cancel")) {
-            select_multiple = false
-        };
-        if (current != null) {
+        if (db_lastop_exist (location)) {
             try {
-                filechooser.set_current_folder (current);
+                filechooser.set_current_folder (File.new_for_path (get_db_lastop (location)));
             } catch (Error e) {
                 GLib.warning (e.message);
             }
@@ -2457,6 +2471,41 @@ namespace Gabut {
         filechooser.response.connect ((pos)=> {
             if (pos == Gtk.ResponseType.ACCEPT) {
                 file = filechooser.get_file ();
+                if (!db_lastop_exist (location)) {
+                    add_db_lastop (location, filechooser.get_file ().get_parent ().get_path ());
+                } else {
+                    update_lastop_id (location, filechooser.get_file ().get_parent ().get_path ());
+                }
+                filechooser.destroy ();
+            }
+            loopop.quit ();
+        });
+        filechooser.show ();
+        loopop.run ();
+        return file;
+    }
+
+    private File run_open_fd (Gtk.Window window, OpenFiles location) {
+        var loopop = new GLib.MainLoop (null, false);
+        var filechooser = new Gtk.FileChooserNative (_("Open Folder"), window, Gtk.FileChooserAction.SELECT_FOLDER, _("Open"), _("Cancel")) {
+            select_multiple = false
+        };
+        if (db_lastop_exist (location)) {
+            try {
+                filechooser.set_current_folder (File.new_for_path (get_db_lastop (location)));
+            } catch (Error e) {
+                GLib.warning (e.message);
+            }
+        }
+        File file = null;
+        filechooser.response.connect ((pos)=> {
+            if (pos == Gtk.ResponseType.ACCEPT) {
+                file = filechooser.get_file ();
+                if (!db_lastop_exist (location)) {
+                    add_db_lastop (location, filechooser.get_file ().get_path ());
+                } else {
+                    update_lastop_id (location, filechooser.get_file ().get_path ());
+                }
                 filechooser.destroy ();
             }
             loopop.quit ();
@@ -2568,6 +2617,7 @@ namespace Gabut {
             warning ("Can't open database: %s\n", db.errmsg ());
         }
         opendb = table_users (db);
+        opendb = last_opened (db);
         opendb = table_download (db);
         opendb = table_options (db);
         opendb = table_settings (db);
@@ -2600,6 +2650,15 @@ namespace Gabut {
             fileordir      TEXT    NOT NULL,
             labeltransfer  TEXT    NOT NULL,
             timeadded      INT64   NOT NULL);");
+    }
+
+    private int last_opened (Sqlite.Database db) {
+        string dir = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD);
+        return db.exec (@"CREATE TABLE IF NOT EXISTS lastop (
+            id             INT64   NOT NULL,
+            folderloc      TEXT    NOT NULL);
+            INSERT INTO users (id, folderloc)
+            VALUES (1, \"$(dir)\");");
     }
 
     private int table_options (Sqlite.Database db) {
@@ -2686,6 +2745,14 @@ namespace Gabut {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
+        if (db_get_cols ("lastop") < OpenFiles.OPENPERDONLOADFOLDER) {
+            gabutdb.exec ("DROP TABLE lastop;");
+            last_opened (gabutdb);
+        }
+        if (db_get_cols ("users") < UserID.ACTIVE) {
+            gabutdb.exec ("DROP TABLE users;");
+            last_opened (gabutdb);
+        }
     }
 
     private void download_table () {
@@ -2707,6 +2774,49 @@ namespace Gabut {
             warning ("Error: %s", errmsg);
         }
         return ncols;
+    }
+
+    private int64 add_db_lastop (int64 id, string flocation) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("INSERT OR IGNORE INTO lastop (id, folderloc) VALUES (?, ?);", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        res = stmt.bind_text (2, flocation);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+        return id;
+    }
+
+    private void update_lastop_id (OpenFiles id, string flocation) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 (@"UPDATE lastop SET folderloc = \"$(flocation)\" WHERE id = ?", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+    }
+
+    private bool db_lastop_exist (OpenFiles id) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("SELECT * FROM lastop WHERE id = ?", -1, out stmt);
+        res = stmt.bind_int64 (1, id);
+        if ((res = stmt.step ()) == Sqlite.ROW) {
+            return true;
+        }
+        stmt.reset ();
+        return false;
+    }
+
+    private string get_db_lastop (OpenFiles type) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("SELECT * FROM lastop WHERE id = ?", -1, out stmt);
+        stmt.bind_int64 (1, type);
+        if ((res = stmt.step ()) == Sqlite.ROW) {
+            return stmt.column_text (1);
+        }
+        return "";
     }
 
     private int64 add_db_user (int64 id) {
