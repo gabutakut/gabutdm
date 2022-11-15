@@ -657,11 +657,11 @@ namespace Gabut {
             };
             notifyopt.attach (headerlabel (_("Style:"), 450), 0, 0, 1, 1);
             notifyopt.attach (style_mode.get_box (), 0, 1, 1, 1);
-            notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 2, 1, 1);
-            notifyopt.attach (retonhide, 0, 3, 1, 1);
-            notifyopt.attach (appstartup, 0, 4, 1, 1);
-            notifyopt.attach (appclipboard, 0, 5, 1, 1);
-            notifyopt.attach (tdefault, 0, 6, 1, 1);
+            notifyopt.attach (tdefault, 0, 2, 1, 1);
+            notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 3, 1, 1);
+            notifyopt.attach (retonhide, 0, 4, 1, 1);
+            notifyopt.attach (appstartup, 0, 5, 1, 1);
+            notifyopt.attach (appclipboard, 0, 6, 1, 1);
             notifyopt.attach (dbusmenu, 0, 7, 1, 1);
             notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 8, 1, 1);
             notifyopt.attach (systemnotif, 0, 9, 1, 1);
