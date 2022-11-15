@@ -2312,8 +2312,11 @@ namespace Gabut {
     }
 
     private string get_css (string cssloc) {
+        var file = File.new_for_path (cssloc);
+        if (!file.query_exists ()) {
+            return "";
+        }
         try {
-            var file = File.new_for_path (cssloc);
             return (string) file.load_bytes ().get_data ();
         } catch (Error eror) {
             warning ("%s\n", eror.message);
@@ -2603,7 +2606,7 @@ namespace Gabut {
     public Sqlite.Database gabutdb;
     private int open_database (out Sqlite.Database db) {
         int opendb = 0;
-        if (!File.new_for_path (file_config (".db")).query_exists ()) {
+        if (!GLib.FileUtils.test (file_config (".db"), GLib.FileTest.EXISTS)) {
             opendb = creat_no_exist (out db);
         } else {
             opendb = Sqlite.Database.open (file_config (".db"), out db);

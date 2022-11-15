@@ -239,6 +239,7 @@ namespace Gabut {
             };
 
             linklabel = new Gtk.Label (null) {
+                margin_top = 5,
                 ellipsize = Pango.EllipsizeMode.END,
                 hexpand = true,
                 xalign = 0,
