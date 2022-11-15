@@ -398,7 +398,7 @@ namespace Gabut {
 
             cookie_location = new Gtk.Button ();
             cookie_location.clicked.connect (()=> {
-                var file = run_open_all (this);
+                var file = run_open_all (this, OpenFiles.OPENCOOKIES);
                 if (file != null) {
                     selectcook = file;
                 }
@@ -414,7 +414,7 @@ namespace Gabut {
 
             folder_location = new Gtk.Button ();
             folder_location.clicked.connect (()=> {
-                var file = run_open_fd (this, selectfd);
+                var file = run_open_fd (this, OpenFiles.OPENPERDONLOADFOLDER);
                 if (file != null) {
                     selectfd = file;
                 }

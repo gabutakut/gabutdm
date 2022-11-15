@@ -308,7 +308,7 @@ namespace Gabut {
                 tooltip_text = _("Open Text Tracker")
             };
             load_tr.clicked.connect (() => {
-                var file = run_open_text (this);
+                var file = run_open_text (this, OpenFiles.OPENTEXTONE);
                 if (file != null) {
                     try {
                         trackertext.buffer.text = (string) file.load_bytes ().get_data ();
@@ -361,7 +361,7 @@ namespace Gabut {
                 tooltip_text = _("Open Text Tracker")
             };
             load_etr.clicked.connect (() => {
-                var file = run_open_text (this);
+                var file = run_open_text (this, OpenFiles.OPENTEXTTWO);
                 if (file != null) {
                     try {
                         etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
@@ -424,7 +424,7 @@ namespace Gabut {
 
             folder_location = new Gtk.Button ();
             folder_location.clicked.connect (()=> {
-                var file = run_open_fd (this, selectfd);
+                var file = run_open_fd (this, OpenFiles.OPENGLOBALFOLDER);
                 if (file != null) {
                     selectfd = file;
                 }
@@ -433,7 +433,7 @@ namespace Gabut {
 
             folder_sharing = new Gtk.Button ();
             folder_sharing.clicked.connect (()=> {
-                var file = run_open_fd (this, selectfs);
+                var file = run_open_fd (this, OpenFiles.OPENFOLDERSHARING);
                 if (file != null) {
                     selectfs = file;
                 }
