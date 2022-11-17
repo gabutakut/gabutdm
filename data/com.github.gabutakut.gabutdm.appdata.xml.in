@@ -33,6 +33,12 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="2.0.0" date="2022-11-11">
+      <description>
+        <p>Theme Default</p>
+        <p>Ui Folder location</p>
+      </description>
+    </release>
     <release version="1.9.9" date="2022-11-11">
       <description>
         <p>Menu for launcher</p>

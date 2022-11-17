@@ -270,16 +270,20 @@ namespace Gabut {
         }
 
         public void dialog_url (string link) {
+            bool metabtn = false;
             string icon = "";
             if (link.has_prefix ("http://") || link.has_prefix ("https://") || link.has_prefix ("ftp://") || link.has_prefix ("sftp://")) {
                 icon = "insert-link";
             } else if (link.has_prefix ("magnet:?")) {
                 icon = "com.github.gabutakut.gabutdm.magnet";
                 link.replace ("tr.N=", "tr=");
+                metabtn = true;
             } else if (link.has_suffix (".torrent")) {
                 icon = "com.github.gabutakut.gabutdm.torrent";
+                metabtn = true;
             } else if (link.has_suffix (".metalink")) {
                 icon = "com.github.gabutakut.gabutdm";
+                metabtn = true;
             } else if (link == "") {
                 icon = "list-add";
             } else {
@@ -289,6 +293,7 @@ namespace Gabut {
                 transient_for = gabutwindow
             };
             addurl.add_link (link, icon);
+            addurl.save_meta.sensitive = metabtn;
             addurl.show ();
             addurls.append (addurl);
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
