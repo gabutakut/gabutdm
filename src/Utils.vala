@@ -2518,7 +2518,7 @@ namespace Gabut {
         return file;
     }
 
-    private Gtk.Grid button_chooser (GLib.File file) {
+    private Gtk.Grid button_chooser (GLib.File file, int widtc = 35) {
         var grid = new Gtk.Grid () {
             valign = Gtk.Align.CENTER,
             halign = Gtk.Align.START,
@@ -2531,7 +2531,7 @@ namespace Gabut {
             wrap_mode = Pango.WrapMode.WORD_CHAR,
             ellipsize = Pango.EllipsizeMode.MIDDLE,
             xalign = 0,
-            max_width_chars = 35,
+            max_width_chars = widtc,
             attributes = set_attribute (Pango.Weight.BOLD)
         };
         grid.attach (img, 0, 0);

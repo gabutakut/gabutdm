@@ -41,7 +41,7 @@ namespace Gabut {
         private MediaEntry useragent_entry;
         private MediaEntry refer_entry;
         private MediaEntry checksum_entry;
-        private Gtk.CheckButton save_meta;
+        public Gtk.CheckButton save_meta;
         private Gtk.FlowBox method_flow;
         private Gtk.FlowBox checksums_flow;
         private Gtk.FlowBox encrypt_flow;
@@ -127,7 +127,7 @@ namespace Gabut {
             set {
                 _selectfd = value;
                 if (selectfd != null) {
-                    folder_location.child = button_chooser (selectfd);
+                    folder_location.child = button_chooser (selectfd, 25);
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace Gabut {
             set {
                 _selectcook = value;
                 if (selectcook != null) {
-                    cookie_location.child = button_chooser (selectcook);
+                    cookie_location.child = button_chooser (selectcook, 25);
                 } else {
                     cookie_location.child = none_chooser (_("Press and Select Cookie"));
                 }
@@ -174,7 +174,6 @@ namespace Gabut {
             view_mode.append_text (_("Proxy"));
             view_mode.append_text (_("Login"));
             view_mode.append_text (_("Option"));
-            view_mode.append_text (_("Folder"));
             view_mode.append_text (_("Checksum"));
             view_mode.append_text (_("Torrent"));
             view_mode.selected = 0;
@@ -183,12 +182,55 @@ namespace Gabut {
             header.title_widget = view_mode;
             header.decoration_layout = "none";
 
+            folder_location = new Gtk.Button ();
+            folder_location.clicked.connect (()=> {
+                var file = run_open_fd (this, OpenFiles.OPENPERDONLOADFOLDER);
+                if (file != null) {
+                    selectfd = file;
+                }
+            });
+            selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/"));
+
+            usefolder = new Gtk.CheckButton.with_label (_("Save to Folder")) {
+                width_request = 240
+            };
+            usefolder.toggled.connect (()=> {
+                folder_location.sensitive = usefolder.active;
+            });
+            folder_location.sensitive = usefolder.active;
+            cookie_location = new Gtk.Button ();
+            cookie_location.clicked.connect (()=> {
+                var file = run_open_all (this, OpenFiles.OPENCOOKIES);
+                if (file != null) {
+                    selectcook = file;
+                }
+            });
+            selectcook = null;
+            usecookie = new Gtk.CheckButton.with_label (_("Cookie")) {
+                width_request = 240
+            };
+            usecookie.toggled.connect (()=> {
+                cookie_location.sensitive = usecookie.active;
+            });
+            cookie_location.sensitive = usecookie.active;
+            var foldergrid = new Gtk.Grid () {
+                margin_top = 10,
+                column_spacing = 10,
+                row_spacing = 10,
+                halign = Gtk.Align.START,
+                valign = Gtk.Align.CENTER
+            };
+            foldergrid.attach (usefolder, 0, 0, 1, 1);
+            foldergrid.attach (folder_location, 0, 1, 1, 1);
+            foldergrid.attach (usecookie, 1, 0, 1, 1);
+            foldergrid.attach (cookie_location, 1, 1, 1, 1);
+
             status_image = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
                 pixel_size = 64
             };
 
-            sizelabel = new Gtk.Label (null) {
+            sizelabel = new Gtk.Label ("Size") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 10,
                 use_markup = true,
@@ -200,26 +242,46 @@ namespace Gabut {
             };
 
             var overlay = new Gtk.Overlay () {
+                height_request = 90,
+                width_request = 90,
                 child = status_image
             };
             overlay.add_overlay (sizelabel);
 
             link_entry = new MediaEntry ("insert-link", "edit-paste") {
                 width_request = 500,
-                margin_end = 74,
                 placeholder_text = _("Url or Magnet")
             };
 
             name_entry = new MediaEntry ("dialog-information", "edit-paste") {
                 width_request = 500,
-                margin_end = 74,
                 placeholder_text = _("Follow source name")
             };
 
-            save_meta = new Gtk.CheckButton.with_label ("Backup Magnet, Torrent, Metalink to File") {
-                margin_top = 5
+            var save_image = new Gtk.Image () {
+                valign = Gtk.Align.CENTER,
+                pixel_size = 64,
+                gicon = new ThemedIcon ("document-save")
+            };
+
+            save_meta = new Gtk.CheckButton.with_label ("Backup") {
+                valign = Gtk.Align.END,
+                halign = Gtk.Align.CENTER
             };
             ((Gtk.Label) save_meta.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
+            ((Gtk.Label) save_meta.get_last_child ()).ellipsize = Pango.EllipsizeMode.END;
+            ((Gtk.Label) save_meta.get_last_child ()).max_width_chars = 10;
+
+            save_image.sensitive = save_meta.active;
+            save_meta.toggled.connect (()=> {
+                save_image.sensitive = save_meta.active;
+            });
+            var metaoverlay = new Gtk.Overlay () {
+                height_request = 90,
+                width_request = 90,
+                child = save_image
+            };
+            metaoverlay.add_overlay (save_meta);
 
             var alllink = new Gtk.Grid () {
                 column_spacing = 10,
@@ -232,7 +294,8 @@ namespace Gabut {
             alllink.attach (link_entry, 1, 2, 1, 1);
             alllink.attach (headerlabel (_("Filename:"), 500), 1, 3, 1, 1);
             alllink.attach (name_entry, 1, 4, 1, 1);
-            alllink.attach (save_meta, 1, 5, 1, 1);
+            alllink.attach (foldergrid, 1, 5, 1, 1);
+            alllink.attach (metaoverlay, 2, 0, 1, 5);
 
             method_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
@@ -396,50 +459,6 @@ namespace Gabut {
             moregrid.attach (headerlabel (_("Referer:"), 350), 1, 2, 1, 1);
             moregrid.attach (refer_entry, 1, 3, 1, 1);
 
-            cookie_location = new Gtk.Button ();
-            cookie_location.clicked.connect (()=> {
-                var file = run_open_all (this, OpenFiles.OPENCOOKIES);
-                if (file != null) {
-                    selectcook = file;
-                }
-            });
-            selectcook = null;
-            usecookie = new Gtk.CheckButton.with_label (_("Cookie")) {
-                width_request = 350
-            };
-            usecookie.toggled.connect (()=> {
-                cookie_location.sensitive = usecookie.active;
-            });
-            cookie_location.sensitive = usecookie.active;
-
-            folder_location = new Gtk.Button ();
-            folder_location.clicked.connect (()=> {
-                var file = run_open_fd (this, OpenFiles.OPENPERDONLOADFOLDER);
-                if (file != null) {
-                    selectfd = file;
-                }
-            });
-            selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/"));
-
-            usefolder = new Gtk.CheckButton.with_label (_("Save to Folder")) {
-                width_request = 350
-            };
-
-            usefolder.toggled.connect (()=> {
-                folder_location.sensitive = usefolder.active;
-            });
-            folder_location.sensitive = usefolder.active;
-            var foldergrid = new Gtk.Grid () {
-                height_request = 130,
-                row_spacing = 8,
-                halign = Gtk.Align.CENTER,
-                valign = Gtk.Align.CENTER
-            };
-            foldergrid.attach (usecookie, 1, 0, 1, 1);
-            foldergrid.attach (cookie_location, 1, 1, 1, 1);
-            foldergrid.attach (usefolder, 1, 2, 1, 1);
-            foldergrid.attach (folder_location, 1, 3, 1, 1);
-
             checksums_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL
             };
@@ -550,7 +569,6 @@ namespace Gabut {
             stack.add_named (proxygrid, "proxygrid");
             stack.add_named (logingrid, "logingrid");
             stack.add_named (moregrid, "moregrid");
-            stack.add_named (foldergrid, "foldergrid");
             stack.add_named (checksumgrid, "checksumgrid");
             stack.add_named (encryptgrid, "encryptgrid");
             stack.visible_child = alllink;
@@ -642,12 +660,9 @@ namespace Gabut {
                         stack.visible_child = moregrid;
                         break;
                     case 4:
-                        stack.visible_child = foldergrid;
-                        break;
-                    case 5:
                         stack.visible_child = checksumgrid;
                         break;
-                    case 6:
+                    case 5:
                         stack.visible_child = encryptgrid;
                         break;
                     default:
@@ -852,6 +867,7 @@ namespace Gabut {
         public override void show () {
             base.show ();
             if (row != null) {
+                save_meta.sensitive = row.linkmode == LinkMode.URL? false : true;
                 link_entry.text = row.url;
                 this.hashoptions = row.hashoption;
                 status_image.gicon = row.imagefile.gicon;
