@@ -1733,12 +1733,12 @@ namespace Gabut {
                     int64 transfer = int64.parse (match_info.fetch (1)).abs ();
                     double fraction = (double) transfer / (double) total;
                     int persen = total == 0 && transfer == 0? 0 : (int) (fraction * 100).abs ();
-                    string uris = match_info.fetch (6);
+                    string uris = pharse_info (match_info.fetch (6));
                     string path = match_info.fetch (4);
                     Gtk.TreeIter iter;
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
                     liststore.append (out iter);
-                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris.contains ("\\/")? (uris.replace ("\\/", "/").replace ("[{", "")) : uris);
+                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris);
                     match_info.next ();
                 }
             }
@@ -2087,6 +2087,22 @@ namespace Gabut {
             Regex regex = new Regex (@"\"$(option.to_string ())\":\"(.*?)\"");
             if (regex.match_full (status, -1, 0, 0, out match_info)) {
                 return match_info.fetch (1);
+            }
+        } catch (Error e) {
+            GLib.warning (e.message);
+        }
+        return "";
+    }
+
+    private string pharse_info (string status) {
+        try {
+            MatchInfo match_info;
+            Regex regex = new Regex (@"\"status\":\"(.*?)\"");
+            if (regex.match_full (status, -1, 0, 0, out match_info)) {
+                string getinfo = match_info.fetch (1);
+                if (getinfo != "" || getinfo != null) {
+                    return getinfo;
+                }
             }
         } catch (Error e) {
             GLib.warning (e.message);

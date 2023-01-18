@@ -186,7 +186,6 @@ namespace Gabut {
                     preferences = new Preferences (application) {
                         transient_for = this
                     };
-                    preferences.show ();
                     preferences.restart_server.connect (()=> {
                         restart_server ();
                     });
@@ -221,6 +220,7 @@ namespace Gabut {
                         preferences = null;
                         return false;
                     });
+                    preferences.show ();
                 }
             });
 
@@ -249,7 +249,6 @@ namespace Gabut {
                     qrcode = new QrCode (application) {
                         transient_for = this
                     };
-                    qrcode.show ();
                     qrcode.get_host.connect ((reboot)=> {
                         if (reboot) {
                             restart_server ();
@@ -263,6 +262,7 @@ namespace Gabut {
                         qrcode = null;
                         return false;
                     });
+                    qrcode.show ();
                     qrcode.load_host (false);
                 }
             });
