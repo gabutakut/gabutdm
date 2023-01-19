@@ -38,23 +38,24 @@ namespace Gabut {
 
         construct {
             GLib.OptionEntry [] options = new GLib.OptionEntry [3];
-            options [0] = { "startingup", 's', 0, GLib.OptionArg.NONE, null, null, "Run App on Startup" };
-            options [1] = { GLib.OPTION_REMAINING, 0, 0, GLib.OptionArg.STRING_ARRAY, null, null, "Open File or URIs" };
+            options [0] = { "startingup", 's', GLib.OptionFlags.NONE, GLib.OptionArg.NONE, null, "Starup", "Run App on Startup" };
+            options [1] = { GLib.OPTION_REMAINING, 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING_ARRAY, null, "Array file", "Open File or URIs" };
             options [2] = { null };
             add_main_option_entries (options);
         }
 
-        public override int command_line (ApplicationCommandLine command) {
+        public override int command_line (GLib.ApplicationCommandLine command) {
             var dict = command.get_options_dict ();
             if (dict.contains ("startingup") && gabutwindow == null) {
                 startingup = true;
-            }
-            if (dict.contains (GLib.OPTION_REMAINING)) {
+            } else if (dict.contains (GLib.OPTION_REMAINING)) {
                 foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY).get_strv ()) {
                     if (GLib.FileUtils.test (arg_file, GLib.FileTest.EXISTS)) {
                         dialog_url (File.new_for_path (arg_file).get_uri ());
                     } else {
-                        dialog_url (arg_file);
+                        if (dialog_url (arg_file)) {
+                            return Posix.EXIT_SUCCESS;
+                        }
                     }
                 }
                 if (gabutwindow != null) {
@@ -108,7 +109,9 @@ namespace Gabut {
                 gabutwindow.child.add_controller (droptarget);
                 droptarget.accept.connect (on_drag_data_received);
 
-                gabutwindow.send_file.connect (dialog_url);
+                gabutwindow.send_file.connect ((url)=> {
+                    dialog_url (url);
+                });
                 gabutwindow.open_show.connect (open_now);
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
@@ -216,7 +219,6 @@ namespace Gabut {
                 transient_for = gabutwindow,
                 datastr = strdata
             };
-            succesdl.show ();
             succesdls.append (succesdl);
             succesdl.close.connect (()=> {
                 succesdls.foreach ((succes)=> {
@@ -235,6 +237,7 @@ namespace Gabut {
                 });
                 return false;
             });
+            succesdl.show ();
         }
 
         public void dialog_server (MatchInfo match_info) {
@@ -245,7 +248,6 @@ namespace Gabut {
                 transient_for = gabutwindow
             };
             addurl.server_link (match_info);
-            addurl.show ();
             addurls.append (addurl);
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
@@ -267,9 +269,10 @@ namespace Gabut {
                 });
                 return false;
             });
+            addurl.show ();
         }
 
-        public void dialog_url (string link) {
+        public bool dialog_url (string link) {
             bool metabtn = false;
             string icon = "";
             if (link.has_prefix ("http://") || link.has_prefix ("https://") || link.has_prefix ("ftp://") || link.has_prefix ("sftp://")) {
@@ -287,14 +290,13 @@ namespace Gabut {
             } else if (link == "") {
                 icon = "list-add";
             } else {
-                return;
+                return true;
             }
             var addurl = new AddUrl (this) {
                 transient_for = gabutwindow
             };
             addurl.add_link (link, icon);
             addurl.save_meta.sensitive = metabtn;
-            addurl.show ();
             addurls.append (addurl);
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
@@ -316,6 +318,8 @@ namespace Gabut {
                 });
                 return false;
             });
+            addurl.show ();
+            return false;
         }
 
         private bool url_active (string url) {
@@ -348,7 +352,6 @@ namespace Gabut {
             downloader.show.connect (()=> {
                 gabutwindow.remove_row (downloader.ariagid);
             });
-            downloader.show ();
             downloader.close.connect (()=> {
                 downloaders.foreach ((download)=> {
                     if (download == downloader) {
@@ -374,6 +377,7 @@ namespace Gabut {
             downloader.actions_button.connect ((ariagid, status)=> {
                 return gabutwindow.server_action (ariagid, status);
             });
+            downloader.show ();
         }
 
         private void on_clipboard () {

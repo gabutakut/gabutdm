@@ -403,7 +403,7 @@ namespace Gabut {
             torrenttree.append_column (text_column (_("Downloaded"), FileCol.DOWNLOADED));
             torrenttree.append_column (text_column (_("Size"), FileCol.SIZE));
             torrenttree.append_column (progress_column (_("%"), FileCol.PERCEN));
-            torrenttree.append_column (text_column (_("Info"), FileCol.URIS));
+            torrenttree.append_column (text_column (_("Info Uris Status"), FileCol.URIS));
             torrenttree.set_tooltip_column (FileCol.FILEPATH);
 
             var torrscrolled = new Gtk.ScrolledWindow () {
@@ -571,7 +571,6 @@ namespace Gabut {
                 }
                 revcon.queue_allocate ();
             });
-            child = maingrid;
 
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
@@ -589,6 +588,7 @@ namespace Gabut {
                         break;
                 }
             });
+            child = maingrid;
         }
 
         public override void show () {
