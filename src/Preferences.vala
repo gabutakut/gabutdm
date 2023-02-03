@@ -602,6 +602,12 @@ namespace Gabut {
                 active = bool.parse (get_dbsetting (DBSettings.SYSTEMNOTIF))
             };
 
+            var soundnotif = new Gtk.CheckButton.with_label (_("Send notification sound")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))
+            };
+
             var retonhide = new Gtk.CheckButton.with_label (_("Running on background")) {
                 margin_top = 5,
                 width_request = 450,
@@ -666,9 +672,10 @@ namespace Gabut {
             notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 8, 1, 1);
             notifyopt.attach (systemnotif, 0, 9, 1, 1);
             notifyopt.attach (dialognotify, 0, 10, 1, 1);
-            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 11, 1, 1);
-            notifyopt.attach (allowrepl, 0, 12, 1, 1);
-            notifyopt.attach (autorename, 0, 13, 1, 1);
+            notifyopt.attach (soundnotif, 0, 11, 1, 1);
+            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 12, 1, 1);
+            notifyopt.attach (allowrepl, 0, 13, 1, 1);
+            notifyopt.attach (autorename, 0, 14, 1, 1);
 
             var notyscr = new Gtk.ScrolledWindow () {
                 width_request = 455,
@@ -705,6 +712,7 @@ namespace Gabut {
                 set_dbsetting (DBSettings.SWITCHDIR, sharebutton.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.DBUSMENU, dbusmenu.active.to_string ());
+                set_dbsetting (DBSettings.NOTIFSOUND, soundnotif.active.to_string ());
                 if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE)) || tdefault.active != bool.parse (get_dbsetting (DBSettings.TDEFAULT))) {
                     set_dbsetting (DBSettings.STYLE, style_mode.id.to_string ());
                     set_dbsetting (DBSettings.TDEFAULT, tdefault.active.to_string ());

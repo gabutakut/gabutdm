@@ -107,6 +107,7 @@ namespace Gabut {
                             if (filename != null) {
                                 GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
                                 notify_app (_("Download Complete"), filename, imagefile.gicon);
+                                play_sound ("complete");
                                 if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                     if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
                                         send_dialog ();
@@ -151,6 +152,7 @@ namespace Gabut {
                             labeltransfer = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
                             if (filename != null) {
                                 notify_app (_("Download Error"), filename, imagefile.gicon);
+                                play_sound ("dialog-error");
                             }
                             aria_remove (ariagid);
                         }
@@ -462,6 +464,7 @@ namespace Gabut {
             } else {
                 notify_app (_("Starting"), url, new ThemedIcon ("insert-link"));
             }
+            play_sound ("device-added");
         }
 
         public void idle_progress () {

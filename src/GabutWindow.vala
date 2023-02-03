@@ -21,7 +21,7 @@
 
 namespace Gabut {
     public class GabutWindow : Gtk.ApplicationWindow {
-        public signal void send_file (string url);
+        public signal bool send_file (string url);
         public signal void stop_server ();
         public signal void restart_server ();
         public signal void open_show ();

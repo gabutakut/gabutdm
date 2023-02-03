@@ -64,7 +64,8 @@ namespace Gabut {
         SHOWTIME = 40,
         SHOWDATE = 41,
         DBUSMENU = 42,
-        TDEFAULT = 43;
+        TDEFAULT = 43,
+        NOTIFSOUND = 44;
 
         public string to_string () {
             switch (this) {
@@ -154,6 +155,8 @@ namespace Gabut {
                     return "dbusmenu";
                 case TDEFAULT:
                     return "tdefault";
+                case NOTIFSOUND:
+                    return "notifsound";
                 default:
                     return "id";
             }
@@ -2396,6 +2399,20 @@ namespace Gabut {
         }
     }
 
+    private static void play_sound (string canbera) {
+        if (!bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))) {
+            return;
+        }
+        Canberra.Context context;
+        Canberra.Proplist props;
+        Canberra.Context.create (out context);
+        Canberra.Proplist.create (out props);
+        props.sets (Canberra.PROP_EVENT_ID, canbera);
+        props.sets (Canberra.PROP_CANBERRA_CACHE_CONTROL, "permanent");
+        props.sets (Canberra.PROP_MEDIA_ROLE, "event");
+        context.play_full (0, props);
+    }
+
     private File[] run_open_file (Gtk.Window window) {
         var loopop = new GLib.MainLoop (null, false);
         var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
@@ -2754,13 +2771,14 @@ namespace Gabut {
             showtime       TEXT    NOT NULL,
             showdate       TEXT    NOT NULL,
             dbusmenu       TEXT    NOT NULL,
-            tdefault       TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\");");
+            tdefault       TEXT    NOT NULL,
+            notifsound     TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.TDEFAULT) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.NOTIFSOUND) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }

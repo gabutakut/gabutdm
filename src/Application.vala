@@ -73,6 +73,7 @@ namespace Gabut {
                 if (open_database (out gabutdb) != Sqlite.OK) {
                     notify_app (_("Database Error"),
                                 _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
+                    play_sound ("dialog-error");
                 }
                 settings_table ();
                 if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
@@ -109,9 +110,7 @@ namespace Gabut {
                 gabutwindow.child.add_controller (droptarget);
                 droptarget.accept.connect (on_drag_data_received);
 
-                gabutwindow.send_file.connect ((url)=> {
-                    dialog_url (url);
-                });
+                gabutwindow.send_file.connect (dialog_url);
                 gabutwindow.open_show.connect (open_now);
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
@@ -170,12 +169,12 @@ namespace Gabut {
                 gabutserver.delete_row.connect ((status)=> {
                     gabutwindow.remove_item (status);
                 });
-                var displaydm = gabutwindow.get_display ();
-                clipboard = displaydm.get_clipboard ();
+                clipboard = gabutwindow.get_clipboard ();
                 clipboard.changed.connect (on_clipboard);
-                pantheon_theme.begin (displaydm);
+                pantheon_theme.begin (gabutwindow.get_display ());
                 gabutwindow.load_dowanload ();
                 download_table ();
+                play_sound ("bell");
                 if (!startingup && !dontopen) {
                     gabutwindow.show ();
                 }
@@ -391,7 +390,9 @@ namespace Gabut {
                         get_clipboard.end (res, out textclip);
                         if (textclip != null && textclip != "") {
                             if (!url_active (textclip.strip ())) {
-                                dialog_url (textclip.strip ());
+                                if (!dialog_url (textclip.strip ())) {
+                                    clipboard.set_text ("");
+                                }
                             }
                         }
                     } catch (GLib.Error e) {
