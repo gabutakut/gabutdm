@@ -391,7 +391,9 @@ namespace Gabut {
                         if (textclip != null && textclip != "") {
                             if (!url_active (textclip.strip ())) {
                                 if (!dialog_url (textclip.strip ())) {
-                                    clipboard.set_text ("");
+                                    if (bool.parse (get_dbsetting (DBSettings.CLRCLIPBOARD))) {
+                                        clipboard.set_text ("");
+                                    }
                                 }
                             }
                         }
