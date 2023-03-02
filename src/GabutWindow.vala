@@ -175,7 +175,7 @@ namespace Gabut {
         private Gtk.HeaderBar build_headerbar () {
             var headerbar = new Gtk.HeaderBar () {
                 hexpand = true,
-                decoration_layout = "close:maximize"
+                decoration_layout = "close:minimize,maximize"
             };
             var menu_button = new Gtk.Button.from_icon_name ("open-menu") {
                 tooltip_text = _("Open Settings")
