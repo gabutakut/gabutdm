@@ -45,7 +45,7 @@ namespace Gabut {
             var icon_badge = new Gtk.Image () {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
-                gicon = new ThemedIcon ("process-completed"),
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.complete"),
                 icon_size = Gtk.IconSize.LARGE
             };
 
@@ -86,12 +86,12 @@ namespace Gabut {
             header.title_widget = header_grid;
             header.decoration_layout = "none";
 
-            address = new MediaEntry.info ("insert-link", "process-completed") {
+            address = new MediaEntry.info ("insert-link", "com.github.gabutakut.gabutdm.complete") {
                 hexpand = true,
                 width_request = 450
             };
 
-            directory = new MediaEntry.info ("folder", "process-completed") {
+            directory = new MediaEntry.info ("folder", "com.github.gabutakut.gabutdm.complete") {
                 hexpand = true,
                 width_request = 450
             };

@@ -100,7 +100,7 @@ namespace Gabut {
                         break;
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
-                            start_button.icon_name = "process-completed";
+                            start_button.icon_name = "com.github.gabutakut.gabutdm.complete";
                             start_button.tooltip_text = _("Complete");
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
@@ -146,13 +146,13 @@ namespace Gabut {
                         }
                         break;
                     case StatusMode.ERROR:
-                        start_button.icon_name = "dialog-error";
+                        start_button.icon_name = "com.github.gabutakut.gabutdm.error";
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null && url != null) {
                             labeltransfer = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
                             if (filename != null) {
                                 notify_app (_("Download Error"), filename, imagefile.gicon);
-                                play_sound ("dialog-error");
+                                play_sound ("com.github.gabutakut.gabutdm.error");
                             }
                             aria_remove (ariagid);
                         }
