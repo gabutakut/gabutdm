@@ -137,7 +137,7 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     case StatusMode.WAIT:
-                        start_button.icon_name = "preferences-system-time";
+                        start_button.icon_name = "com.github.gabutakut.gabutdm.waiting";
                         start_button.tooltip_text = _("Waiting");
                         remove_timeout ();
                         labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
