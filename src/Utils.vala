@@ -3832,11 +3832,11 @@ namespace Gabut {
     }
 
     private SourceFunc themecall;
-    private async void pantheon_theme (Gdk.Display display) throws Error {
+    private async void pantheon_theme () throws Error {
         if (themecall != null) {
             Idle.add ((owned)themecall);
         }
-        var gtk_settings = Gtk.Settings.get_for_display (display);
+        var gtk_settings = Gtk.Settings.get_for_display (Gdk.Display.get_default ());
         var tdefault = bool.parse (get_dbsetting (DBSettings.TDEFAULT));
         switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
             case 1:

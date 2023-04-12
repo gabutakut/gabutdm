@@ -28,6 +28,7 @@ namespace Gabut {
         public GLib.List<AddUrl> addurls;
         private bool startingup = false;
         private bool dontopen = false;
+        private string lastclipboard;
 
         public GabutApp () {
             Object (
@@ -169,15 +170,15 @@ namespace Gabut {
                 gabutserver.delete_row.connect ((status)=> {
                     gabutwindow.remove_item (status);
                 });
-                clipboard = gabutwindow.get_clipboard ();
-                clipboard.changed.connect (on_clipboard);
-                pantheon_theme.begin (gabutwindow.get_display ());
+                pantheon_theme.begin ();
                 gabutwindow.load_dowanload ();
                 download_table ();
                 play_sound ("bell");
                 if (!startingup && !dontopen) {
                     gabutwindow.show ();
                 }
+                clipboard = Gdk.Display.get_default ().get_clipboard ();
+                Timeout.add_seconds (1, on_clipboard);
             } else {
                 open_now ();
             }
@@ -379,18 +380,16 @@ namespace Gabut {
             downloader.show ();
         }
 
-        private void on_clipboard () {
-            if (!bool.parse (get_dbsetting (DBSettings.CLIPBOARD))) {
-                return;
-            }
+        private bool on_clipboard () {
             if (clipboard.formats.contain_gtype (GLib.Type.STRING)) {
                 get_clipboard.begin ((obj, res)=> {
                     try {
                         string textclip;
                         get_clipboard.end (res, out textclip);
-                        if (textclip != null && textclip != "") {
+                        if (textclip != null && textclip != "" && textclip != lastclipboard) {
                             if (!url_active (textclip.strip ())) {
                                 if (!dialog_url (textclip.strip ())) {
+                                    lastclipboard = textclip;
                                     if (bool.parse (get_dbsetting (DBSettings.CLRCLIPBOARD))) {
                                         clipboard.set_text ("");
                                     }
@@ -402,6 +401,7 @@ namespace Gabut {
                     }
                 });
             }
+            return true;
         }
 
         private async void get_clipboard (out string? valu) throws Error {

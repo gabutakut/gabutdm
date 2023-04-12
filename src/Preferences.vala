@@ -725,7 +725,7 @@ namespace Gabut {
                 if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE)) || tdefault.active != bool.parse (get_dbsetting (DBSettings.TDEFAULT))) {
                     set_dbsetting (DBSettings.STYLE, style_mode.id.to_string ());
                     set_dbsetting (DBSettings.TDEFAULT, tdefault.active.to_string ());
-                    pantheon_theme.begin (get_display ());
+                    pantheon_theme.begin ();
                 }
                 if (aria_get_ready ()) {
                     aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
