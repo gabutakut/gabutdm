@@ -66,7 +66,8 @@ namespace Gabut {
         DBUSMENU = 42,
         TDEFAULT = 43,
         NOTIFSOUND = 44,
-        CLRCLIPBOARD = 45;
+        MENUINDICATOR = 45,
+        LABELMODE = 46;
 
         public string to_string () {
             switch (this) {
@@ -158,8 +159,10 @@ namespace Gabut {
                     return "tdefault";
                 case NOTIFSOUND:
                     return "notifsound";
-                case CLRCLIPBOARD:
-                    return "clrclipboard";
+                case MENUINDICATOR:
+                    return "menuindicator";
+                case LABELMODE:
+                    return "labelmode";
                 default:
                     return "id";
             }
@@ -2304,12 +2307,12 @@ namespace Gabut {
         instance.set_app_property ("progress", new GLib.Variant.double (progress));
     }
 
-    private SourceFunc quicksource;
-    private async void open_quicklist (CanonicalDbusmenu dbusserver, DbusmenuItem menuitem) throws GLib.Error {
-        if (quicksource != null) {
-            Idle.add ((owned)quicksource);
+    private SourceFunc quickdbussource;
+    private async void open_quicklist_dbus (CanonicalDbusmenu dbusserver, DbusmenuItem menuitem) throws GLib.Error {
+        if (quickdbussource != null) {
+            Idle.add ((owned)quickdbussource);
         }
-        quicksource = open_quicklist.callback;
+        quickdbussource = open_quicklist_dbus.callback;
         unowned UnityLauncherEntry entrydbus = yield UnityLauncherEntry.get_instance ();
         dbusserver.set_root (menuitem);
         entrydbus.set_app_property ("quicklist", new Variant.string (dbusserver.dbus_object));
@@ -2776,13 +2779,14 @@ namespace Gabut {
             dbusmenu       TEXT    NOT NULL,
             tdefault       TEXT    NOT NULL,
             notifsound     TEXT    NOT NULL,
-            clrclipboard   TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, clrclipboard)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\");");
+            menuindicator  TEXT    NOT NULL,
+            labelmode      TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.CLRCLIPBOARD) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.LABELMODE) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
@@ -3779,6 +3783,11 @@ namespace Gabut {
         }
         attrlist.insert (Pango.attr_foreground_new (red, green, blue));
         return attrlist;
+    }
+
+    [DBus (name = "org.kde.StatusNotifierWatcher")]
+    public interface DbusStatusWhacher : GLib.Object {
+        public abstract void register_status_notifier_item (string service) throws GLib.Error;
     }
 
     [DBus (name = "org.freedesktop.DBus.Properties")]

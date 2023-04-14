@@ -626,19 +626,30 @@ namespace Gabut {
                 active = bool.parse (get_dbsetting (DBSettings.CLIPBOARD))
             };
 
-            var clrclipboard = new Gtk.CheckButton.with_label (_("Clear Clipboard After add Link")) {
-                margin_top = 5,
-                width_request = 450,
-                active = bool.parse (get_dbsetting (DBSettings.CLRCLIPBOARD)),
-                sensitive = appclipboard.active
-            };
-
             var dbusmenu = new Gtk.CheckButton.with_label (_("Dbus Menu")) {
                 margin_top = 5,
                 width_request = 450,
                 active = bool.parse (get_dbsetting (DBSettings.DBUSMENU))
             };
 
+            var menuindicator = new Gtk.CheckButton.with_label (_("Indicator Menu")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR)),
+                sensitive = dbusmenu.active
+            };
+            var label_mode = new ModeTogle ();
+            label_mode.add_item (new ModeTogle.with_label (_("None")));
+            label_mode.add_item (new ModeTogle.with_label (_("App Name")));
+            label_mode.add_item (new ModeTogle.with_label (_("Download Speed")));
+            label_mode.id = int.parse (get_dbsetting (DBSettings.LABELMODE));
+            menuindicator.toggled.connect (()=> {
+                label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
+            });
+            dbusmenu.toggled.connect (()=> {
+                menuindicator.sensitive = dbusmenu.active;
+                label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
+            });
             var tdefault = new Gtk.CheckButton.with_label (_("Theme Default")) {
                 margin_top = 5,
                 width_request = 450,
@@ -675,15 +686,18 @@ namespace Gabut {
             notifyopt.attach (retonhide, 0, 4, 1, 1);
             notifyopt.attach (appstartup, 0, 5, 1, 1);
             notifyopt.attach (appclipboard, 0, 6, 1, 1);
-            notifyopt.attach (clrclipboard, 0, 7, 1, 1);
+            notifyopt.attach (headerlabel (_("Dbus Settings:"), 450), 0, 7, 1, 1);
             notifyopt.attach (dbusmenu, 0, 8, 1, 1);
-            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 9, 1, 1);
-            notifyopt.attach (systemnotif, 0, 10, 1, 1);
-            notifyopt.attach (dialognotify, 0, 11, 1, 1);
-            notifyopt.attach (soundnotif, 0, 12, 1, 1);
-            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 13, 1, 1);
-            notifyopt.attach (allowrepl, 0, 14, 1, 1);
-            notifyopt.attach (autorename, 0, 15, 1, 1);
+            notifyopt.attach (menuindicator, 0, 9, 1, 1);
+            notifyopt.attach (label_mode.get_box (), 0, 10, 1, 1);
+            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 11, 1, 1);
+            notifyopt.attach (systemnotif, 0, 12, 1, 1);
+            notifyopt.attach (dialognotify, 0, 13, 1, 1);
+            notifyopt.attach (soundnotif, 0, 14, 1, 1);
+            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 15, 1, 1);
+            notifyopt.attach (allowrepl, 0, 16, 1, 1);
+            notifyopt.attach (autorename, 0, 17, 1, 1);
+            label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
 
             var notyscr = new Gtk.ScrolledWindow () {
                 width_request = 455,
@@ -714,7 +728,7 @@ namespace Gabut {
             save_button.clicked.connect (()=> {
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
                 set_dbsetting (DBSettings.CLIPBOARD, appclipboard.active.to_string ());
-                set_dbsetting (DBSettings.CLRCLIPBOARD, clrclipboard.active.to_string ());
+                set_dbsetting (DBSettings.MENUINDICATOR, menuindicator.active.to_string ());
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.STARTUP, appstartup.active.to_string ());
                 set_dbsetting (DBSettings.SHAREDIR, selectfs.get_path ());
@@ -726,6 +740,9 @@ namespace Gabut {
                     set_dbsetting (DBSettings.STYLE, style_mode.id.to_string ());
                     set_dbsetting (DBSettings.TDEFAULT, tdefault.active.to_string ());
                     pantheon_theme.begin ();
+                }
+                if (label_mode.id != int.parse (get_dbsetting (DBSettings.LABELMODE))) {
+                    set_dbsetting (DBSettings.LABELMODE, label_mode.id.to_string ());
                 }
                 if (aria_get_ready ()) {
                     aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));

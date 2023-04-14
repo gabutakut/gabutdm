@@ -101,5 +101,11 @@ namespace Gabut {
             });
             return box;
         }
+
+        public void sensitive_box (bool sensitivebox) {
+            menuchildren.foreach ((menu)=> {
+                menu.menucheckbox.sensitive = sensitivebox;
+            });
+        }
     }
 }
