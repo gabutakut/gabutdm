@@ -9,6 +9,8 @@ command: com.github.gabutakut.gabutdm
 finish-args:
   - '--share=network'
   - '--talk-name=com.canonical.Unity.LauncherEntry'
+  - '--talk-name=org.kde.StatusNotifierItem'
+  - '--talk-name=org.kde.StatusNotifierWatcher'
   - '--talk-name=org.freedesktop.portal.Desktop'
   - '--system-talk-name=org.freedesktop.NetworkManager'
   - '--share=ipc'
