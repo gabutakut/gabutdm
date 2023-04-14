@@ -591,8 +591,8 @@ namespace Gabut {
                     Timeout.add (500, ()=> {
                         set_progress_visible.begin (0.0, false);
                         set_count_visible.begin (globalactive);
+                        update_info ();
                         if (indmenu) {
-                            update_info ();
                             dbusindicator.updateiconame = "com.github.gabutakut.gabutdm";
                             dbusindicator.new_icon ();
                         }
