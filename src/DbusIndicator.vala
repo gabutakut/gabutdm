@@ -31,7 +31,7 @@ namespace Gabut {
 
         public string id {
             get {
-                return "my-gabutdm";
+                return Environment.get_application_name ();
             }
         }
         public string category {
