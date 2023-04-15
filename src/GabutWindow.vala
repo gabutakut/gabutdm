@@ -77,6 +77,20 @@ namespace Gabut {
             }
             set {
                 _dbmenu = value;
+                if (dbusserver != null && dbusindicator != null) {
+                    if (!dbmenu) {
+                        dbusindicator.updatestatus = "Passive";
+                    } else {
+                        update_quicklist.begin ();
+                        if (indmenu) {
+                            dbusindicator.updatestatus = "Active";
+                        }
+                    }
+                    if (indmenu) {
+                        dbusindicator.register_dbus.begin ();
+                    }
+                    dbusindicator.new_status (dbusindicator.updatestatus);
+                }
             }
         }
 
@@ -87,6 +101,17 @@ namespace Gabut {
             }
             set {
                 _indmenu = value;
+                if (dbusserver != null && dbusindicator != null) {
+                    if (indmenu) {
+                        dbusindicator.updatestatus = "Active";
+                    } else {
+                        dbusindicator.updatestatus = "Passive";
+                    }
+                    if (dbmenu) {
+                        dbusindicator.register_dbus.begin ();
+                    }
+                    dbusindicator.new_status (dbusindicator.updatestatus);
+                }
             }
         }
 
@@ -97,16 +122,14 @@ namespace Gabut {
             }
             set {
                 _menulabel = value;
-                if (indmenu) {
-                    if (_menulabel == 0) {
-                        dbusindicator.updateLabel = "";
-                    } else if (_menulabel == 1) {
-                        dbusindicator.updateLabel = title;
-                    } else {
-                        update_info ();
-                    }
-                    dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
+                if (_menulabel == 0) {
+                    dbusindicator.updateLabel = "";
+                } else if (_menulabel == 1) {
+                    dbusindicator.updateLabel = title;
+                } else {
+                    update_info ();
                 }
+                dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
             }
         }
 
@@ -119,12 +142,9 @@ namespace Gabut {
 
         construct {
             dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
-            indmenu = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR));
             dbusserver = new CanonicalDbusmenu ();
             dbusindicator = new DbusIndicator (dbusserver.dbus_object);
-            if (indmenu) {
-                dbusindicator.register_dbus.begin ();
-            }
+            indmenu = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR));
             openmenu = new DbusmenuItem ();
             openmenu.property_set (MenuItem.LABEL.to_string (), _("Gabut Download Manager"));
             openmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm");
@@ -355,28 +375,28 @@ namespace Gabut {
                     update_options ();
                 });
                 preferences.close.connect (()=> {
-                    if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
-                        hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
-                    }
-                    if (bool.parse (get_dbsetting (DBSettings.DBUSMENU)) != dbmenu) {
-                        dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
-                    }
-                    menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
-                    preferences = null;
+                    save_close ();
                 });
                 preferences.close_request.connect (()=> {
-                    if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
-                        hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
-                    }
-                    if (bool.parse (get_dbsetting (DBSettings.DBUSMENU)) != dbmenu) {
-                        dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
-                    }
-                    menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
-                    preferences = null;
+                    save_close ();
                     return false;
                 });
                 preferences.show ();
             }
+        }
+
+        private void save_close () {
+            if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
+                hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
+            }
+            if (bool.parse (get_dbsetting (DBSettings.DBUSMENU)) != dbmenu) {
+                dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
+            }
+            menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
+            if (bool.parse (get_dbsetting (DBSettings.MENUINDICATOR)) != indmenu) {
+                indmenu = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR));
+            }
+            preferences = null;
         }
 
         private Gtk.CenterBox bottom_action () {
@@ -853,7 +873,7 @@ namespace Gabut {
             var activedmapp = int64.parse (infol.fetch (2));
             labelall.label = @"Active: $(activedmapp) Download: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0)) Upload: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0))";
             if (menulabel == 2 && indmenu) {
-                dbusindicator.updateLabel = @" $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0))";
+                dbusindicator.updateLabel = @" $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0))";
                 dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
             }
         }
@@ -931,7 +951,7 @@ namespace Gabut {
                 menudbus.child_append (rowbus);
             }
             if (dbmenu) {
-                open_quicklist_dbus.begin (dbusserver, menudbus);
+                yield open_quicklist_dbus (dbusserver, menudbus);
             }
         }
 
@@ -940,7 +960,13 @@ namespace Gabut {
                 menudbus.child_delete (rowbus);
             }
             if (dbmenu) {
-                open_quicklist_dbus.begin (dbusserver, menudbus);
+                yield open_quicklist_dbus (dbusserver, menudbus);
+            }
+        }
+
+        private async void update_quicklist () throws GLib.Error {
+            if (dbmenu) {
+                yield open_quicklist_dbus (dbusserver, menudbus);
             }
         }
 

@@ -21,10 +21,10 @@ namespace Gabut {
     [DBus (name = "com.canonical.Unity.LauncherEntry")]
     private class UnityLauncherEntry : GLib.Object {
         public signal void update (string app_uri, GLib.HashTable<string, GLib.Variant> properties);
-        private GLib.HashTable<string, GLib.Variant> properties;
-        private static string app_uri = get_app_id ();
-        private static uint removebus = 0;
-        private static UnityLauncherEntry instance;
+        internal GLib.HashTable<string, GLib.Variant> properties;
+        internal static string app_uri = get_app_id ();
+        internal static uint removebus = 0;
+        internal static UnityLauncherEntry instance;
 
         internal static async unowned UnityLauncherEntry get_instance () throws GLib.Error {
             var local_instance = new UnityLauncherEntry ();
