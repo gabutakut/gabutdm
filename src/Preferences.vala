@@ -641,7 +641,7 @@ namespace Gabut {
             var label_mode = new ModeTogle ();
             label_mode.add_item (new ModeTogle.with_label (_("None")));
             label_mode.add_item (new ModeTogle.with_label (_("App Name")));
-            label_mode.add_item (new ModeTogle.with_label (_("Download Speed")));
+            label_mode.add_item (new ModeTogle.with_label (_("Total Speed")));
             label_mode.id = int.parse (get_dbsetting (DBSettings.LABELMODE));
             menuindicator.toggled.connect (()=> {
                 label_mode.sensitive_box (dbusmenu.active && menuindicator.active);

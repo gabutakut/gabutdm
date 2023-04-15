@@ -31,7 +31,7 @@ namespace Gabut {
 
         public string id {
             get {
-                return Environment.get_application_name ();
+                return updatesnewid;
             }
         }
         public string category {
@@ -41,7 +41,7 @@ namespace Gabut {
         }
         public string status {
             get {
-                return "Active";
+                return updatestatus;
             }
         }
         public string icon_name {
@@ -98,32 +98,31 @@ namespace Gabut {
         internal static DbusStatusWhacher dbusstatuswatcher = null;
         internal string updateLabel = "";
         internal string updateiconame = "com.github.gabutakut.gabutdm";
+        internal string updatestatus = "Active";
+        internal string updatesnewid = "";
         public DbusIndicator (string path) {
             objectpat = new ObjectPath (path);
+        }
+
+        internal async void register_dbus () throws Error {
+            var session_connection = yield GLib.Bus.@get (GLib.BusType.SESSION);
+            session_connection.register_object (objectpat, this);
             Bus.get_proxy.begin<DbusStatusWhacher> (BusType.SESSION, "org.kde.StatusNotifierWatcher", "/StatusNotifierWatcher", GLib.DBusProxyFlags.NONE, null, (obj, res) => {
                 try {
                     dbusstatuswatcher = Bus.get_proxy.end (res);
                     ((GLib.DBusProxy) dbusstatuswatcher).g_connection.signal_subscribe (null, "org.kde.StatusNotifierWatcher", null, "/StatusNotifierWatcher", null, GLib.DBusSignalFlags.NONE, (GLib.DBusSignalCallback)subscription_callback);
                     if (dbusstatuswatcher != null) {
                         dbusstatuswatcher.register_status_notifier_item (objectpat);
+                        updatesnewid = Environment.get_application_name ();
                     }
                 } catch (GLib.Error e) {
                     critical (e.message);
                 }
             });
         }
-
-        internal void subscription_callback (DBusConnection connection, string? sender_name, string object_path, string interface_name, string signal_name, Variant parameters) {}
-
-        internal async void register_dbus () throws Error {
-            var session_connection = yield GLib.Bus.@get (GLib.BusType.SESSION);
-            session_connection.register_object (objectpat, this);
-        }
-        public void scroll (int delta, int orientation) throws GLib.Error {
-        }
-        public void secondary_activate (int x, int y) throws GLib.Error {
-        }
-        public void x_ayatana_secondary_activate (uint timestamp) throws GLib.Error {
-        }
+        private void subscription_callback (DBusConnection connection, string? sender_name, string object_path, string interface_name, string signal_name, Variant parameters) {}
+        public void scroll (int delta, int orientation) throws GLib.Error {}
+        public void secondary_activate (int x, int y) throws GLib.Error {}
+        public void x_ayatana_secondary_activate (uint timestamp) throws GLib.Error {}
     }
 }
