@@ -260,6 +260,7 @@ namespace Gabut {
                 return false;
             });
             set_titlebar (build_headerbar ());
+            menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
         }
 
         private Gtk.HeaderBar build_headerbar () {
@@ -597,7 +598,6 @@ namespace Gabut {
 
         public override void show () {
             base.show ();
-            menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
             remove_dbus.begin (openmenu);
         }
 
