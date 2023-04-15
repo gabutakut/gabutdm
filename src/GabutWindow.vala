@@ -871,9 +871,9 @@ namespace Gabut {
         private void update_info () {
             var infol = aria_label_info ();
             var activedmapp = int64.parse (infol.fetch (2));
-            labelall.label = @"Active: $(activedmapp) Download: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0)) Upload: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0))";
+            labelall.label = "Active: %i Download: %s Upload: %s".printf ((int)activedmapp, GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0), GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0));
             if (menulabel == 2 && indmenu) {
-                dbusindicator.updateLabel = @" $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0))";
+                dbusindicator.updateLabel = " %s".printf (GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0));
                 dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
             }
         }

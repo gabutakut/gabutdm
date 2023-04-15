@@ -36,6 +36,7 @@
     <release version="2.1.5" date="2023-4-16">
       <description>
         <p>Feature TrayIcon</p>
+        <p>Fix Clipboard</p>
         <p>Simple code</p>
       </description>
     </release>
