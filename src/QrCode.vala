@@ -40,7 +40,7 @@ namespace Gabut {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
                 pixel_size = 64,
-                gicon = new ThemedIcon ("go-home")
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.gohome")
             };
 
             icon_badge = new Gtk.Image () {

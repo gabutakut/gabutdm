@@ -170,6 +170,12 @@ namespace Gabut {
                 gabutserver.delete_row.connect ((status)=> {
                     gabutwindow.remove_item (status);
                 });
+                var gtkset = Gtk.Settings.get_default ().gtk_theme_name;
+                if (gtkset.contains ("-")){
+                    set_dbsetting (Gabut.DBSettings.THEMESYSTEM,  gtkset.split ("-")[0]);
+                } else {
+                    set_dbsetting (Gabut.DBSettings.THEMESYSTEM, gtkset);
+                }
                 pantheon_theme.begin ();
                 gabutwindow.load_dowanload ();
                 download_table ();
@@ -276,7 +282,7 @@ namespace Gabut {
             bool metabtn = false;
             string icon = "";
             if (link.has_prefix ("http://") || link.has_prefix ("https://") || link.has_prefix ("ftp://") || link.has_prefix ("sftp://")) {
-                icon = "insert-link";
+                icon = "com.github.gabutakut.gabutdm.insertlink";
             } else if (link.has_prefix ("magnet:?")) {
                 icon = "com.github.gabutakut.gabutdm.magnet";
                 link.replace ("tr.N=", "tr=");

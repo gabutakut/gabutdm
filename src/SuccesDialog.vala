@@ -86,7 +86,7 @@ namespace Gabut {
             header.title_widget = header_grid;
             header.decoration_layout = "none";
 
-            address = new MediaEntry.info ("insert-link", "com.github.gabutakut.gabutdm.complete") {
+            address = new MediaEntry.info ("com.github.gabutakut.gabutdm.insertlink", "com.github.gabutakut.gabutdm.complete") {
                 hexpand = true,
                 width_request = 450
             };

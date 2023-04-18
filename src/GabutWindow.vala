@@ -155,7 +155,7 @@ namespace Gabut {
 
             var urlmenu = new DbusmenuItem ();
             urlmenu.property_set (MenuItem.LABEL.to_string (), _("Add Url"));
-            urlmenu.property_set (MenuItem.ICON_NAME.to_string (), "insert-link");
+            urlmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.insertlink");
             urlmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             urlmenu.item_activated.connect (()=> {
                 send_file ("");
@@ -173,8 +173,8 @@ namespace Gabut {
             });
 
             var setmenu = new DbusmenuItem ();
-            setmenu.property_set (MenuItem.LABEL.to_string (), _("Open Settings"));
-            setmenu.property_set (MenuItem.ICON_NAME.to_string (), "open-menu");
+            setmenu.property_set (MenuItem.LABEL.to_string (), _("Settings"));
+            setmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.settings");
             setmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             setmenu.item_activated.connect (menuprefernces);
 
@@ -192,7 +192,7 @@ namespace Gabut {
 
             var qrmenu = new DbusmenuItem ();
             qrmenu.property_set (MenuItem.LABEL.to_string (), _("Remote"));
-            qrmenu.property_set (MenuItem.ICON_NAME.to_string (), "go-home");
+            qrmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.gohome");
             qrmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             qrmenu.item_activated.connect (qrmenuopen);
 
@@ -268,18 +268,18 @@ namespace Gabut {
                 hexpand = true,
                 decoration_layout = "close:minimize,maximize"
             };
-            var menu_button = new Gtk.Button.from_icon_name ("open-menu") {
-                tooltip_text = _("Open Settings")
+            var menu_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.settings") {
+                tooltip_text = _("Settings")
             };
             headerbar.pack_end (menu_button);
             menu_button.clicked.connect (menuprefernces);
 
-            var search_button = new Gtk.Button.from_icon_name ("system-search") {
+            var search_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.find") {
                 tooltip_text = _("Search")
             };
             headerbar.pack_end (search_button);
             search_button.clicked.connect (()=> {
-                search_button.icon_name = headerstack.visible_child_name == "mode"? "com.github.gabutakut.gabutdm" : "system-search";
+                search_button.icon_name = headerstack.visible_child_name == "mode"? "com.github.gabutakut.gabutdm" : "com.github.gabutakut.gabutdm.find";
                 headerstack.visible_child_name = headerstack.visible_child_name == "mode"? headerstack.visible_child_name = "search" : headerstack.visible_child_name = "mode";
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
@@ -290,12 +290,12 @@ namespace Gabut {
                 view_status ();
                 search_entry.text = "";
             });
-            var host_button = new Gtk.Button.from_icon_name ("go-home") {
+            var host_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.gohome") {
                 tooltip_text = _("Remote")
             };
             headerbar.pack_end (host_button);
             host_button.clicked.connect (qrmenuopen);
-            var add_button = new Gtk.Button.from_icon_name ("insert-link") {
+            var add_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.insertlink") {
                 tooltip_text = _("add link")
             };
             add_button.clicked.connect (()=> {
@@ -324,7 +324,7 @@ namespace Gabut {
             headerbar.pack_start (stopall_button);
             stopall_button.clicked.connect (stop_all);
 
-            var removeall_button = new Gtk.Button.from_icon_name ("edit-delete") {
+            var removeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 tooltip_text = _("Remove All")
             };
             headerbar.pack_start (removeall_button);
@@ -1055,7 +1055,7 @@ namespace Gabut {
                     var search_alert = new AlertView (
                         _("Find File"),
                         _("Mode Search Based on Filename."),
-                        "system-search"
+                        "com.github.gabutakut.gabutdm.find"
                     );
                     search_alert.show ();
                     list_box.set_placeholder (search_alert);
@@ -1075,7 +1075,7 @@ namespace Gabut {
                     var empty_alert = new AlertView (
                         _("No Search Found"),
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "system-search"
+                        "com.github.gabutakut.gabutdm.find"
                     );
                     empty_alert.show ();
                     list_box.set_placeholder (empty_alert);

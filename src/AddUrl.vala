@@ -248,7 +248,7 @@ namespace Gabut {
             };
             overlay.add_overlay (sizelabel);
 
-            link_entry = new MediaEntry ("insert-link", "edit-paste") {
+            link_entry = new MediaEntry ("com.github.gabutakut.gabutdm.insertlink", "edit-paste") {
                 width_request = 500,
                 placeholder_text = _("Url or Magnet")
             };
@@ -353,7 +353,7 @@ namespace Gabut {
             });
             proxytype = type_flow.get_child_at_index (0) as ProxyType;
 
-            proxy_entry = new MediaEntry ("user-home", "edit-paste") {
+            proxy_entry = new MediaEntry ("com.github.gabutakut.gabutdm.gohome", "edit-paste") {
                 width_request = 250,
                 placeholder_text = _("Address")
             };
@@ -444,7 +444,7 @@ namespace Gabut {
                 placeholder_text = _("User Agent")
             };
 
-            refer_entry = new MediaEntry ("emblem-symbolic-link", "edit-paste") {
+            refer_entry = new MediaEntry ("com.github.gabutakut.gabutdm.referer", "edit-paste") {
                 width_request = 350,
                 placeholder_text = _("Referer")
             };
@@ -482,7 +482,7 @@ namespace Gabut {
             }
             checksums_flow.show ();
 
-            checksum_entry = new MediaEntry ("emblem-symbolic-link", "edit-paste") {
+            checksum_entry = new MediaEntry ("com.github.gabutakut.gabutdm.hash", "edit-paste") {
                 width_request = 350,
                 placeholder_text = _("Hash")
             };
