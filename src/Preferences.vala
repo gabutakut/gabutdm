@@ -659,6 +659,7 @@ namespace Gabut {
                 width_request = 110,
                 margin_bottom = 4,
                 text = get_dbsetting (DBSettings.THEMECUSTOM),
+                placeholder_text = _("Enter the theme name here"),
                 secondary_icon_tooltip_text = _("Theme")
             };
 
