@@ -643,7 +643,12 @@ namespace Gabut {
             label_mode.add_item (new ModeTogle.with_label (_("App Name")));
             label_mode.add_item (new ModeTogle.with_label (_("Total Speed")));
             label_mode.id = int.parse (get_dbsetting (DBSettings.LABELMODE));
+            var label_rev = new Gtk.Revealer () {
+                child = label_mode.get_box ()
+            };
+            label_rev.reveal_child = menuindicator.active;
             menuindicator.toggled.connect (()=> {
+                label_rev.reveal_child = menuindicator.active;
                 label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
             });
             dbusmenu.toggled.connect (()=> {
@@ -715,7 +720,7 @@ namespace Gabut {
             notifyopt.attach (headerlabel (_("Dbus Settings:"), 450), 0, 8, 1, 1);
             notifyopt.attach (dbusmenu, 0, 9, 1, 1);
             notifyopt.attach (menuindicator, 0, 10, 1, 1);
-            notifyopt.attach (label_mode.get_box (), 0, 11, 1, 1);
+            notifyopt.attach (label_rev, 0, 11, 1, 1);
             notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 12, 1, 1);
             notifyopt.attach (systemnotif, 0, 13, 1, 1);
             notifyopt.attach (dialognotify, 0, 14, 1, 1);
