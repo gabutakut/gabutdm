@@ -49,7 +49,7 @@ namespace Gabut {
                 } else if (linkmode == LinkMode.TORRENT) {
                     badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.torrent");
                 } else {
-                    badge_img.gicon = new ThemedIcon ("insert-link");
+                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.insertlink");
                 }
             }
         }
@@ -390,7 +390,7 @@ namespace Gabut {
                 action_btn ();
             });
 
-            var remove_button = new Gtk.Button.from_icon_name ("edit-delete") {
+            var remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 valign = Gtk.Align.CENTER,
                 tooltip_text = _("Remove")
             };
@@ -462,7 +462,7 @@ namespace Gabut {
             } else if (linkmode == LinkMode.MAGNETLINK) {
                 notify_app (_("Starting"), url, new ThemedIcon ("com.github.gabutakut.gabutdm.magnet"));
             } else {
-                notify_app (_("Starting"), url, new ThemedIcon ("insert-link"));
+                notify_app (_("Starting"), url, new ThemedIcon ("com.github.gabutakut.gabutdm.insertlink"));
             }
             play_sound ("device-added");
         }

@@ -67,7 +67,10 @@ namespace Gabut {
         TDEFAULT = 43,
         NOTIFSOUND = 44,
         MENUINDICATOR = 45,
-        LABELMODE = 46;
+        LABELMODE = 46,
+        THEMESELECT = 47,
+        THEMECUSTOM = 48,
+        THEMESYSTEM = 49;
 
         public string to_string () {
             switch (this) {
@@ -163,6 +166,12 @@ namespace Gabut {
                     return "menuindicator";
                 case LABELMODE:
                     return "labelmode";
+                case THEMESELECT:
+                    return "themeselect";
+                case THEMECUSTOM:
+                    return "themecustom";
+                case THEMESYSTEM:
+                    return "themesystem";
                 default:
                     return "id";
             }
@@ -2275,7 +2284,7 @@ namespace Gabut {
         user_entry.changed.connect (()=> {
             update_user_id (user.id, UserID.USER, user_entry.text);
         });
-        var pass_entry = new MediaEntry.activable ("dialog-password", "edit-delete") {
+        var pass_entry = new MediaEntry.activable ("dialog-password", "com.github.gabutakut.gabutdm.delete") {
             width_request = 220,
             margin_bottom = 4,
             secondary_icon_tooltip_text = _("Delete Authentication"),
@@ -2780,13 +2789,16 @@ namespace Gabut {
             tdefault       TEXT    NOT NULL,
             notifsound     TEXT    NOT NULL,
             menuindicator  TEXT    NOT NULL,
-            labelmode      TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\");");
+            labelmode      TEXT    NOT NULL,
+            themeselect    TEXT    NOT NULL,
+            themecustom    TEXT    NOT NULL,
+            themesystem    TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, themesystem)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.LABELMODE) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.THEMESYSTEM) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
@@ -3845,18 +3857,25 @@ namespace Gabut {
         if (themecall != null) {
             Idle.add ((owned)themecall);
         }
-        var gtk_settings = Gtk.Settings.get_for_display (Gdk.Display.get_default ());
+        var gtk_settings = Gtk.Settings.get_default ();
         var tdefault = bool.parse (get_dbsetting (DBSettings.TDEFAULT));
+        int themesel = int.parse (get_dbsetting (DBSettings.THEMESELECT));
+        var themename = get_dbsetting (DBSettings.THEMECUSTOM);
+        var themesys = get_dbsetting (DBSettings.THEMESYSTEM);
         switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
             case 1:
                 if (tdefault) {
-                    gtk_settings.gtk_theme_name = "Default";
+                    gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
+                } else {
+                    gtk_settings.gtk_theme_name = themesys;
                 }
                 gtk_settings.gtk_application_prefer_dark_theme = false;
                 break;
             case 2:
                 if (tdefault) {
-                    gtk_settings.gtk_theme_name = "Default-dark";
+                    gtk_settings.gtk_theme_name = themesel == 0? "Default-dark" : themename + "-dark";
+                } else {
+                    gtk_settings.gtk_theme_name = themesys + "-dark";
                 }
                 gtk_settings.gtk_application_prefer_dark_theme = true;
                 break;
@@ -3865,14 +3884,18 @@ namespace Gabut {
                 if (portalsettings != null) {
                     themecall = pantheon_theme.callback;
                     if (tdefault) {
-                        gtk_settings.gtk_theme_name = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? "Default-dark" : "Default";
+                        gtk_settings.gtk_theme_name = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? themesel == 0? "Default-dark" : themename + "-dark" : themesel == 0? "Default" : themename;
+                    } else {
+                        gtk_settings.gtk_theme_name = themesys;
                     }
                     gtk_settings.gtk_application_prefer_dark_theme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? true : false;
                     portalsettings.setting_changed.connect ((scheme, key, value) => {
                         if (scheme == "org.freedesktop.appearance" && key == "color-scheme") {
                             gtk_settings.gtk_application_prefer_dark_theme = value.get_uint32 () == 1? true : false;
                             if (tdefault) {
-                                gtk_settings.gtk_theme_name = value.get_uint32 () == 1? "Default-dark" : "Default";
+                                gtk_settings.gtk_theme_name = value.get_uint32 () == 1? themesel == 0? "Default-dark" : themename + "-dark" : themesel == 0? "Default" : themename;
+                            } else {
+                                gtk_settings.gtk_theme_name = themesys;
                             }
                         }
                     });
