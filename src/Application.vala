@@ -171,8 +171,8 @@ namespace Gabut {
                     gabutwindow.remove_item (status);
                 });
                 var gtkset = Gtk.Settings.get_default ().gtk_theme_name;
-                if (gtkset.contains ("-")){
-                    set_dbsetting (Gabut.DBSettings.THEMESYSTEM,  gtkset.split ("-")[0]);
+                if (gtkset.down ().contains ("-dark")){
+                    set_dbsetting (Gabut.DBSettings.THEMESYSTEM,  gtkset.replace ("-dark", ""));
                 } else {
                     set_dbsetting (Gabut.DBSettings.THEMESYSTEM, gtkset);
                 }

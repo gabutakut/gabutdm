@@ -47,6 +47,7 @@ namespace Gabut {
         private Gtk.FlowBox deas_flow;
         private Gtk.CheckButton showtime;
         private Gtk.CheckButton showdate;
+        private int64 animation = 0;
 
         SortBy _sorttype = null;
         SortBy sorttype {
@@ -875,6 +876,19 @@ namespace Gabut {
             if (menulabel == 2 && indmenu) {
                 dbusindicator.updateLabel = " %s".printf (GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0));
                 dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
+                if (activedmapp > 0) {
+                    if (animation % 2 == 0) {
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
+                        dbusindicator.new_icon ();
+                    } else {
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloop";   
+                        dbusindicator.new_icon ();
+                    }
+                    if (animation > 9) {
+                        animation = 0;
+                    }
+                    animation++;
+                }
             }
         }
 

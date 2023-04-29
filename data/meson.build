@@ -21,6 +21,7 @@ actions = [
     '.waiting.svg',
     '.clear.svg',
     '.seed.svg',
+    '.seedloop.svg',
     '.metalink.svg',
     '.find.svg',
     '.insertlink.svg',

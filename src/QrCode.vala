@@ -168,7 +168,7 @@ namespace Gabut {
             string host = get_host (reboot);
             create_qrcode (host);
             linkbutton.uri = host;
-            linkbutton.label = host;
+            linkbutton.label = host.contains ("0.0.0.0")? _("No Network Connected"): host;
         }
 
         private void create_qrcode (string strinput) {
