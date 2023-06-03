@@ -25,7 +25,7 @@
 <p align="center"><a href="https://flatstat.mijorus.it/app/com.github.gabutakut.gabutdm"  align="center"><img width="150" src="https://img.shields.io/endpoint?url=https://flathub-stats-backend.vercel.app/badges/com.github.gabutakut.gabutdm/shields.io.json"></a></p>
 <h2 align="center">🤖 GTK4 🤖</h2>
 <p align="center">
-Gabut Download Manager, An application that can download all you needs like Link URLs Metallink Magnetlink Torrents using Aria2c and,
+Gabut Download Manager, An application that can download all your needs like Link URLs Metallink Magnetlink Torrents using Aria2c and,
 an application that has a local server service interface. It also allows file transfers from smartphones.
 This application prioritizes convenience, features and an attractive appearance.
 </p>
