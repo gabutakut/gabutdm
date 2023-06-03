@@ -40,7 +40,7 @@ namespace Gabut {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
                 pixel_size = 64,
-                gicon = new ThemedIcon ("go-home")
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.gohome")
             };
 
             icon_badge = new Gtk.Image () {
@@ -147,9 +147,6 @@ namespace Gabut {
         public override void show () {
             base.show ();
             local_server = bool.parse (get_dbsetting (DBSettings.IPLOCAL));
-            Idle.add (()=> {
-                return load_host (false);
-            });
         }
 
         private void share_server () {
@@ -158,7 +155,7 @@ namespace Gabut {
             load_host (true);
         }
 
-        private bool load_host (bool reboot) {
+        public void load_host (bool reboot) {
             if (local_server) {
                 host_button.label =_("Share Address");
                 ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 0, 0);
@@ -171,8 +168,7 @@ namespace Gabut {
             string host = get_host (reboot);
             create_qrcode (host);
             linkbutton.uri = host;
-            linkbutton.label = host;
-            return false;
+            linkbutton.label = host.contains ("0.0.0.0")? _("No Network Connected"): host;
         }
 
         private void create_qrcode (string strinput) {

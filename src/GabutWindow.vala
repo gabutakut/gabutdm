@@ -21,7 +21,7 @@
 
 namespace Gabut {
     public class GabutWindow : Gtk.ApplicationWindow {
-        public signal void send_file (string url);
+        public signal bool send_file (string url);
         public signal void stop_server ();
         public signal void restart_server ();
         public signal void open_show ();
@@ -40,14 +40,14 @@ namespace Gabut {
         private Gee.ArrayList<DownloadRow> listrow;
         private DbusmenuItem menudbus;
         private DbusmenuItem openmenu;
-        private DbusmenuItem startmenu;
-        private DbusmenuItem pausemenu;
         private CanonicalDbusmenu dbusserver;
+        private DbusIndicator dbusindicator;
         private Gtk.MenuButton shortbutton;
         private Gtk.FlowBox sort_flow;
         private Gtk.FlowBox deas_flow;
         private Gtk.CheckButton showtime;
         private Gtk.CheckButton showdate;
+        private int64 animation = 0;
 
         SortBy _sorttype = null;
         SortBy sorttype {
@@ -71,6 +71,69 @@ namespace Gabut {
             }
         }
 
+        private bool _dbmenu = false;
+        public bool dbmenu {
+            get {
+                return _dbmenu;
+            }
+            set {
+                _dbmenu = value;
+                if (dbusserver != null && dbusindicator != null) {
+                    if (!dbmenu) {
+                        dbusindicator.updatestatus = "Passive";
+                    } else {
+                        update_quicklist.begin ();
+                        if (indmenu) {
+                            dbusindicator.updatestatus = "Active";
+                        }
+                    }
+                    if (indmenu) {
+                        dbusindicator.register_dbus.begin ();
+                    }
+                    dbusindicator.new_status (dbusindicator.updatestatus);
+                }
+            }
+        }
+
+        private bool _indmenu = false;
+        public bool indmenu {
+            get {
+                return _indmenu;
+            }
+            set {
+                _indmenu = value;
+                if (dbusserver != null && dbusindicator != null) {
+                    if (indmenu) {
+                        dbusindicator.updatestatus = "Active";
+                    } else {
+                        dbusindicator.updatestatus = "Passive";
+                    }
+                    if (dbmenu) {
+                        dbusindicator.register_dbus.begin ();
+                    }
+                    dbusindicator.new_status (dbusindicator.updatestatus);
+                }
+            }
+        }
+
+        private int _menulabel = 0;
+        public int menulabel {
+            get {
+                return _menulabel;
+            }
+            set {
+                _menulabel = value;
+                if (_menulabel == 0) {
+                    dbusindicator.updateLabel = "";
+                } else if (_menulabel == 1) {
+                    dbusindicator.updateLabel = title;
+                } else {
+                    update_info ();
+                }
+                dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
+            }
+        }
+
         public GabutWindow (Gtk.Application application) {
             Object (application: application,
                     hide_on_close: bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)),
@@ -79,7 +142,10 @@ namespace Gabut {
         }
 
         construct {
+            dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
             dbusserver = new CanonicalDbusmenu ();
+            dbusindicator = new DbusIndicator (dbusserver.dbus_object);
+            indmenu = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR));
             openmenu = new DbusmenuItem ();
             openmenu.property_set (MenuItem.LABEL.to_string (), _("Gabut Download Manager"));
             openmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm");
@@ -88,21 +154,57 @@ namespace Gabut {
                 open_show ();
             });
 
-            startmenu = new DbusmenuItem ();
+            var urlmenu = new DbusmenuItem ();
+            urlmenu.property_set (MenuItem.LABEL.to_string (), _("Add Url"));
+            urlmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.insertlink");
+            urlmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
+            urlmenu.item_activated.connect (()=> {
+                send_file ("");
+            });
+
+            var opentormenu = new DbusmenuItem ();
+            opentormenu.property_set (MenuItem.LABEL.to_string (), _("Open Torrent"));
+            opentormenu.property_set (MenuItem.ICON_NAME.to_string (), "document-open");
+            opentormenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
+            opentormenu.item_activated.connect (()=> {
+                var files = run_open_file (this);
+                foreach (var file in files) {
+                    send_file (file.get_uri ());
+                }
+            });
+
+            var setmenu = new DbusmenuItem ();
+            setmenu.property_set (MenuItem.LABEL.to_string (), _("Settings"));
+            setmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.settings");
+            setmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
+            setmenu.item_activated.connect (menuprefernces);
+
+            var startmenu = new DbusmenuItem ();
             startmenu.property_set (MenuItem.LABEL.to_string (), _("Start All"));
             startmenu.property_set (MenuItem.ICON_NAME.to_string (), "media-playback-start");
             startmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             startmenu.item_activated.connect (start_all);
 
-            pausemenu = new DbusmenuItem ();
+            var pausemenu = new DbusmenuItem ();
             pausemenu.property_set (MenuItem.LABEL.to_string (), _("Pause All"));
             pausemenu.property_set (MenuItem.ICON_NAME.to_string (), "media-playback-pause");
             pausemenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             pausemenu.item_activated.connect (stop_all);
+
+            var qrmenu = new DbusmenuItem ();
+            qrmenu.property_set (MenuItem.LABEL.to_string (), _("Remote"));
+            qrmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.gohome");
+            qrmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
+            qrmenu.item_activated.connect (qrmenuopen);
+
             menudbus = new DbusmenuItem ();
             append_dbus.begin (openmenu);
+            append_dbus.begin (urlmenu);
+            append_dbus.begin (opentormenu);
             append_dbus.begin (startmenu);
             append_dbus.begin (pausemenu);
+            append_dbus.begin (setmenu);
+            append_dbus.begin (qrmenu);
 
             nodown_alert = new AlertView (
                 _("No File Download"),
@@ -159,60 +261,26 @@ namespace Gabut {
                 return false;
             });
             set_titlebar (build_headerbar ());
+            menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
         }
 
         private Gtk.HeaderBar build_headerbar () {
             var headerbar = new Gtk.HeaderBar () {
                 hexpand = true,
-                decoration_layout = "close:maximize"
+                decoration_layout = ":minimize,close"
             };
-            var menu_button = new Gtk.Button.from_icon_name ("open-menu") {
-                tooltip_text = _("Open Settings")
+            var menu_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.settings") {
+                tooltip_text = _("Settings")
             };
             headerbar.pack_end (menu_button);
-            menu_button.clicked.connect (()=> {
-                if (preferences == null) {
-                    preferences = new Preferences (application) {
-                        transient_for = this
-                    };
-                    preferences.show ();
-                    preferences.restart_server.connect (()=> {
-                        restart_server ();
-                    });
-                    preferences.restart_process.connect (()=> {
-                        listrow.foreach ((row)=> {
-                            row.if_not_exist (row.ariagid, row.linkmode, row.status);
-                            return true;
-                        });
-                    });
-                    preferences.max_active.connect (()=> {
-                        next_download ();
-                    });
-                    preferences.global_opt.connect (()=> {
-                        update_options ();
-                    });
-                    preferences.close.connect (()=> {
-                        if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
-                            hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
-                        }
-                        preferences = null;
-                    });
-                    preferences.close_request.connect (()=> {
-                        if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
-                            hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
-                        }
-                        preferences = null;
-                        return false;
-                    });
-                }
-            });
+            menu_button.clicked.connect (menuprefernces);
 
-            var search_button = new Gtk.Button.from_icon_name ("system-search") {
+            var search_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.find") {
                 tooltip_text = _("Search")
             };
             headerbar.pack_end (search_button);
             search_button.clicked.connect (()=> {
-                search_button.icon_name = headerstack.visible_child_name == "mode"? "com.github.gabutakut.gabutdm" : "system-search";
+                search_button.icon_name = headerstack.visible_child_name == "mode"? "com.github.gabutakut.gabutdm" : "com.github.gabutakut.gabutdm.find";
                 headerstack.visible_child_name = headerstack.visible_child_name == "mode"? headerstack.visible_child_name = "search" : headerstack.visible_child_name = "mode";
                 var row = (DownloadRow) list_box.get_selected_row ();
                 if (row != null) {
@@ -223,32 +291,12 @@ namespace Gabut {
                 view_status ();
                 search_entry.text = "";
             });
-            var host_button = new Gtk.Button.from_icon_name ("go-home") {
-                tooltip_text = _("Host")
+            var host_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.gohome") {
+                tooltip_text = _("Remote")
             };
             headerbar.pack_end (host_button);
-            host_button.clicked.connect (()=> {
-                if (qrcode == null) {
-                    qrcode = new QrCode (application) {
-                        transient_for = this
-                    };
-                    qrcode.show ();
-                    qrcode.get_host.connect ((reboot)=> {
-                        if (reboot) {
-                            restart_server ();
-                        }
-                        return get_host ();
-                    });
-                    qrcode.close.connect (()=> {
-                        qrcode = null;
-                    });
-                    qrcode.close_request.connect (()=> {
-                        qrcode = null;
-                        return false;
-                    });
-                }
-            });
-            var add_button = new Gtk.Button.from_icon_name ("insert-link") {
+            host_button.clicked.connect (qrmenuopen);
+            var add_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.insertlink") {
                 tooltip_text = _("add link")
             };
             add_button.clicked.connect (()=> {
@@ -277,12 +325,80 @@ namespace Gabut {
             headerbar.pack_start (stopall_button);
             stopall_button.clicked.connect (stop_all);
 
-            var removeall_button = new Gtk.Button.from_icon_name ("edit-delete") {
+            var removeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 tooltip_text = _("Remove All")
             };
             headerbar.pack_start (removeall_button);
             removeall_button.clicked.connect (remove_all);
             return headerbar;
+        }
+
+        private void qrmenuopen () {
+            if (qrcode == null) {
+                qrcode = new QrCode (application) {
+                    transient_for = this
+                };
+                qrcode.get_host.connect ((reboot)=> {
+                    if (reboot) {
+                        restart_server ();
+                    }
+                    return get_host ();
+                });
+                qrcode.close.connect (()=> {
+                    qrcode = null;
+                });
+                qrcode.close_request.connect (()=> {
+                    qrcode = null;
+                    return false;
+                });
+                qrcode.show ();
+                qrcode.load_host (false);
+            }
+        }
+
+        private void menuprefernces () {
+            if (preferences == null) {
+                preferences = new Preferences (application) {
+                    transient_for = this
+                };
+                preferences.restart_server.connect (()=> {
+                    restart_server ();
+                });
+                preferences.restart_process.connect (()=> {
+                    listrow.foreach ((row)=> {
+                        row.if_not_exist (row.ariagid, row.linkmode, row.status);
+                        return true;
+                    });
+                });
+                preferences.max_active.connect (()=> {
+                    next_download ();
+                });
+                preferences.global_opt.connect (()=> {
+                    update_options ();
+                });
+                preferences.close.connect (()=> {
+                    save_close ();
+                });
+                preferences.close_request.connect (()=> {
+                    save_close ();
+                    return false;
+                });
+                preferences.show ();
+            }
+        }
+
+        private void save_close () {
+            if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)) != hide_on_close) {
+                hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
+            }
+            if (bool.parse (get_dbsetting (DBSettings.DBUSMENU)) != dbmenu) {
+                dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
+            }
+            menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
+            if (bool.parse (get_dbsetting (DBSettings.MENUINDICATOR)) != indmenu) {
+                indmenu = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR));
+            }
+            preferences = null;
         }
 
         private Gtk.CenterBox bottom_action () {
@@ -487,26 +603,36 @@ namespace Gabut {
         }
 
         private bool set_menulauncher () {
-            var globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
-            bool statact = globalactive > 0;
-            set_count_visible.begin (globalactive);
-            if (!statact) {
-                int stoped = 10;
-                Timeout.add (500, ()=> {
-                    set_progress_visible.begin (0.0, false);
-                    set_count_visible.begin (globalactive);
-                    update_info ();
-                    stoped--;
-                    return stoped != 0;
-                });
-            }
-            if (timeout_id != 0) {
-                Source.remove (timeout_id);
-                timeout_id = 0;
-            }
-            if (rmtimeout_id != 0) {
-                Source.remove (rmtimeout_id);
-                rmtimeout_id = 0;
+            if (dbmenu) {
+                var globalactive = int64.parse (aria_globalstat (GlobalStat.NUMACTIVE));
+                bool statact = globalactive > 0;
+                set_count_visible.begin (globalactive);
+                if (!statact) {
+                    int stoped = 3;
+                    Timeout.add (500, ()=> {
+                        set_progress_visible.begin (0.0, false);
+                        set_count_visible.begin (globalactive);
+                        update_info ();
+                        if (indmenu) {
+                            dbusindicator.updateiconame = "com.github.gabutakut.gabutdm";
+                            dbusindicator.new_icon ();
+                        }
+                        stoped--;
+                        return stoped != 0;
+                    });
+                }
+                if (timeout_id != 0) {
+                    Source.remove (timeout_id);
+                    timeout_id = 0;
+                }
+                if (rmtimeout_id != 0) {
+                    Source.remove (rmtimeout_id);
+                    rmtimeout_id = 0;
+                }
+                if (indmenu) {
+                    dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
+                    dbusindicator.new_icon ();
+                }
             }
             return false;
         }
@@ -599,7 +725,6 @@ namespace Gabut {
                 }
                 return true;
             });
-            aria_purge_all ();
         }
 
         public void remove_all () {
@@ -637,6 +762,9 @@ namespace Gabut {
                                         append_dbus.begin (row.rowbus);
                                     }
                                     view_status ();
+                                }
+                                if (dbmenu) {
+                                    row.fraction_laucher ();
                                 }
                                 update_info ();
                                 return;
@@ -696,6 +824,9 @@ namespace Gabut {
                             }
                             view_status ();
                         }
+                        if (dbmenu) {
+                            row.fraction_laucher ();
+                        }
                         update_info ();
                         return;
                 }
@@ -741,7 +872,24 @@ namespace Gabut {
         private void update_info () {
             var infol = aria_label_info ();
             var activedmapp = int64.parse (infol.fetch (2));
-            labelall.label = @"Active: $(activedmapp) Download: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0)) Upload: $(GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0))";
+            labelall.label = "Active: %i Download: %s Upload: %s".printf ((int)activedmapp, GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0), GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0));
+            if (menulabel == 2 && indmenu) {
+                dbusindicator.updateLabel = " %s".printf (GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0));
+                dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
+                if (activedmapp > 0) {
+                    if (animation % 2 == 0) {
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
+                        dbusindicator.new_icon ();
+                    } else {
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloop";   
+                        dbusindicator.new_icon ();
+                    }
+                    if (animation > 9) {
+                        animation = 0;
+                    }
+                    animation++;
+                }
+            }
         }
 
         private bool get_exist (string url) {
@@ -816,14 +964,24 @@ namespace Gabut {
             if (!menudbus.get_exist (rowbus)) {
                 menudbus.child_append (rowbus);
             }
-            yield open_quicklist (dbusserver, menudbus);
+            if (dbmenu) {
+                yield open_quicklist_dbus (dbusserver, menudbus);
+            }
         }
 
         private async void remove_dbus (DbusmenuItem rowbus) throws GLib.Error {
             if (menudbus.get_exist (rowbus)) {
                 menudbus.child_delete (rowbus);
             }
-            yield open_quicklist (dbusserver, menudbus);
+            if (dbmenu) {
+                yield open_quicklist_dbus (dbusserver, menudbus);
+            }
+        }
+
+        private async void update_quicklist () throws GLib.Error {
+            if (dbmenu) {
+                yield open_quicklist_dbus (dbusserver, menudbus);
+            }
         }
 
         [CCode (instance_pos = -1)]
@@ -911,7 +1069,7 @@ namespace Gabut {
                     var search_alert = new AlertView (
                         _("Find File"),
                         _("Mode Search Based on Filename."),
-                        "system-search"
+                        "com.github.gabutakut.gabutdm.find"
                     );
                     search_alert.show ();
                     list_box.set_placeholder (search_alert);
@@ -931,7 +1089,7 @@ namespace Gabut {
                     var empty_alert = new AlertView (
                         _("No Search Found"),
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "system-search"
+                        "com.github.gabutakut.gabutdm.find"
                     );
                     empty_alert.show ();
                     list_box.set_placeholder (empty_alert);

@@ -49,7 +49,7 @@ namespace Gabut {
                 } else if (linkmode == LinkMode.TORRENT) {
                     badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.torrent");
                 } else {
-                    badge_img.gicon = new ThemedIcon ("insert-link");
+                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.insertlink");
                 }
             }
         }
@@ -63,7 +63,10 @@ namespace Gabut {
                 _fileordir = value;
                 if (value != null && value != "") {
                     imagefile.gicon = GLib.ContentType.get_icon (value);
-                    rowbus.property_set (MenuItem.ICON_NAME.to_string (), GLib.ContentType.get_generic_icon_name (value));
+                    var genricico = GLib.ContentType.get_generic_icon_name (value);
+                    if (genricico != null) {
+                        rowbus.property_set (MenuItem.ICON_NAME.to_string (), genricico);
+                    }
                 }
             }
         }
@@ -97,13 +100,14 @@ namespace Gabut {
                         break;
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
-                            start_button.icon_name = "process-completed";
+                            start_button.icon_name = "com.github.gabutakut.gabutdm.complete";
                             start_button.tooltip_text = _("Complete");
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
                                 GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
                                 notify_app (_("Download Complete"), filename, imagefile.gicon);
+                                play_sound ("complete");
                                 if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                     if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
                                         send_dialog ();
@@ -133,7 +137,7 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     case StatusMode.WAIT:
-                        start_button.icon_name = "preferences-system-time";
+                        start_button.icon_name = "com.github.gabutakut.gabutdm.waiting";
                         start_button.tooltip_text = _("Waiting");
                         remove_timeout ();
                         labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
@@ -142,12 +146,13 @@ namespace Gabut {
                         }
                         break;
                     case StatusMode.ERROR:
-                        start_button.icon_name = "dialog-error";
+                        start_button.icon_name = "com.github.gabutakut.gabutdm.error";
                         start_button.tooltip_text = _("Error");
                         if (ariagid != null && url != null) {
                             labeltransfer = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
                             if (filename != null) {
                                 notify_app (_("Download Error"), filename, imagefile.gicon);
+                                play_sound ("com.github.gabutakut.gabutdm.error");
                             }
                             aria_remove (ariagid);
                         }
@@ -275,9 +280,6 @@ namespace Gabut {
                     if (fraction > 0.0) {
                         progressbar.fraction = fraction;
                     }
-                    if (status == StatusMode.ACTIVE) {
-                        set_progress_visible.begin (progressbar.fraction);
-                    }
                 } else {
                     progressbar.pulse ();
                 }
@@ -388,7 +390,7 @@ namespace Gabut {
                 action_btn ();
             });
 
-            var remove_button = new Gtk.Button.from_icon_name ("edit-delete") {
+            var remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 valign = Gtk.Align.CENTER,
                 tooltip_text = _("Remove")
             };
@@ -460,12 +462,17 @@ namespace Gabut {
             } else if (linkmode == LinkMode.MAGNETLINK) {
                 notify_app (_("Starting"), url, new ThemedIcon ("com.github.gabutakut.gabutdm.magnet"));
             } else {
-                notify_app (_("Starting"), url, new ThemedIcon ("insert-link"));
+                notify_app (_("Starting"), url, new ThemedIcon ("com.github.gabutakut.gabutdm.insertlink"));
             }
+            play_sound ("device-added");
         }
 
         public void idle_progress () {
             Idle.add (()=> { update_progress (); return false; });
+        }
+
+        public void fraction_laucher () {
+            set_progress_visible.begin (progressbar.fraction);
         }
 
         private void action_dowload () {

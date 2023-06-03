@@ -32,8 +32,8 @@ namespace Gabut {
                 attributes = set_attribute (Pango.Weight.BOLD),
                 margin_top = 6,
                 margin_bottom = 6,
-                margin_start = 12,
-                margin_end = 12,
+                margin_start = 16,
+                margin_end = 16,
                 width_request = 124
             };
             child = title;

@@ -19,9 +19,18 @@ actions = [
     '.pause.svg',
     '.magnet.svg',
     '.waiting.svg',
-    '.auto-symbolic.svg',
+    '.clear.svg',
     '.seed.svg',
+    '.seedloop.svg',
     '.metalink.svg',
+    '.find.svg',
+    '.insertlink.svg',
+    '.settings.svg',
+    '.gohome.svg',
+    '.delete.svg',
+    '.referer.svg',
+    '.hash.svg',
+    '.theme.svg',
     '.torrent.svg'
 ]
 

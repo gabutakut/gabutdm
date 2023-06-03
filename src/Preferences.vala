@@ -308,7 +308,7 @@ namespace Gabut {
                 tooltip_text = _("Open Text Tracker")
             };
             load_tr.clicked.connect (() => {
-                var file = run_open_text (this);
+                var file = run_open_text (this, OpenFiles.OPENTEXTONE);
                 if (file != null) {
                     try {
                         trackertext.buffer.text = (string) file.load_bytes ().get_data ();
@@ -326,7 +326,7 @@ namespace Gabut {
                 trackertext.buffer.text = formatclr;
             });
 
-            var clear_tr = new Gtk.Button.from_icon_name ("edit-clear") {
+            var clear_tr = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 tooltip_text = _("Clear Text Tracker")
             };
             clear_tr.clicked.connect (() => {
@@ -361,7 +361,7 @@ namespace Gabut {
                 tooltip_text = _("Open Text Tracker")
             };
             load_etr.clicked.connect (() => {
-                var file = run_open_text (this);
+                var file = run_open_text (this, OpenFiles.OPENTEXTTWO);
                 if (file != null) {
                     try {
                         etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
@@ -377,7 +377,7 @@ namespace Gabut {
                 var formatclr = fixtoformat (etrackertext.buffer.text);
                 etrackertext.buffer.text = formatclr;
             });
-            var clear_etr = new Gtk.Button.from_icon_name ("edit-clear") {
+            var clear_etr = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 tooltip_text = _("Clear Text Tracker")
             };
             clear_etr.clicked.connect (() => {
@@ -424,7 +424,7 @@ namespace Gabut {
 
             folder_location = new Gtk.Button ();
             folder_location.clicked.connect (()=> {
-                var file = run_open_fd (this, selectfd);
+                var file = run_open_fd (this, OpenFiles.OPENGLOBALFOLDER);
                 if (file != null) {
                     selectfd = file;
                 }
@@ -433,7 +433,7 @@ namespace Gabut {
 
             folder_sharing = new Gtk.Button ();
             folder_sharing.clicked.connect (()=> {
-                var file = run_open_fd (this, selectfs);
+                var file = run_open_fd (this, OpenFiles.OPENFOLDERSHARING);
                 if (file != null) {
                     selectfs = file;
                 }
@@ -602,6 +602,12 @@ namespace Gabut {
                 active = bool.parse (get_dbsetting (DBSettings.SYSTEMNOTIF))
             };
 
+            var soundnotif = new Gtk.CheckButton.with_label (_("Send notification sound")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))
+            };
+
             var retonhide = new Gtk.CheckButton.with_label (_("Running on background")) {
                 margin_top = 5,
                 width_request = 450,
@@ -620,6 +626,66 @@ namespace Gabut {
                 active = bool.parse (get_dbsetting (DBSettings.CLIPBOARD))
             };
 
+            var dbusmenu = new Gtk.CheckButton.with_label (_("Dbus Menu")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.DBUSMENU))
+            };
+
+            var menuindicator = new Gtk.CheckButton.with_label (_("Indicator Menu")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR)),
+                sensitive = dbusmenu.active
+            };
+            var label_mode = new ModeTogle ();
+            label_mode.add_item (new ModeTogle.with_label (_("None")));
+            label_mode.add_item (new ModeTogle.with_label (_("App Name")));
+            label_mode.add_item (new ModeTogle.with_label (_("Total Speed")));
+            label_mode.id = int.parse (get_dbsetting (DBSettings.LABELMODE));
+            var label_rev = new Gtk.Revealer () {
+                child = label_mode.get_box ()
+            };
+            label_rev.reveal_child = menuindicator.active;
+            menuindicator.toggled.connect (()=> {
+                label_rev.reveal_child = menuindicator.active;
+                label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
+            });
+            dbusmenu.toggled.connect (()=> {
+                menuindicator.sensitive = dbusmenu.active;
+                label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
+            });
+            var tdefault = new Gtk.CheckButton.with_label (_("Theme")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (get_dbsetting (DBSettings.TDEFAULT))
+            };
+            var theme_entry = new MediaEntry.activable ("com.github.gabutakut.gabutdm.complete", "com.github.gabutakut.gabutdm.theme") {
+                width_request = 110,
+                margin_bottom = 4,
+                text = get_dbsetting (DBSettings.THEMECUSTOM),
+                placeholder_text = _("Enter the theme name here"),
+                secondary_icon_tooltip_text = _("Theme")
+            };
+
+            var theme_mode = new ModeTogle ();
+            theme_mode.add_item (new ModeTogle.with_label (_("Default")));
+            theme_mode.add_item (new ModeTogle.with_label (_("Custom")));
+            theme_mode.id = int.parse (get_dbsetting (DBSettings.THEMESELECT));
+            var gridtheme = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
+            gridtheme.append (theme_mode.get_box ());
+            gridtheme.append (theme_entry);
+            var theme_rev = new Gtk.Revealer () {
+                child = gridtheme
+            };
+            theme_rev.reveal_child = tdefault.active;
+            tdefault.toggled.connect (()=> {
+                theme_rev.reveal_child = tdefault.active;
+            });
+            theme_mode.item_activated.connect ((id)=> {
+                theme_entry.sensitive = id == 1;
+            });
+            theme_entry.sensitive = theme_mode.id == 1;
             var allowrepl = new Gtk.CheckButton.with_label (_("Replace File")) {
                 margin_top = 5,
                 width_request = 450,
@@ -645,16 +711,24 @@ namespace Gabut {
             };
             notifyopt.attach (headerlabel (_("Style:"), 450), 0, 0, 1, 1);
             notifyopt.attach (style_mode.get_box (), 0, 1, 1, 1);
-            notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 2, 1, 1);
-            notifyopt.attach (retonhide, 0, 3, 1, 1);
-            notifyopt.attach (appstartup, 0, 4, 1, 1);
-            notifyopt.attach (appclipboard, 0, 5, 1, 1);
-            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 6, 1, 1);
-            notifyopt.attach (systemnotif, 0, 7, 1, 1);
-            notifyopt.attach (dialognotify, 0, 8, 1, 1);
-            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 9, 1, 1);
-            notifyopt.attach (allowrepl, 0, 10, 1, 1);
-            notifyopt.attach (autorename, 0, 11, 1, 1);
+            notifyopt.attach (tdefault, 0, 2, 1, 1);
+            notifyopt.attach (theme_rev, 0, 3, 1, 1);
+            notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 4, 1, 1);
+            notifyopt.attach (retonhide, 0, 5, 1, 1);
+            notifyopt.attach (appstartup, 0, 6, 1, 1);
+            notifyopt.attach (appclipboard, 0, 7, 1, 1);
+            notifyopt.attach (headerlabel (_("Dbus Settings:"), 450), 0, 8, 1, 1);
+            notifyopt.attach (dbusmenu, 0, 9, 1, 1);
+            notifyopt.attach (menuindicator, 0, 10, 1, 1);
+            notifyopt.attach (label_rev, 0, 11, 1, 1);
+            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 12, 1, 1);
+            notifyopt.attach (systemnotif, 0, 13, 1, 1);
+            notifyopt.attach (dialognotify, 0, 14, 1, 1);
+            notifyopt.attach (soundnotif, 0, 15, 1, 1);
+            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 16, 1, 1);
+            notifyopt.attach (allowrepl, 0, 17, 1, 1);
+            notifyopt.attach (autorename, 0, 18, 1, 1);
+            label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
 
             var notyscr = new Gtk.ScrolledWindow () {
                 width_request = 455,
@@ -685,14 +759,26 @@ namespace Gabut {
             save_button.clicked.connect (()=> {
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
                 set_dbsetting (DBSettings.CLIPBOARD, appclipboard.active.to_string ());
+                set_dbsetting (DBSettings.MENUINDICATOR, menuindicator.active.to_string ());
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.STARTUP, appstartup.active.to_string ());
                 set_dbsetting (DBSettings.SHAREDIR, selectfs.get_path ());
                 set_dbsetting (DBSettings.SWITCHDIR, sharebutton.active.to_string ());
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
-                if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE))) {
+                set_dbsetting (DBSettings.DBUSMENU, dbusmenu.active.to_string ());
+                set_dbsetting (DBSettings.NOTIFSOUND, soundnotif.active.to_string ());
+                if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE))
+                || tdefault.active != bool.parse (get_dbsetting (DBSettings.TDEFAULT))
+                || theme_mode.id.to_string () != get_dbsetting (DBSettings.THEMESELECT)
+                || theme_entry.text != get_dbsetting (DBSettings.THEMECUSTOM)) {
                     set_dbsetting (DBSettings.STYLE, style_mode.id.to_string ());
-                    pantheon_theme.begin (get_display ());
+                    set_dbsetting (DBSettings.TDEFAULT, tdefault.active.to_string ());
+                    set_dbsetting (DBSettings.THEMESELECT, theme_mode.id.to_string ());
+                    set_dbsetting (DBSettings.THEMECUSTOM, theme_entry.text);
+                }
+                pantheon_theme.begin ();
+                if (label_mode.id != int.parse (get_dbsetting (DBSettings.LABELMODE))) {
+                    set_dbsetting (DBSettings.LABELMODE, label_mode.id.to_string ());
                 }
                 if (aria_get_ready ()) {
                     aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));

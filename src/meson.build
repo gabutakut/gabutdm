@@ -34,5 +34,6 @@ sources = files (
     'ServerComplete.vala',
     'SortBy.vala',
     'DeAscending.vala',
-    'GdmOutstream.vala'
+    'GdmOutstream.vala',
+    'DbusIndicator.vala'
 )
