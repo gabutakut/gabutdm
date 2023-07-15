@@ -11,7 +11,7 @@
             src="https://appcenter.elementary.io/badge.svg" alt="Get it from the Appcenter"></a>
     <a href="https://flathub.org/apps/details/com.github.gabutakut.gabutdm"><img
             src="https://flathub.org/assets/badges/flathub-badge-en.svg" width="160" alt="Download on Flathub"></a>
-    <a href="https://launchpad.net/~torik-habib/+archive/ubuntu/gabutdm"><img
+    <a href="https://launchpad.net/~torik-habib/+archive/ubuntu/gabutdownloadmanager"><img
             src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Repository"></a>
 </p>
 
