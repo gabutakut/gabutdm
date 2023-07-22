@@ -1,6 +1,6 @@
 Source: com.github.gabutakut.gabutdm
-Section: x11
-Priority: extra
+Section: web
+Priority: optional
 Maintainer: torikhabib <torik.habib@gmail.com>
 Build-Depends: meson (>= 0.43),
                debhelper (>= 9),
@@ -8,12 +8,13 @@ Build-Depends: meson (>= 0.43),
                libgtk-4-dev,
                libsqlite3-dev,
                libcanberra-dev,
-               libsoup3.0-dev,
+               libsoup-3.0-dev,
                libgee-0.8-dev,
                libjson-glib-dev,
                libqrencode-dev,
-               libgdk-pixbuf2.0-dev,
+               libgdk-pixbuf-2.0-dev,
                libcairo2-dev,
+               libcurl4-gnutls-dev,
 Standards-Version: 4.14
 
 Package: com.github.gabutakut.gabutdm
