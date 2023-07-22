@@ -1,4 +1,16 @@
-com.github.gabutakut.gabutdm (1.8.5-1ubuntu4) jammy; urgency=medium
+com.github.gabutakut.gabutdm (2.1.6-1ubuntu2) jammy; urgency=medium
+
+  * 
+
+ -- torikhabib <torik.habib@gmail.com>  Fri, 14 Jul 2023 13:10:23 +0700
+
+com.github.gabutakut.gabutdm (2.1.6-1ubuntu1) Jammy; urgency=medium
+
+  * 
+
+ --Torik Habib Asus <torik.habib@gmail.com>  Tue, 11 Jul 2023 14:21:47 +0700
+
+com.github.gabutakut.gabutdm (2.1.6-1ubuntu0) jammy; urgency=medium
 
   [ torikhabib ]
   * Relaease
@@ -7,4 +19,4 @@ com.github.gabutakut.gabutdm (1.8.5-1ubuntu4) jammy; urgency=medium
   * jammy
   * GTK4
 
- -- torikhabib <torik.habib@gmail.com>  Thu, 16 May 2022 07:38:13 +0700
+ -- torikhabib <torik.habib@gmail.com>  Thu, 11 Jul May 2023 07:38:13 +0700

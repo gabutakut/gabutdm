@@ -9,9 +9,7 @@
   <description>
     <p>Download whatever you want.</p>
       <p>
-        Gabut Download Manager application that can download all you need like Link URLs Metallink Magnetlink Torrents using Aria2c and,
-        an application that has a local server service interface.
-        can also accept file transfers from smartphones and explore manager file sharing with authentication.
+        Gabut Download Manager an application made to help download activities that support all. can be used to download torrents and so on.
       </p>
       <p>Features:</p>
       <ul>
@@ -25,6 +23,7 @@
         <li>Clipboard Manger.</li>
         <li>Open link in Pc.</li>
         <li>Dbus Menu.</li>
+        <li>TrayIcon.</li>
         <li>Support extention Firefox and chrome.</li>
     </ul>
   </description>
