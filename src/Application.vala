@@ -74,7 +74,6 @@ namespace Gabut {
                 if (open_database (out gabutdb) != Sqlite.OK) {
                     notify_app (_("Database Error"),
                                 _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
-                    play_sound ("dialog-error");
                 }
                 settings_table ();
                 if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
@@ -179,7 +178,6 @@ namespace Gabut {
                 pantheon_theme.begin ();
                 gabutwindow.load_dowanload ();
                 download_table ();
-                play_sound ("bell");
                 if (!startingup && !dontopen) {
                     gabutwindow.show ();
                 }

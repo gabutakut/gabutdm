@@ -93,10 +93,8 @@ namespace Gabut {
                         if (!filed.query_exists ()) {
                             write_file.begin (body, filed.get_path ());
                             notify_app (_("File Transfered"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
-                            play_sound ("complete");
                         } else {
                             notify_app (_("File Exist"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
-                            play_sound ("dialog-error");
                         }
                     }
                     msg.set_status (Soup.Status.OK, "OK");
@@ -106,7 +104,6 @@ namespace Gabut {
                     if (reslink != "") {
                         if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
                             notify_app (_("Open Link"), reslink, new ThemedIcon ("insert-link"));
-                            play_sound ("complete");
                             open_fileman.begin (reslink);
                         }
                     }

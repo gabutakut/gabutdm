@@ -2414,20 +2414,6 @@ namespace Gabut {
         }
     }
 
-    private static void play_sound (string canbera) {
-        if (!bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))) {
-            return;
-        }
-        Canberra.Context context;
-        Canberra.Proplist props;
-        Canberra.Context.create (out context);
-        Canberra.Proplist.create (out props);
-        props.sets (Canberra.PROP_EVENT_ID, canbera);
-        props.sets (Canberra.PROP_CANBERRA_CACHE_CONTROL, "permanent");
-        props.sets (Canberra.PROP_MEDIA_ROLE, "event");
-        context.play_full (0, props);
-    }
-
     private File[] run_open_file (Gtk.Window window) {
         var loopop = new GLib.MainLoop (null, false);
         var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
