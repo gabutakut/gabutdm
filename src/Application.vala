@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -30,14 +30,9 @@ namespace Gabut {
         private bool dontopen = false;
         private string lastclipboard;
 
-        public GabutApp () {
-            Object (
-                application_id: "com.github.gabutakut.gabutdm",
-                flags: GLib.ApplicationFlags.HANDLES_COMMAND_LINE
-            );
-        }
-
         construct {
+            application_id = "com.github.gabutakut.gabutdm";
+            flags = GLib.ApplicationFlags.HANDLES_COMMAND_LINE;
             GLib.OptionEntry [] options = new GLib.OptionEntry [3];
             options [0] = { "startingup", 's', GLib.OptionFlags.NONE, GLib.OptionArg.NONE, null, "Starup", "Run App on Startup" };
             options [1] = { GLib.OPTION_REMAINING, 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING_ARRAY, null, "Array file", "Open File or URIs" };
@@ -72,8 +67,8 @@ namespace Gabut {
         protected override void activate () {
             if (gabutwindow == null) {
                 if (open_database (out gabutdb) != Sqlite.OK) {
-                    notify_app (_("Database Error"),
-                                _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
+                    notify_app (_("Database Error"), _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
+                    play_sound ("dialog-error");
                 }
                 settings_table ();
                 if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
@@ -169,13 +164,8 @@ namespace Gabut {
                 gabutserver.delete_row.connect ((status)=> {
                     gabutwindow.remove_item (status);
                 });
-                var gtkset = Gtk.Settings.get_default ().gtk_theme_name;
-                if (gtkset.down ().contains ("-dark")){
-                    set_dbsetting (Gabut.DBSettings.THEMESYSTEM,  gtkset.replace ("-dark", ""));
-                } else {
-                    set_dbsetting (Gabut.DBSettings.THEMESYSTEM, gtkset);
-                }
-                pantheon_theme.begin ();
+                gdm_theme.begin ();
+                set_dbsetting (Gabut.DBSettings.THEMESYSTEM,  Gtk.Settings.get_default ().gtk_theme_name);
                 gabutwindow.load_dowanload ();
                 download_table ();
                 if (!startingup && !dontopen) {
@@ -432,7 +422,7 @@ namespace Gabut {
             return Gdk.EVENT_PROPAGATE;
         }
 
-        private async void drag_value (Gdk.Drop drop, out Value? valu) throws Error {
+        private async void drag_value (Gdk.Drop drop, out GLib.Value? valu) throws Error {
             valu = yield drop.read_value_async (GLib.Type.STRING, GLib.Priority.DEFAULT, null);
         }
 

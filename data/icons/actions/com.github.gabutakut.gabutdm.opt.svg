@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="48"
+   width="48"
+   version="1.1"
+   id="svg14"
+   sodipodi:docname="com.github.gabutakut.gabutdm.opt.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs18" />
+  <sodipodi:namedview
+     id="namedview16"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     showguides="true"
+     inkscape:zoom="11.313708"
+     inkscape:cx="19.754797"
+     inkscape:cy="41.940273"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg14" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;stroke-width:2.89049;marker:none"
+     width="38.994846"
+     x="5.0599871"
+     y="3.2580788"
+     id="rect2" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;stroke-width:2.65886;marker:none"
+     width="32.99564"
+     x="7.9698472"
+     y="18.577"
+     id="rect6" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;stroke-width:2.65886;marker:none"
+     width="32.99564"
+     x="8.0378895"
+     y="26.937078"
+     id="rect6-36" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;display:inline;stroke-width:2.65886;marker:none"
+     width="32.99564"
+     x="8.1090374"
+     y="34.865574"
+     id="rect6-3"
+     inkscape:label="rect6-3" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;stroke-width:2.65886;marker:none"
+     width="32.99564"
+     x="7.9170475"
+     y="10.744488"
+     id="rect6-5" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;stroke-width:2.89049;marker:none"
+     width="38.994846"
+     x="5.0353198"
+     y="42.250744"
+     id="rect8" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;stroke-width:2.99961;marker:none"
+     width="41.994453"
+     x="3.2628806"
+     y="-47.013767"
+     id="rect10"
+     transform="rotate(90)" />
+  <rect
+     fill="#666666"
+     height="2.9996035"
+     overflow="visible"
+     style="color:#bebebe;stroke-width:2.99961;marker:none"
+     width="41.994453"
+     x="-45.25808"
+     y="2.0736568"
+     id="rect10-6"
+     transform="rotate(-90)" />
+</svg>

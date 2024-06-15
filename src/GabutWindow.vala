@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -43,8 +43,6 @@ namespace Gabut {
         private CanonicalDbusmenu dbusserver;
         private DbusIndicator dbusindicator;
         private Gtk.MenuButton shortbutton;
-        private Gtk.FlowBox sort_flow;
-        private Gtk.FlowBox deas_flow;
         private Gtk.CheckButton showtime;
         private Gtk.CheckButton showdate;
         private int64 animation = 0;
@@ -167,10 +165,17 @@ namespace Gabut {
             opentormenu.property_set (MenuItem.ICON_NAME.to_string (), "document-open");
             opentormenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             opentormenu.item_activated.connect (()=> {
-                var files = run_open_file (this);
-                foreach (var file in files) {
-                    send_file (file.get_uri ());
-                }
+                run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
+                    try {
+                        GLib.File[] files;
+                        run_open_file.end (res, out files);
+                        foreach (var file in files) {
+                            send_file (file.get_uri ());
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
+                    }
+                });
             });
 
             var setmenu = new DbusmenuItem ();
@@ -181,13 +186,13 @@ namespace Gabut {
 
             var startmenu = new DbusmenuItem ();
             startmenu.property_set (MenuItem.LABEL.to_string (), _("Start All"));
-            startmenu.property_set (MenuItem.ICON_NAME.to_string (), "media-playback-start");
+            startmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.active");
             startmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             startmenu.item_activated.connect (start_all);
 
             var pausemenu = new DbusmenuItem ();
             pausemenu.property_set (MenuItem.LABEL.to_string (), _("Pause All"));
-            pausemenu.property_set (MenuItem.ICON_NAME.to_string (), "media-playback-pause");
+            pausemenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.pause");
             pausemenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             pausemenu.item_activated.connect (stop_all);
 
@@ -308,18 +313,25 @@ namespace Gabut {
             };
             headerbar.pack_start (torrentbutton);
             torrentbutton.clicked.connect (()=> {
-                var files = run_open_file (this);
-                foreach (var file in files) {
-                    send_file (file.get_uri ());
-                }
+                run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
+                    try {
+                        GLib.File[] files;
+                        run_open_file.end (res, out files);
+                        foreach (var file in files) {
+                            send_file (file.get_uri ());
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
+                    }
+                });
             });
-            var resumeall_button = new Gtk.Button.from_icon_name ("media-playback-start") {
+            var resumeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.active") {
                 tooltip_text = _("Start All")
             };
             headerbar.pack_start (resumeall_button);
             resumeall_button.clicked.connect (start_all);
 
-            var stopall_button = new Gtk.Button.from_icon_name ("media-playback-pause") {
+            var stopall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.pause") {
                 tooltip_text = _("Pause All")
             };
             headerbar.pack_start (stopall_button);
@@ -403,12 +415,13 @@ namespace Gabut {
 
         private Gtk.CenterBox bottom_action () {
             var actionbar = new Gtk.CenterBox () {
-                hexpand = true,
+                hexpand = false,
                 margin_top = 4,
-                margin_bottom = 4
+                margin_bottom = 4,
+                orientation = Gtk.Orientation.HORIZONTAL
             };
             var property_button = new Gtk.MenuButton () {
-                child = image_btn ("format-justify-center", 16),
+                child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.menu"),
                 direction = Gtk.ArrowType.UP,
                 margin_start = 10,
                 tooltip_text = _("Property")
@@ -419,7 +432,7 @@ namespace Gabut {
                 if (rw != null) {
                     var row = (DownloadRow) rw;
                     property_button.popover = row.get_menu ();
-                    row.myproperty.connect (()=> {
+                    row.gsmproperties.connect (()=> {
                         if (!property_active (row)) {
                             var property = new AddUrl.Property (application) {
                                 transient_for = this,
@@ -454,23 +467,22 @@ namespace Gabut {
                     property_button.popover = null;
                 }
             });
-            view_mode = new ModeButton () {
-                hexpand = false
-            };
-            view_mode.append_text (_("All"));
-            view_mode.append_text (_("Downloading"));
-            view_mode.append_text (_("Paused"));
-            view_mode.append_text (_("Complete"));
-            view_mode.append_text (_("Waiting"));
-            view_mode.append_text (_("Error"));
+            view_mode = new ModeButton ();
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm", "All");
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.active","Downloading");
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.pause", "Paused");
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.complete", "Complete");
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.waiting", "Waiting");
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.error", "Error");
             view_mode.selected = 0;
             actionbar.set_center_widget (view_mode);
             view_mode.notify["selected"].connect (view_status);
+
             shortbutton = new Gtk.MenuButton () {
                 direction = Gtk.ArrowType.UP,
-                child = image_btn ("format-justify-fill", 16),
-                margin_end = 10,
+                child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.opt"),
                 popover = get_menu (),
+                margin_end = 10,
                 tooltip_text = _("Sort by")
             };
             actionbar.set_end_widget (shortbutton);
@@ -478,36 +490,52 @@ namespace Gabut {
         }
 
         public Gtk.Popover get_menu () {
-            sort_flow = new Gtk.FlowBox () {
+            var sort_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70,
                 margin_top = 4,
                 margin_bottom = 4
             };
-            deas_flow = new Gtk.FlowBox () {
+            var deas_flow = new Gtk.FlowBox () {
                 orientation = Gtk.Orientation.HORIZONTAL,
                 width_request = 70
             };
             showtime = new Gtk.CheckButton.with_label (_("Time")) {
-                margin_start = 6,
+                margin_start = 9,
                 margin_top = 4,
                 margin_bottom = 4,
                 margin_end = 4,
+                width_request = 130,
                 active = bool.parse (get_dbsetting (DBSettings.SHOWTIME))
             };
             ((Gtk.Label) showtime.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
             ((Gtk.Label) showtime.get_last_child ()).halign = Gtk.Align.CENTER;
             ((Gtk.Label) showtime.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
+            var timeimg = new Gtk.Image () {
+                valign = Gtk.Align.CENTER,
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.waiting")
+            };
+            var centime = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            centime.append (showtime);
+            centime.append (timeimg);
             showdate = new Gtk.CheckButton.with_label (_("Date")) {
-                margin_start = 6,
+                margin_start = 9,
                 margin_top = 4,
                 margin_bottom = 4,
                 margin_end = 4,
+                width_request = 130,
                 active = bool.parse (get_dbsetting (DBSettings.SHOWDATE))
             };
             ((Gtk.Label) showdate.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
             ((Gtk.Label) showdate.get_last_child ()).halign = Gtk.Align.CENTER;
             ((Gtk.Label) showdate.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
+            var dateimg = new Gtk.Image () {
+                valign = Gtk.Align.CENTER,
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.date")
+            };
+            var cendate = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            cendate.append (showdate);
+            cendate.append (dateimg);
             var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
                 margin_top = 4,
                 margin_bottom = 4
@@ -516,29 +544,22 @@ namespace Gabut {
             box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
             box.append (deas_flow);
             box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            box.append (showtime);
-            box.append (showdate);
+            box.append (centime);
+            box.append (cendate);
             var sort_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
                 width_request = 70,
                 child = box
             };
-            sort_popover.show.connect (() => {
-                if (sorttype != null) {
-                    sort_flow.select_child (sorttype);
-                    sorttype.grab_focus ();
-                }
-                if (deascend != null) {
-                    deas_flow.unselect_child (deascend);
-                }
-            });
             showdate.toggled.connect (()=> {
                 sort_popover.hide ();
+                ((Gtk.Label) showdate.get_last_child ()).attributes = showdate.active? color_attribute (0, 60000, 0) : set_attribute (Pango.Weight.BOLD);
                 set_dbsetting (DBSettings.SHOWDATE, showdate.active.to_string ());
                 set_listheader ();
             });
             showtime.toggled.connect (()=> {
                 sort_popover.hide ();
+                ((Gtk.Label) showtime.get_last_child ()).attributes = showtime.active? color_attribute (0, 60000, 0) : set_attribute (Pango.Weight.BOLD);
                 set_dbsetting (DBSettings.SHOWTIME, showtime.active.to_string ());
                 set_listheader ();
             });
@@ -549,27 +570,36 @@ namespace Gabut {
             sort_flow.show ();
             sort_flow.child_activated.connect ((shorty)=> {
                 sort_popover.hide ();
+                ((Gtk.Label)((SortBy) sorttype).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 sorttype = shorty as SortBy;
+                ((Gtk.Label)sorttype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
                 listrow.sort (sort_dm);
             });
             sorttype = sort_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.SORTBY))) as SortBy;
+            ((Gtk.Label)sorttype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
             foreach (var deas in DeAscend.get_all ()) {
                 deas_flow.append (new DeAscending (deas));
             }
             deas_flow.show ();
             deas_flow.child_activated.connect ((deas)=> {
                 sort_popover.hide ();
+                ((DeAscending) deascend).activebtn = false;
+                ((Gtk.Label)deascend.get_first_child ().get_last_child ().get_prev_sibling ()).attributes = set_attribute (Pango.Weight.BOLD);
                 deascend = deas as DeAscending;
-                for (int i = 0; i <= DeAscend.DESCENDING; i++) {
-                    ((DeAscending) deas_flow.get_child_at_index (i)).activebtn = false;    
-                }
-                ((DeAscending) deas_flow.get_child_at_index (deascend.get_index ())).activebtn = true;
+                ((Gtk.Label)deascend.get_first_child ().get_last_child ().get_prev_sibling ()).attributes = color_attribute (0, 60000, 0);
+                deascend.activebtn = true;
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
                 listrow.sort (sort_dm);
             });
             deascend = deas_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.ASCEDESCEN))) as DeAscending;
-            ((DeAscending) deas_flow.get_child_at_index (deascend.get_index ())).activebtn = true;
+            ((Gtk.Label)deascend.get_first_child ().get_last_child ().get_prev_sibling ()).attributes = color_attribute (0, 60000, 0);
+            deascend.activebtn = true;
+            sort_popover.show.connect (() => {
+                sort_flow.select_child (sorttype);
+                sorttype.grab_focus ();
+                deas_flow.unselect_child (deascend);
+            });
             return sort_popover;
         }
 

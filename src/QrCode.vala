@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -54,7 +54,7 @@ namespace Gabut {
             };
             overlay.add_overlay (icon_badge);
 
-            var primary = new Gtk.Label ("Scan QR Code") {
+            var primary = new Gtk.Label (_("Scan QR Code")) {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 35,
                 use_markup = true,
@@ -63,7 +63,7 @@ namespace Gabut {
                 attributes = set_attribute (Pango.Weight.ULTRABOLD, 1.6)
             };
 
-            var secondary = new Gtk.Label ("Address Gabut Server") {
+            var secondary = new Gtk.Label (_("Address Gabut Server")) {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 35,
                 use_markup = true,
@@ -88,17 +88,16 @@ namespace Gabut {
 
             imageqr = new Gtk.Image () {
                 halign = Gtk.Align.START,
-                width_request = 250,
-                margin_bottom = 5,
-                pixel_size = 128
+                valign = Gtk.Align.START,
+                pixel_size = 256,
+                margin_start = 10,
+                margin_end = 10
             };
 
             linkbutton = new Gtk.LinkButton ("");
             var link_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
                 halign = Gtk.Align.CENTER,
-                valign = Gtk.Align.CENTER,
-                margin_top = 5,
-                margin_bottom = 5
+                valign = Gtk.Align.CENTER
             };
             link_box.append (linkbutton);
 
@@ -129,19 +128,9 @@ namespace Gabut {
             box_action.attach (host_button, 0, 0);
             box_action.attach (close_button, 1, 0);
 
-            var maingrid = new Gtk.Grid () {
-                halign = Gtk.Align.CENTER,
-                valign = Gtk.Align.CENTER,
-                hexpand = true,
-                margin_top = 15,
-                margin_start = 10,
-                margin_end = 10
-            };
-            maingrid.attach (imageqr, 0, 0);
-            maingrid.attach (link_box, 0, 1);
-            maingrid.attach (box_action, 0, 2);
-
-            child = maingrid;
+            get_content_area ().append (imageqr);
+            get_content_area ().append (link_box);
+            get_content_area ().append (box_action);
         }
 
         public override void show () {
@@ -159,24 +148,26 @@ namespace Gabut {
             if (local_server) {
                 host_button.label =_("Share Address");
                 ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 0, 0);
-                icon_badge.gicon = new ThemedIcon ("media-playback-pause");
+                icon_badge.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.pause");
             } else {
                 host_button.label = _("Stop Share");
                 ((Gtk.Label) linkbutton.get_last_child ()).attributes = color_attribute (60000, 37000, 0);
-                icon_badge.gicon = new ThemedIcon ("media-playback-start");
+                icon_badge.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.active");
             }
             string host = get_host (reboot);
             create_qrcode (host);
             linkbutton.uri = host;
-            linkbutton.label = host.contains ("0.0.0.0")? _("No Network Connected"): host;
+            linkbutton.label = host.contains ("0.0.0.0")? _("No Network Connected"): host.up ();
         }
 
         private void create_qrcode (string strinput) {
             var qrencode = new Qrencode.QRcode.encodeData (strinput.length, strinput.data, 1, Qrencode.EcLevel.M);
             int qrenwidth = qrencode.width;
             int sizeqrcode = 200 + qrenwidth * 40;
-            Cairo.ImageSurface surface = new Cairo.ImageSurface (Cairo.Format.RGB30, sizeqrcode, sizeqrcode);
-            Cairo.Context context = new Cairo.Context (surface);
+            var grect = Graphene.Rect ();
+            grect.init (0, 0, sizeqrcode, sizeqrcode);
+            var snapshot = new Gtk.Snapshot ();
+            Cairo.Context context = snapshot.append_cairo (grect);
             context.set_source_rgb (1.0, 1.0, 1.0);
             context.rectangle (0, 0, sizeqrcode, sizeqrcode);
             context.fill ();
@@ -197,7 +188,9 @@ namespace Gabut {
                     qrentdata++;
                 }
             }
-            imageqr.set_from_pixbuf (Gdk.pixbuf_get_from_surface (surface, 0, 0, sizeqrcode, sizeqrcode));
+            var grapinsize = Graphene.Size ();
+            grapinsize.init ( sizeqrcode, sizeqrcode);
+            imageqr.paintable = snapshot.free_to_paintable (grapinsize);
         }
     }
 }

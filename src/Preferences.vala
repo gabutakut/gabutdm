@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -100,6 +100,7 @@ namespace Gabut {
         construct {
             var view_mode = new ModeButton () {
                 hexpand = false,
+                homogeneous = true,
                 width_request = 300
             };
             view_mode.append_text (_("Default"));
@@ -308,14 +309,21 @@ namespace Gabut {
                 tooltip_text = _("Open Text Tracker")
             };
             load_tr.clicked.connect (() => {
-                var file = run_open_text (this, OpenFiles.OPENTEXTONE);
-                if (file != null) {
+                run_open_text.begin (this, OpenFiles.OPENTEXTONE, (obj, res)=> {
                     try {
-                        trackertext.buffer.text = (string) file.load_bytes ().get_data ();
-                    } catch (Error e) {
-                        GLib.warning (e.message);
+                        GLib.File file;
+                        run_open_text.end (res, out file);
+                        if (file != null) {
+                            try {
+                                trackertext.buffer.text = (string) file.load_bytes ().get_data ();
+                            } catch (Error e) {
+                                GLib.warning (e.message);
+                            }
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
                     }
-                }
+                });
             });
 
             var fformat_tr = new Gtk.Button.from_icon_name ("view-refresh") {
@@ -361,14 +369,21 @@ namespace Gabut {
                 tooltip_text = _("Open Text Tracker")
             };
             load_etr.clicked.connect (() => {
-                var file = run_open_text (this, OpenFiles.OPENTEXTTWO);
-                if (file != null) {
+                run_open_text.begin (this, OpenFiles.OPENTEXTTWO, (obj, res)=> {
                     try {
-                        etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
-                    } catch (Error e) {
-                        GLib.warning (e.message);
+                        GLib.File file;
+                        run_open_text.end (res, out file);
+                        if (file != null) {
+                            try {
+                                etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
+                            } catch (Error e) {
+                                GLib.warning (e.message);
+                            }
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
                     }
-                }
+                });
             });
             var fformat_etr = new Gtk.Button.from_icon_name ("view-refresh") {
                 tooltip_text = _("Fix to Tracker")
@@ -424,19 +439,33 @@ namespace Gabut {
 
             folder_location = new Gtk.Button ();
             folder_location.clicked.connect (()=> {
-                var file = run_open_fd (this, OpenFiles.OPENGLOBALFOLDER);
-                if (file != null) {
-                    selectfd = file;
-                }
+                run_open_fd.begin (this, OpenFiles.OPENGLOBALFOLDER, (obj, res)=> {
+                    try {
+                        GLib.File file;
+                        run_open_fd.end (res, out file);
+                        if (file != null) {
+                            selectfd = file;
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
+                    }
+                });
             });
             selectfd = File.new_for_path (pharse_options (pack_data, AriaOptions.DIR).replace ("\\/", "/"));
 
             folder_sharing = new Gtk.Button ();
             folder_sharing.clicked.connect (()=> {
-                var file = run_open_fd (this, OpenFiles.OPENFOLDERSHARING);
-                if (file != null) {
-                    selectfs = file;
-                }
+                run_open_fd.begin (this, OpenFiles.OPENFOLDERSHARING, (obj, res)=> {
+                    try {
+                        GLib.File file;
+                        run_open_fd.end (res, out file);
+                        if (file != null) {
+                            selectfs = file;
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
+                    }
+                });
             });
             selectfs = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
 
@@ -479,7 +508,7 @@ namespace Gabut {
             boxuser.append (usergrid);
             boxuser.append (add_auth);
             var userscr = new Gtk.ScrolledWindow () {
-                width_request = 455,
+                width_request = 450,
                 vexpand = true,
                 child = boxuser
             };
@@ -644,16 +673,14 @@ namespace Gabut {
             label_mode.add_item (new ModeTogle.with_label (_("Total Speed")));
             label_mode.id = int.parse (get_dbsetting (DBSettings.LABELMODE));
             var label_rev = new Gtk.Revealer () {
-                child = label_mode.get_box ()
+                child = label_mode
             };
             label_rev.reveal_child = menuindicator.active;
             menuindicator.toggled.connect (()=> {
                 label_rev.reveal_child = menuindicator.active;
-                label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
             });
             dbusmenu.toggled.connect (()=> {
                 menuindicator.sensitive = dbusmenu.active;
-                label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
             });
             var tdefault = new Gtk.CheckButton.with_label (_("Theme")) {
                 margin_top = 5,
@@ -673,7 +700,7 @@ namespace Gabut {
             theme_mode.add_item (new ModeTogle.with_label (_("Custom")));
             theme_mode.id = int.parse (get_dbsetting (DBSettings.THEMESELECT));
             var gridtheme = new Gtk.Box (Gtk.Orientation.VERTICAL, 1);
-            gridtheme.append (theme_mode.get_box ());
+            gridtheme.append (theme_mode);
             gridtheme.append (theme_entry);
             var theme_rev = new Gtk.Revealer () {
                 child = gridtheme
@@ -682,8 +709,8 @@ namespace Gabut {
             tdefault.toggled.connect (()=> {
                 theme_rev.reveal_child = tdefault.active;
             });
-            theme_mode.item_activated.connect ((id)=> {
-                theme_entry.sensitive = id == 1;
+            theme_mode.notify ["id"].connect ((id)=> {
+                theme_entry.sensitive = theme_mode.id == 1;
             });
             theme_entry.sensitive = theme_mode.id == 1;
             var allowrepl = new Gtk.CheckButton.with_label (_("Replace File")) {
@@ -710,7 +737,7 @@ namespace Gabut {
                 height_request = 190
             };
             notifyopt.attach (headerlabel (_("Style:"), 450), 0, 0, 1, 1);
-            notifyopt.attach (style_mode.get_box (), 0, 1, 1, 1);
+            notifyopt.attach (style_mode, 0, 1, 1, 1);
             notifyopt.attach (tdefault, 0, 2, 1, 1);
             notifyopt.attach (theme_rev, 0, 3, 1, 1);
             notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 4, 1, 1);
@@ -728,7 +755,6 @@ namespace Gabut {
             notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 16, 1, 1);
             notifyopt.attach (allowrepl, 0, 17, 1, 1);
             notifyopt.attach (autorename, 0, 18, 1, 1);
-            label_mode.sensitive_box (dbusmenu.active && menuindicator.active);
 
             var notyscr = new Gtk.ScrolledWindow () {
                 width_request = 455,
@@ -776,7 +802,7 @@ namespace Gabut {
                     set_dbsetting (DBSettings.THEMESELECT, theme_mode.id.to_string ());
                     set_dbsetting (DBSettings.THEMECUSTOM, theme_entry.text);
                 }
-                pantheon_theme.begin ();
+                gdm_theme.begin ();
                 if (label_mode.id != int.parse (get_dbsetting (DBSettings.LABELMODE))) {
                     set_dbsetting (DBSettings.LABELMODE, label_mode.id.to_string ());
                 }

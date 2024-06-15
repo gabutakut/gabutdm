@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -76,8 +76,6 @@ namespace Gabut {
         }
 
         private void upload_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
-            unowned GabutServer self = server as GabutServer;
-            self.pause_message (msg);
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
                 if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
@@ -93,37 +91,34 @@ namespace Gabut {
                         if (!filed.query_exists ()) {
                             write_file.begin (body, filed.get_path ());
                             notify_app (_("File Transfered"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
+                            play_sound ("complete");
                         } else {
                             notify_app (_("File Exist"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
+                            play_sound ("dialog-error");
                         }
                     }
                     msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
                 } else if (Regex.match_simple ("openlink=(.*?)", result)) {
                     string reslink = result.replace ("openlink=", "").strip ();
                     if (reslink != "") {
                         if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
                             notify_app (_("Open Link"), reslink, new ThemedIcon ("insert-link"));
                             open_fileman.begin (reslink);
+                            play_sound ("complete");
                         }
                     }
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_upload ().data);
                     msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
                 } else {
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
-                    self.unpause_message (msg);
                 }
             } else if (msg.get_method () == "GET") {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_upload ().data);
                 msg.set_status (Soup.Status.OK, "OK");
-                self.unpause_message (msg);
             }
         }
 
         private void dialog_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
-            unowned GabutServer self = server as GabutServer;
-            self.pause_message (msg);
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
                 if (result.contains ("actiondm")) {
@@ -143,13 +138,10 @@ namespace Gabut {
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                 }
-                self.unpause_message (msg);
             }
         }
 
         private void home_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
-            unowned GabutServer self = server as GabutServer;
-            self.pause_message (msg);
             if (path != "/" && path != "favicon.ico") {
                 if (msg.get_method () == "POST") {
                     var meseg = (string) msg.get_request_body ().data;
@@ -163,17 +155,14 @@ namespace Gabut {
                 msg.set_status (Soup.Status.OK, "OK");
                 if (ftype == FileType.DIRECTORY) {
                     directory_mode.begin (msg, filegbt, sourcef);
-                    self.unpause_message (msg);
                     return;
                 } else if (ftype == FileType.REGULAR) {
                     open_file.begin (msg, filegbt);
-                    self.unpause_message (msg);
                     return;
                 }
                 if (!filegbt.query_exists (null)) {
                     var pathfile = @"$(filegbt.get_parent ().get_path ().split (sourcef.get_path ())[1])/";
                     msg.set_redirect (Soup.Status.TEMPORARY_REDIRECT, pathfile == "/"? "/Home" : pathfile);
-                    self.unpause_message (msg);
                     return;
                 }
             }
@@ -190,21 +179,17 @@ namespace Gabut {
                         msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                         msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                     }
-                    self.unpause_message (msg);
                 } catch (Error e) {
                     GLib.warning (e.message);
                 }
             } else if (msg.get_method () == "GET") {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_home ().data);
                 msg.set_status (Soup.Status.OK, "OK");
-                self.unpause_message (msg);
             }
         }
 
         private void gabut_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
-            unowned GabutServer self = server as GabutServer;
             string pathname = path.split ("/")[1].strip ();
-            self.pause_message (msg);
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
                 var hashoption = new Gee.HashMap<string, string> ();
@@ -221,7 +206,6 @@ namespace Gabut {
                     }
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
                 } else if (msg.get_request_headers ().get_content_type (null) == Soup.FORM_MIME_TYPE_MULTIPART) {
                     var multipart = new Soup.Multipart.from_message (msg.get_request_headers () , msg.get_request_body ().flatten ());
                     Soup.MessageHeaders headers;
@@ -240,31 +224,25 @@ namespace Gabut {
                     }
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
                 } else if (result.contains ("actiondm")) {
                     updat_row (result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")));
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
                 } else if (result.contains ("actiondelete")) {
                     delete_row (result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")));
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
                 } else if (!result.contains ("+") && result.contains ("sort")) {
                     update_user (username, UserID.SHORTBY, result.split ("=")[1]);
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
-                    self.unpause_message (msg);
                 } else {
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
-                    self.unpause_message (msg);
                 }
             } else if (msg.get_method () == "GET") {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                 msg.set_status (Soup.Status.OK, "OK");
-                self.unpause_message (msg);
             }
         }
 
@@ -390,8 +368,6 @@ namespace Gabut {
         }
 
         private void share_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
-            unowned GabutServer self = server as GabutServer;
-            self.pause_message (msg);
             if (bool.parse (get_dbsetting (DBSettings.SWITCHDIR))) {
                 if (msg.get_method () == "POST") {
                     var meseg = (string) msg.get_request_body ().data;
@@ -402,11 +378,9 @@ namespace Gabut {
                 msg.set_status (Soup.Status.OK, _("OK"));
                 File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
                 directory_mode.begin (msg, sourcef, sourcef);
-                self.unpause_message (msg);
             } else {
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                 msg.set_status (Soup.Status.OK, "OK");
-                self.unpause_message (msg);
             }
         }
 
@@ -442,8 +416,9 @@ namespace Gabut {
         }
 
         private int path_lenght = 0;
+        private bool firstscan = false;
         private async void directory_mode (Soup.ServerMessage msg, File file, File sourcef) throws Error {
-            var filesorter = new Gtk.ListStore (FSorter.N_COLUMNS, typeof (string), typeof (string), typeof (bool), typeof (int64), typeof (int), typeof (FileInfo), typeof (string));
+            var filesorters = new Gee.ArrayList<FSorter?> ();
             GLib.FileEnumerator enumerator = file.enumerate_children ("*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             GLib.FileInfo info;
             GLib.File fileout;
@@ -457,9 +432,15 @@ namespace Gabut {
                     fileordir = true;
                     container = get_container (fileout);
                 }
-                Gtk.TreeIter iter;
-                filesorter.append (out iter);
-                filesorter.set (iter, FSorter.NAME, info.get_name (), FSorter.MIMETYPE, info.get_content_type (), FSorter.FILEORDIR, fileordir, FSorter.SIZE, info.get_size (), FSorter.FILEINDIR, container, FSorter.FILEINFO, info, FSorter.DATE, info.get_modification_date_time ().to_string ());
+                var fsorter = FSorter ();
+                fsorter.name = info.get_name ();
+                fsorter.mimetype = info.get_content_type ();
+                fsorter.fileordir = fileordir;
+                fsorter.size = info.get_size ();
+                fsorter.fileindir = container;
+                fsorter.fileinfo = info;
+                fsorter.date = info.get_modification_date_time ().to_string ();
+                filesorters.add (fsorter);
             }
             var pathfile = @"$(file.get_path ().split (sourcef.get_path ())[1])/";
             var htmlstr = "";
@@ -492,24 +473,18 @@ namespace Gabut {
             }
             switch (int.parse (get_db_user (UserID.SHORTBY, username))) {
                 case 1:
-                    filesorter.set_sort_column_id (FSorter.FILEINDIR, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 1);
-                    filesorter.set_sort_column_id (FSorter.SIZE, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 2);
-                    break;
                 case 2:
-                    filesorter.set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 1);
-                    filesorter.set_sort_column_id (FSorter.MIMETYPE, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 2);
+                    firstscan = true;
+                    filesorters.sort ((GLib.CompareDataFunc) sort_sfile);
+                    htmlstr += load_item (filesorters, pathfile, 1);
+                    firstscan = false;
+                    filesorters.sort ((GLib.CompareDataFunc) sort_sfile);
+                    htmlstr += load_item (filesorters, pathfile, 2);
                     break;
                 case 3:
-                    filesorter.set_sort_column_id (FSorter.DATE, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 0);
-                    break;
                 default:
-                    filesorter.set_sort_column_id (FSorter.NAME, Gtk.SortType.ASCENDING);
-                    htmlstr += load_item (filesorter, pathfile, 0);
+                    filesorters.sort ((GLib.CompareDataFunc) sort_sfile);
+                    htmlstr += load_item (filesorters, pathfile, 0);
                     break;
             }
             htmlstr += "</div>";
@@ -518,29 +493,100 @@ namespace Gabut {
             path_lenght = pathfile.length;
         }
 
-        private string load_item (Gtk.ListStore filesorter, string pathfile, int dirfirst) {
+        [CCode (instance_pos = -1)]
+        private int sort_sfile (FSorter row1, FSorter row2) {
+            var sortpos = int.parse (get_db_user (UserID.SHORTBY, username));
+            if (sortpos == 0) {
+                if (row1.name != null && row2.name != null) {
+                    var name1 = row1.name.down ();
+                    var name2 = row2.name.down ();
+                    if (name1 > name2) {
+                        return 1;
+                    }
+                    if (name1 < name2) {
+                        return -1;
+                    }
+                } else {
+                    return 0;
+                }
+            } else if (sortpos == 1) {
+                if (firstscan) {
+                    var fileindir1 = row1.fileindir;
+                    var fileindir2 = row2.fileindir;
+                    if (fileindir1 > fileindir2) {
+                        return 1;
+                    }
+                    if (fileindir1 < fileindir2) {
+                        return -1;
+                    }
+                } else {
+                    var size1 = row1.size;
+                    var size2 = row2.size;
+                    if (size1 > size2) {
+                        return 1;
+                    }
+                    if (size1 < size2) {
+                        return -1;
+                    }
+                }
+            } else if (sortpos == 2) {
+                if (firstscan) {
+                    if (row1.name != null && row2.name != null) {
+                        var name1 = row1.name.down ();
+                        var name2 = row2.name.down ();
+                        if (name1 > name2) {
+                            return 1;
+                        }
+                        if (name1 < name2) {
+                            return -1;
+                        }
+                    } else {
+                        return 0;
+                    }
+                } else {
+                    if (row1.mimetype != null && row2.mimetype != null) {
+                        var mime1 = row1.mimetype.down ();
+                        var mime2 = row2.mimetype.down ();
+                        if (mime1 > mime2) {
+                            return 1;
+                        }
+                        if (mime1 < mime2) {
+                            return -1;
+                        }
+                    } else {
+                        return 0;
+                    }
+                }
+            } else {
+                var timeadded1 = row1.date;
+                var timeadded2 = row2.date;
+                if (timeadded1 > timeadded2) {
+                    return 1;
+                }
+                if (timeadded1 < timeadded2) {
+                    return -1;
+                }
+            }
+            return 0;
+        }
+
+        private string load_item (Gee.ArrayList<FSorter?> filesorter, string pathfile, int dirfirst) {
             string htmlstr = "";
-            filesorter.foreach ((model, path, iter) => {
-                string name, mime;
-                int infolder;
-                int64 fsize;
-                bool filordir;
-                FileInfo infofile;
-                model.get (iter, FSorter.NAME, out name, FSorter.MIMETYPE, out mime, FSorter.FILEORDIR, out filordir, FSorter.SIZE, out fsize, FSorter.FILEINDIR, out infolder, FSorter.FILEINFO, out infofile);
+            filesorter.foreach ((fsorter) => {
                 switch (dirfirst) {
                     case 1:
-                        if (filordir) {
-                            htmlstr += loaddiv (pathfile + name, infofile, false, filordir, mime, fsize, infolder);
+                        if (fsorter.fileordir) {
+                            htmlstr += loaddiv (pathfile + fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
                         }
-                        return false;
+                        return true;
                     case 2:
-                        if (!filordir) {
-                            htmlstr += loaddiv (pathfile + name, infofile, false, filordir, mime, fsize, infolder);
+                        if (!fsorter.fileordir) {
+                            htmlstr += loaddiv (pathfile +  fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
                         }
-                        return false;
+                        return true;
                     default:
-                        htmlstr += loaddiv (pathfile + name, infofile, false, filordir, mime, fsize, infolder);
-                        return false;
+                        htmlstr += loaddiv (pathfile +  fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
+                        return true;
                 }
             });
             return htmlstr;

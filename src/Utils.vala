@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -1136,15 +1136,14 @@ namespace Gabut {
         N_COLUMNS
     }
 
-    private enum FSorter {
-        NAME,
-        MIMETYPE,
-        FILEORDIR,
-        SIZE,
-        FILEINDIR,
-        FILEINFO,
-        DATE,
-        N_COLUMNS
+    private struct FSorter {
+        public string name {get; set;}
+        public string mimetype {get; set;}
+        public bool fileordir {get; set;}
+        public int64 size {get; set;}
+        public int fileindir {get; set;}
+        public GLib.FileInfo fileinfo {get; set;}
+        public string date {get; set;}
     }
 
     public enum FileAllocations {
@@ -1348,6 +1347,38 @@ namespace Gabut {
         }
     }
 
+    public enum DownloadMenu {
+        OPENFOLDER = 0,
+        MOVETOTRASH = 1,
+        PROPERTIES = 2;
+
+        public string to_string () {
+            switch (this) {
+                case MOVETOTRASH:
+                    return "Move to Trash";
+                case PROPERTIES:
+                    return "Properties";
+                default:
+                    return "Open Folder";
+            }
+        }
+
+        public string to_icon () {
+            switch (this) {
+                case MOVETOTRASH:
+                    return "user-trash-full";
+                case PROPERTIES:
+                    return "document-properties";
+                default:
+                    return "folder-open";
+            }
+        }
+
+        public static DownloadMenu [] get_all () {
+            return { OPENFOLDER, MOVETOTRASH, PROPERTIES};
+        }
+    }
+
     public enum DeAscend {
         ASCENDING = 0,
         DESCENDING = 1;
@@ -1358,6 +1389,15 @@ namespace Gabut {
                     return "Descending";
                 default:
                     return "Ascending";
+            }
+        }
+
+        public string to_icon () {
+            switch (this) {
+                case DESCENDING:
+                    return "com.github.gabutakut.gabutdm.up";
+                default:
+                    return "com.github.gabutakut.gabutdm.down";
             }
         }
 
@@ -1617,8 +1657,8 @@ namespace Gabut {
         return result_ret (result);
     }
 
-    private Gtk.ListStore aria_get_peers (string gid) {
-        var liststore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
+    private Gee.HashMap<string, PeersRow> aria_get_peers (string gid) {
+        var liststore = new Gee.HashMap<string, PeersRow> ();
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return liststore;
@@ -1629,9 +1669,17 @@ namespace Gabut {
             if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
                     string peerid = GLib.Uri.unescape_string (match_info.fetch (6));
-                    Gtk.TreeIter iter;
-                    liststore.append (out iter);
-                    liststore.set (iter, TorrentPeers.HOST, @"$(match_info.fetch (4)):$(match_info.fetch (7))", TorrentPeers.PEERID, peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow", TorrentPeers.DOWNLOADSPEED, format_size (int64.parse (match_info.fetch (3))), TorrentPeers.UPLOADSPEED, match_info.fetch (9), TorrentPeers.SEEDER, match_info.fetch (8), TorrentPeers.BITFIELD, match_info.fetch (2), TorrentPeers.AMCHOKING, match_info.fetch (1), TorrentPeers.PEERCHOKING, match_info.fetch (5));
+                    var peersrow = new PeersRow () {
+                        host = @"$(match_info.fetch (4)):$(match_info.fetch (7))",
+                        peerid = peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow",
+                        downloadspeed = GLib.format_size (int64.parse (match_info.fetch (3))),
+                        uploadspeed = GLib.format_size (int64.parse (match_info.fetch (9))),
+                        peerschoking = match_info.fetch (5),
+                        seeder = match_info.fetch (8),
+                        amchoking = match_info.fetch (1),
+                        bitfield = match_info.fetch (2)
+                    };
+                    liststore.set (@"$(match_info.fetch (4)):$(match_info.fetch (7))", peersrow);
                     match_info.next ();
                 }
             }
@@ -1736,11 +1784,11 @@ namespace Gabut {
         return listgid;
     }
 
-    private Gtk.ListStore aria_files_store (string gid) {
-        var liststore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
+    private Gee.ArrayList<TorrentRow> aria_files_store (string gid) {
+        var torrentstore = new Gee.ArrayList<TorrentRow> ();
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
-            return liststore;
+            return torrentstore;
         }
         try {
             MatchInfo match_info;
@@ -1751,42 +1799,55 @@ namespace Gabut {
                     int64 transfer = int64.parse (match_info.fetch (1)).abs ();
                     double fraction = (double) transfer / (double) total;
                     int persen = total == 0 && transfer == 0? 0 : (int) (fraction * 100).abs ();
-                    string uris = pharse_info (match_info.fetch (6));
+                    string status = pharse_info (match_info.fetch (6));
                     string path = match_info.fetch (4);
-                    Gtk.TreeIter iter;
                     var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
-                    liststore.append (out iter);
-                    liststore.set (iter, FileCol.SELECTED, bool.parse (match_info.fetch (5)), FileCol.ROW, match_info.fetch (2), FileCol.NAME, file.get_basename (), FileCol.FILEPATH, file.get_path (), FileCol.DOWNLOADED, format_size (transfer), FileCol.SIZE, format_size (total), FileCol.PERCEN, persen, FileCol.URIS, uris);
+                    var torrentfile = new TorrentRow () {
+                        selected = bool.parse (match_info.fetch (5)),
+                        index = int.parse (match_info.fetch (2)),
+                        filebasename = file.get_basename (),
+                        filepath = file.get_path (),
+                        completesize = GLib.format_size (total),
+                        filesize = GLib.format_size (transfer),
+                        fraction = fraction,
+                        status = status,
+                        persen = persen
+                    };
+                    torrentstore.add (torrentfile);
                     match_info.next ();
                 }
             }
         } catch (Error e) {
             GLib.warning (e.message);
         }
-        return liststore;
+        return torrentstore;
     }
 
-    private Gtk.ListStore aria_servers_store (string gid) {
-        var liststore = new Gtk.ListStore (ServersCol.N_COLUMNS, typeof (int), typeof (string), typeof (string), typeof (string));
+    private Gee.ArrayList<ServerRow> aria_servers_store (string gid) {
+        var serverstore = new Gee.ArrayList<ServerRow> ();
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getServers\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
-            return liststore;
+            return serverstore;
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex ("{\"currentUri\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"uri\":\"(.*?)\"");
             if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
-                    Gtk.TreeIter iter;
-                    liststore.append (out iter);
-                    liststore.set (iter, ServersCol.CURRENTURI, match_info.fetch (1), ServersCol.DOWNLOADSPEED, match_info.fetch (2), ServersCol.URI, match_info.fetch (3));
+                    var curi = match_info.fetch (1);
+                    var serverrow = new ServerRow () {
+                        uriserver = match_info.fetch (3),
+                        downloadspeed = GLib.format_size (int64.parse (match_info.fetch (2))),
+                        currenturi = curi != null? Markup.escape_text (curi.replace ("\\/", "/")) : curi
+                    };
+                    serverstore.add (serverrow);
                     match_info.next ();
                 }
             }
         } catch (Error e) {
             GLib.warning (e.message);
         }
-        return liststore;
+        return serverstore;
     }
 
     private string aria_get_option (string gid, AriaOptions option) {
@@ -2392,8 +2453,8 @@ namespace Gabut {
             attributes = set_attribute (Pango.Weight.SEMIBOLD),
             halign = Gtk.Align.START,
             xalign = 0,
-            margin_top = 7,
-            margin_bottom = 7
+            margin_top = 6,
+            margin_bottom = 6
         };
         return hlabel;
     }
@@ -2414,18 +2475,21 @@ namespace Gabut {
         }
     }
 
-    private File[] run_open_file (Gtk.Window window) {
-        var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Torrent Or Metalink"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
-            select_multiple = true
-        };
-        if (db_lastop_exist (OpenFiles.OPENFILES)) {
-            try {
-                filechooser.set_current_folder (File.new_for_path (get_db_lastop (OpenFiles.OPENFILES)));
-            } catch (Error e) {
-                GLib.warning (e.message);
-            }
+    private static void play_sound (string canbera) {
+        if (!bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))) {
+            return;
         }
+        Canberra.Context context;
+        Canberra.Proplist props;
+        Canberra.Context.create (out context);
+        Canberra.Proplist.create (out props);
+        props.sets (Canberra.PROP_EVENT_ID, canbera);
+        props.sets (Canberra.PROP_CANBERRA_CACHE_CONTROL, "permanent");
+        props.sets (Canberra.PROP_MEDIA_ROLE, "event");
+        context.play_full (0, props);
+    }
+
+    private async void run_open_file (Gtk.Window window, OpenFiles location, out GLib.File[]? files) throws Error {
         var torrent = new Gtk.FileFilter ();
         torrent.set_filter_name (_("Torrent"));
         torrent.add_mime_type ("application/x-bittorrent");
@@ -2433,123 +2497,78 @@ namespace Gabut {
         metalink.set_filter_name (_("Metalink"));
         metalink.add_pattern ("application/metalink+xml");
         metalink.add_pattern ("application/metalink4+xml");
-
-        filechooser.add_filter (torrent);
-        filechooser.add_filter (metalink);
-
-        File[] files = null;
-        filechooser.response.connect ((pos)=> {
-            if (pos == Gtk.ResponseType.ACCEPT) {
-                for (int i = 0; i < filechooser.get_files ().get_n_items (); i++) {
-                    files += (File) filechooser.get_files ().get_item (i);
-                }
-                if (!db_lastop_exist (OpenFiles.OPENFILES)) {
-                    add_db_lastop (OpenFiles.OPENFILES, ((File) filechooser.get_files ().get_item (0)).get_parent ().get_path ());
-                } else {
-                    update_lastop_id (OpenFiles.OPENFILES, ((File) filechooser.get_files ().get_item (0)).get_parent ().get_path ());
-                }
-                filechooser.destroy ();
-            }
-            loopop.quit ();
-        });
-        filechooser.show ();
-        loopop.run ();
-        return files;
+        var lstore = new GLib.ListStore (typeof (Gtk.FileFilter));
+        lstore.append (torrent);
+        lstore.append (metalink);
+        var fdrecently = File.new_for_path (get_db_lastop (location));
+        var filechooser = new Gtk.FileDialog () {
+            title = _("Open Torrent Or Metalink"),
+            accept_label = _("Open"),
+            filters = lstore,
+            initial_folder = fdrecently.query_exists (null)? fdrecently : null
+        };
+        var listmodel = yield filechooser.open_multiple (window, null);
+        GLib.File[] nfiles = null;
+        for (int i = 0; i < listmodel.get_n_items (); i++) {
+            nfiles += (File) listmodel.get_item (i);
+        }
+        files = nfiles;
+        if (!db_lastop_exist (location)) {
+            add_db_lastop (location, files[0].get_parent ().get_path ());
+        } else {
+            update_lastop_id (location, files[0].get_parent ().get_path ());
+        }
     }
 
-    private File run_open_text (Gtk.Window window, OpenFiles location) {
-        var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Text Tracker"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
-            select_multiple = false
-        };
-        if (db_lastop_exist (location)) {
-            try {
-                filechooser.set_current_folder (File.new_for_path (get_db_lastop (location)));
-            } catch (Error e) {
-                GLib.warning (e.message);
-            }
-        }
+    private async void run_open_text (Gtk.Window window, OpenFiles location, out GLib.File? file) throws Error {
         var text_filter = new Gtk.FileFilter ();
         text_filter.set_filter_name (_("Text"));
         text_filter.add_mime_type ("text/*");
-        filechooser.add_filter (text_filter);
-
-        File file = null;
-        filechooser.response.connect ((pos)=> {
-            if (pos == Gtk.ResponseType.ACCEPT) {
-                file = filechooser.get_file ();
-                if (!db_lastop_exist (location)) {
-                    add_db_lastop (location, filechooser.get_file ().get_parent ().get_path ());
-                } else {
-                    update_lastop_id (location, filechooser.get_file ().get_parent ().get_path ());
-                }
-                filechooser.destroy ();
-            }
-            loopop.quit ();
-        });
-        filechooser.show ();
-        loopop.run ();
-        return file;
+        var lstore = new GLib.ListStore (typeof (Gtk.FileFilter));
+        lstore.append (text_filter);
+        var fdrecently = File.new_for_path (get_db_lastop (location));
+        var filechooser = new Gtk.FileDialog () {
+            title = _("Open Text"),
+            accept_label = _("Open"),
+            filters = lstore,
+            initial_folder = fdrecently.query_exists (null)? fdrecently : null
+        };
+        file = yield filechooser.open (window, null);
+        if (!db_lastop_exist (location)) {
+            add_db_lastop (location, file.get_parent ().get_path ());
+        } else {
+            update_lastop_id (location, file.get_parent ().get_path ());
+        }
     }
 
-    private File run_open_all (Gtk.Window window, OpenFiles location) {
-        var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Cookies"), window, Gtk.FileChooserAction.OPEN, _("Open"), _("Cancel")) {
-            select_multiple = false
+    private async void run_open_all (Gtk.Window window, OpenFiles location, out GLib.File? file) throws Error {
+        var fdrecently = File.new_for_path (get_db_lastop (location));
+        var filechooser = new Gtk.FileDialog () {
+            title = _("Open Cookies"),
+            accept_label = _("Open"),
+            initial_folder = fdrecently.query_exists (null)? fdrecently : null
         };
-        if (db_lastop_exist (location)) {
-            try {
-                filechooser.set_current_folder (File.new_for_path (get_db_lastop (location)));
-            } catch (Error e) {
-                GLib.warning (e.message);
-            }
+        file = yield filechooser.open (window, null);
+        if (!db_lastop_exist (location)) {
+            add_db_lastop (location, file.get_parent ().get_path ());
+        } else {
+            update_lastop_id (location, file.get_parent ().get_path ());
         }
-        File file = null;
-        filechooser.response.connect ((pos)=> {
-            if (pos == Gtk.ResponseType.ACCEPT) {
-                file = filechooser.get_file ();
-                if (!db_lastop_exist (location)) {
-                    add_db_lastop (location, filechooser.get_file ().get_parent ().get_path ());
-                } else {
-                    update_lastop_id (location, filechooser.get_file ().get_parent ().get_path ());
-                }
-                filechooser.destroy ();
-            }
-            loopop.quit ();
-        });
-        filechooser.show ();
-        loopop.run ();
-        return file;
     }
 
-    private File run_open_fd (Gtk.Window window, OpenFiles location) {
-        var loopop = new GLib.MainLoop (null, false);
-        var filechooser = new Gtk.FileChooserNative (_("Open Folder"), window, Gtk.FileChooserAction.SELECT_FOLDER, _("Open"), _("Cancel")) {
-            select_multiple = false
+    private async void run_open_fd (Gtk.Window window, OpenFiles location, out GLib.File? file) throws Error {
+        var fdrecently = File.new_for_path (get_db_lastop (location));
+        var filechooser = new Gtk.FileDialog () {
+            title = _("Open Folder"),
+            accept_label = _("Open"),
+            initial_folder = fdrecently.query_exists (null)? fdrecently : null
         };
-        if (db_lastop_exist (location)) {
-            try {
-                filechooser.set_current_folder (File.new_for_path (get_db_lastop (location)));
-            } catch (Error e) {
-                GLib.warning (e.message);
-            }
+        file = yield filechooser.select_folder (window, null);
+        if (!db_lastop_exist (location)) {
+            add_db_lastop (location, file.get_path ());
+        } else {
+            update_lastop_id (location, file.get_path ());
         }
-        File file = null;
-        filechooser.response.connect ((pos)=> {
-            if (pos == Gtk.ResponseType.ACCEPT) {
-                file = filechooser.get_file ();
-                if (!db_lastop_exist (location)) {
-                    add_db_lastop (location, filechooser.get_file ().get_path ());
-                } else {
-                    update_lastop_id (location, filechooser.get_file ().get_path ());
-                }
-                filechooser.destroy ();
-            }
-            loopop.quit ();
-        });
-        filechooser.show ();
-        loopop.run ();
-        return file;
     }
 
     private Gtk.Grid button_chooser (GLib.File file, int widtc = 35) {
@@ -2579,7 +2598,7 @@ namespace Gabut {
             halign = Gtk.Align.START,
             column_spacing = 5
         };
-        var img = new Gtk.Image.from_gicon (new ThemedIcon ("com.github.gabutakut.gabutdm")) {
+        var img = new Gtk.Image.from_gicon (new ThemedIcon ("com.github.gabutakut.gabutdm.cookie")) {
             icon_size = Gtk.IconSize.NORMAL
         };
         var tittle = new Gtk.Label (none) {
@@ -2590,26 +2609,6 @@ namespace Gabut {
         grid.attach (img, 0, 0);
         grid.attach (tittle, 1, 0);
         return grid;
-    }
-
-    private Gtk.Image image_btn (string name, int size) {
-        var imginf = new Gtk.Image () {
-            pixel_size = size,
-            gicon = new ThemedIcon (name)
-        };
-        return imginf;
-    }
-
-    private Gtk.Box box_btn (string name, string labeln) {
-        var imginf = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 1);
-        imginf.append (image_btn (name, 16));
-        var title = new Gtk.Label (labeln) {
-            halign = Gtk.Align.CENTER,
-            wrap_mode = Pango.WrapMode.WORD_CHAR,
-            attributes = set_attribute (Pango.Weight.BOLD)
-        };
-        imginf.append (title);
-        return imginf;
     }
 
     private string get_mime_css (string mime) {
@@ -2794,7 +2793,7 @@ namespace Gabut {
         }
         if (db_get_cols ("users") < UserID.ACTIVE) {
             gabutdb.exec ("DROP TABLE users;");
-            last_opened (gabutdb);
+            table_users (gabutdb);
         }
     }
 
@@ -3839,49 +3838,53 @@ namespace Gabut {
     }
 
     private SourceFunc themecall;
-    private async void pantheon_theme () throws Error {
+    private async void gdm_theme () throws Error {
         if (themecall != null) {
             Idle.add ((owned)themecall);
         }
-        var gtk_settings = Gtk.Settings.get_default ();
         var tdefault = bool.parse (get_dbsetting (DBSettings.TDEFAULT));
+        var adwt_settings = Adw.StyleManager.get_default ();
+        var gtk_settings = Gtk.Settings.get_default ();
         int themesel = int.parse (get_dbsetting (DBSettings.THEMESELECT));
         var themename = get_dbsetting (DBSettings.THEMECUSTOM);
-        var themesys = get_dbsetting (DBSettings.THEMESYSTEM);
         switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
             case 1:
-                if (tdefault) {
-                    gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
+                if (!tdefault) {
+                    adwt_settings.color_scheme = Adw.ColorScheme.FORCE_LIGHT;
+                    gtk_settings.gtk_theme_name = "Adwaita-empty";
                 } else {
-                    gtk_settings.gtk_theme_name = themesys;
+                    gtk_settings.gtk_application_prefer_dark_theme = false;
+                    gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                 }
-                gtk_settings.gtk_application_prefer_dark_theme = false;
                 break;
             case 2:
-                if (tdefault) {
-                    gtk_settings.gtk_theme_name = themesel == 0? "Default-dark" : themename + "-dark";
+                if (!tdefault) {
+                    adwt_settings.color_scheme = Adw.ColorScheme.FORCE_DARK;
+                    gtk_settings.gtk_theme_name = "Adwaita-empty";
                 } else {
-                    gtk_settings.gtk_theme_name = themesys + "-dark";
+                    gtk_settings.gtk_application_prefer_dark_theme = true;
+                    gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                 }
-                gtk_settings.gtk_application_prefer_dark_theme = true;
                 break;
             default:
                 PortalSettings portalsettings = yield GLib.Bus.get_proxy (GLib.BusType.SESSION, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop");
                 if (portalsettings != null) {
-                    themecall = pantheon_theme.callback;
-                    if (tdefault) {
-                        gtk_settings.gtk_theme_name = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? themesel == 0? "Default-dark" : themename + "-dark" : themesel == 0? "Default" : themename;
+                    themecall = gdm_theme.callback;
+                    if (!tdefault) {
+                        adwt_settings.color_scheme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
+                        gtk_settings.gtk_theme_name = "Adwaita-empty";
                     } else {
-                        gtk_settings.gtk_theme_name = themesys;
+                        gtk_settings.gtk_application_prefer_dark_theme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? true : false;
+                        gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                     }
-                    gtk_settings.gtk_application_prefer_dark_theme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? true : false;
                     portalsettings.setting_changed.connect ((scheme, key, value) => {
                         if (scheme == "org.freedesktop.appearance" && key == "color-scheme") {
-                            gtk_settings.gtk_application_prefer_dark_theme = value.get_uint32 () == 1? true : false;
-                            if (tdefault) {
-                                gtk_settings.gtk_theme_name = value.get_uint32 () == 1? themesel == 0? "Default-dark" : themename + "-dark" : themesel == 0? "Default" : themename;
+                            if (!tdefault) {
+                                adwt_settings.color_scheme = value.get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
+                                gtk_settings.gtk_theme_name = "Adwaita-empty";
                             } else {
-                                gtk_settings.gtk_theme_name = themesys;
+                                gtk_settings.gtk_application_prefer_dark_theme = value.get_uint32 () == 1? true : false;
+                                gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                             }
                         }
                     });
