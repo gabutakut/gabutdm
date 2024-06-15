@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -142,7 +142,7 @@ namespace Gabut {
                 if (selectcook != null) {
                     cookie_location.child = button_chooser (selectcook, 25);
                 } else {
-                    cookie_location.child = none_chooser (_("Press and Select Cookie"));
+                    cookie_location.child = none_chooser (_("Select Cookie"));
                 }
             }
         }
@@ -167,6 +167,7 @@ namespace Gabut {
             hashoptions = new Gee.HashMap<string, string> ();
             var view_mode = new ModeButton () {
                 hexpand = true,
+                homogeneous = true,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
@@ -184,10 +185,17 @@ namespace Gabut {
 
             folder_location = new Gtk.Button ();
             folder_location.clicked.connect (()=> {
-                var file = run_open_fd (this, OpenFiles.OPENPERDONLOADFOLDER);
-                if (file != null) {
-                    selectfd = file;
-                }
+                run_open_fd.begin (this, OpenFiles.OPENPERDONLOADFOLDER, (obj, res)=> {
+                    try {
+                        GLib.File file;
+                        run_open_fd.end (res, out file);
+                        if (file != null) {
+                            selectfd = file;
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
+                    }
+                });
             });
             selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/"));
 
@@ -197,13 +205,21 @@ namespace Gabut {
             usefolder.toggled.connect (()=> {
                 folder_location.sensitive = usefolder.active;
             });
+            ((Gtk.Label) usefolder.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             folder_location.sensitive = usefolder.active;
             cookie_location = new Gtk.Button ();
             cookie_location.clicked.connect (()=> {
-                var file = run_open_all (this, OpenFiles.OPENCOOKIES);
-                if (file != null) {
-                    selectcook = file;
-                }
+                run_open_all.begin (this, OpenFiles.OPENCOOKIES, (obj, res)=> {
+                    try {
+                        GLib.File file;
+                        run_open_all.end (res, out file);
+                        if (file != null) {
+                            selectcook = file;
+                        }
+                    } catch (GLib.Error e) {
+                        critical (e.message);
+                    }
+                });
             });
             selectcook = null;
             usecookie = new Gtk.CheckButton.with_label (_("Cookie")) {
@@ -212,6 +228,7 @@ namespace Gabut {
             usecookie.toggled.connect (()=> {
                 cookie_location.sensitive = usecookie.active;
             });
+            ((Gtk.Label) usecookie.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             cookie_location.sensitive = usecookie.active;
             var foldergrid = new Gtk.Grid () {
                 margin_top = 10,
@@ -261,12 +278,13 @@ namespace Gabut {
             var save_image = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
                 pixel_size = 64,
-                gicon = new ThemedIcon ("document-save")
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.svdrv")
             };
 
             save_meta = new Gtk.CheckButton.with_label ("Backup") {
                 valign = Gtk.Align.END,
-                halign = Gtk.Align.CENTER
+                halign = Gtk.Align.CENTER,
+                tooltip_text = _("Backup Torrent File")
             };
             ((Gtk.Label) save_meta.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             ((Gtk.Label) save_meta.get_last_child ()).ellipsize = Pango.EllipsizeMode.END;
@@ -468,7 +486,6 @@ namespace Gabut {
                 child = checksums_flow
             };
             checksums_popover.show.connect (() => {
-                checksums_popover.width_request = checksum_button.get_allocated_width ();
                 if (checksumtype != null) {
                     checksums_flow.select_child (checksumtype);
                     checksumtype.grab_focus ();

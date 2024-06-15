@@ -35,5 +35,11 @@ sources = files (
     'SortBy.vala',
     'DeAscending.vala',
     'GdmOutstream.vala',
-    'DbusIndicator.vala'
+    'DbusIndicator.vala',
+    'PeersRow.vala',
+    'ServerRow.vala',
+    'TorrentRow.vala',
+    'GdmPaint.vala',
+    'GdmMenu.vala',
+    'ProgressPaint.vala'
 )

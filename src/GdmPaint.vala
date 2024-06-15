@@ -20,24 +20,30 @@
 */
 
 namespace Gabut {
-    public class SortBy : Gtk.FlowBoxChild {
-        public SortbyWindow sortbywindow { get; private set; }
+    public class GdmPaint : GLib.Object, Gdk.Paintable {
+        public signal void queue_draw ();
+        private Gdk.Paintable _paintable = null;
+        public Gdk.Paintable paintable {
+            get {
+                return _paintable;
+            }
+            set {
+                _paintable = value;
+                on_change (_paintable);
+                queue_draw ();
+            }
+        }
 
-        public SortBy (SortbyWindow sortbywindow) {
-            this.sortbywindow = sortbywindow;
-            halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (sortbywindow.to_string ()) {
-                halign = Gtk.Align.CENTER,
-                wrap_mode = Pango.WrapMode.WORD_CHAR,
-                attributes = set_attribute (Pango.Weight.BOLD),
-                margin_top = 6,
-                margin_bottom = 6,
-                margin_start = 12,
-                margin_end = 12,
-                width_request = 100
-            };
-            child = title;
-            show ();
+        public void snapshot (Gdk.Snapshot snapshot, double width, double height) {
+            on_snapshot ((Gtk.Snapshot)snapshot, width, height);
+        }
+
+        protected virtual void on_change (Gdk.Paintable? paintable) {
+            _paintable = paintable;
+        }
+
+        protected virtual void on_snapshot (Gtk.Snapshot snaps, double width, double height) {
+            snapshot (snaps, width, height);
         }
     }
 }

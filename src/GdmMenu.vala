@@ -20,48 +20,27 @@
 */
 
 namespace Gabut {
-    public class DeAscending : Gtk.FlowBoxChild {
-        public DeAscend deascend { get; private set; }
-        private Gtk.CheckButton cheked;
+    public class GdmMenu : Gtk.FlowBoxChild {
+        public DownloadMenu downloadmenu { get; private set; }
 
-        private bool _activebtn;
-        public bool activebtn {
-            get {
-                return _activebtn;
-            }
-            set {
-                _activebtn = value;
-                cheked.active = _activebtn;
-            }
-        }
-
-        public DeAscending (DeAscend deascend) {
-            this.deascend = deascend;
+        public GdmMenu (DownloadMenu downloadmenu) {
+            this.downloadmenu = downloadmenu;
             halign = Gtk.Align.CENTER;
-            var title = new Gtk.Label (deascend.to_string ()) {
-                halign = Gtk.Align.CENTER,
+            var title = new Gtk.Label (downloadmenu.to_string ()) {
+                halign = Gtk.Align.START,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,
                 attributes = set_attribute (Pango.Weight.BOLD),
                 margin_top = 6,
                 margin_bottom = 6,
-                margin_start = 12,
-                margin_end = 12,
-                width_request = 80
+                width_request = 130
             };
-            cheked = new Gtk.CheckButton () {
-                halign = Gtk.Align.CENTER,
-                margin_start = 6,
-                active = false,
-                sensitive = false
-            };
-            var dateimg = new Gtk.Image () {
+            var imgstatus = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
-                gicon = new ThemedIcon (deascend.to_icon ())
+                gicon = new ThemedIcon (downloadmenu.to_icon ())
             };
             var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-            box.append (cheked);
+            box.append (imgstatus);
             box.append (title);
-            box.append (dateimg);
             child = box;
             show ();
         }

@@ -31,7 +31,17 @@ actions = [
     '.referer.svg',
     '.hash.svg',
     '.theme.svg',
-    '.torrent.svg'
+    '.torrent.svg',
+    '.up.svg',
+    '.down.svg',
+    '.client.svg',
+    '.uri.svg',
+    '.hdd.svg',
+    '.date.svg',
+    '.svdrv.svg',
+    '.cookie.svg',
+    '.opt.svg',
+    '.menu.svg'
 ]
 
 foreach m : actions

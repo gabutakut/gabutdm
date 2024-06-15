@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2021} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -37,12 +37,11 @@ namespace Gabut {
         private Gtk.SpinButton down_limit;
         private Gtk.SpinButton up_limit;
         private Gtk.SpinButton bt_req_limit;
-        private Gtk.ListStore torrstore;
-        private Gtk.ListStore peerstore;
-        private Gtk.ListStore serverstore;
-        private Gtk.TreeView servertree;
-        private Gtk.TreeView torrenttree;
-        private Gtk.TreeView peerstree;
+        private Gtk.ListBox listboxtorrent;
+        private Gee.ArrayList<TorrentRow> listtorrent;
+        private Gtk.ListBox lisboxserver;
+        private Gtk.ListBox listboxpeers;
+        private Gee.ArrayList<PeersRow> listpeers;
         private Gtk.TextView infotorrent;
         private Gtk.TextView commenttext;
         private Gtk.Button server_button;
@@ -78,7 +77,7 @@ namespace Gabut {
             }
             set {
                 _status = value;
-                switch (value) {
+                switch (_status) {
                     case StatusMode.PAUSED:
                         start_button.set_label (_("Start"));
                         statuslabel.label = _("Paused");
@@ -197,6 +196,7 @@ namespace Gabut {
         construct {
             view_mode = new ModeButton () {
                 hexpand = true,
+                homogeneous = true,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
@@ -216,7 +216,6 @@ namespace Gabut {
                         commenttext.buffer.text = commenttorrent.contains ("\\/")? GLib.Uri.unescape_string (commenttorrent.replace ("\\/", "/")) : commenttorrent;
                         break;
                     case 2:
-                        torrstore.clear ();
                         show_files ();
                         break;
                     case 3:
@@ -294,7 +293,8 @@ namespace Gabut {
             var downstatusgrid = new Gtk.Grid () {
                 hexpand = true,
                 height_request = 150,
-                margin_bottom = 5
+                margin_bottom = 4,
+                valign = Gtk.Align.CENTER
             };
             downstatusgrid.attach (headerlabel (_("Status"), 100), 0, 0, 1, 1);
             downstatusgrid.attach (statuslabel, 1, 0, 1, 1);
@@ -370,17 +370,8 @@ namespace Gabut {
             torrentinfo.attach (headerlabel (_("Comment:"), 250), 1, 1, 1, 1);
             torrentinfo.attach (comment, 1, 2, 1, 1);
 
-            peerstore = new Gtk.ListStore (TorrentPeers.N_COLUMNS, typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string));
-            peerstree = new Gtk.TreeView () {
-                hexpand = true,
-                valign = Gtk.Align.FILL,
-                model = peerstore
-            };
-            peerstree.append_column (text_column (_("Host"), TorrentPeers.HOST));
-            peerstree.append_column (text_column (_("Client"), TorrentPeers.PEERID, true, 14, "text", color_attribute (60000, 37000, 0, false)));
-            peerstree.append_column (text_column (_("Choking"), TorrentPeers.PEERCHOKING));
-            peerstree.append_column (text_column (_("D"), TorrentPeers.DOWNLOADSPEED, true, 14, "text"));
-            peerstree.append_column (text_column (_("U"), TorrentPeers.UPLOADSPEED, true, 14, "text", color_attribute (60000, 30000, 19764, false)));
+            listboxpeers = new Gtk.ListBox ();
+            listpeers = new Gee.ArrayList<PeersRow> ();
 
             var peerscrolled = new Gtk.ScrolledWindow () {
                 hexpand = true,
@@ -388,23 +379,10 @@ namespace Gabut {
                 height_request = 160,
                 margin_bottom = 10,
                 valign = Gtk.Align.FILL,
-                child = peerstree
+                child = listboxpeers
             };
-
-            torrstore = new Gtk.ListStore (FileCol.N_COLUMNS, typeof (bool), typeof (string), typeof (string), typeof (string), typeof (string), typeof (string), typeof (int), typeof (string));
-            torrenttree = new Gtk.TreeView () {
-                hexpand = true,
-                model = torrstore,
-                margin_bottom = 10
-            };
-            torrenttree.append_column (toggle_column (_("#"), FileCol.SELECTED));
-            torrenttree.append_column (text_column (_("N"), FileCol.ROW, false, 3));
-            torrenttree.append_column (text_column (_("Name"), FileCol.NAME));
-            torrenttree.append_column (text_column (_("Downloaded"), FileCol.DOWNLOADED));
-            torrenttree.append_column (text_column (_("Size"), FileCol.SIZE));
-            torrenttree.append_column (progress_column (_("%"), FileCol.PERCEN));
-            torrenttree.append_column (text_column (_("Info Uris Status"), FileCol.URIS));
-            torrenttree.set_tooltip_column (FileCol.FILEPATH);
+            listboxtorrent = new Gtk.ListBox ();
+            listtorrent = new Gee.ArrayList<TorrentRow> ();
 
             var torrscrolled = new Gtk.ScrolledWindow () {
                 hexpand = true,
@@ -412,7 +390,7 @@ namespace Gabut {
                 height_request = 140,
                 margin_bottom = 5,
                 margin_top = 5,
-                child = torrenttree
+                child = listboxtorrent
             };
 
             down_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
@@ -432,6 +410,7 @@ namespace Gabut {
 
             var limitergrid = new Gtk.Grid () {
                 hexpand = true,
+                valign = Gtk.Align.CENTER,
                 height_request = 150
             };
             limitergrid.attach (headerlabel (_("Max Download Limit (in Kb):"), 550), 0, 0, 1, 1);
@@ -517,15 +496,7 @@ namespace Gabut {
             centerbox.set_start_widget (server_button);
             centerbox.set_end_widget (box_action);
 
-            serverstore = new Gtk.ListStore (ServersCol.N_COLUMNS, typeof (int), typeof (string), typeof (string), typeof (string));
-            servertree = new Gtk.TreeView () {
-                hexpand = true,
-                valign = Gtk.Align.FILL,
-                model = serverstore,
-            };
-            servertree.append_column (text_column (_("No"), ServersCol.NO, false, 1));
-            servertree.append_column (text_column (_("Download Speed"), ServersCol.DOWNLOADSPEED, false, 8, "text"));
-            servertree.append_column (text_column (_("Uris"), ServersCol.CURRENTURI));
+            lisboxserver = new Gtk.ListBox ();
 
             var servscrolled = new Gtk.ScrolledWindow () {
                 hexpand = true,
@@ -533,7 +504,7 @@ namespace Gabut {
                 height_request = 160,
                 margin_bottom = 10,
                 valign = Gtk.Align.FILL,
-                child = servertree
+                child = lisboxserver
             };
             connpeers = new Gtk.Stack () {
                 hexpand = true,
@@ -561,12 +532,12 @@ namespace Gabut {
             notify["switch-rev"].connect (()=> {
                 revcon.queue_allocate ();
                 if (switch_rev) {
-                    servertree.show ();
-                    peerstree.show ();
+                    lisboxserver.show ();
+                    listboxpeers.show ();
                     revcon.reveal_child = true;
                 } else {
-                    servertree.hide ();
-                    peerstree.hide ();
+                    lisboxserver.hide ();
+                    listboxpeers.hide ();
                     revcon.reveal_child = false;
                 }
                 revcon.queue_allocate ();
@@ -594,73 +565,6 @@ namespace Gabut {
         public override void show () {
             base.show ();
             update_progress ();
-        }
-
-        private Gtk.TreeViewColumn text_column (string title, int column, bool resizable = true, int width = 14, string markup = "markup", Pango.AttrList attribute = color_attribute (0, 60000, 0, false)) {
-            var celltext = new Gtk.CellRendererText () {
-                attributes = attribute
-            };
-            var server_coll = new Gtk.TreeViewColumn.with_attributes (title, celltext, markup, column) {
-                resizable = resizable,
-                clickable = true,
-                expand = resizable,
-                sort_indicator = true,
-                sort_column_id = column,
-                min_width = width
-            };
-            return server_coll;
-        }
-
-        private Gtk.TreeViewColumn toggle_column (string title, int column) {
-            var selected = new Gtk.CellRendererToggle ();
-            selected.toggled.connect ((path)=> {
-                Gtk.TreeIter iter;
-                bool active;
-                torrstore.get_iter (out iter, new Gtk.TreePath.from_string (path));
-                torrstore.get (iter, 0, out active);
-                torrstore.set (iter, 0, !active);
-                var builder = new StringBuilder ();
-                uint hashb = builder.str.hash ();
-                torrstore.foreach ((model, path, ite) => {
-                    string index;
-                    bool activated;
-                    model.get (ite, 0, out activated, 1, out index);
-                    if (activated) {
-                        if (hashb == builder.str.hash ()) {
-                            builder.append (index);
-                        } else {
-                            builder.append (",");
-                            builder.append (index);
-                        }
-                    }
-                    return false;
-                });
-                if (hashb == builder.str.hash ()) {
-                    return;
-                }
-                string aria_gid = sendselected (ariagid, builder.str);
-                this.ariagid = aria_gid;
-                update_progress ();
-            });
-
-            var server_coll = new Gtk.TreeViewColumn.with_attributes (title, selected, "active", column) {
-                resizable = false,
-                clickable = true,
-                expand = false,
-                sort_indicator = true,
-                sort_column_id = column
-            };
-            return server_coll;
-        }
-
-        private Gtk.TreeViewColumn progress_column (string title, int column) {
-            var server_coll = new Gtk.TreeViewColumn.with_attributes (title, new Gtk.CellRendererProgress (), "value", column) {
-                resizable = true,
-                clickable = true,
-                expand = true,
-                sort_column_id = column
-            };
-            return server_coll;
         }
 
         public void get_active_status () {
@@ -711,7 +615,6 @@ namespace Gabut {
             }
         }
 
-        int64 delaytime = 0;
         private bool update_progress () {
             var pack_data = aria_v2_status (ariagid);
             totalsize = int64.parse (pharse_tells (pack_data, TellStatus.TOTALLENGTH));
@@ -741,26 +644,20 @@ namespace Gabut {
                 show_files ();
             }
             if (switch_rev) {
-                if (delaytime % 2 == 0) {
-                    if (connpeers.get_visible_child_name () == "serverconn") {
-                        serverstore.clear ();
-                        aria_servers_store (ariagid).foreach ((model, path, ite)=> {
-                            string uri, speed, curi;
-                            model.get (ite, ServersCol.URI, out uri, ServersCol.DOWNLOADSPEED, out speed, ServersCol.CURRENTURI, out curi);
-                            Gtk.TreeIter iter;
-                            serverstore.append (out iter);
-                            serverstore.set (iter, ServersCol.NO, serverstore.iter_n_children (null), ServersCol.URI, Markup.escape_text (uri), ServersCol.DOWNLOADSPEED, GLib.format_size (int64.parse (speed)), ServersCol.CURRENTURI, curi != null? Markup.escape_text (curi.replace ("\\/", "/")) : curi);
-                            return false;
-                        });
-                    } else {
-                        show_peers ();
-                    }
-                    delaytime = 0;
+                if (connpeers.get_visible_child_name () == "serverconn") {
+                    lisboxserver.remove_all ();
+                    aria_servers_store (ariagid).foreach ((serverrow)=> {
+                        lisboxserver.append (serverrow);
+                        serverrow.show ();
+                        return true;
+                    });
+                } else {
+                    show_peers ();
                 }
-                delaytime++;
             } else {
-                if (peerstore.iter_n_children (null) > 0) {
-                    peerstore.clear ();
+                if (listpeers.size > 1) {
+                    listboxpeers.remove_all ();
+                    listpeers.clear ();
                 }
             }
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
@@ -771,98 +668,111 @@ namespace Gabut {
         }
 
         private void show_peers () {
-            var inc = peerstore.iter_n_children (null);
-            int decress = 0;
-            for (int n = 0; n < inc; n++) {
-                Gtk.TreeIter iter;
-                peerstore.get_iter_from_string (out iter, (n - decress).to_string ());
-                if (peerstore.iter_is_valid (iter)) {
-                    string host;
-                    peerstore.get (iter, TorrentPeers.HOST, out host);
-                    if (!aria_peers (host)) {
-                        if (peerstore.iter_is_valid (iter)) {
-                            peerstore.remove (ref iter);
-                            decress++;
-                        }
+            var arraypeers = aria_get_peers (ariagid);
+            arraypeers.foreach ((peersrow) => {
+                bool exist = false;
+                listpeers.foreach ((peersrow2) => {
+                    if (peersrow2.host == peersrow.key) {
+                        exist = true;
+                        peersrow2.peerid = peersrow.value.peerid;
+                        peersrow2.downloadspeed = peersrow.value.downloadspeed;
+                        peersrow2.uploadspeed = peersrow.value.uploadspeed;
+                        peersrow2.peerschoking = peersrow.value.peerschoking;
+                        peersrow2.seeder = peersrow.value.seeder;
+                        peersrow2.amchoking = peersrow.value.amchoking;
+                        peersrow2.bitfield = peersrow.value.bitfield;
+                    }
+                    return true;
+                });
+                if (!exist) {
+                    if (!peer_exist (peersrow.key)) {
+                        listboxpeers.append (peersrow.value);
+                        listpeers.add (peersrow.value);
+                        peersrow.value.show ();
                     }
                 }
-            }
-            aria_get_peers (ariagid).foreach ((model, path, iter) => {
-                if (!peers_exist (model, iter)) {
-                    string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
-                    model.get (iter, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
-                    Gtk.TreeIter iters;
-                    peerstore.append (out iters);
-                    peerstore.set (iters, TorrentPeers.HOST, host, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
-                }
-                return false;
+                return true;
             });
+            listpeers.foreach ((peersrow2) => {
+                if (!arraypeers.has_key (peersrow2.host)) {
+                    listpeers.remove (peersrow2);
+                }
+                return true;
+            });
+            arraypeers.clear ();
+        }
+
+        private bool peer_exist (string host) {
+            bool exist = false;
+            listpeers.foreach ((peersrow2) => {
+                if (peersrow2.host == host) {
+                    exist = true;
+                }
+                return true;
+            });
+            return exist;
         }
 
         private void show_files () {
-            aria_files_store (ariagid).foreach ((model, path, iter) => {
-                bool select;
-                string index, name, download, size, uris, pathname;
-                int persen;
-                model.get (iter, FileCol.FILEPATH, out pathname);
-                if (pathname == "" || pathname == null) {
-                    return false;
+            aria_files_store (ariagid).foreach ((torrentstore) => {
+                if (torrentstore.filepath == "" || torrentstore.filepath == null) {
+                    return true;
                 }
-                if (pathname.contains ("[METADATA]")) {
-                    return false;
+                if (torrentstore.filepath.contains ("[METADATA]")) {
+                    return true;
                 }
-                model.get (iter, FileCol.SELECTED, out select, FileCol.ROW, out index, FileCol.NAME, out name, FileCol.DOWNLOADED, out download, FileCol.SIZE, out size, FileCol.PERCEN, out persen, FileCol.URIS, out uris);
-                if (name == null || download == null || size == null) {
-                    return false;
+                if (torrentstore.filebasename == null || torrentstore.filesize == null || torrentstore.completesize == null) {
+                    return true;
                 }
-                if (!files_exist (select, index, Markup.escape_text (name), Markup.escape_text (pathname), download, size, persen.abs (), Markup.escape_text (uris))) {
-                    Gtk.TreeIter iters;
-                    torrstore.append (out iters);
-                    torrstore.set (iters, FileCol.SELECTED, select, FileCol.ROW, index, FileCol.NAME, Markup.escape_text (name), FileCol.FILEPATH, Markup.escape_text (pathname), FileCol.DOWNLOADED, download, FileCol.SIZE, size, FileCol.PERCEN, persen.abs (), FileCol.URIS, Markup.escape_text (uris));
+                if (!files_exist (torrentstore)) {
+                    listtorrent.add (torrentstore);
+                    listboxtorrent.append (torrentstore);
+                    torrentstore.show ();
+                    torrentstore.selecting.connect ((index, selected)=> {
+                        var builder = new StringBuilder ();
+                        uint hashb = builder.str.hash ();
+                        listtorrent.foreach ((torrentrow)=> {
+                            var selectfile = torrentrow.selected;
+                            if (torrentrow.index == index) {
+                                selectfile = selected;
+                            }
+                            if (selectfile) {
+                                if (hashb == builder.str.hash ()) {
+                                    builder.append (torrentrow.index.to_string ());
+                                } else {
+                                    builder.append (",");
+                                    builder.append (torrentrow.index.to_string ());
+                                }
+                            }
+                            return true;
+                        });
+                        if (hashb == builder.str.hash ()) {
+                            return;
+                        }
+                        string aria_gid = sendselected (ariagid, builder.str);
+                        this.ariagid = aria_gid;
+                        update_progress ();
+                    });
                 }
-                return false;
+                return true;
             });
         }
 
-        private bool aria_peers (string host) {
+        private bool files_exist (TorrentRow torrentrw) {
             bool exist = false;
-            aria_get_peers (ariagid).foreach ((mode, pat, ite) => {
-                string hosts;
-                mode.get (ite, TorrentPeers.HOST, out hosts);
-                if (host == hosts) {
+            listtorrent.foreach ((torrentrow)=> {
+                if (torrentrow.filepath == torrentrw.filepath) {
                     exist = true;
+                    torrentrow.index = torrentrw.index;
+                    torrentrow.selected = torrentrw.selected;
+                    torrentrow.filebasename = torrentrw.filebasename;
+                    torrentrow.filesize = torrentrw.filesize;
+                    torrentrow.completesize = torrentrw.completesize;
+                    torrentrow.fraction = torrentrw.fraction;
+                    torrentrow.status = torrentrw.status;
+                    torrentrow.persen = torrentrw.persen;
                 }
-                return false;
-            });
-            return exist;
-        }
-
-        private bool peers_exist (Gtk.TreeModel mode, Gtk.TreeIter ite) {
-            string host, peerid, downloadspeed, uploadspeed, seeder, bitfield, amchoking, peerchoking;
-            mode.get (ite, TorrentPeers.HOST, out host, TorrentPeers.PEERID, out peerid, TorrentPeers.DOWNLOADSPEED, out downloadspeed, TorrentPeers.UPLOADSPEED, out uploadspeed, TorrentPeers.SEEDER, out seeder, TorrentPeers.BITFIELD, out bitfield, TorrentPeers.AMCHOKING, out amchoking, TorrentPeers.PEERCHOKING, out peerchoking);
-            bool exist = false;
-            peerstore.foreach ((model, path, iter) => {
-                string hosts;
-                model.get (iter, TorrentPeers.HOST, out hosts);
-                if (host == hosts) {
-                    exist = true;
-                    peerstore.set (iter, TorrentPeers.PEERID, peerid, TorrentPeers.DOWNLOADSPEED, downloadspeed, TorrentPeers.UPLOADSPEED, uploadspeed, TorrentPeers.SEEDER, seeder, TorrentPeers.BITFIELD, bitfield, TorrentPeers.AMCHOKING, amchoking, TorrentPeers.PEERCHOKING, peerchoking);
-                }
-                return false;
-            });
-            return exist;
-        }
-
-        private bool files_exist (bool select, string index, string name, string pathname, string download, string size, int persen, string uris) {
-            bool exist = false;
-            torrstore.foreach ((model, path, iter) => {
-                string filename;
-                model.get (iter, FileCol.FILEPATH, out filename);
-                if (filename == pathname) {
-                    exist = true;
-                    torrstore.set (iter, FileCol.SELECTED, select, FileCol.ROW, index, FileCol.NAME, name, FileCol.DOWNLOADED, download, FileCol.SIZE, size, FileCol.PERCEN, persen, FileCol.URIS, uris);
-                }
-                return false;
+                return true;
             });
             return exist;
         }
