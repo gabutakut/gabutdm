@@ -24,6 +24,16 @@ namespace Gabut {
         private Gtk.Label download_rate;
         private Gtk.Label currenturi_label;
 
+        private int _index;
+        public int index {
+            get {
+                return _index;
+            }
+            set {
+                _index = value;
+            }
+        }
+
         private string _currenturi;
         public string currenturi {
             get {

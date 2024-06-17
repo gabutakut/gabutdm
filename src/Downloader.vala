@@ -40,6 +40,7 @@ namespace Gabut {
         private Gtk.ListBox listboxtorrent;
         private Gee.ArrayList<TorrentRow> listtorrent;
         private Gtk.ListBox lisboxserver;
+        private Gee.ArrayList<ServerRow> listserver;
         private Gtk.ListBox listboxpeers;
         private Gee.ArrayList<PeersRow> listpeers;
         private Gtk.TextView infotorrent;
@@ -497,6 +498,7 @@ namespace Gabut {
             centerbox.set_end_widget (box_action);
 
             lisboxserver = new Gtk.ListBox ();
+            listserver = new Gee.ArrayList<ServerRow> ();
 
             var servscrolled = new Gtk.ScrolledWindow () {
                 hexpand = true,
@@ -645,19 +647,69 @@ namespace Gabut {
             }
             if (switch_rev) {
                 if (connpeers.get_visible_child_name () == "serverconn") {
-                    lisboxserver.remove_all ();
-                    aria_servers_store (ariagid).foreach ((serverrow)=> {
-                        lisboxserver.append (serverrow);
-                        serverrow.show ();
+                    var arrayserv = aria_servers_store (ariagid);
+                    arrayserv.foreach ((serverrow) => {
+                        bool servext = false;
+                        listserver.foreach ((serverrow2) => {
+                            if (serverrow.key == serverrow2.index) {
+                                servext = true;
+                                serverrow2.currenturi = serverrow.value.currenturi;
+                                serverrow2.downloadspeed = serverrow.value.downloadspeed;
+                                serverrow2.uriserver = serverrow.value.uriserver;
+                            }
+                            return true;
+                        });
+                        if (!servext) {
+                            if (!server_exist (serverrow.key)) {
+                                lisboxserver.append (serverrow.value);
+                                listserver.add (serverrow.value);
+                                serverrow.value.show ();
+                            }
+                        }
                         return true;
                     });
+                    listserver.foreach ((servrow2) => {
+                        if (!arrayserv.has_key (servrow2.index)) {
+                            listserver.remove (servrow2);
+                            lisboxserver.remove (servrow2);
+                        }
+                        return true;
+                    });
+                    arrayserv.clear ();
                 } else {
-                    show_peers ();
-                }
-            } else {
-                if (listpeers.size > 1) {
-                    listboxpeers.remove_all ();
-                    listpeers.clear ();
+                    var arraypeers = aria_get_peers (ariagid);
+                    arraypeers.foreach ((peersrow) => {
+                        bool peerext = false;
+                        listpeers.foreach ((peersrow2) => {
+                            if (peersrow2.host == peersrow.key) {
+                                peerext = true;
+                                peersrow2.peerid = peersrow.value.peerid;
+                                peersrow2.downloadspeed = peersrow.value.downloadspeed;
+                                peersrow2.uploadspeed = peersrow.value.uploadspeed;
+                                peersrow2.peerschoking = peersrow.value.peerschoking;
+                                peersrow2.seeder = peersrow.value.seeder;
+                                peersrow2.amchoking = peersrow.value.amchoking;
+                                peersrow2.bitfield = peersrow.value.bitfield;
+                            }
+                            return true;
+                        });
+                        if (!peerext) {
+                            if (!peer_exist (peersrow.key)) {
+                                listboxpeers.append (peersrow.value);
+                                listpeers.add (peersrow.value);
+                                peersrow.value.show ();
+                            }
+                        }
+                        return true;
+                    });
+                    listpeers.foreach ((peersrow2) => {
+                        if (!arraypeers.has_key (peersrow2.host)) {
+                            listpeers.remove (peersrow2);
+                            listboxpeers.remove (peersrow2);
+                        }
+                        return true;
+                    });
+                    arraypeers.clear ();
                 }
             }
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
@@ -667,39 +719,15 @@ namespace Gabut {
             return stoptimer;
         }
 
-        private void show_peers () {
-            var arraypeers = aria_get_peers (ariagid);
-            arraypeers.foreach ((peersrow) => {
-                bool exist = false;
-                listpeers.foreach ((peersrow2) => {
-                    if (peersrow2.host == peersrow.key) {
-                        exist = true;
-                        peersrow2.peerid = peersrow.value.peerid;
-                        peersrow2.downloadspeed = peersrow.value.downloadspeed;
-                        peersrow2.uploadspeed = peersrow.value.uploadspeed;
-                        peersrow2.peerschoking = peersrow.value.peerschoking;
-                        peersrow2.seeder = peersrow.value.seeder;
-                        peersrow2.amchoking = peersrow.value.amchoking;
-                        peersrow2.bitfield = peersrow.value.bitfield;
-                    }
-                    return true;
-                });
-                if (!exist) {
-                    if (!peer_exist (peersrow.key)) {
-                        listboxpeers.append (peersrow.value);
-                        listpeers.add (peersrow.value);
-                        peersrow.value.show ();
-                    }
+        private bool server_exist (int index) {
+            bool exist = false;
+            listserver.foreach ((servrow2) => {
+                if (servrow2.index == index) {
+                    exist = true;
                 }
                 return true;
             });
-            listpeers.foreach ((peersrow2) => {
-                if (!arraypeers.has_key (peersrow2.host)) {
-                    listpeers.remove (peersrow2);
-                }
-                return true;
-            });
-            arraypeers.clear ();
+            return exist;
         }
 
         private bool peer_exist (string host) {
