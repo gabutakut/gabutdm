@@ -58,14 +58,14 @@ namespace Gabut {
             }
         }
 
-        DeAscending _deascend = null;
-        DeAscending deascend {
+        DeAscend _deascend;
+        DeAscend deascend {
             get {
                 return _deascend;
             }
             set {
                 _deascend = value;
-                set_dbsetting (DBSettings.ASCEDESCEN, _deascend.get_index ().to_string ());
+                set_dbsetting (DBSettings.ASCEDESCEN, _deascend.to_string ());
             }
         }
 
@@ -490,40 +490,31 @@ namespace Gabut {
         }
 
         public Gtk.Popover get_menu () {
-            var sort_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-                margin_top = 4,
-                margin_bottom = 4
-            };
-            var deas_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70
-            };
+            var sort_flow = new Gtk.FlowBox ();
             showtime = new Gtk.CheckButton.with_label (_("Time")) {
-                margin_start = 9,
-                margin_top = 4,
-                margin_bottom = 4,
-                margin_end = 4,
-                width_request = 130,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
+                width_request = 140,
                 active = bool.parse (get_dbsetting (DBSettings.SHOWTIME))
             };
             ((Gtk.Label) showtime.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
             ((Gtk.Label) showtime.get_last_child ()).halign = Gtk.Align.CENTER;
             ((Gtk.Label) showtime.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
             var timeimg = new Gtk.Image () {
+                halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER,
                 gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.waiting")
             };
-            var centime = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            var centime = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
+            };
             centime.append (showtime);
             centime.append (timeimg);
             showdate = new Gtk.CheckButton.with_label (_("Date")) {
-                margin_start = 9,
-                margin_top = 4,
-                margin_bottom = 4,
-                margin_end = 4,
-                width_request = 130,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
+                width_request = 140,
                 active = bool.parse (get_dbsetting (DBSettings.SHOWDATE))
             };
             ((Gtk.Label) showdate.get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
@@ -531,38 +522,60 @@ namespace Gabut {
             ((Gtk.Label) showdate.get_last_child ()).wrap_mode = Pango.WrapMode.WORD_CHAR;
             var dateimg = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
+                halign = Gtk.Align.CENTER,
                 gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.date")
             };
-            var cendate = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            var cendate = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
+            };
             cendate.append (showdate);
             cendate.append (dateimg);
-            var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
-                margin_top = 4,
-                margin_bottom = 4
+            var dsasc = new ModeTogle () {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
             };
-            box.append (sort_flow);
-            box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            box.append (deas_flow);
-            box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-            box.append (centime);
-            box.append (cendate);
+            dsasc.add_item (new ModeTogle.with_icon_label (_("Ascending"), "com.github.gabutakut.gabutdm.down"));
+            dsasc.add_item (new ModeTogle.with_icon_label (_("Descending"), "com.github.gabutakut.gabutdm.up"));
+            var box = new Gtk.Grid () {
+                margin_top = 4,
+                margin_bottom = 4,
+                row_spacing = 4,
+                width_request = 150
+            };
+            box.attach (sort_flow, 0, 0);
+            box.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 1);
+            box.attach (dsasc, 0, 2);
+            box.attach (new Gtk.Separator (Gtk.Orientation.HORIZONTAL), 0, 3);
+            box.attach (centime, 0, 4);
+            box.attach (cendate, 0, 5);
             var sort_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
-                width_request = 70,
                 child = box
             };
+            dsasc.notify["id"].connect (()=> {
+                sort_popover.hide ();
+                deascend = (DeAscend) dsasc.id;
+                list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
+                listrow.sort (sort_dm);
+            });
+            dsasc.id = int.parse (get_dbsetting (DBSettings.ASCEDESCEN));
+            deascend = (DeAscend) dsasc.id;
+
             showdate.toggled.connect (()=> {
                 sort_popover.hide ();
                 ((Gtk.Label) showdate.get_last_child ()).attributes = showdate.active? color_attribute (0, 60000, 0) : set_attribute (Pango.Weight.BOLD);
                 set_dbsetting (DBSettings.SHOWDATE, showdate.active.to_string ());
                 set_listheader ();
             });
+            ((Gtk.Label) showdate.get_last_child ()).attributes = showdate.active? color_attribute (0, 60000, 0) : set_attribute (Pango.Weight.BOLD);
             showtime.toggled.connect (()=> {
                 sort_popover.hide ();
                 ((Gtk.Label) showtime.get_last_child ()).attributes = showtime.active? color_attribute (0, 60000, 0) : set_attribute (Pango.Weight.BOLD);
                 set_dbsetting (DBSettings.SHOWTIME, showtime.active.to_string ());
                 set_listheader ();
             });
+            ((Gtk.Label) showtime.get_last_child ()).attributes = showtime.active? color_attribute (0, 60000, 0) : set_attribute (Pango.Weight.BOLD);
             set_listheader ();
             foreach (var shorty in SortbyWindow.get_all ()) {
                 sort_flow.append (new SortBy (shorty));
@@ -578,27 +591,9 @@ namespace Gabut {
             });
             sorttype = sort_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.SORTBY))) as SortBy;
             ((Gtk.Label)sorttype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-            foreach (var deas in DeAscend.get_all ()) {
-                deas_flow.append (new DeAscending (deas));
-            }
-            deas_flow.show ();
-            deas_flow.child_activated.connect ((deas)=> {
-                sort_popover.hide ();
-                ((DeAscending) deascend).activebtn = false;
-                ((Gtk.Label)deascend.get_first_child ().get_last_child ().get_prev_sibling ()).attributes = set_attribute (Pango.Weight.BOLD);
-                deascend = deas as DeAscending;
-                ((Gtk.Label)deascend.get_first_child ().get_last_child ().get_prev_sibling ()).attributes = color_attribute (0, 60000, 0);
-                deascend.activebtn = true;
-                list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
-                listrow.sort (sort_dm);
-            });
-            deascend = deas_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.ASCEDESCEN))) as DeAscending;
-            ((Gtk.Label)deascend.get_first_child ().get_last_child ().get_prev_sibling ()).attributes = color_attribute (0, 60000, 0);
-            deascend.activebtn = true;
             sort_popover.show.connect (() => {
                 sort_flow.select_child (sorttype);
                 sorttype.grab_focus ();
-                deas_flow.unselect_child (deascend);
             });
             return sort_popover;
         }
@@ -821,6 +816,7 @@ namespace Gabut {
                 }
             });
             listrow.sort (sort_dm);
+            update_info ();
         }
 
         public void add_url_box (string url, Gee.HashMap<string, string> options, bool later, int linkmode) {
@@ -886,6 +882,7 @@ namespace Gabut {
                 aria_pause (row.ariagid);
             }
             listrow.sort (sort_dm);
+            update_info ();
         }
 
         public int activedm () {
@@ -902,23 +899,26 @@ namespace Gabut {
         private void update_info () {
             var infol = aria_label_info ();
             var activedmapp = int64.parse (infol.fetch (2));
-            labelall.label = "Active: %i Download: %s Upload: %s".printf ((int)activedmapp, GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0), GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0));
-            if (menulabel == 2 && indmenu) {
+            labelall.label = _("List: %i Active: %i Download: %s Upload: %s").printf (listrow.size, (int)activedmapp, GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (1)) : 0), GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) : 0));
+            if (!indmenu) {
+                return;
+            }
+            if (activedmapp > 0) {
+                if (animation % 2 == 0) {
+                    dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
+                    dbusindicator.new_icon ();
+                } else {
+                    dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloop";   
+                    dbusindicator.new_icon ();
+                }
+                if (animation > 9) {
+                    animation = 0;
+                }
+                animation++;
+            }
+            if (menulabel == 2) {
                 dbusindicator.updateLabel = " %s".printf (GLib.format_size (activedmapp > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0));
                 dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
-                if (activedmapp > 0) {
-                    if (animation % 2 == 0) {
-                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
-                        dbusindicator.new_icon ();
-                    } else {
-                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloop";   
-                        dbusindicator.new_icon ();
-                    }
-                    if (animation > 9) {
-                        animation = 0;
-                    }
-                    animation++;
-                }
             }
         }
 

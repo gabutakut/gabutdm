@@ -1381,29 +1381,7 @@ namespace Gabut {
 
     public enum DeAscend {
         ASCENDING = 0,
-        DESCENDING = 1;
-
-        public string to_string () {
-            switch (this) {
-                case DESCENDING:
-                    return "Descending";
-                default:
-                    return "Ascending";
-            }
-        }
-
-        public string to_icon () {
-            switch (this) {
-                case DESCENDING:
-                    return "com.github.gabutakut.gabutdm.up";
-                default:
-                    return "com.github.gabutakut.gabutdm.down";
-            }
-        }
-
-        public static DeAscend [] get_all () {
-            return { ASCENDING, DESCENDING};
-        }
+        DESCENDING = 1
     }
 
     public enum MenuItem {
@@ -1823,8 +1801,8 @@ namespace Gabut {
         return torrentstore;
     }
 
-    private Gee.ArrayList<ServerRow> aria_servers_store (string gid) {
-        var serverstore = new Gee.ArrayList<ServerRow> ();
+    private Gee.HashMap<int, ServerRow> aria_servers_store (string gid) {
+        var serverstore = new Gee.HashMap<int, ServerRow> ();
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getServers\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return serverstore;
@@ -1833,14 +1811,17 @@ namespace Gabut {
             MatchInfo match_info;
             Regex regex = new Regex ("{\"currentUri\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"uri\":\"(.*?)\"");
             if (regex.match_full (result, -1, 0, 0, out match_info)) {
+                int index = 0;
                 while (match_info.matches ()) {
                     var curi = match_info.fetch (1);
                     var serverrow = new ServerRow () {
+                        index = index,
                         uriserver = match_info.fetch (3),
                         downloadspeed = GLib.format_size (int64.parse (match_info.fetch (2))),
                         currenturi = curi != null? Markup.escape_text (curi.replace ("\\/", "/")) : curi
                     };
-                    serverstore.add (serverrow);
+                    serverstore.set (index, serverrow);
+                    index++;
                     match_info.next ();
                 }
             }
@@ -2459,16 +2440,16 @@ namespace Gabut {
         return hlabel;
     }
 
-    private int sort_a (DeAscending deascending) {
-        if (deascending.deascend == DeAscend.ASCENDING) {
+    private int sort_a (DeAscend deascending) {
+        if (deascending == DeAscend.ASCENDING) {
             return 1;
         } else {
             return -1;
         }
     }
 
-    private int sort_b (DeAscending deascending) {
-        if (deascending.deascend == DeAscend.DESCENDING) {
+    private int sort_b (DeAscend deascending) {
+        if (deascending == DeAscend.DESCENDING) {
             return 1;
         } else {
             return -1;
@@ -3849,20 +3830,18 @@ namespace Gabut {
         var themename = get_dbsetting (DBSettings.THEMECUSTOM);
         switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
             case 1:
+                adwt_settings.color_scheme = Adw.ColorScheme.FORCE_LIGHT;
                 if (!tdefault) {
-                    adwt_settings.color_scheme = Adw.ColorScheme.FORCE_LIGHT;
                     gtk_settings.gtk_theme_name = "Adwaita-empty";
                 } else {
-                    gtk_settings.gtk_application_prefer_dark_theme = false;
                     gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                 }
                 break;
             case 2:
+                adwt_settings.color_scheme = Adw.ColorScheme.FORCE_DARK;
                 if (!tdefault) {
-                    adwt_settings.color_scheme = Adw.ColorScheme.FORCE_DARK;
                     gtk_settings.gtk_theme_name = "Adwaita-empty";
                 } else {
-                    gtk_settings.gtk_application_prefer_dark_theme = true;
                     gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                 }
                 break;
@@ -3870,20 +3849,18 @@ namespace Gabut {
                 PortalSettings portalsettings = yield GLib.Bus.get_proxy (GLib.BusType.SESSION, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop");
                 if (portalsettings != null) {
                     themecall = gdm_theme.callback;
+                    adwt_settings.color_scheme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
                     if (!tdefault) {
-                        adwt_settings.color_scheme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
                         gtk_settings.gtk_theme_name = "Adwaita-empty";
                     } else {
-                        gtk_settings.gtk_application_prefer_dark_theme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? true : false;
                         gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                     }
                     portalsettings.setting_changed.connect ((scheme, key, value) => {
                         if (scheme == "org.freedesktop.appearance" && key == "color-scheme") {
+                            adwt_settings.color_scheme = value.get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
                             if (!tdefault) {
-                                adwt_settings.color_scheme = value.get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
                                 gtk_settings.gtk_theme_name = "Adwaita-empty";
                             } else {
-                                gtk_settings.gtk_application_prefer_dark_theme = value.get_uint32 () == 1? true : false;
                                 gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
                             }
                         }

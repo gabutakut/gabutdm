@@ -41,6 +41,7 @@ namespace Gabut {
 
         public int append_text (string text) {
             var label = new Gtk.Label (text) {
+                valign = Gtk.Align.CENTER,
                 attributes = set_attribute (Pango.Weight.ULTRABOLD)
             };
             return appends (label);
@@ -48,14 +49,15 @@ namespace Gabut {
 
         public int append_icon_text (string icon_name, string name_label) {
             var label = new Gtk.Label (name_label) {
+                valign = Gtk.Align.CENTER,
                 attributes = set_attribute (Pango.Weight.ULTRABOLD)
             };
             var gridn = new Gtk.Grid () {
                 column_spacing = 4,
-                margin_top = 7
+                valign = Gtk.Align.CENTER
             };
-            gridn.attach (new Gtk.Image.from_icon_name (icon_name), 0, 1);
-            gridn.attach (label, 1, 1);
+            gridn.attach (new Gtk.Image.from_icon_name (icon_name), 0, 0);
+            gridn.attach (label, 1, 0);
             return appends (gridn);
         }
 

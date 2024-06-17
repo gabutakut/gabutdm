@@ -41,6 +41,28 @@ namespace Gabut {
             checkbtn.set_label (value);
         }
 
+        public ModeTogle.with_icon_label (string value, string nameico) {
+            var title = new Gtk.Label (value) {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
+                wrap_mode = Pango.WrapMode.WORD_CHAR,
+                attributes = set_attribute (Pango.Weight.BOLD),
+                width_request = 110
+            };
+            var dateimg = new Gtk.Image () {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
+                gicon = new ThemedIcon (nameico)
+            };
+            var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER
+            };
+            box.append (title);
+            box.append (dateimg);
+            checkbtn.child = box;
+        }
+
         construct {
             orientation = Gtk.Orientation.VERTICAL;
             checkbtn = new Gtk.CheckButton () {
@@ -76,6 +98,10 @@ namespace Gabut {
                 }
                 child.checkbtn.toggled.connect (()=> {
                     if (child.checkbtn.active) {
+                        if (child.checkbtn.get_last_child ().name == "GtkBox") {
+                            ((Gtk.Label)menuchildren.nth_data (id).checkbtn.get_last_child ().get_first_child ()).attributes = set_attribute (Pango.Weight.BOLD);
+                            ((Gtk.Label)child.checkbtn.get_last_child ().get_first_child ()).attributes = color_attribute (0, 60000, 0);
+                        }
                         id = child.id;
                     }
                 });
