@@ -532,7 +532,6 @@ namespace Gabut {
             maingrid.append (revcon);
 
             notify["switch-rev"].connect (()=> {
-                revcon.queue_allocate ();
                 if (switch_rev) {
                     lisboxserver.show ();
                     listboxpeers.show ();
@@ -542,7 +541,6 @@ namespace Gabut {
                     listboxpeers.hide ();
                     revcon.reveal_child = false;
                 }
-                revcon.queue_allocate ();
             });
 
             view_mode.notify["selected"].connect (() => {
