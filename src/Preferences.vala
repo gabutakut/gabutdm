@@ -678,9 +678,11 @@ namespace Gabut {
             label_rev.reveal_child = menuindicator.active;
             menuindicator.toggled.connect (()=> {
                 label_rev.reveal_child = menuindicator.active;
+                label_mode.sensitive = dbusmenu.active && menuindicator.active;
             });
             dbusmenu.toggled.connect (()=> {
                 menuindicator.sensitive = dbusmenu.active;
+                label_mode.sensitive = dbusmenu.active && menuindicator.active;
             });
             var tdefault = new Gtk.CheckButton.with_label (_("Theme")) {
                 margin_top = 5,
@@ -755,6 +757,7 @@ namespace Gabut {
             notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 16, 1, 1);
             notifyopt.attach (allowrepl, 0, 17, 1, 1);
             notifyopt.attach (autorename, 0, 18, 1, 1);
+            label_mode.sensitive = dbusmenu.active && menuindicator.active;
 
             var notyscr = new Gtk.ScrolledWindow () {
                 width_request = 455,
