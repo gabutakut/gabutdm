@@ -248,7 +248,7 @@ namespace Gabut {
             headerstack.show ();
 
             modeview = new Gtk.Image () {
-                margin_start = 6,
+                margin_start = 10,
                 valign = Gtk.Align.CENTER,
                 gicon = new ThemedIcon ("com.github.gabutakut.gabutdm")
             };
@@ -271,7 +271,7 @@ namespace Gabut {
             download_rate = new Gtk.Label (null) {
                 xalign = 0,
                 use_markup = true,
-                width_request = 70,
+                width_request = 60,
                 valign = Gtk.Align.CENTER,
                 attributes = color_attribute (0, 60000, 0)
             };
@@ -283,7 +283,7 @@ namespace Gabut {
             upload_rate = new Gtk.Label (null) {
                 xalign = 0,
                 use_markup = true,
-                width_request = 70,
+                width_request = 60,
                 valign = Gtk.Align.CENTER,
                 attributes = color_attribute (60000, 0, 0)
             };
@@ -299,7 +299,7 @@ namespace Gabut {
             var imgactive = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
                 margin_end = 6,
-                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.active"),
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.onactive"),
                 tooltip_text = _("Active Download")
             };
             
