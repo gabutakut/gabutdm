@@ -1155,13 +1155,26 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case PREALLOC:
-                    return "Prealloc";
+                    return _("Prealloc");
                 case TRUNC:
-                    return "Trunc";
+                    return _("Trunc");
                 case FALLOC:
-                    return "Falloc";
+                    return _("Falloc");
                 default:
-                    return "None";
+                    return _("None");
+            }
+        }
+
+        public string to_tooltip () {
+            switch (this) {
+                case PREALLOC:
+                    return _("Pre-allocates file space before download begins");
+                case TRUNC:
+                    return _("Uses ftruncate(2) system call or platform-specific counterpart to truncate a file to a specified length");
+                case FALLOC:
+                    return _("is your best choice. It allocates large(few GiB) files almost instantly");
+                default:
+                    return _("Doesn't pre-allocate file space");
             }
         }
 
@@ -1177,9 +1190,9 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case TUNNEL:
-                    return "Tunnel";
+                    return _("Tunnel");
                 default:
-                    return "Get";
+                    return _("Get");
             }
         }
 
@@ -1195,9 +1208,9 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case ARC4:
-                    return "Arc4";
+                    return _("Arc4");
                 default:
-                    return "Plain";
+                    return _("Plain");
             }
         }
 
@@ -1213,9 +1226,9 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case FTP:
-                    return "FTP";
+                    return _("FTP");
                 default:
-                    return "HTTP";
+                    return _("HTTP");
             }
         }
 
@@ -1233,13 +1246,26 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case INORDER:
-                    return "Inorder";
+                    return _("Inorder");
                 case RANDOM:
-                    return "Random";
+                    return _("Random");
                 case GEOM:
-                    return "Geom";
+                    return _("Geom");
                 default:
-                    return "Default";
+                    return _("Default");
+            }
+        }
+
+        public string to_tooltip () {
+            switch (this) {
+                case INORDER:
+                    return _("Select a piece closest to the beginning of the file");
+                case RANDOM:
+                    return _("Select a piece randomly");
+                case GEOM:
+                    return _("When starting to download a file, select a piece closest to the beginning of the file like inorder, but then exponentially increases space between pieces");
+                default:
+                    return _("Select a piece to reduce the number of connections established");
             }
         }
 
@@ -1256,11 +1282,22 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case INORDER:
-                    return "Inorder";
+                    return _("Inorder");
                 case ADAPTIVE:
-                    return "Adaptive";
+                    return _("Adaptive");
                 default:
-                    return "Feedback";
+                    return _("Feedback");
+            }
+        }
+
+        public string to_tooltip () {
+            switch (this) {
+                case INORDER:
+                    return _("URI is tried in the order appeared in the URI list");
+                case ADAPTIVE:
+                    return _("selects one of the best mirrors for the first and reserved connections.");
+                default:
+                    return _("Aria2 uses download speed observed in the previous downloads and choose fastest server in the URI list");
             }
         }
 
@@ -1308,13 +1345,13 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case HTTP:
-                    return "HTTP";
+                    return _("HTTP");
                 case HTTPS:
-                    return "HTTPS";
+                    return _("HTTPS");
                 case FTP:
-                    return "FTP";
+                    return _("FTP");
                 default:
-                    return "ALL";
+                    return _("ALL");
             }
         }
 

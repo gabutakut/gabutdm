@@ -69,7 +69,6 @@ namespace Gabut {
             }
             set {
                 _deascend = value;
-                set_dbsetting (DBSettings.ASCEDESCEN, _deascend.to_string ());
             }
         }
 
@@ -273,6 +272,7 @@ namespace Gabut {
                 use_markup = true,
                 width_request = 60,
                 valign = Gtk.Align.CENTER,
+                tooltip_text = _("Download Speed"),
                 attributes = color_attribute (0, 60000, 0)
             };
             var img_upload = new Gtk.Image () {
@@ -285,6 +285,7 @@ namespace Gabut {
                 use_markup = true,
                 width_request = 60,
                 valign = Gtk.Align.CENTER,
+                tooltip_text = _("Upload Speed"),
                 attributes = color_attribute (60000, 0, 0)
             };
             var gridinf = new Gtk.Grid () {
@@ -627,6 +628,7 @@ namespace Gabut {
             dsasc.notify["id"].connect (()=> {
                 sort_popover.hide ();
                 deascend = (DeAscend) dsasc.id;
+                set_dbsetting (DBSettings.ASCEDESCEN, dsasc.id.to_string ());
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
                 listrow.sort (sort_dm);
             });
@@ -663,8 +665,7 @@ namespace Gabut {
             sorttype = sort_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.SORTBY))) as SortBy;
             ((Gtk.Label)sorttype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
             sort_popover.show.connect (() => {
-                sort_flow.select_child (sorttype);
-                sorttype.grab_focus ();
+                sort_flow.unselect_all ();
             });
             return sort_popover;
         }

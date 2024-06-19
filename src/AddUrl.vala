@@ -183,7 +183,9 @@ namespace Gabut {
             header.title_widget = view_mode;
             header.decoration_layout = "none";
 
-            folder_location = new Gtk.Button ();
+            folder_location = new Gtk.Button () {
+                tooltip_text = _("The directory to store the downloaded file")
+            };
             folder_location.clicked.connect (()=> {
                 run_open_fd.begin (this, OpenFiles.OPENPERDONLOADFOLDER, (obj, res)=> {
                     try {
@@ -207,7 +209,9 @@ namespace Gabut {
             });
             ((Gtk.Label) usefolder.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             folder_location.sensitive = usefolder.active;
-            cookie_location = new Gtk.Button ();
+            cookie_location = new Gtk.Button () {
+                tooltip_text = _("Load cookie a text file")
+            };
             cookie_location.clicked.connect (()=> {
                 run_open_all.begin (this, OpenFiles.OPENCOOKIES, (obj, res)=> {
                     try {
@@ -315,10 +319,7 @@ namespace Gabut {
             alllink.attach (foldergrid, 1, 5, 1, 1);
             alllink.attach (metaoverlay, 2, 0, 1, 5);
 
-            method_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70
-            };
+            method_flow = new Gtk.FlowBox ();
             var method_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
                 width_request = 70,
@@ -343,10 +344,7 @@ namespace Gabut {
             });
             proxymethod = method_flow.get_child_at_index (0) as ProxyMethod;
 
-            type_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-            };
+            type_flow = new Gtk.FlowBox ();
             var type_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
                 width_request = 70,
@@ -377,6 +375,7 @@ namespace Gabut {
             };
 
             port_entry = new Gtk.SpinButton.with_range (0, 999999, 1) {
+                tooltip_text = _("Port"),
                 width_request = 250
             };
 
@@ -407,10 +406,7 @@ namespace Gabut {
             proxygrid.attach (headerlabel (_("Password:"), 250), 1, 4, 1, 1);
             proxygrid.attach (pass_entry, 1, 5, 1, 1);
 
-            login_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70
-            };
+            login_flow = new Gtk.FlowBox ();
             var login_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
                 width_request = 70,
@@ -423,6 +419,7 @@ namespace Gabut {
                 }
             });
             login_button = new Gtk.MenuButton () {
+                tooltip_text = _("FTP/HTTP download with username and password"),
                 popover = login_popover
             };
             foreach (var logn in LoginUsers.get_all ()) {
@@ -477,9 +474,7 @@ namespace Gabut {
             moregrid.attach (headerlabel (_("Referer:"), 350), 1, 2, 1, 1);
             moregrid.attach (refer_entry, 1, 3, 1, 1);
 
-            checksums_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL
-            };
+            checksums_flow = new Gtk.FlowBox ();
             var checksums_popover = new Gtk.Popover () {
                 position = Gtk.PositionType.TOP,
                 width_request = 70,
@@ -492,6 +487,7 @@ namespace Gabut {
                 }
             });
             checksum_button = new Gtk.MenuButton () {
+                tooltip_text = _("TYPE is hash type"),
                 popover = checksums_popover
             };
             foreach (var checksum in AriaChecksumTypes.get_all ()) {
@@ -520,18 +516,17 @@ namespace Gabut {
             checksumgrid.attach (checksum_entry, 1, 3, 1, 1);
 
             integrity = new Gtk.CheckButton.with_label (_("BT Seed")) {
+                tooltip_text = _("Check file integrity by validating piece hashes or a hash of entire file."),
                 width_request = 350,
                 margin_bottom = 5
             };
 
             unverified = new Gtk.CheckButton.with_label (_("BT Seed Unverified")) {
+                tooltip_text = _("Seed previously downloaded files without verifying piece hashes"),
                 width_request = 350
             };
 
-            encrypt_flow = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70
-            };
+            encrypt_flow = new Gtk.FlowBox ();
             var encrypt_popover = new Gtk.Popover () {
                 width_request = 70,
                 child = encrypt_flow
@@ -558,6 +553,7 @@ namespace Gabut {
             btencrypt = encrypt_flow.get_child_at_index (0) as BTEncrypt;
 
             encrypt = new Gtk.CheckButton.with_label (_("BT Require Crypto")) {
+                tooltip_text = _("Aria2 doesn't accept and establish connection with legacy BitTorrent handshake"),
                 width_request = 350,
                 margin_bottom = 5
             };
