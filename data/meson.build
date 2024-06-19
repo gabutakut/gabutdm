@@ -48,21 +48,8 @@ actions = [
 foreach m : actions
     install_data(
         join_paths('icons', 'actions', meson.project_name() + m),
-        install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', '16x16' , 'apps')
+        install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', 'scalable' , 'apps')
     )
-    install_data(
-        join_paths('icons', 'actions', meson.project_name() + m),
-        install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', '24x24' , 'apps')
-    )
-    install_data(
-        join_paths('icons', 'actions', meson.project_name() + m),
-        install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', '32x32' , 'apps')
-    )
-    install_data(
-        join_paths('icons', 'actions', meson.project_name() + m),
-        install_dir: join_paths(get_option('datadir'), 'icons', 'hicolor', '48x48' , 'apps')
-    )
-
 endforeach
 
 # Translate and install our .desktop file so the Applications Menu will see it
