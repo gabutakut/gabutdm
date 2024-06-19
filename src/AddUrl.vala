@@ -321,16 +321,8 @@ namespace Gabut {
 
             method_flow = new Gtk.FlowBox ();
             var method_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.TOP,
-                width_request = 70,
                 child = method_flow
             };
-            method_popover.show.connect (() => {
-                if (proxymethod != null) {
-                    method_flow.select_child (proxymethod);
-                    proxymethod.grab_focus ();
-                }
-            });
             prometh_button = new Gtk.MenuButton () {
                 popover = method_popover
             };
@@ -339,23 +331,20 @@ namespace Gabut {
             }
             method_flow.show ();
             method_flow.child_activated.connect ((method)=> {
+                ((Gtk.Label)((ProxyMethod) proxymethod).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 proxymethod = method as ProxyMethod;
+                ((Gtk.Label)proxymethod.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 method_popover.hide ();
             });
             proxymethod = method_flow.get_child_at_index (0) as ProxyMethod;
-
+            ((Gtk.Label)proxymethod.get_last_child ()).attributes = color_attribute (0, 60000, 0);
+            method_popover.show.connect (() => {
+                method_flow.unselect_all ();
+            });
             type_flow = new Gtk.FlowBox ();
             var type_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.TOP,
-                width_request = 70,
                 child = type_flow
             };
-            type_popover.show.connect (() => {
-                if (proxytype != null) {
-                    type_flow.select_child (proxytype);
-                    proxytype.grab_focus ();
-                }
-            });
             type_button = new Gtk.MenuButton () {
                 popover = type_popover
             };
@@ -364,11 +353,16 @@ namespace Gabut {
             }
             type_flow.show ();
             type_flow.child_activated.connect ((typepr)=> {
+                ((Gtk.Label)((ProxyType) proxytype).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 proxytype = typepr as ProxyType;
+                ((Gtk.Label)proxytype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 type_popover.hide ();
             });
             proxytype = type_flow.get_child_at_index (0) as ProxyType;
-
+            ((Gtk.Label)proxytype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
+            type_popover.show.connect (() => {
+                type_flow.unselect_all ();
+            });
             proxy_entry = new MediaEntry ("com.github.gabutakut.gabutdm.gohome", "edit-paste") {
                 width_request = 250,
                 placeholder_text = _("Address")
@@ -408,16 +402,8 @@ namespace Gabut {
 
             login_flow = new Gtk.FlowBox ();
             var login_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.TOP,
-                width_request = 70,
                 child = login_flow
             };
-            login_popover.show.connect (() => {
-                if (loginuser != null) {
-                    login_flow.select_child (loginuser);
-                    loginuser.grab_focus ();
-                }
-            });
             login_button = new Gtk.MenuButton () {
                 tooltip_text = _("FTP/HTTP download with username and password"),
                 popover = login_popover
@@ -428,11 +414,16 @@ namespace Gabut {
             login_flow.show ();
 
             login_flow.child_activated.connect ((logn)=> {
+                ((Gtk.Label)((LoginUser) loginuser).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 loginuser = logn as LoginUser;
+                ((Gtk.Label)loginuser.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 login_popover.hide ();
             });
             loginuser = login_flow.get_child_at_index (0) as LoginUser;
-
+            ((Gtk.Label)loginuser.get_last_child ()).attributes = color_attribute (0, 60000, 0);
+            login_popover.show.connect (() => {
+                login_flow.unselect_all ();
+            });
             loguser_entry = new MediaEntry ("avatar-default", "edit-paste") {
                 width_request = 350,
                 placeholder_text = _("User")
@@ -476,16 +467,8 @@ namespace Gabut {
 
             checksums_flow = new Gtk.FlowBox ();
             var checksums_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.TOP,
-                width_request = 70,
                 child = checksums_flow
             };
-            checksums_popover.show.connect (() => {
-                if (checksumtype != null) {
-                    checksums_flow.select_child (checksumtype);
-                    checksumtype.grab_focus ();
-                }
-            });
             checksum_button = new Gtk.MenuButton () {
                 tooltip_text = _("TYPE is hash type"),
                 popover = checksums_popover
@@ -500,11 +483,17 @@ namespace Gabut {
                 placeholder_text = _("Hash")
             };
             checksums_flow.child_activated.connect ((checksum)=> {
+                ((Gtk.Label)((ChecksumType) checksumtype).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 checksumtype = checksum as ChecksumType;
+                ((Gtk.Label)checksumtype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 checksums_popover.hide ();
             });
             checksumtype = checksums_flow.get_child_at_index (0) as ChecksumType;
+            ((Gtk.Label)checksumtype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
 
+            checksums_popover.show.connect (() => {
+                checksums_flow.unselect_all ();
+            });
             var checksumgrid = new Gtk.Grid () {
                 height_request = 130,
                 halign = Gtk.Align.CENTER,
@@ -528,17 +517,9 @@ namespace Gabut {
 
             encrypt_flow = new Gtk.FlowBox ();
             var encrypt_popover = new Gtk.Popover () {
-                width_request = 70,
                 child = encrypt_flow
             };
-            encrypt_popover.show.connect (() => {
-                if (btencrypt != null) {
-                    encrypt_flow.select_child (btencrypt);
-                    btencrypt.grab_focus ();
-                }
-            });
             encrypt_button = new Gtk.MenuButton () {
-                direction = Gtk.ArrowType.UP,
                 popover = encrypt_popover
             };
             foreach (var encrp in BTEncrypts.get_all ()) {
@@ -547,11 +528,17 @@ namespace Gabut {
             encrypt_flow.show ();
 
             encrypt_flow.child_activated.connect ((encrp)=> {
+                ((Gtk.Label)((BTEncrypt) btencrypt).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 btencrypt = encrp as BTEncrypt;
+                ((Gtk.Label)btencrypt.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 encrypt_popover.hide ();
             });
             btencrypt = encrypt_flow.get_child_at_index (0) as BTEncrypt;
+            ((Gtk.Label)btencrypt.get_last_child ()).attributes = color_attribute (0, 60000, 0);
 
+            encrypt_popover.show.connect (() => {
+                encrypt_flow.unselect_all ();
+            });
             encrypt = new Gtk.CheckButton.with_label (_("BT Require Crypto")) {
                 tooltip_text = _("Aria2 doesn't accept and establish connection with legacy BitTorrent handshake"),
                 width_request = 350,
