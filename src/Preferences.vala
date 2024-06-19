@@ -173,15 +173,9 @@ namespace Gabut {
 
             var stream_flow = new Gtk.FlowBox ();
             var stream_popover = new Gtk.Popover () {
-                width_request = 70,
                 child = stream_flow
             };
-            stream_popover.show.connect (() => {
-                if (pieceselector != null) {
-                    stream_flow.select_child (pieceselector);
-                    pieceselector.grab_focus ();
-                }
-            });
+
             piecesel_button = new Gtk.MenuButton () {
                 direction = Gtk.ArrowType.UP,
                 tooltip_text = _("Specify piece selection algorithm used in HTTP/FTP download"),
@@ -192,27 +186,26 @@ namespace Gabut {
             }
             stream_flow.show ();
             stream_flow.child_activated.connect ((piecesel)=> {
+                ((Gtk.Label)((PieceSelector) pieceselector).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 pieceselector = piecesel as PieceSelector;
+                ((Gtk.Label)pieceselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 stream_popover.hide ();
             });
             for (int a = 0; a <= PieceSelectors.GEOM; a++) {
                 var piecesel = stream_flow.get_child_at_index (a);
                 if (((PieceSelector) piecesel).selector.to_string ().down () == pharse_options (pack_data, AriaOptions.STREAM_PIECE_SELECTOR)) {
                     pieceselector = piecesel as PieceSelector;
+                    ((Gtk.Label)pieceselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 }
             }
-
+            stream_popover.show.connect (() => {
+                stream_flow.unselect_all ();
+            });
             var urisel_flow = new Gtk.FlowBox ();
             var urisel_popover = new Gtk.Popover () {
-                width_request = 70,
                 child = urisel_flow
             };
-            urisel_popover.show.connect (() => {
-                if (uriselector != null) {
-                    urisel_flow.select_child (uriselector);
-                    uriselector.grab_focus ();
-                }
-            });
+
             urisel_button = new Gtk.MenuButton () {
                 direction = Gtk.ArrowType.UP,
                 tooltip_text = _("Specify URI selection algorithm"),
@@ -223,16 +216,21 @@ namespace Gabut {
             }
             urisel_flow.show ();
             urisel_flow.child_activated.connect ((urisel)=> {
+                ((Gtk.Label)((UriSelector) uriselector).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 uriselector = urisel as UriSelector;
+                ((Gtk.Label)uriselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 urisel_popover.hide ();
             });
             for (int a = 0; a <= UriSelectors.ADAPTIVE; a++) {
                 var urisel = urisel_flow.get_child_at_index (a);
                 if (((UriSelector) urisel).selector.to_string ().down () == pharse_options (pack_data, AriaOptions.URI_SELECTOR)) {
                     uriselector = urisel as UriSelector;
+                    ((Gtk.Label)uriselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 }
             }
-
+            urisel_popover.show.connect (() => {
+                urisel_flow.unselect_all ();
+            });
             var settings = new Gtk.Grid () {
                 column_homogeneous = true,
                 height_request = 150,
@@ -586,16 +584,9 @@ namespace Gabut {
 
             var allocate_flow = new Gtk.FlowBox ();
             var allocate_popover = new Gtk.Popover () {
-                position = Gtk.PositionType.TOP,
-                width_request = 70,
                 child = allocate_flow
             };
-            allocate_popover.show.connect (() => {
-                if (fileallocation != null) {
-                    allocate_flow.select_child (fileallocation);
-                    fileallocation.grab_focus ();
-                }
-            });
+
             allocate_button = new Gtk.MenuButton () {
                 tooltip_text = _("Specify file allocation method"),
                 popover = allocate_popover
@@ -605,16 +596,21 @@ namespace Gabut {
             }
             allocate_flow.show ();
             allocate_flow.child_activated.connect ((allocate)=> {
+                ((Gtk.Label)((FileAllocation) fileallocation).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 fileallocation = allocate as FileAllocation;
+                ((Gtk.Label)fileallocation.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 allocate_popover.hide ();
             });
             for (int a = 0; a <= FileAllocations.FALLOC; a++) {
                 var allocate = allocate_flow.get_child_at_index (a);
                 if (((FileAllocation) allocate).fileallocation.to_string ().down () == pharse_options (pack_data, AriaOptions.FILE_ALLOCATION)) {
                     fileallocation = allocate as FileAllocation;
+                    ((Gtk.Label)fileallocation.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 }
             }
-
+            allocate_popover.show.connect (() => {
+                allocate_flow.unselect_all ();
+            });
             var moreoptions = new Gtk.Grid () {
                 column_homogeneous = true,
                 height_request = 150,

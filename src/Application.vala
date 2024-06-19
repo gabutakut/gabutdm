@@ -67,7 +67,8 @@ namespace Gabut {
         protected override void activate () {
             if (gabutwindow == null) {
                 if (open_database (out gabutdb) != Sqlite.OK) {
-                    notify_app (_("Database Error"), _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
+                    notify_app (_("Database Error"), 
+                    _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
                     play_sound ("dialog-error");
                 }
                 settings_table ();

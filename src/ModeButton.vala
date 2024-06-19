@@ -80,18 +80,9 @@ namespace Gabut {
             return index;
         }
 
-        private void clear_selected () {
-            _selected = -1;
-            foreach (var item in item_map.values) {
-                if (item != null && item.active) {
-                    item.set_active (false);
-                }
-            }
-        }
-
         public void set_active (int new_active_index) {
             if (new_active_index <= -1) {
-                clear_selected ();
+                _selected = -1;
                 return;
             }
             var new_item = item_map[new_active_index] as Item;
