@@ -31,7 +31,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="2.2.7" date="2024-6-20">
+    <release version="2.2.8" date="2024-6-20">
       <description>
         <p>Replace Treeview to Listbox</p>
         <p>Remove and replace Deprecated library</p>
