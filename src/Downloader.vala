@@ -446,6 +446,7 @@ namespace Gabut {
 
             var boxstatus = new Gtk.Grid () {
                 halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
                 hexpand = true,
                 orientation = Gtk.Orientation.VERTICAL
             };
@@ -521,15 +522,12 @@ namespace Gabut {
                 transition_type = Gtk.RevealerTransitionType.SWING_DOWN,
                 child = connpeers
             };
-
-            var maingrid = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
-                hexpand = true,
-                margin_start = 10,
-                margin_end = 10
-            };
-            maingrid.append (boxstatus);
-            maingrid.append (centerbox);
-            maingrid.append (revcon);
+            var boxarea = get_content_area ();
+            boxarea.margin_start = 10;
+            boxarea.margin_end = 10;
+            boxarea.append (boxstatus);
+            boxarea.append (centerbox);
+            boxarea.append (revcon);
 
             notify["switch-rev"].connect (()=> {
                 if (switch_rev) {
@@ -559,7 +557,6 @@ namespace Gabut {
                         break;
                 }
             });
-            child = maingrid;
         }
 
         public override void show () {

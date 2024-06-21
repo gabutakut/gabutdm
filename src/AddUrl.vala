@@ -147,6 +147,12 @@ namespace Gabut {
             }
         }
 
+        public string linked {
+            get {
+                return link_entry.text;
+            }
+        }
+
         public AddUrl (Gtk.Application application) {
             Object (application: application,
                     dialogtype: DialogType.ADDURL,
@@ -635,18 +641,11 @@ namespace Gabut {
                     box_action.set_end_widget (close_button);
                     break;
             }
-
-            var maingrid = new Gtk.Grid () {
-                orientation = Gtk.Orientation.VERTICAL,
-                halign = Gtk.Align.CENTER,
-                hexpand = true,
-                margin_start = 10,
-                margin_end = 10
-            };
-            maingrid.attach (stack, 0, 0);
-            maingrid.attach (box_action, 0, 1);
-
-            child = maingrid;
+            var boxarea = get_content_area ();
+            boxarea.margin_start = 10;
+            boxarea.margin_end = 10;
+            boxarea.append (stack);
+            boxarea.append (box_action);
 
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
@@ -850,10 +849,6 @@ namespace Gabut {
         public void add_link (string url, string icon) {
             link_entry.text = url;
             status_image.gicon = new ThemedIcon (icon);
-        }
-
-        public string get_link () {
-            return link_entry.text;
         }
 
         public void server_link (MatchInfo match_info) {
