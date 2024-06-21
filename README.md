@@ -59,6 +59,3 @@ You can transfer to my paypal account `torikhabib` or just click [PayPal Me](htt
 
 **Bitcoin**  
 Bitcoin Address `19mZDWzZgzkHCi9YX9H3fYCUuCHq3W6wfT`
-
-**Saweria**  
-![alt text](image.png)
