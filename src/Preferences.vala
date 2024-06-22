@@ -191,7 +191,7 @@ namespace Gabut {
                 ((Gtk.Label)pieceselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 stream_popover.hide ();
             });
-            for (int a = 0; a <= PieceSelectors.GEOM; a++) {
+            foreach (var a in PieceSelectors.get_all ()) {
                 var piecesel = stream_flow.get_child_at_index (a);
                 if (((PieceSelector) piecesel).selector.to_string ().down () == pharse_options (pack_data, AriaOptions.STREAM_PIECE_SELECTOR)) {
                     pieceselector = piecesel as PieceSelector;
@@ -221,7 +221,7 @@ namespace Gabut {
                 ((Gtk.Label)uriselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 urisel_popover.hide ();
             });
-            for (int a = 0; a <= UriSelectors.ADAPTIVE; a++) {
+            foreach (var a in UriSelectors.get_all ()) {
                 var urisel = urisel_flow.get_child_at_index (a);
                 if (((UriSelector) urisel).selector.to_string ().down () == pharse_options (pack_data, AriaOptions.URI_SELECTOR)) {
                     uriselector = urisel as UriSelector;
@@ -601,7 +601,7 @@ namespace Gabut {
                 ((Gtk.Label)fileallocation.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 allocate_popover.hide ();
             });
-            for (int a = 0; a <= FileAllocations.FALLOC; a++) {
+            foreach (var a in FileAllocations.get_all ()) {
                 var allocate = allocate_flow.get_child_at_index (a);
                 if (((FileAllocation) allocate).fileallocation.to_string ().down () == pharse_options (pack_data, AriaOptions.FILE_ALLOCATION)) {
                     fileallocation = allocate as FileAllocation;

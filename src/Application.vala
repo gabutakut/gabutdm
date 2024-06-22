@@ -240,9 +240,9 @@ namespace Gabut {
                 return;
             }
             var addurl = new AddUrl (this) {
-                transient_for = gabutwindow
+                transient_for = gabutwindow,
+                portserver = match_info
             };
-            addurl.server_link (match_info);
             addurls.append (addurl);
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
@@ -288,10 +288,11 @@ namespace Gabut {
                 return true;
             }
             var addurl = new AddUrl (this) {
-                transient_for = gabutwindow
+                transient_for = gabutwindow,
+                url_link = link.strip (),
+                url_icon = icon,
+                meta_sensitive = metabtn
             };
-            addurl.add_link (link, icon);
-            addurl.save_meta.sensitive = metabtn;
             addurls.append (addurl);
             addurl.downloadfile.connect ((url, options, later, linkmode)=> {
                 gabutwindow.add_url_box (url, options, later, linkmode);
@@ -320,7 +321,7 @@ namespace Gabut {
         private bool url_active (string url) {
             bool active = false;
             addurls.foreach ((urls)=> {
-                if (urls.linked == url) {
+                if (urls.url_link == url) {
                     active = true;
                 }
             });

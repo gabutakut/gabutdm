@@ -916,18 +916,6 @@ namespace Gabut {
         }
     }
 
-    private enum TorrentPeers {
-        HOST,
-        PEERID,
-        DOWNLOADSPEED,
-        UPLOADSPEED,
-        SEEDER,
-        BITFIELD,
-        AMCHOKING,
-        PEERCHOKING,
-        N_COLUMNS
-    }
-
     private enum AriaGetfiles {
         INDEX = 0,
         PATH = 1,
@@ -1102,26 +1090,6 @@ namespace Gabut {
                     return "id";
             }
         }
-    }
-
-    private enum FileCol {
-        SELECTED,
-        ROW,
-        NAME,
-        FILEPATH,
-        DOWNLOADED,
-        SIZE,
-        PERCEN,
-        URIS,
-        N_COLUMNS
-    }
-
-    private enum ServersCol {
-        NO,
-        CURRENTURI,
-        DOWNLOADSPEED,
-        URI,
-        N_COLUMNS
     }
 
     private enum PostServer {
@@ -1369,13 +1337,13 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case SIZE:
-                    return "Size";
+                    return _("Size");
                 case TYPE:
-                    return "Type";
+                    return _("Type");
                 case TIMEADDED:
-                    return "Time Added";
+                    return _("Time Added");
                 default:
-                    return "Name";
+                    return _("Name");
             }
         }
 
@@ -1392,11 +1360,11 @@ namespace Gabut {
         public string to_string () {
             switch (this) {
                 case MOVETOTRASH:
-                    return "Move to Trash";
+                    return _("Move to Trash");
                 case PROPERTIES:
-                    return "Properties";
+                    return _("Properties");
                 default:
-                    return "Open Folder";
+                    return _("Open Folder");
             }
         }
 

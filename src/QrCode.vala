@@ -22,7 +22,7 @@
 namespace Gabut {
     public class QrCode : Gtk.Dialog {
         public signal string get_host (bool reboot);
-        private Gtk.Image imageqr;
+        private QrcodePaint qrpaint;
         private Gtk.Image icon_badge;
         private Gtk.LinkButton linkbutton;
         private Gtk.Button host_button;
@@ -86,13 +86,16 @@ namespace Gabut {
             header.title_widget = header_grid;
             header.decoration_layout = "none";
 
-            imageqr = new Gtk.Image () {
+            var imageqr = new Gtk.Image () {
                 halign = Gtk.Align.START,
                 valign = Gtk.Align.START,
                 pixel_size = 256,
                 margin_start = 10,
                 margin_end = 10
             };
+            qrpaint = new QrcodePaint ();
+            imageqr.paintable = qrpaint;
+            qrpaint.queue_draw.connect (imageqr.queue_draw);
 
             linkbutton = new Gtk.LinkButton ("");
             var link_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
@@ -155,7 +158,7 @@ namespace Gabut {
                 icon_badge.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.active");
             }
             string host = get_host (reboot);
-            create_qrcode (host);
+            qrpaint.qrstr = host;
             linkbutton.uri = host;
             if (host.contains ("0.0.0.0")) {
                 linkbutton.label = _("No Network Connected");
@@ -164,39 +167,6 @@ namespace Gabut {
             } else {
                 linkbutton.label = host.up ();
             }
-        }
-
-        private void create_qrcode (string strinput) {
-            var qrencode = new Qrencode.QRcode.encodeData (strinput.length, strinput.data, 1, Qrencode.EcLevel.M);
-            int qrenwidth = qrencode.width;
-            int sizeqrcode = 200 + qrenwidth * 40;
-            var grect = Graphene.Rect ();
-            grect.init (0, 0, sizeqrcode, sizeqrcode);
-            var snapshot = new Gtk.Snapshot ();
-            Cairo.Context context = snapshot.append_cairo (grect);
-            context.set_source_rgb (1.0, 1.0, 1.0);
-            context.rectangle (0, 0, sizeqrcode, sizeqrcode);
-            context.fill ();
-            char* qrentdata = qrencode.data;
-            for (int y = 0; y < qrenwidth; y++) {
-                for (int x = 0; x < qrenwidth; x++) {
-                    int rectx = 100 + x * 40;
-                    int recty = 100 + y * 40;
-                    int digit_ornot = 0;
-                    digit_ornot += (*qrentdata & 1);
-                    if (digit_ornot == 1) {
-                        context.set_source_rgb (0.0, 0.0, 0.0);
-                    } else {
-                        context.set_source_rgb (1.0, 1.0, 1.0);
-                    }
-                    context.rectangle (rectx, recty, 40, 40);
-                    context.fill ();
-                    qrentdata++;
-                }
-            }
-            var grapinsize = Graphene.Size ();
-            grapinsize.init ( sizeqrcode, sizeqrcode);
-            imageqr.paintable = snapshot.free_to_paintable (grapinsize);
         }
     }
 }

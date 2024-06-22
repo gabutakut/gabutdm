@@ -40,5 +40,6 @@ sources = files (
     'TorrentRow.vala',
     'GdmPaint.vala',
     'GdmMenu.vala',
-    'ProgressPaint.vala'
+    'ProgressPaint.vala',
+    'QrcodePaint.vala'
 )
