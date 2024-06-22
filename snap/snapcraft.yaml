@@ -9,12 +9,6 @@ description: |
     This application prioritizes convenience, full of features and an attractive appearance.
 
 confinement: strict
-package-repositories:
-  - type: apt
-    components: [main]
-    suites: [focal]
-    key-id: 2B067CC53533F081B664BF72F6CBED8742796C8E
-    url: http://ppa.launchpad.net/torik-habib/libdgbt/ubuntu
 parts:
   gabutdm:
     after: [desktop-gnome-platform]
@@ -24,7 +18,7 @@ parts:
     source: https://github.com/gabutakut/gabutdm.git
     override-build: |
         snapcraftctl build
-        sed -i -E 's|^(Icon[^=]*)=.*|\1=/usr/share/icons/hicolor/128x128/apps/com.github.gabutakut.gabutdm.svg|' ${SNAPCRAFT_PART_INSTALL}/usr/share/applications/com.github.gabutakut.gabutdm.desktop
+        sed -i -E 's|^(Icon[^=]*)=.*|\1=/usr/share/icons/hicolor/scalable/apps/com.github.gabutakut.gabutdm.svg|' ${SNAPCRAFT_PART_INSTALL}/usr/share/applications/com.github.gabutakut.gabutdm.desktop
     build-packages:
         - libgirepository1.0-dev
         - valac
@@ -39,6 +33,7 @@ parts:
         - libjson-glib-dev
         - libgdk-pixbuf2.0-dev
         - libgtk-4-dev
+        - libadwaita-1-dev
     stage-packages:
         - libx11-dev
         - libxau-dev
@@ -88,10 +83,10 @@ parts:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
     source-subdir: gtk
     plugin: make
-    make-parameters: ["FLAVOR=gtk3"]
+    make-parameters: ["FLAVOR=gtk4"]
     build-packages:
       - build-essential
-      - libgtk-3-dev
+      - libgtk-4-dev
     override-build: |
       snapcraftctl build
       mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
