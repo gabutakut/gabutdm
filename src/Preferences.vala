@@ -885,22 +885,17 @@ namespace Gabut {
                 margin_bottom = 10,
                 column_spacing = 10,
                 column_homogeneous = true,
-                halign = Gtk.Align.CENTER,
-                orientation = Gtk.Orientation.HORIZONTAL
+                halign = Gtk.Align.CENTER
             };
             box_action.attach (save_button, 0, 0);
             box_action.attach (close_button, 1, 0);
 
-            var maingrid = new Gtk.Grid () {
-                orientation = Gtk.Orientation.VERTICAL,
-                halign = Gtk.Align.CENTER,
-                margin_start = 10,
-                margin_end = 10
-            };
-            maingrid.attach (stack, 0, 0);
-            maingrid.attach (box_action, 0, 1);
-
-            child = maingrid;
+            var boxarea = get_content_area ();
+            boxarea.margin_start = 10;
+            boxarea.margin_end = 10;
+            boxarea.halign = Gtk.Align.CENTER;
+            boxarea.append (stack);
+            boxarea.append (box_action);
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:

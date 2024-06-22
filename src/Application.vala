@@ -320,7 +320,7 @@ namespace Gabut {
         private bool url_active (string url) {
             bool active = false;
             addurls.foreach ((urls)=> {
-                if (urls.get_link () == url) {
+                if (urls.linked == url) {
                     active = true;
                 }
             });
