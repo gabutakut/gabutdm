@@ -41,7 +41,7 @@ namespace Gabut {
         private MediaEntry useragent_entry;
         private MediaEntry refer_entry;
         private MediaEntry checksum_entry;
-        public Gtk.CheckButton save_meta;
+        private Gtk.CheckButton save_meta;
         private Gtk.FlowBox method_flow;
         private Gtk.FlowBox checksums_flow;
         private Gtk.FlowBox encrypt_flow;
@@ -147,9 +147,40 @@ namespace Gabut {
             }
         }
 
-        public string linked {
+        public string url_link {
             get {
                 return link_entry.text;
+            }
+            set {
+                link_entry.text = value;
+            }
+        }
+
+        public string url_icon {
+            owned get {
+                return status_image.icon_name?? "";
+            }
+            set {
+                status_image.gicon = new ThemedIcon (value);
+            }
+        }
+
+        public bool meta_sensitive {
+            get {
+                return save_meta.sensitive;
+            }
+            set {
+                save_meta.sensitive = value;
+            }
+        }
+
+        public MatchInfo portserver {
+            set {
+                link_entry.text = value.fetch (PostServer.URL);
+                name_entry.text = value.fetch (PostServer.FILENAME);
+                refer_entry.text = value.fetch (PostServer.REFERRER);
+                status_image.gicon = GLib.ContentType.get_icon (value.fetch (PostServer.MIME));
+                sizelabel.label = GLib.format_size (int64.parse (value.fetch (PostServer.FILESIZE)));
             }
         }
 
@@ -846,19 +877,6 @@ namespace Gabut {
             }
         }
 
-        public void add_link (string url, string icon) {
-            link_entry.text = url;
-            status_image.gicon = new ThemedIcon (icon);
-        }
-
-        public void server_link (MatchInfo match_info) {
-            link_entry.text = match_info.fetch (PostServer.URL);
-            name_entry.text = match_info.fetch (PostServer.FILENAME);
-            refer_entry.text = match_info.fetch (PostServer.REFERRER);
-            status_image.gicon = GLib.ContentType.get_icon (match_info.fetch (PostServer.MIME));
-            sizelabel.label = GLib.format_size (int64.parse (match_info.fetch (PostServer.FILESIZE)));
-        }
-
         public override void show () {
             base.show ();
             if (row != null) {
@@ -936,13 +954,13 @@ namespace Gabut {
                 encrypt.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_REQUIRE_CRYPTO));
                 integrity.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.CHECK_INTEGRITY));
                 unverified.active = bool.parse (aria_get_option (row.ariagid, AriaOptions.BT_SEED_UNVERIFIED));
-                for (int b = 0; b <= ProxyMethods.TUNNEL; b++) {
+                foreach (var b in ProxyMethods.get_all ()) {
                     var promed = method_flow.get_child_at_index (b);
                     if (((ProxyMethod) promed).method.to_string ().down () == aria_get_option (row.ariagid, AriaOptions.PROXY_METHOD).down ()) {
                         proxymethod = promed as ProxyMethod;
                     }
                 }
-                for (int a = 0; a <= AriaChecksumTypes.SHA512; a++) {
+                foreach (var a in AriaChecksumTypes.get_all ()) {
                     var checksflow = checksums_flow.get_child_at_index (a);
                     if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksflow).checksums.to_string ())) {
                         checksumtype = checksflow as ChecksumType;
@@ -950,7 +968,7 @@ namespace Gabut {
                     }
                 }
                 if (encrypt.active) {
-                    for (int c = 0; c <= BTEncrypts.ARC4; c++) {
+                    foreach (var c in BTEncrypts.get_all ()) {
                         var encrp = encrypt_flow.get_child_at_index (c);
                         if (aria_get_option (row.ariagid, AriaOptions.BT_MIN_CRYPTO_LEVEL).contains (((BTEncrypt) encrp).btencrypt.to_string ().down ())) {
                             btencrypt = encrp as BTEncrypt;
