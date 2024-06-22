@@ -94,12 +94,13 @@ apps:
   gabutdm:
     command: usr/bin/com.github.gabutakut.gabutdm
     desktop: usr/share/applications/com.github.gabutakut.gabutdm.desktop
-    extensions: [gnome-46]
+    extensions: [gnome]
     plugs:
       - desktop
       - desktop-legacy
       - opengl
       - x11
+      - wayland
       - network
       - network-manager
       - unity7
