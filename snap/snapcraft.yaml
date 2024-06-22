@@ -24,7 +24,7 @@ parts:
         - valac
         - gobject-introspection
         - gettext
-        - libsoup3.0-dev
+        - libsoup-3.0-dev
         - libcanberra-dev
         - libcairo2-dev
         - libsqlite3-dev
