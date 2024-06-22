@@ -112,8 +112,8 @@ slots:
     bus: session
     name: com.github.gabutakut.gabutdm
 plugs:
-  gnome:
-    default-provider: gnome
+  gnome-46-2404:
+    default-provider: gnome-46-2404
     interface: content
     target: $SNAP/gnome-platform
   gtk-3-themes:
