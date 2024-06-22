@@ -94,7 +94,7 @@ apps:
   gabutdm:
     command: usr/bin/com.github.gabutakut.gabutdm
     desktop: usr/share/applications/com.github.gabutakut.gabutdm.desktop
-    extensions: [gnome-3-38]
+    extensions: [gnome-46]
     plugs:
       - desktop
       - desktop-legacy
@@ -111,8 +111,8 @@ slots:
     bus: session
     name: com.github.gabutakut.gabutdm
 plugs:
-  gnome-3-38-2004:
-    default-provider: gnome-3-38-2004
+  gnome-46-2004:
+    default-provider: gnome-46-2004
     interface: content
     target: $SNAP/gnome-platform
   gtk-3-themes:
