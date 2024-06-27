@@ -306,7 +306,7 @@ namespace Gabut {
             };
             overlay.add_overlay (sizelabel);
 
-            link_entry = new MediaEntry ("com.github.gabutakut.gabutdm.insertlink", "edit-paste") {
+            link_entry = new MediaEntry ("com.github.gabutakut.gabutdm.uri", "edit-paste") {
                 width_request = 500,
                 placeholder_text = _("Url or Magnet")
             };

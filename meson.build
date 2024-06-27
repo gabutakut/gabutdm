@@ -1,4 +1,4 @@
-project ('com.github.gabutakut.gabutdm','vala', 'c', version: '2.0.0')
+project ('com.github.gabutakut.gabutdm','vala', 'c', version: '2.2.9')
 
 i18n = import ('i18n')
 
@@ -19,7 +19,7 @@ dependencies = [
     dependency ('cairo'),
     dependency ('libcurl'),
     dependency ('libadwaita-1'),
-    
+
     meson.get_compiler ('vala').find_library ('posix'),
 ]
 

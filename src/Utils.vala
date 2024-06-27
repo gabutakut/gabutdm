@@ -1384,6 +1384,33 @@ namespace Gabut {
         }
     }
 
+    public enum OpenMenus {
+        ADDURL = 0,
+        OPENMN = 1;
+
+        public string to_string () {
+            switch (this) {
+                case OPENMN:
+                    return _("Torrent/Metalink");
+                default:
+                    return _("URL/Magnet");
+            }
+        }
+
+        public string to_icon () {
+            switch (this) {
+                case OPENMN:
+                    return "document-open";
+                default:
+                    return "com.github.gabutakut.gabutdm.uri";
+            }
+        }
+
+        public static OpenMenus [] get_all () {
+            return { ADDURL, OPENMN};
+        }
+    }
+
     public enum DeAscend {
         ASCENDING = 0,
         DESCENDING = 1

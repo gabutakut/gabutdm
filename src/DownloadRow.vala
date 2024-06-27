@@ -662,12 +662,7 @@ namespace Gabut {
         }
 
         public Gtk.Popover get_menu () {
-            var downloadmn = new Gtk.FlowBox () {
-                orientation = Gtk.Orientation.HORIZONTAL,
-                width_request = 70,
-                margin_top = 4,
-                margin_bottom = 4
-            };
+            var downloadmn = new Gtk.FlowBox ();
             foreach (var dmmenu in DownloadMenu.get_all ()) {
                 downloadmn.append (new GdmMenu (dmmenu));
             }
