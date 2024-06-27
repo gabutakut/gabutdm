@@ -42,7 +42,6 @@ namespace Gabut {
         private DbusmenuItem openmenu;
         private CanonicalDbusmenu dbusserver;
         private DbusIndicator dbusindicator;
-        private Gtk.MenuButton shortbutton;
         private Gtk.CheckButton showtime;
         private Gtk.CheckButton showdate;
         private Gtk.Label download_rate;
@@ -157,7 +156,7 @@ namespace Gabut {
 
             var urlmenu = new DbusmenuItem ();
             urlmenu.property_set (MenuItem.LABEL.to_string (), _("Add Url"));
-            urlmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.insertlink");
+            urlmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.uri");
             urlmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
             urlmenu.item_activated.connect (()=> {
                 send_file ("");
@@ -344,7 +343,7 @@ namespace Gabut {
         private Gtk.HeaderBar build_headerbar () {
             var headerbar = new Gtk.HeaderBar () {
                 hexpand = true,
-                decoration_layout = ":minimize,close"
+                decoration_layout = ":close"
             };
             var menu_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.settings") {
                 tooltip_text = _("Settings")
@@ -373,30 +372,13 @@ namespace Gabut {
             };
             headerbar.pack_end (host_button);
             host_button.clicked.connect (qrmenuopen);
-            var add_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.insertlink") {
-                tooltip_text = _("add link")
+            var add_open = new Gtk.MenuButton () {
+                child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.insertlink"),
+                direction = Gtk.ArrowType.UP,
+                popover = get_openmenu (),
+                tooltip_text = _("Add/Open")
             };
-            add_button.clicked.connect (()=> {
-                send_file ("");
-            });
-            headerbar.pack_start (add_button);
-            var torrentbutton = new Gtk.Button.from_icon_name ("document-open") {
-                tooltip_text = _("Open .torrent .metalink file")
-            };
-            headerbar.pack_start (torrentbutton);
-            torrentbutton.clicked.connect (()=> {
-                run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
-                    try {
-                        GLib.File[] files;
-                        run_open_file.end (res, out files);
-                        foreach (var file in files) {
-                            send_file (file.get_uri ());
-                        }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
-                });
-            });
+            headerbar.pack_start (add_open);
             var resumeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.active") {
                 tooltip_text = _("Start All")
             };
@@ -417,6 +399,43 @@ namespace Gabut {
             return headerbar;
         }
 
+        public Gtk.Popover get_openmenu () {
+            var addopen = new Gtk.FlowBox ();
+            foreach (var openmenu in OpenMenus.get_all ()) {
+                addopen.append (new OpenMenu (openmenu));
+            }
+            var popovermenu = new Gtk.Popover () {
+                child = addopen
+            };
+            popovermenu.show.connect (() => {
+                popovermenu.position = Gtk.PositionType.BOTTOM;
+                addopen.unselect_all ();
+            });
+            addopen.child_activated.connect ((openmn)=> {
+                popovermenu.hide ();
+                var add_open = openmn as OpenMenu;
+                switch (add_open.openmn) {
+                    case OpenMenus.OPENMN:
+                        run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
+                            try {
+                                GLib.File[] files;
+                                run_open_file.end (res, out files);
+                                foreach (var file in files) {
+                                    send_file (file.get_uri ());
+                                }
+                            } catch (GLib.Error e) {
+                                critical (e.message);
+                            }
+                        });
+                        break;
+                    default:
+                        send_file ("");
+                        break;
+                }
+            });
+            return popovermenu;
+        }
+    
         private void qrmenuopen () {
             if (qrcode == null) {
                 qrcode = new QrCode (application) {
@@ -495,7 +514,7 @@ namespace Gabut {
             var property_button = new Gtk.MenuButton () {
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.menu"),
                 direction = Gtk.ArrowType.UP,
-                margin_start = 10,
+                margin_start = 6,
                 tooltip_text = _("Property")
             };
             properties = new GLib.List<AddUrl> ();
@@ -550,11 +569,11 @@ namespace Gabut {
             actionbar.set_center_widget (view_mode);
             view_mode.notify["selected"].connect (view_status);
 
-            shortbutton = new Gtk.MenuButton () {
+            var shortbutton = new Gtk.MenuButton () {
                 direction = Gtk.ArrowType.UP,
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.opt"),
                 popover = get_menu (),
-                margin_end = 10,
+                margin_end = 6,
                 tooltip_text = _("Sort by")
             };
             actionbar.set_end_widget (shortbutton);
@@ -888,6 +907,7 @@ namespace Gabut {
                     row.activedm.connect (activedm);
                 }
             });
+            list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
             listrow.sort (sort_dm);
             update_info ();
             view_status ();
@@ -955,6 +975,7 @@ namespace Gabut {
             } else {
                 aria_pause (row.ariagid);
             }
+            list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
             listrow.sort (sort_dm);
             update_info ();
             view_status ();

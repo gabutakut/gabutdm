@@ -41,5 +41,6 @@ sources = files (
     'GdmPaint.vala',
     'GdmMenu.vala',
     'ProgressPaint.vala',
-    'QrcodePaint.vala'
+    'QrcodePaint.vala',
+    'OpenMenu.vala'
 )
