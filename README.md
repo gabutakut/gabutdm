@@ -1,6 +1,6 @@
 <h1 align="center">🇮🇩 Gabut Download Manager 🇮🇩</h1>
 <h1 align="center">
-    <img src="data/icons/128/com.github.gabutakut.gabutdm.svg" alt="Gabut Download Manager">
+    <img src="data/icons/apps/com.github.gabutakut.gabutdm.svg" alt="Gabut Download Manager">
 </h1>
 <h4 align="center">🌟 Simple and Fast Download Manager 💫</h4>
 <h1 align="center">🚀 Release on ✈️</h1>

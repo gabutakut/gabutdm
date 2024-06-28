@@ -1245,7 +1245,7 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.active"
                     );
-                    modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.active");
+                    modeview.gicon = new ThemedIcon (active_alert.icon_name);
                     active_alert.show ();
                     list_box.set_placeholder (active_alert);
                     break;
@@ -1261,7 +1261,7 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.pause"
                     );
-                    modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.pause");
+                    modeview.gicon = new ThemedIcon (nopause_alert.icon_name);
                     nopause_alert.show ();
                     list_box.set_placeholder (nopause_alert);
                     break;
@@ -1277,7 +1277,7 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.complete"
                     );
-                    modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.complete");
+                    modeview.gicon = new ThemedIcon (nocomp_alerst.icon_name);
                     nocomp_alerst.show ();
                     list_box.set_placeholder (nocomp_alerst);
                     break;
@@ -1293,7 +1293,7 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.waiting"
                     );
-                    modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.waiting");
+                    modeview.gicon = new ThemedIcon (nowait_alert.icon_name);
                     nowait_alert.show ();
                     list_box.set_placeholder (nowait_alert);
                     break;
@@ -1309,7 +1309,7 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.error"
                     );
-                    modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.error");
+                    modeview.gicon = new ThemedIcon (noerr_alert.icon_name);
                     noerr_alert.show ();
                     list_box.set_placeholder (noerr_alert);
                     break;
@@ -1322,7 +1322,7 @@ namespace Gabut {
                         return true;
                     });
                     indexv = listrow.size;
-                    modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm");
+                    modeview.gicon = new ThemedIcon (nodown_alert.icon_name);
                     if (!hide_alert) {
                         list_box.set_placeholder (nodown_alert);
                     }
