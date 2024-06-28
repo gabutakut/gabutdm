@@ -319,18 +319,15 @@ namespace Gabut {
             var save_image = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
                 pixel_size = 64,
+                tooltip_text = _("Backup Torrent File"),
                 gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.svdrv")
             };
 
-            save_meta = new Gtk.CheckButton.with_label ("Backup") {
+            save_meta = new Gtk.CheckButton () {
                 valign = Gtk.Align.END,
                 halign = Gtk.Align.CENTER,
                 tooltip_text = _("Backup Torrent File")
             };
-            ((Gtk.Label) save_meta.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
-            ((Gtk.Label) save_meta.get_last_child ()).ellipsize = Pango.EllipsizeMode.END;
-            ((Gtk.Label) save_meta.get_last_child ()).max_width_chars = 10;
-
             save_image.sensitive = save_meta.active;
             save_meta.toggled.connect (()=> {
                 save_image.sensitive = save_meta.active;
