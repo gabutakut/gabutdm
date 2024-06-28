@@ -170,7 +170,7 @@ namespace Gabut {
                 gabutwindow.load_dowanload ();
                 download_table ();
                 if (!startingup && !dontopen) {
-                    gabutwindow.show ();
+                    open_now ();
                 }
                 clipboard = Gdk.Display.get_default ().get_clipboard ();
                 Timeout.add_seconds (1, on_clipboard);
@@ -185,6 +185,7 @@ namespace Gabut {
                 startingup = false;
             } else {
                 gabutwindow.present ();
+                gabutwindow.show ();
             }
         }
 

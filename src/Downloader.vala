@@ -493,10 +493,10 @@ namespace Gabut {
             });
             var centerbox = new Gtk.CenterBox () {
                 margin_top = 10,
-                margin_bottom = 10
+                margin_bottom = 10,
+                start_widget = server_button,
+                end_widget = box_action
             };
-            centerbox.set_start_widget (server_button);
-            centerbox.set_end_widget (box_action);
 
             lisboxserver = new Gtk.ListBox ();
             listserver = new Gee.ArrayList<ServerRow> ();
