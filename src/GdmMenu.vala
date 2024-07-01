@@ -27,12 +27,14 @@ namespace Gabut {
             this.downloadmenu = downloadmenu;
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (downloadmenu.to_string ()) {
-                halign = Gtk.Align.START,
-                wrap_mode = Pango.WrapMode.WORD_CHAR,
-                attributes = set_attribute (Pango.Weight.BOLD),
+                xalign = 0,
                 margin_top = 6,
+                margin_start = 6,
                 margin_bottom = 6,
-                width_request = 130
+                width_request = 100,
+                valign = Gtk.Align.START,
+                wrap_mode = Pango.WrapMode.WORD_CHAR,
+                attributes = set_attribute (Pango.Weight.BOLD)
             };
             var imgstatus = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
