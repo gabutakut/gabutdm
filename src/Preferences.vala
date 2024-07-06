@@ -743,6 +743,13 @@ namespace Gabut {
                 active = bool.parse (pharse_options (pack_data, AriaOptions.AUTO_FILE_RENAMING))
             };
 
+            var optimdw = new Gtk.CheckButton.with_label (_("Optimizes the number of concurrent downloads")) {
+                margin_top = 5,
+                width_request = 450,
+                active = bool.parse (pharse_options (pack_data, AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS)),
+                tooltip_text = _("Optimizes the number of concurrent downloads according to the bandwidth available")
+            };
+
             var style_mode = new ModeTogle ();
             style_mode.add_item (new ModeTogle.with_label (_("System Default")));
             style_mode.add_item (new ModeTogle.with_label (_("Light")));
@@ -773,6 +780,7 @@ namespace Gabut {
             notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 16, 1, 1);
             notifyopt.attach (allowrepl, 0, 17, 1, 1);
             notifyopt.attach (autorename, 0, 18, 1, 1);
+            notifyopt.attach (optimdw, 0, 19, 1, 1);
             label_mode.sensitive = dbusmenu.active && menuindicator.active;
 
             var notyscr = new Gtk.ScrolledWindow () {
@@ -846,6 +854,7 @@ namespace Gabut {
                     aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
                     aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.to_string ().down ()));
                     aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, set_dbsetting (DBSettings.PIECESELECTOR, pieceselector.selector.to_string ().down ()));
+                    aria_set_globalops (AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS, set_dbsetting (DBSettings.OPTIMIZEDOW, optimdw.active.to_string ()));
                     set_dbsetting (DBSettings.RPCPORT, rpc_port.value.to_string ());
                     set_dbsetting (DBSettings.RPCSIZE, maxrequest.value.to_string ());
                     set_dbsetting (DBSettings.DISKCACHE, diskcache.value.to_string ());

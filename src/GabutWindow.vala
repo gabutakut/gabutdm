@@ -36,7 +36,7 @@ namespace Gabut {
         private Gtk.SearchEntry search_entry;
         private ModeButton view_mode;
         private AlertView nodown_alert;
-        private GLib.List<AddUrl> properties;
+        private Gee.ArrayList<AddUrl> properties;
         private Gee.ArrayList<DownloadRow> listrow;
         private DbusmenuItem menudbus;
         private DbusmenuItem openmenu;
@@ -520,7 +520,7 @@ namespace Gabut {
                 margin_start = 6,
                 tooltip_text = _("Property")
             };
-            properties = new GLib.List<AddUrl> ();
+            properties = new Gee.ArrayList<AddUrl> ();
             list_box.row_selected.connect ((rw)=> {
                 if (rw != null) {
                     var row = (DownloadRow) rw;
@@ -531,23 +531,19 @@ namespace Gabut {
                                 transient_for = this,
                                 row = row
                             };
-                            properties.append (property);
+                            properties.add (property);
                             property.save_button.clicked.connect (()=> {
                                 row = property.row;
                             });
                             property.close.connect (()=> {
-                                properties.foreach ((proper)=> {
-                                    if (proper == property) {
-                                        properties.delete_link (properties.find (proper));
-                                    }
-                                });
+                                if (properties.contains (property)) {
+                                    properties.remove (property);
+                                }
                             });
                             property.close_request.connect (()=> {
-                                properties.foreach ((proper)=> {
-                                    if (proper == property) {
-                                        properties.delete_link (properties.find (proper));
-                                    }
-                                });
+                                if (properties.contains (property)) {
+                                    properties.remove (property);
+                                }
                                 return false;
                             });
                             property.update_agid.connect ((ariagid, newgid)=> {
@@ -587,6 +583,17 @@ namespace Gabut {
                 end_widget = shortbutton
             };
             return actionbar;
+        }
+
+        private bool property_active (DownloadRow row) {
+            bool active = false;
+            properties.foreach ((propet)=> {
+                if (propet.row == row) {
+                    active = true;
+                }
+                return true;
+            });
+            return active;
         }
 
         public Gtk.Popover get_menu () {
@@ -758,16 +765,6 @@ namespace Gabut {
             if (rmtimeout_id == 0) {
                 rmtimeout_id = Timeout.add (500, set_menulauncher);
             }
-        }
-
-        private bool property_active (DownloadRow row) {
-            bool active = false;
-            properties.foreach ((propet)=> {
-                if (propet.row == row) {
-                    active = true;
-                }
-            });
-            return active;
         }
 
         public void save_all_download () {

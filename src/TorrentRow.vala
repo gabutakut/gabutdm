@@ -175,13 +175,12 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER,
                 attributes = color_attribute (60000, 0, 0)
             };
-
+            progrespaint = new ProgressPaintable ();
             var progresimg = new Gtk.Image () {
+                paintable = progrespaint,
                 valign = Gtk.Align.CENTER,
                 width_request = 20
             };
-            progrespaint = new ProgressPaintable ();
-            progresimg.paintable = progrespaint;
             progrespaint.queue_draw.connect (progresimg.queue_draw);
 
             persenlabel = new Gtk.Label (null) {

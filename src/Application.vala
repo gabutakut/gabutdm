@@ -166,12 +166,12 @@ namespace Gabut {
                     gabutwindow.remove_item (status);
                 });
                 gdm_theme.begin ();
-                set_dbsetting (Gabut.DBSettings.THEMESYSTEM,  Gtk.Settings.get_default ().gtk_theme_name);
                 gabutwindow.load_dowanload ();
                 download_table ();
                 if (!startingup && !dontopen) {
                     open_now ();
                 }
+                lastclipboard = get_dbsetting (Gabut.DBSettings.LASTCLIPBOARD);
                 clipboard = Gdk.Display.get_default ().get_clipboard ();
                 Timeout.add_seconds (1, on_clipboard);
             } else {
@@ -386,7 +386,7 @@ namespace Gabut {
                         if (textclip != null && textclip != "" && textclip != lastclipboard) {
                             if (!url_active (textclip.strip ())) {
                                 if (!dialog_url (textclip.strip ())) {
-                                    lastclipboard = textclip;
+                                    lastclipboard = set_dbsetting (Gabut.DBSettings.LASTCLIPBOARD, textclip);
                                 }
                             }
                         }

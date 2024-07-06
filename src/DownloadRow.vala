@@ -453,18 +453,13 @@ namespace Gabut {
         }
 
         public void start_notif () {
-            if (linkmode == LinkMode.TORRENT) {
-                notify_app (_("Starting"),
-                            _("Torrent"), new ThemedIcon ("com.github.gabutakut.gabutdm.torrent"));
-            } else if (linkmode == LinkMode.METALINK) {
-                notify_app (_("Starting"),
-                            _("Metalink"), new ThemedIcon ("com.github.gabutakut.gabutdm.metalink"));
-            } else if (linkmode == LinkMode.MAGNETLINK) {
-                notify_app (_("Starting"), url, new ThemedIcon ("com.github.gabutakut.gabutdm.magnet"));
-            } else {
-                notify_app (_("Starting"), url, new ThemedIcon ("com.github.gabutakut.gabutdm.insertlink"));
-            }
-            play_sound ("device-added");
+            Idle.add (()=> {
+                if (status != StatusMode.ERROR) {
+                    notify_app (_("Starting"), filename, imagefile.gicon);
+                    play_sound ("device-added");
+                }
+                return false;
+            });
         }
 
         public void idle_progress () {
@@ -648,10 +643,10 @@ namespace Gabut {
                 if (url.has_prefix ("magnet:?")) {
                     gabutinfo.set_info (url, InfoSucces.ADDRESS);
                 } else {
-                    gabutinfo.set_info ("File Torrent", InfoSucces.ADDRESS);
+                    gabutinfo.set_info (filename, InfoSucces.ADDRESS);
                 }
             } else if (linkmode == LinkMode.METALINK) {
-                gabutinfo.set_info ("File Metalink", InfoSucces.ADDRESS);
+                gabutinfo.set_info (filename, InfoSucces.ADDRESS);
             } else {
                 gabutinfo.set_info (url, InfoSucces.ADDRESS);
             }
