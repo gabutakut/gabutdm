@@ -1,5 +1,5 @@
 name: gabutdm
-version: "2.2.8"
+version: "2.5.0"
 grade: stable
 base: core22
 summary: Simple and Faster Download Manager
