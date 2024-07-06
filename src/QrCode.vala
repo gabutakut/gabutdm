@@ -85,16 +85,15 @@ namespace Gabut {
             var header = get_header_bar ();
             header.title_widget = header_grid;
             header.decoration_layout = "none";
-
+            qrpaint = new QrcodePaint ();
             var imageqr = new Gtk.Image () {
                 halign = Gtk.Align.START,
                 valign = Gtk.Align.START,
                 pixel_size = 256,
                 margin_start = 10,
-                margin_end = 10
+                margin_end = 10,
+                paintable = qrpaint
             };
-            qrpaint = new QrcodePaint ();
-            imageqr.paintable = qrpaint;
             qrpaint.queue_draw.connect (imageqr.queue_draw);
 
             linkbutton = new Gtk.LinkButton ("");

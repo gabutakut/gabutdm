@@ -70,7 +70,8 @@ namespace Gabut {
         LABELMODE = 46,
         THEMESELECT = 47,
         THEMECUSTOM = 48,
-        THEMESYSTEM = 49;
+        LASTCLIPBOARD = 49,
+        OPTIMIZEDOW = 50;
 
         public string to_string () {
             switch (this) {
@@ -170,8 +171,10 @@ namespace Gabut {
                     return "themeselect";
                 case THEMECUSTOM:
                     return "themecustom";
-                case THEMESYSTEM:
-                    return "themesystem";
+                case LASTCLIPBOARD:
+                    return "lastclipboard";
+                case OPTIMIZEDOW:
+                    return "optimizedow";
                 default:
                     return "id";
             }
@@ -2061,6 +2064,9 @@ namespace Gabut {
         if (get_dbsetting (DBSettings.PIECESELECTOR) != aria_get_option (ariagid, AriaOptions.STREAM_PIECE_SELECTOR)) {
             aria_set_option (ariagid, AriaOptions.STREAM_PIECE_SELECTOR, get_dbsetting (DBSettings.PIECESELECTOR));
         }
+        if (get_dbsetting (DBSettings.OPTIMIZEDOW) != aria_get_option (ariagid, AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS)) {
+            aria_set_option (ariagid, AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.OPTIMIZEDOW));
+        }
     }
 
     private void set_startup () {
@@ -2127,6 +2133,9 @@ namespace Gabut {
         do {
             aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, get_dbsetting (DBSettings.PIECESELECTOR));
         } while (get_dbsetting (DBSettings.PIECESELECTOR) != aria_get_globalops (AriaOptions.STREAM_PIECE_SELECTOR));
+        do {
+            aria_set_globalops (AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.OPTIMIZEDOW));
+        } while (get_dbsetting (DBSettings.OPTIMIZEDOW) != aria_get_globalops (AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS));
     }
 
     private async void boot_strap () throws Error {
@@ -2790,13 +2799,14 @@ namespace Gabut {
             labelmode      TEXT    NOT NULL,
             themeselect    TEXT    NOT NULL,
             themecustom    TEXT    NOT NULL,
-            themesystem    TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, themesystem)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\");");
+            lastclipboard  TEXT    NOT NULL,
+            optimizedow    TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, lastclipboard, optimizedow)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\", \"false\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.THEMESYSTEM) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.OPTIMIZEDOW) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
