@@ -90,9 +90,8 @@ namespace Gabut {
             }
         }
 
-        public Preferences (Gtk.Application application) {
-            Object (application: application,
-                    resizable: false,
+        public Preferences () {
+            Object (resizable: false,
                     use_header_bar: 1
             );
         }
@@ -116,56 +115,56 @@ namespace Gabut {
 
             var pack_data = aria_v2_globalops ();
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Number of tries"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.MAX_TRIES))
             };
 
             var numbconn = new Gtk.SpinButton.with_range (0, 16, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("The maximum number of connections to one server for each download"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.MAX_CONNECTION_PER_SERVER))
             };
 
             var maxcurrent = new Gtk.SpinButton.with_range (1, 50, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("The maximum number of parallel downloads for every queue item"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.MAX_CONCURRENT_DOWNLOADS))
             };
 
             var timeout = new Gtk.SpinButton.with_range (0, 600, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Timeout"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.TIMEOUT))
             };
 
             var retry = new Gtk.SpinButton.with_range (0, 600, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("The seconds to wait between retries"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.RETRY_WAIT))
             };
 
             var split = new Gtk.SpinButton.with_range (0, 6000, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Download a file using N connections.  If more than N URIs are given, first N URIs are used and remaining URIs are used for backup.  If less than N URIs are given, those URIs are used more than once so that N connections total are made simultaneously."),
                 value = double.parse (pharse_options (pack_data, AriaOptions.SPLIT))
             };
 
             var splitsize = new Gtk.SpinButton.with_range (0, 9999999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Split"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.MIN_SPLIT_SIZE)) / 1024
             };
 
             var lowestspd = new Gtk.SpinButton.with_range (0, 9999999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Close connection if download speed is lower than or equal to this value(bytes per sec)"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.LOWEST_SPEED_LIMIT)) / 1024
@@ -240,64 +239,64 @@ namespace Gabut {
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            settings.attach (headerlabel (_("Number of Tries:"), 220), 1, 0, 1, 1);
+            settings.attach (headerlabel (_("Number of Tries:"), 300), 1, 0, 1, 1);
             settings.attach (numbtries, 1, 1, 1, 1);
-            settings.attach (headerlabel (_("Connection:"), 220), 0, 0, 1, 1);
+            settings.attach (headerlabel (_("Connection:"), 300), 0, 0, 1, 1);
             settings.attach (numbconn, 0, 1, 1, 1);
-            settings.attach (headerlabel (_("Active Download:"), 220), 1, 2, 1, 1);
+            settings.attach (headerlabel (_("Active Download:"), 300), 1, 2, 1, 1);
             settings.attach (maxcurrent, 1, 3, 1, 1);
-            settings.attach (headerlabel (_("Time out (in Secconds):"), 220), 0, 2, 1, 1);
+            settings.attach (headerlabel (_("Time out (in Secconds):"), 300), 0, 2, 1, 1);
             settings.attach (timeout, 0, 3, 1, 1);
-            settings.attach (headerlabel (_("Retry Wait (in Secconds):"), 220), 1, 4, 1, 1);
+            settings.attach (headerlabel (_("Retry Wait (in Secconds):"), 300), 1, 4, 1, 1);
             settings.attach (retry, 1, 5, 1, 1);
-            settings.attach (headerlabel (_("Split:"), 220), 0, 4, 1, 1);
+            settings.attach (headerlabel (_("Split:"), 300), 0, 4, 1, 1);
             settings.attach (split, 0, 5, 1, 1);
-            settings.attach (headerlabel (_("Lowest Speed (in Kb):"), 220), 1, 6, 1, 1);
+            settings.attach (headerlabel (_("Lowest Speed (in Kb):"), 300), 1, 6, 1, 1);
             settings.attach (lowestspd, 1, 7, 1, 1);
-            settings.attach (headerlabel (_("Split Size (in Kb):"), 220), 0, 6, 1, 1);
+            settings.attach (headerlabel (_("Split Size (in Kb):"), 300), 0, 6, 1, 1);
             settings.attach (splitsize, 0, 7, 1, 1);
-            settings.attach (headerlabel (_("Piece Selector:"), 220), 1, 8, 1, 1);
+            settings.attach (headerlabel (_("Piece Selector:"), 300), 1, 8, 1, 1);
             settings.attach (piecesel_button, 1, 9, 1, 1);
-            settings.attach (headerlabel (_("Uri Selector:"), 220), 0, 8, 1, 1);
+            settings.attach (headerlabel (_("Uri Selector:"), 300), 0, 8, 1, 1);
             settings.attach (urisel_button, 0, 9, 1, 1);
 
             var maxopfile = new Gtk.SpinButton.with_range (0, 200, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Specify maximum number of files to open in multi-file BitTorrent/Metalink download globally"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.BT_MAX_OPEN_FILES))
             };
 
             var maxpeers = new Gtk.SpinButton.with_range (0, 200, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Specify the maximum number of peers per torrent"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.BT_MAX_PEERS))
             };
 
             var bt_timeout = new Gtk.SpinButton.with_range (0, 240, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Timeout"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.BT_TRACKER_TIMEOUT))
             };
 
             var bt_seedtime = new Gtk.SpinButton.with_range (0, 240, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Specify seeding time in (fractional) minutes"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.SEED_TIME))
             };
 
             var bt_upload = new Gtk.SpinButton.with_range (0, 999999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Max overall upload speed"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.MAX_OVERALL_UPLOAD_LIMIT)) / 1024
             };
 
             var bt_download = new Gtk.SpinButton.with_range (0, 999999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Max overall download speed "),
                 value = double.parse (pharse_options (pack_data, AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT)) / 1024
@@ -309,7 +308,7 @@ namespace Gabut {
             trackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_TRACKER).replace ("\\/", "/");
 
             var trackerscr = new Gtk.ScrolledWindow () {
-                width_request = 220,
+                width_request = 300,
                 height_request = 100,
                 child = trackertext
             };
@@ -370,7 +369,7 @@ namespace Gabut {
             etrackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
 
             var etrackerscr = new Gtk.ScrolledWindow () {
-                width_request = 220,
+                width_request = 300,
                 height_request = 100,
                 child = etrackertext
             };
@@ -430,21 +429,21 @@ namespace Gabut {
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            bittorrent.attach (headerlabel (_("Max Open File:"), 220), 1, 0, 1, 1);
+            bittorrent.attach (headerlabel (_("Max Open File:"), 300), 1, 0, 1, 1);
             bittorrent.attach (maxopfile, 1, 1, 1, 1);
-            bittorrent.attach (headerlabel (_("Bittorent Max Peers:"), 220), 0, 0, 1, 1);
+            bittorrent.attach (headerlabel (_("Bittorent Max Peers:"), 300), 0, 0, 1, 1);
             bittorrent.attach (maxpeers, 0, 1, 1, 1);
-            bittorrent.attach (headerlabel (_("Tracker Time out (in Secconds):"), 220), 1, 2, 1, 1);
+            bittorrent.attach (headerlabel (_("Tracker Time out (in Secconds):"), 300), 1, 2, 1, 1);
             bittorrent.attach (bt_timeout, 1, 3, 1, 1);
-            bittorrent.attach (headerlabel (_("Seed Time (in Minutes):"), 220), 0, 2, 1, 1);
+            bittorrent.attach (headerlabel (_("Seed Time (in Minutes):"), 300), 0, 2, 1, 1);
             bittorrent.attach (bt_seedtime, 0, 3, 1, 1);
-            bittorrent.attach (headerlabel (_("Upload Limit (in Kb):"), 220), 1, 4, 1, 1);
+            bittorrent.attach (headerlabel (_("Upload Limit (in Kb):"), 300), 1, 4, 1, 1);
             bittorrent.attach (bt_upload, 1, 5, 1, 1);
-            bittorrent.attach (headerlabel (_("Download Limit (in Kb):"), 220), 0, 4, 1, 1);
+            bittorrent.attach (headerlabel (_("Download Limit (in Kb):"), 300), 0, 4, 1, 1);
             bittorrent.attach (bt_download, 0, 5, 1, 1);
-            bittorrent.attach (headerlabel (_("BitTorrent Tracker Exclude:"), 220), 1, 6, 1, 1);
+            bittorrent.attach (headerlabel (_("BitTorrent Tracker Exclude:"), 300), 1, 6, 1, 1);
             bittorrent.attach (layout_etrack, 1, 7, 1, 1);
-            bittorrent.attach (headerlabel (_("BitTorrent Tracker:"), 220), 0, 6, 1, 1);
+            bittorrent.attach (headerlabel (_("BitTorrent Tracker:"), 300), 0, 6, 1, 1);
             bittorrent.attach (layout_track, 0, 7, 1, 1);
 
             folder_location = new Gtk.Button () {
@@ -522,7 +521,7 @@ namespace Gabut {
             boxuser.append (usergrid);
             boxuser.append (add_auth);
             var userscr = new Gtk.ScrolledWindow () {
-                width_request = 450,
+                width_request = 610,
                 vexpand = true,
                 child = boxuser
             };
@@ -533,50 +532,50 @@ namespace Gabut {
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            folderopt.attach (headerlabel (_("Save to Folder:"), 450), 1, 0, 1, 1);
+            folderopt.attach (headerlabel (_("Save to Folder:"), 500), 1, 0, 1, 1);
             folderopt.attach (folder_location, 1, 1, 1, 1);
             folderopt.attach (sharebutton, 1, 2, 1, 1);
             folderopt.attach (folder_sharing, 1, 3, 1, 1);
-            folderopt.attach (headerlabel (_("Authentication:"), 450), 1, 4, 1, 1);
+            folderopt.attach (headerlabel (_("Authentication:"), 500), 1, 4, 1, 1);
             folderopt.attach (userscr, 1, 5, 1, 1);
 
             var rpc_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Specify a port number for JSON-RPC/XML-RPC server to listen to"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.RPC_LISTEN_PORT))
             };
 
             var local_port = new Gtk.SpinButton.with_range (0, 9999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("pecify a port number for local server to listen to"),
                 value = double.parse (get_dbsetting (DBSettings.PORTLOCAL))
             };
 
             var bt_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("TCP port number for BitTorrent downloads"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.LISTEN_PORT))
             };
 
             var dht_listenport = new Gtk.SpinButton.with_range (0, 99999, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("UDP listening port used by DHT(IPv4, IPv6) and UDP tracker"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.DHT_LISTEN_PORT))
             };
 
             var maxrequest = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Max size of JSON-RPC/XML-RPC request"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.RPC_MAX_REQUEST_SIZE))
             };
 
             var diskcache = new Gtk.SpinButton.with_range (0, 9000000000, 1) {
-                width_request = 220,
+                width_request = 300,
                 hexpand = true,
                 tooltip_text = _("Enable disk cache. If SIZE is 0, the disk cache is disabled"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.DISK_CACHE))
@@ -620,66 +619,66 @@ namespace Gabut {
                 margin_end = 2,
                 halign = Gtk.Align.START
             };
-            moreoptions.attach (headerlabel (_("RPC Port:"), 220), 0, 0, 1, 1);
+            moreoptions.attach (headerlabel (_("RPC Port:"), 300), 0, 0, 1, 1);
             moreoptions.attach (rpc_port, 0, 1, 1, 1);
-            moreoptions.attach (headerlabel (_("Local Port:"), 220), 0, 2, 1, 1);
+            moreoptions.attach (headerlabel (_("Local Port:"), 300), 0, 2, 1, 1);
             moreoptions.attach (local_port, 0, 3, 1, 1);
-            moreoptions.attach (headerlabel (_("BT Listen Port:"), 220), 0, 4, 1, 1);
+            moreoptions.attach (headerlabel (_("BT Listen Port:"), 300), 0, 4, 1, 1);
             moreoptions.attach (bt_listenport, 0, 5, 1, 1);
-            moreoptions.attach (headerlabel (_("DHT Listen Port:"), 220), 0, 6, 1, 1);
+            moreoptions.attach (headerlabel (_("DHT Listen Port:"), 300), 0, 6, 1, 1);
             moreoptions.attach (dht_listenport, 0, 7, 1, 1);
-            moreoptions.attach (headerlabel (_("RPC Max Request Size (in Byte):"), 220), 1, 0, 1, 1);
+            moreoptions.attach (headerlabel (_("RPC Max Request Size (in Byte):"), 300), 1, 0, 1, 1);
             moreoptions.attach (maxrequest, 1, 1, 1, 1);
-            moreoptions.attach (headerlabel (_("Disk Cache (in Byte):"), 220), 1, 2, 1, 1);
+            moreoptions.attach (headerlabel (_("Disk Cache (in Byte):"), 300), 1, 2, 1, 1);
             moreoptions.attach (diskcache, 1, 3, 1, 1);
-            moreoptions.attach (headerlabel (_("File Allocation:"), 220), 1, 4, 1, 1);
+            moreoptions.attach (headerlabel (_("File Allocation:"), 300), 1, 4, 1, 1);
             moreoptions.attach (allocate_button, 1, 5, 1, 1);
 
             var dialognotify = new Gtk.CheckButton.with_label (_("Open dialog succes when download complete")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))
             };
 
             var systemnotif = new Gtk.CheckButton.with_label (_("Send notification system")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.SYSTEMNOTIF))
             };
 
             var soundnotif = new Gtk.CheckButton.with_label (_("Send notification sound")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))
             };
 
             var retonhide = new Gtk.CheckButton.with_label (_("Running on background")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))
             };
 
             var appstartup = new Gtk.CheckButton.with_label (_("Launch App on Startup")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.STARTUP))
             };
 
             var appclipboard = new Gtk.CheckButton.with_label (_("Add Url From Clipboard")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.CLIPBOARD))
             };
 
             var dbusmenu = new Gtk.CheckButton.with_label (_("Dbus Menu")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.DBUSMENU))
             };
 
             var menuindicator = new Gtk.CheckButton.with_label (_("Indicator Menu")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR)),
                 sensitive = dbusmenu.active
             };
@@ -702,11 +701,11 @@ namespace Gabut {
             });
             var tdefault = new Gtk.CheckButton.with_label (_("Theme")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (get_dbsetting (DBSettings.TDEFAULT))
             };
             var theme_entry = new MediaEntry.activable ("com.github.gabutakut.gabutdm.complete", "com.github.gabutakut.gabutdm.theme") {
-                width_request = 110,
+                width_request = 610,
                 margin_bottom = 4,
                 text = get_dbsetting (DBSettings.THEMECUSTOM),
                 placeholder_text = _("Enter the theme name here"),
@@ -733,19 +732,19 @@ namespace Gabut {
             theme_entry.sensitive = theme_mode.id == 1;
             var allowrepl = new Gtk.CheckButton.with_label (_("Replace File")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (pharse_options (pack_data, AriaOptions.ALLOW_OVERWRITE))
             };
 
             var autorename = new Gtk.CheckButton.with_label (_("Auto Rename")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (pharse_options (pack_data, AriaOptions.AUTO_FILE_RENAMING))
             };
 
             var optimdw = new Gtk.CheckButton.with_label (_("Optimizes the number of concurrent downloads")) {
                 margin_top = 5,
-                width_request = 450,
+                width_request = 610,
                 active = bool.parse (pharse_options (pack_data, AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS)),
                 tooltip_text = _("Optimizes the number of concurrent downloads according to the bandwidth available")
             };
@@ -761,30 +760,30 @@ namespace Gabut {
                 margin_end = 2,
                 height_request = 190
             };
-            notifyopt.attach (headerlabel (_("Style:"), 450), 0, 0, 1, 1);
+            notifyopt.attach (headerlabel (_("Style:"), 500), 0, 0, 1, 1);
             notifyopt.attach (style_mode, 0, 1, 1, 1);
             notifyopt.attach (tdefault, 0, 2, 1, 1);
             notifyopt.attach (theme_rev, 0, 3, 1, 1);
-            notifyopt.attach (headerlabel (_("Settings:"), 450), 0, 4, 1, 1);
+            notifyopt.attach (headerlabel (_("Settings:"), 500), 0, 4, 1, 1);
             notifyopt.attach (retonhide, 0, 5, 1, 1);
             notifyopt.attach (appstartup, 0, 6, 1, 1);
             notifyopt.attach (appclipboard, 0, 7, 1, 1);
-            notifyopt.attach (headerlabel (_("Dbus Settings:"), 450), 0, 8, 1, 1);
+            notifyopt.attach (headerlabel (_("Dbus Settings:"), 500), 0, 8, 1, 1);
             notifyopt.attach (dbusmenu, 0, 9, 1, 1);
             notifyopt.attach (menuindicator, 0, 10, 1, 1);
             notifyopt.attach (label_rev, 0, 11, 1, 1);
-            notifyopt.attach (headerlabel (_("Notify:"), 450), 0, 12, 1, 1);
+            notifyopt.attach (headerlabel (_("Notify:"), 500), 0, 12, 1, 1);
             notifyopt.attach (systemnotif, 0, 13, 1, 1);
             notifyopt.attach (dialognotify, 0, 14, 1, 1);
             notifyopt.attach (soundnotif, 0, 15, 1, 1);
-            notifyopt.attach (headerlabel (_("File Download:"), 450), 0, 16, 1, 1);
+            notifyopt.attach (headerlabel (_("File Download:"), 500), 0, 16, 1, 1);
             notifyopt.attach (allowrepl, 0, 17, 1, 1);
             notifyopt.attach (autorename, 0, 18, 1, 1);
             notifyopt.attach (optimdw, 0, 19, 1, 1);
             label_mode.sensitive = dbusmenu.active && menuindicator.active;
 
             var notyscr = new Gtk.ScrolledWindow () {
-                width_request = 455,
+                width_request = 614,
                 vexpand = true,
                 child = notifyopt
             };
@@ -889,7 +888,7 @@ namespace Gabut {
             });
 
             var box_action = new Gtk.Grid () {
-                width_request = 250,
+                width_request = 300,
                 margin_top = 10,
                 margin_bottom = 10,
                 column_spacing = 10,

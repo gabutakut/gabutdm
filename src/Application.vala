@@ -100,8 +100,8 @@ namespace Gabut {
                 var gabutserver = new GabutServer ();
                 gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 gabutserver.send_post_data.connect (dialog_server);
-                gabutwindow = new GabutWindow (this);
-
+                gabutwindow = new GabutWindow ();
+                add_window (gabutwindow);
                 var droptarget = new Gtk.DropTarget (Type.STRING, Gdk.DragAction.COPY);
                 gabutwindow.child.add_controller (droptarget);
                 droptarget.accept.connect (on_drag_data_received);
@@ -129,9 +129,7 @@ namespace Gabut {
                         }
                     });
                 });
-                gabutserver.address_url.connect ((url, options, later, linkmode)=> {
-                    gabutwindow.add_url_box (url, options, later, linkmode);
-                });
+                gabutserver.address_url.connect (gabutwindow.add_url_box);
                 downloaders = new GLib.List<Downloader> ();
                 succesdls = new GLib.List<SuccesDialog> ();
                 addurls = new GLib.List<AddUrl> ();
@@ -211,7 +209,7 @@ namespace Gabut {
         }
 
         public void dialog_succes (string strdata) {
-            var succesdl = new SuccesDialog (this) {
+            var succesdl = new SuccesDialog () {
                 transient_for = gabutwindow,
                 datastr = strdata
             };
@@ -240,14 +238,12 @@ namespace Gabut {
             if (url_active (match_info.fetch (PostServer.URL))) {
                 return;
             }
-            var addurl = new AddUrl (this) {
+            var addurl = new AddUrl () {
                 transient_for = gabutwindow,
                 portserver = match_info
             };
             addurls.append (addurl);
-            addurl.downloadfile.connect ((url, options, later, linkmode)=> {
-                gabutwindow.add_url_box (url, options, later, linkmode);
-            });
+            addurl.downloadfile.connect (gabutwindow.add_url_box);
             addurl.close.connect (()=> {
                 addurls.foreach ((addur)=> {
                     if (addur == addurl) {
@@ -271,6 +267,7 @@ namespace Gabut {
         public bool dialog_url (string link) {
             bool metabtn = false;
             string icon = "";
+            string filesize = "";
             if (link.has_prefix ("http://") || link.has_prefix ("https://") || link.has_prefix ("ftp://") || link.has_prefix ("sftp://")) {
                 icon = "com.github.gabutakut.gabutdm.insertlink";
             } else if (link.has_prefix ("magnet:?")) {
@@ -280,24 +277,25 @@ namespace Gabut {
             } else if (link.has_suffix (".torrent")) {
                 icon = "com.github.gabutakut.gabutdm.torrent";
                 metabtn = true;
+                filesize = GLib.format_size (get_finfo(File.new_for_uri (link)).get_size ());
             } else if (link.has_suffix (".metalink")) {
                 icon = "com.github.gabutakut.gabutdm";
                 metabtn = true;
+                filesize = GLib.format_size (get_finfo(File.new_for_uri (link)).get_size ());
             } else if (link == "") {
                 icon = "list-add";
             } else {
                 return true;
             }
-            var addurl = new AddUrl (this) {
+            var addurl = new AddUrl () {
                 transient_for = gabutwindow,
                 url_link = link.strip (),
                 url_icon = icon,
-                meta_sensitive = metabtn
+                meta_sensitive = metabtn,
+                filesize = filesize
             };
             addurls.append (addurl);
-            addurl.downloadfile.connect ((url, options, later, linkmode)=> {
-                gabutwindow.add_url_box (url, options, later, linkmode);
-            });
+            addurl.downloadfile.connect (gabutwindow.add_url_box);
             addurl.close.connect (()=> {
                 addurls.foreach ((addur)=> {
                     if (addur == addurl) {
@@ -341,7 +339,7 @@ namespace Gabut {
         }
 
         private void download (string aria_gid) {
-            var downloader = new Downloader (this)  {
+            var downloader = new Downloader ()  {
                 transient_for = gabutwindow,
                 ariagid = aria_gid
             };

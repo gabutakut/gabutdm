@@ -5,7 +5,7 @@
    width="48"
    version="1.1"
    sodipodi:docname="com.github.gabutakut.gabutdm.magnet.svg"
-   inkscape:version="1.2.2 (1:1.2.2+202212051552+b0a8486541)"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -23,28 +23,29 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      showgrid="false"
-     inkscape:zoom="11.75"
-     inkscape:cx="30.893617"
-     inkscape:cy="19.787234"
-     inkscape:window-width="1314"
-     inkscape:window-height="679"
-     inkscape:window-x="26"
-     inkscape:window-y="23"
-     inkscape:window-maximized="0"
+     inkscape:zoom="8.3085047"
+     inkscape:cx="6.0781094"
+     inkscape:cy="26.177996"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
      inkscape:current-layer="svg4078"
      inkscape:showpageshadow="2"
-     inkscape:deskcolor="#d1d1d1" />
+     inkscape:deskcolor="#d1d1d1"
+     showguides="false" />
   <defs
      id="defs4080">
     <linearGradient
        inkscape:collect="always"
        id="linearGradient5581">
       <stop
-         style="stop-color:#9bdb4d;stop-opacity:1;"
+         style="stop-color:#69c100;stop-opacity:1;"
          offset="0"
          id="stop5579" />
       <stop
-         style="stop-color:#68b723;stop-opacity:1;"
+         style="stop-color:#417116;stop-opacity:1;"
          offset="1"
          id="stop5577" />
     </linearGradient>

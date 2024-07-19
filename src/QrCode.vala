@@ -28,9 +28,8 @@ namespace Gabut {
         private Gtk.Button host_button;
         private bool local_server;
 
-        public QrCode (Gtk.Application application) {
-            Object (application: application,
-                    resizable: false,
+        public QrCode () {
+            Object (resizable: false,
                     use_header_bar: 1
             );
         }
@@ -87,8 +86,8 @@ namespace Gabut {
             header.decoration_layout = "none";
             qrpaint = new QrcodePaint ();
             var imageqr = new Gtk.Image () {
-                halign = Gtk.Align.START,
-                valign = Gtk.Align.START,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
                 pixel_size = 256,
                 margin_start = 10,
                 margin_end = 10,
@@ -105,7 +104,8 @@ namespace Gabut {
 
             var close_button = new Gtk.Button.with_label (_("Close")) {
                 width_request = 120,
-                height_request = 25
+                height_request = 25,
+                margin_end = 10
             };
             ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
@@ -114,7 +114,8 @@ namespace Gabut {
 
             host_button = new Gtk.Button.with_label (_("Share Host")) {
                 width_request = 120,
-                height_request = 25
+                height_request = 25,
+                margin_start = 10
             };
             ((Gtk.Label) host_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             host_button.clicked.connect (share_server);
@@ -136,8 +137,8 @@ namespace Gabut {
         }
 
         public override void show () {
-            base.show ();
             local_server = bool.parse (get_dbsetting (DBSettings.IPLOCAL));
+            base.show ();
         }
 
         private void share_server () {
