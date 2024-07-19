@@ -187,9 +187,8 @@ namespace Gabut {
             }
         }
 
-        public Downloader (Gtk.Application application) {
-            Object (application: application,
-                    resizable: false,
+        public Downloader () {
+            Object (resizable: false,
                     use_header_bar: 1
             );
         }
@@ -203,7 +202,7 @@ namespace Gabut {
             };
             view_mode.append_text (_("Download Status"));
             view_mode.append_text (_("Torrent Info"));
-            view_mode.append_text (_("Files"));
+            view_mode.append_text (_("Download Files"));
             view_mode.append_text (_("Speed Limiter"));
             view_mode.selected = 0;
             view_mode.notify["selected"].connect (() => {
@@ -560,8 +559,8 @@ namespace Gabut {
         }
 
         public override void show () {
-            base.show ();
             update_progress ();
+            base.show ();
         }
 
         public void get_active_status () {
@@ -571,7 +570,7 @@ namespace Gabut {
         private uint timeout_id = 0;
         private void add_timeout () {
             if (timeout_id == 0) {
-                stoptimer = true;
+                stoptimer = GLib.Source.CONTINUE;
                 timeout_id = Timeout.add (500, update_progress);
             }
         }
@@ -581,7 +580,7 @@ namespace Gabut {
                 Source.remove (timeout_id);
                 timeout_id = 0;
             }
-            stoptimer = false;
+            stoptimer = GLib.Source.REMOVE;
         }
 
         private int status_aria (string input) {

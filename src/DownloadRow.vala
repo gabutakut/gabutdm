@@ -333,7 +333,6 @@ namespace Gabut {
                 ariagid = aria_metalink (url, hashoption, activedm);
             } else {
                 ariagid = aria_url (url, hashoption, activedm);
-                filename = url;
             }
             this.url = url;
             add_db_download (this);
@@ -452,18 +451,21 @@ namespace Gabut {
             }
         }
 
-        public void start_notif () {
+        public void start_notif (bool notif) {
             Idle.add (()=> {
-                if (status != StatusMode.ERROR) {
+                if (filename == null) {
+                    filename = url;
+                }
+                if (!notif) {
                     notify_app (_("Starting"), filename, imagefile.gicon);
                     play_sound ("device-added");
                 }
-                return false;
+                return GLib.Source.REMOVE;
             });
         }
 
         public void idle_progress () {
-            Idle.add (()=> { update_progress (); return false; });
+            Idle.add (()=> { update_progress (); return GLib.Source.REMOVE;});
         }
 
         public void fraction_laucher () {
@@ -572,7 +574,7 @@ namespace Gabut {
         private uint timeout_id = 0;
         private void add_timeout () {
             if (timeout_id == 0) {
-                stoptimer = true;
+                stoptimer = GLib.Source.CONTINUE;
                 timeout_id = Timeout.add_seconds (1, update_progress);
             }
         }
@@ -582,16 +584,17 @@ namespace Gabut {
                 Source.remove (timeout_id);
                 timeout_id = 0;
             }
-            stoptimer = false;
+            stoptimer = GLib.Source.REMOVE;
         }
 
         public bool update_progress () {
             var pack_data = aria_v2_status (ariagid);
+            filepath = pharse_files (pack_data, AriaGetfiles.PATH);
+            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             totalsize = int64.parse (pharse_tells (pack_data, TellStatus.TOTALLENGTH));
             transferred = int64.parse (pharse_tells (pack_data, TellStatus.COMPELETEDLENGTH));
             transferrate = int.parse (pharse_tells (pack_data, TellStatus.DOWNLOADSPEED));
             uprate = int.parse (pharse_tells (pack_data, TellStatus.UPLOADSPEED));
-            filepath = pharse_files (pack_data, AriaGetfiles.PATH);
             string duprate = uprate > 0? @"- U: $(GLib.format_size ((uint64) uprate))" : "";
             string downrate = transferrate > 0? @"- D: $(GLib.format_size ((uint64) transferrate))" : "";
             string timedownload = "";
@@ -601,7 +604,6 @@ namespace Gabut {
             } else {
                 timedownload = "";
             }
-            status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status != StatusMode.ERROR) {
                 if (status != StatusMode.ACTIVE) {
                     labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";

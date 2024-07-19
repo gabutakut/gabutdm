@@ -37,7 +37,7 @@ namespace Gabut {
             int qrenwidth = qrencode.width;
             var limitsize = (qrenwidth < 29? 1.3 : 0);
             var grect = Graphene.Rect ();
-            grect.init (0, -0, (float) width, (float)height);
+            grect.init (0, 0, (float) width, (float)height);
             Cairo.Context cr = snapshot.append_cairo (grect);
             cr.set_source_rgb (1.0, 1.0, 1.0);
             cr.rectangle (0, 0, width, height);

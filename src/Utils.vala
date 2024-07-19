@@ -1500,6 +1500,59 @@ namespace Gabut {
         public string passwd {get; set;}
     }
 
+    public enum MyProxy {
+        NONE = 0,
+        ACTIVE = 1;
+
+        public string to_string () {
+            switch (this) {
+                case ACTIVE:
+                    return _("Proxy");
+                default:
+                    return _("No Proxy");
+            }
+        }
+
+        public static MyProxy [] get_all () {
+            return { NONE, ACTIVE};
+        }
+    }
+
+    private struct SavedProxy {
+        public int64 id {get; set;}
+        public int typepr {get; set;}
+        public string host {get; set;}
+        public string port {get; set;}
+        public string user {get; set;}
+        public string passwd {get; set;}
+    }
+
+    private enum DBMyproxy {
+        ID = 0,
+        TYPEPR = 1,
+        HOST = 2,
+        PORT = 3,
+        USER = 4,
+        PASSWD = 5;
+
+        public string to_string () {
+            switch (this) {
+                case TYPEPR:
+                    return "typepr";
+                case HOST:
+                    return "host";
+                case PORT:
+                    return "port";
+                case USER:
+                    return "user";
+                case PASSWD:
+                    return "passwd";
+                default:
+                    return "id";
+            }
+        }
+    }
+
     private enum UserID {
         ID = 0,
         ACTIVE = 1,
@@ -2351,7 +2404,7 @@ namespace Gabut {
 
     private void set_account (Gtk.Grid usergrid, UsersID user, int rowpos) {
         var user_entry = new MediaEntry.activable ("avatar-default", "process-stop") {
-            width_request = 220,
+            width_request = 300,
             margin_bottom = 4,
             text = user.user,
             secondary_icon_name = user.activate? "media-playback-start" : "process-stop",
@@ -2368,7 +2421,7 @@ namespace Gabut {
             update_user_id (user.id, UserID.USER, user_entry.text);
         });
         var pass_entry = new MediaEntry.activable ("dialog-password", "com.github.gabutakut.gabutdm.delete") {
-            width_request = 220,
+            width_request = 300,
             margin_bottom = 4,
             secondary_icon_tooltip_text = _("Delete Authentication"),
             text = user.passwd
@@ -2426,6 +2479,20 @@ namespace Gabut {
             GLib.warning (e.message);
         }
         return "";
+    }
+
+    private FileInfo get_finfo (File fileinput) {
+        FileInfo infos = null;
+        if (!fileinput.query_exists ()) {
+            return infos;
+        }
+        try {
+            infos = fileinput.query_info ("standard::*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            return infos;
+        } catch (Error e) {
+            GLib.warning (e.message);
+            return infos;
+        }
     }
 
     private string get_css (string cssloc) {
@@ -2674,12 +2741,25 @@ namespace Gabut {
         if (opendb != Sqlite.OK) {
             warning ("Can't open database: %s\n", db.errmsg ());
         }
+        opendb = table_proxy (db);
         opendb = table_users (db);
         opendb = last_opened (db);
         opendb = table_download (db);
         opendb = table_options (db);
         opendb = table_settings (db);
         return opendb;
+    }
+
+    private int table_proxy (Sqlite.Database db) {
+        return db.exec (@"CREATE TABLE IF NOT EXISTS proxy (
+            id             INT64   NOT NULL,
+            typepr         INT     NOT NULL,
+            host           TEXT    NOT NULL,
+            port           TEXT    NOT NULL,
+            user           TEXT    NOT NULL,
+            passwd         TEXT    NOT NULL);
+            INSERT INTO proxy (id, typepr, host, port, user, passwd)
+            VALUES (1, 0, \"\", \"\", \"\", \"\");");
     }
 
     private int table_users (Sqlite.Database db) {
@@ -2817,6 +2897,10 @@ namespace Gabut {
         if (db_get_cols ("users") < UserID.ACTIVE) {
             gabutdb.exec ("DROP TABLE users;");
             table_users (gabutdb);
+        }
+        if (db_get_cols ("proxy") <  DBMyproxy.PASSWD) {
+            gabutdb.exec ("DROP TABLE proxy;");
+            table_proxy (gabutdb);
         }
     }
 
@@ -2956,6 +3040,35 @@ namespace Gabut {
             return stmt.column_text (type);
         }
         return "";
+    }
+
+    private SavedProxy? get_myproxy () {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 ("SELECT id, typepr, host, port, user, passwd FROM proxy ORDER BY id;", -1, out stmt);
+        if (res != Sqlite.OK) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        var users = SavedProxy ();
+        while (stmt.step () == Sqlite.ROW) {
+            users.id = stmt.column_int64 (0);
+            users.typepr = stmt.column_int (1);
+            users.host = stmt.column_text (2);
+            users.port = stmt.column_text (3);
+            users.user = stmt.column_text (4);
+            users.passwd = stmt.column_text (5);
+        }
+        return users;
+    }
+
+    private string set_myproxy (DBMyproxy type, string value) {
+        Sqlite.Statement stmt;
+        int res = gabutdb.prepare_v2 (@"UPDATE proxy SET $(type.to_string ()) = \"$(value)\" WHERE id = ?", -1, out stmt);
+        res = stmt.bind_int (1, 1);
+        if ((res = stmt.step ()) != Sqlite.DONE) {
+            warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
+        }
+        stmt.reset ();
+        return value;
     }
 
     private string get_dbsetting (DBSettings type) {

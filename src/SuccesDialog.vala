@@ -27,9 +27,8 @@ namespace Gabut {
         private MediaEntry directory;
         public string datastr;
 
-        public SuccesDialog (Gtk.Application application) {
-            Object (application: application,
-                    resizable: false,
+        public SuccesDialog ( ) {
+            Object (resizable: false,
                     use_header_bar: 1
             );
         }
