@@ -360,6 +360,7 @@ namespace Gabut {
 
             var openimage = new Gtk.Button () {
                 focus_on_click = false,
+                has_frame = false,
                 child = overlay,
                 tooltip_text = _("Open Details")
             };
@@ -383,7 +384,8 @@ namespace Gabut {
             };
 
             start_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.active") {
-                valign = Gtk.Align.CENTER
+                valign = Gtk.Align.CENTER,
+                has_frame = false
             };
             start_button.clicked.connect (()=> {
                 action_btn ();
@@ -391,6 +393,7 @@ namespace Gabut {
 
             var remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 valign = Gtk.Align.CENTER,
+                has_frame = false,
                 tooltip_text = _("Remove")
             };
             remove_button.clicked.connect (remove_down);

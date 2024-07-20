@@ -373,12 +373,14 @@ namespace Gabut {
                 decoration_layout = ":close"
             };
             var menu_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.settings") {
+                has_frame = false,
                 tooltip_text = _("Settings")
             };
             headerbar.pack_end (menu_button);
             menu_button.clicked.connect (menuprefernces);
 
             var search_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.find") {
+                has_frame = false,
                 tooltip_text = _("Search")
             };
             headerbar.pack_end (search_button);
@@ -395,6 +397,7 @@ namespace Gabut {
                 search_entry.text = "";
             });
             var host_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.gohome") {
+                has_frame = false,
                 tooltip_text = _("Remote")
             };
             headerbar.pack_end (host_button);
@@ -402,23 +405,27 @@ namespace Gabut {
             var add_open = new Gtk.MenuButton () {
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.insertlink"),
                 direction = Gtk.ArrowType.UP,
+                has_frame = false,
                 popover = get_openmenu (),
                 tooltip_text = _("Add/Open")
             };
             headerbar.pack_start (add_open);
             var resumeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.active") {
+                has_frame = false,
                 tooltip_text = _("Start All")
             };
             headerbar.pack_start (resumeall_button);
             resumeall_button.clicked.connect (start_all);
 
             var stopall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.pause") {
+                has_frame = false,
                 tooltip_text = _("Pause All")
             };
             headerbar.pack_start (stopall_button);
             stopall_button.clicked.connect (stop_all);
 
             var removeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
+                has_frame = false,
                 tooltip_text = _("Remove All")
             };
             headerbar.pack_start (removeall_button);
@@ -535,6 +542,7 @@ namespace Gabut {
             var property_button = new Gtk.MenuButton () {
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.menu"),
                 direction = Gtk.ArrowType.UP,
+                has_frame = false,
                 margin_start = 6,
                 tooltip_text = _("Property")
             };
@@ -578,6 +586,7 @@ namespace Gabut {
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.opt"),
                 popover = get_menu (),
                 margin_end = 6,
+                has_frame = false,
                 tooltip_text = _("Sort by")
             };
             var actionbar = new Gtk.CenterBox () {
