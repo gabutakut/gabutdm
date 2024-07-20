@@ -314,6 +314,7 @@ namespace Gabut {
             };
 
             var load_tr = new Gtk.Button.from_icon_name ("document-open") {
+                has_frame = false,
                 tooltip_text = _("Open Text Tracker")
             };
             load_tr.clicked.connect (() => {
@@ -335,6 +336,7 @@ namespace Gabut {
             });
 
             var fformat_tr = new Gtk.Button.from_icon_name ("view-refresh") {
+                has_frame = false,
                 tooltip_text = _("Fix to Tracker")
             };
             fformat_tr.clicked.connect (() => {
@@ -343,6 +345,7 @@ namespace Gabut {
             });
 
             var clear_tr = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
+                has_frame = false,
                 tooltip_text = _("Clear Text Tracker")
             };
             clear_tr.clicked.connect (() => {
@@ -375,6 +378,7 @@ namespace Gabut {
             };
 
             var load_etr = new Gtk.Button.from_icon_name ("document-open") {
+                has_frame = false,
                 tooltip_text = _("Open Text Tracker")
             };
             load_etr.clicked.connect (() => {
@@ -395,6 +399,7 @@ namespace Gabut {
                 });
             });
             var fformat_etr = new Gtk.Button.from_icon_name ("view-refresh") {
+                has_frame = false,
                 tooltip_text = _("Fix to Tracker")
             };
             fformat_etr.clicked.connect (() => {
@@ -402,6 +407,7 @@ namespace Gabut {
                 etrackertext.buffer.text = formatclr;
             });
             var clear_etr = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
+                has_frame = false,
                 tooltip_text = _("Clear Text Tracker")
             };
             clear_etr.clicked.connect (() => {
