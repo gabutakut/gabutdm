@@ -14,6 +14,8 @@ actions = [
     '.clear.svg',
     '.seed.svg',
     '.seedloop.svg',
+    '.seedloopx.svg',
+    '.seedloopy.svg',
     '.metalink.svg',
     '.find.svg',
     '.insertlink.svg',

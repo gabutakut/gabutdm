@@ -48,7 +48,7 @@ namespace Gabut {
         private Gtk.Label upload_rate;
         private Gtk.Label labelact;
         private Gtk.Image modeview;
-        private int64 animation = 0;
+        private int animation = 0;
         private bool removing = false;
 
         SortBy _sorttype = null;
@@ -124,14 +124,7 @@ namespace Gabut {
             }
             set {
                 _menulabel = value;
-                if (_menulabel == 0) {
-                    dbusindicator.updateLabel = "";
-                } else if (_menulabel == 1) {
-                    dbusindicator.updateLabel = _("GabutDM");
-                } else {
-                    update_info ();
-                }
-                dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
+                update_info ();
             }
         }
 
@@ -761,10 +754,6 @@ namespace Gabut {
                     Source.remove (rmtimeout_id);
                     rmtimeout_id = 0;
                 }
-                if (indmenu) {
-                    dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
-                    dbusindicator.new_icon ();
-                }
             }
             return false;
         }
@@ -1014,29 +1003,36 @@ namespace Gabut {
                 return;
             }
             if (allactive > 0) {
-                if (animation % 2 == 0) {
-                    dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
-                    dbusindicator.new_icon ();
-                } else {
-                    dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloop";   
-                    dbusindicator.new_icon ();
+                switch (animation) {
+                    case 1:
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloopy";
+                        animation++;
+                        break;
+                    case 2:
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloopx";
+                        animation++;
+                        break;
+                    case 3:
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seedloop";
+                        animation = 0;
+                        break;
+                    default:
+                        dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.seed";
+                        animation++;
+                        break;
                 }
-                if (animation > 9) {
-                    animation = 0;
-                }
-                animation++;
+                dbusindicator.new_icon ();
             }
-            if (menulabel == 1) {
-                dbusindicator.updateLabel = _("GabutDM");
-                dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
-            } else if (menulabel == 2) {
+            if (_menulabel == 0) {
+                dbusindicator.updateLabel = "";
+            } else {
                 if (allactive > 0) {
-                    dbusindicator.updateLabel = " %s".printf (GLib.format_size (allactive > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0));
+                    dbusindicator.updateLabel = GLib.format_size (allactive > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0);
                 } else {
-                    dbusindicator.updateLabel = "";
+                    dbusindicator.updateLabel = _menulabel == 1? _("GabutDM") : "";
                 }
-                dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
             }
+            dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
         }
 
         private bool get_exist (string url) {
