@@ -341,6 +341,9 @@ namespace Gabut {
             save_meta.toggled.connect (()=> {
                 save_image.sensitive = save_meta.active;
             });
+            link_entry.changed.connect (()=> {
+                meta_sensitive = url_link.has_prefix ("magnet:?")? true : false;
+            });
             var metaoverlay = new Gtk.Overlay () {
                 height_request = 90,
                 width_request = 90,
