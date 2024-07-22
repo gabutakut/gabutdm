@@ -49,6 +49,10 @@ namespace Gabut {
         private Gtk.Label labelact;
         private Gtk.Image modeview;
         private int animation = 0;
+        private int allactive = 0;
+        private int limitcount = 0;
+        private int64 totalfiles = 0;
+        private int64 totalrecv = 0;
         private bool removing = false;
 
         SortBy _sorttype = null;
@@ -864,56 +868,9 @@ namespace Gabut {
                     listrow.add (row);
                     row.show ();
                     row.notify_property ("status");
-                    row.notify["status"].connect (()=> {
-                        switch (row.status) {
-                            case StatusMode.PAUSED:
-                            case StatusMode.COMPLETE:
-                            case StatusMode.ERROR:
-                                next_download ();
-                                stop_launcher ();
-                                remove_dbus.begin (row.rowbus);
-                                break;
-                            case StatusMode.WAIT:
-                            case StatusMode.NOTHING:
-                                remove_dbus.begin (row.rowbus);
-                                break;
-                            case StatusMode.ACTIVE:
-                                if (!menudbus.get_exist (row.rowbus)) {
-                                    run_launcher ();
-                                    if (!active_downloader (row.ariagid)) {
-                                        append_dbus.begin (row.rowbus);
-                                    }
-                                    view_status ();
-                                }
-                                if (dbmenu) {
-                                    row.fraction_laucher ();
-                                }
-                                update_info ();
-                                return;
-                        }
-                        view_status ();
-                        update_info ();
-                    });
-                    if (list_box.get_selected_row () == null) {
-                        list_box.select_row (row);
-                        list_box.row_activated (row);
-                    }
-                    row.destroy.connect (()=> {
-                        listrow.remove (row);
-                        list_box.remove (row);
-                        remove_dbus.begin (row.rowbus);
-                        next_download ();
-                        stop_launcher ();
-                        view_status ();
-                    });
-                    row.update_agid.connect ((ariagid, newgid)=> update_agid (ariagid, newgid));
-                    row.activedm.connect (activedm);
+                    on_append (row);
                 }
             });
-            listrow.sort (sort_dm);
-            list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
-            update_info ();
-            view_status ();
         }
 
         public void add_url_box (string url, Gee.HashMap<string, string> options, bool later, int linkmode) {
@@ -926,6 +883,16 @@ namespace Gabut {
             list_box.append (row);
             listrow.add (row);
             row.show ();
+            on_append (row);
+            if (!later) {
+                row.download ();
+            } else {
+                aria_pause (row.ariagid);
+            }
+            row.start_notif (later);
+        }
+
+        private void on_append (DownloadRow row) {
             row.notify["status"].connect (()=> {
                 switch (row.status) {
                     case StatusMode.PAUSED:
@@ -940,17 +907,7 @@ namespace Gabut {
                         remove_dbus.begin (row.rowbus);
                         break;
                     case StatusMode.ACTIVE:
-                        if (!menudbus.get_exist (row.rowbus)) {
-                            run_launcher ();
-                            if (!active_downloader (row.ariagid)) {
-                                append_dbus.begin (row.rowbus);
-                            }
-                            view_status ();
-                        }
-                        if (dbmenu) {
-                            row.fraction_laucher ();
-                        }
-                        update_info ();
+                        on_active (row);
                         return;
                 }
                 view_status ();
@@ -970,16 +927,33 @@ namespace Gabut {
                 list_box.select_row (row);
                 list_box.row_activated (row);
             }
-            if (!later) {
-                row.download ();
-            } else {
-                aria_pause (row.ariagid);
-            }
-            row.start_notif (later);
             listrow.sort (sort_dm);
             list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
             update_info ();
             view_status ();
+        }
+
+        private void on_active (DownloadRow row) {
+            if (!menudbus.get_exist (row.rowbus)) {
+                run_launcher ();
+                if (!active_downloader (row.ariagid)) {
+                    append_dbus.begin (row.rowbus);
+                }
+                view_status ();
+            }
+            if (limitcount >= allactive) {
+                double fraction = (double) totalrecv / (double) totalfiles;
+                if (fraction > 0.0) {
+                    if (dbmenu) {
+                        set_progress_visible.begin (fraction);
+                    }
+                }
+                update_info ();
+                totalfiles = totalrecv = limitcount = 0;
+            }
+            totalrecv = totalrecv + row.transferred;
+            totalfiles = totalfiles + row.totalsize;
+            limitcount++;
         }
 
         public int activedm () {
@@ -995,7 +969,7 @@ namespace Gabut {
 
         private void update_info () {
             var infol = aria_label_info ();
-            var allactive = int64.parse (infol.fetch (2));
+            allactive = int.parse (infol.fetch (2));
             download_rate.label = GLib.format_size (allactive > 0? int64.parse (infol.fetch (1)) : 0);
             upload_rate.label = GLib.format_size (allactive > 0? int64.parse (infol.fetch (6)) : 0);
             labelact.label = allactive.to_string ();
