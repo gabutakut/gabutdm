@@ -471,10 +471,6 @@ namespace Gabut {
             Idle.add (()=> { update_progress (); return GLib.Source.REMOVE;});
         }
 
-        public void fraction_laucher () {
-            set_progress_visible.begin (progressbar.fraction);
-        }
-
         private void action_dowload () {
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
             if (status == StatusMode.ACTIVE) {
