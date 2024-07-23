@@ -36,7 +36,11 @@ actions = [
     '.cookie.svg',
     '.opt.svg',
     '.menu.svg',
-    '.onactive.svg'
+    '.onactive.svg',
+    '.amchok.svg',
+    '.amchoking.svg',
+    '.peerchok.svg',
+    '.peerchoking.svg'
 ]
 
 foreach m : actions
