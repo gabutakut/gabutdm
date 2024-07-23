@@ -26,6 +26,8 @@ namespace Gabut {
         private Gtk.Label client_id;
         private Gtk.Label upload_rate;
         private Gtk.Image seeder_img;
+        private Gtk.Image imgamchok;
+        private Gtk.Image imgpeerchok;
 
         private string _host;
         public string host {
@@ -45,6 +47,7 @@ namespace Gabut {
             }
             set {
                 _peerschoking = value;
+                imgpeerchok.gicon = new ThemedIcon (_peerschoking);
             }
         }
 
@@ -88,7 +91,7 @@ namespace Gabut {
             }
             set {
                 _seeder = value;
-                seeder_img.gicon = new ThemedIcon (bool.parse (_seeder)? "com.github.gabutakut.gabutdm" : "com.github.gabutakut.gabutdm.seed");
+                seeder_img.icon_name =_seeder;
             }
         }
 
@@ -99,6 +102,7 @@ namespace Gabut {
             }
             set {
                 _amchoking = value;
+                imgamchok.gicon = new ThemedIcon (_amchoking);
             }
         }
         private string _bitfield;
@@ -166,6 +170,14 @@ namespace Gabut {
                 attributes = color_attribute (60000, 0, 0)
             };
 
+            imgamchok = new Gtk.Image () {
+                valign = Gtk.Align.CENTER
+            };
+
+            imgpeerchok = new Gtk.Image () {
+                valign = Gtk.Align.CENTER
+            };
+
             var grid = new Gtk.Grid () {
                 hexpand = true,
                 margin_start = 4,
@@ -185,6 +197,8 @@ namespace Gabut {
             grid.attach (download_rate, 6, 0);
             grid.attach (label_upload, 7, 0);
             grid.attach (upload_rate, 8, 0);
+            grid.attach (imgpeerchok, 9, 0);
+            grid.attach (imgamchok, 10, 0);
             child = grid;
         }
     }

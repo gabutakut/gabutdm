@@ -1735,14 +1735,17 @@ namespace Gabut {
             if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
                     string peerid = GLib.Uri.unescape_string (match_info.fetch (6));
+                    var peerschoking = bool.parse (match_info.fetch (5))? "com.github.gabutakut.gabutdm.peerchoking" : "com.github.gabutakut.gabutdm.peerchok";
+                    var seeder = bool.parse (match_info.fetch (8))? "com.github.gabutakut.gabutdm" : "com.github.gabutakut.gabutdm.seed";
+                    var amchoking = bool.parse (match_info.fetch (1))? "com.github.gabutakut.gabutdm.amchoking" : "com.github.gabutakut.gabutdm.amchok";
                     var peersrow = new PeersRow () {
                         host = @"$(match_info.fetch (4)):$(match_info.fetch (7))",
                         peerid = peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow",
                         downloadspeed = GLib.format_size (int64.parse (match_info.fetch (3))),
                         uploadspeed = GLib.format_size (int64.parse (match_info.fetch (9))),
-                        peerschoking = match_info.fetch (5),
-                        seeder = match_info.fetch (8),
-                        amchoking = match_info.fetch (1),
+                        peerschoking = peerschoking,
+                        seeder = seeder,
+                        amchoking = amchoking,
                         bitfield = match_info.fetch (2)
                     };
                     liststore.set (@"$(match_info.fetch (4)):$(match_info.fetch (7))", peersrow);

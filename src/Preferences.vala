@@ -631,14 +631,14 @@ namespace Gabut {
             moreoptions.attach (local_port, 0, 3, 1, 1);
             moreoptions.attach (headerlabel (_("BT Listen Port:"), 300), 0, 4, 1, 1);
             moreoptions.attach (bt_listenport, 0, 5, 1, 1);
-            moreoptions.attach (headerlabel (_("DHT Listen Port:"), 300), 0, 6, 1, 1);
-            moreoptions.attach (dht_listenport, 0, 7, 1, 1);
+            moreoptions.attach (headerlabel (_("File Allocation:"), 300), 0, 6, 1, 1);
+            moreoptions.attach (allocate_button, 0, 7, 2, 1);
             moreoptions.attach (headerlabel (_("RPC Max Request Size (in Byte):"), 300), 1, 0, 1, 1);
             moreoptions.attach (maxrequest, 1, 1, 1, 1);
             moreoptions.attach (headerlabel (_("Disk Cache (in Byte):"), 300), 1, 2, 1, 1);
             moreoptions.attach (diskcache, 1, 3, 1, 1);
-            moreoptions.attach (headerlabel (_("File Allocation:"), 300), 1, 4, 1, 1);
-            moreoptions.attach (allocate_button, 1, 5, 1, 1);
+            moreoptions.attach (headerlabel (_("DHT Listen Port:"), 300), 1, 4, 1, 1);
+            moreoptions.attach (dht_listenport, 1, 5, 1, 1);
 
             var dialognotify = new Gtk.CheckButton.with_label (_("Open dialog succes when download complete")) {
                 margin_top = 5,
