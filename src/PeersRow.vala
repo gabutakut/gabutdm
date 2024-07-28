@@ -47,7 +47,7 @@ namespace Gabut {
             }
             set {
                 _peerschoking = value;
-                imgpeerchok.gicon = new ThemedIcon (_peerschoking);
+                imgpeerchok.icon_name = _peerschoking;
             }
         }
 
@@ -102,7 +102,7 @@ namespace Gabut {
             }
             set {
                 _amchoking = value;
-                imgamchok.gicon = new ThemedIcon (_amchoking);
+                imgamchok.icon_name = _amchoking;
             }
         }
         private string _bitfield;
@@ -121,7 +121,7 @@ namespace Gabut {
             };
             var host_id = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
-                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.gohome"),
+                icon_name = "com.github.gabutakut.gabutdm.gohome",
                 tooltip_text = _("Host")
             };
 
@@ -134,7 +134,7 @@ namespace Gabut {
             };
             var peer_id = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
-                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.client"),
+                icon_name = "com.github.gabutakut.gabutdm.client",
                 tooltip_text = _("Client")
             };
 
@@ -147,7 +147,7 @@ namespace Gabut {
             };
             var label_download = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
-                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.down"),
+                icon_name = "com.github.gabutakut.gabutdm.down",
                 tooltip_text = _("Download Speed")
             };
             download_rate = new Gtk.Label (null) {
@@ -159,7 +159,7 @@ namespace Gabut {
             };
             var label_upload = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
-                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.up"),
+                icon_name = "com.github.gabutakut.gabutdm.up",
                 tooltip_text = _("Upload Speed")
             };
             upload_rate = new Gtk.Label (null) {
@@ -171,11 +171,13 @@ namespace Gabut {
             };
 
             imgamchok = new Gtk.Image () {
-                valign = Gtk.Align.CENTER
+                valign = Gtk.Align.CENTER,
+                tooltip_text = _("GDM Choking")
             };
 
             imgpeerchok = new Gtk.Image () {
-                valign = Gtk.Align.CENTER
+                valign = Gtk.Align.CENTER,
+                tooltip_text = _("Peer Choking")
             };
 
             var grid = new Gtk.Grid () {

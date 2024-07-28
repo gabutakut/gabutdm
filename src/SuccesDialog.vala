@@ -27,13 +27,9 @@ namespace Gabut {
         private MediaEntry directory;
         public string datastr;
 
-        public SuccesDialog ( ) {
-            Object (resizable: false,
-                    use_header_bar: 1
-            );
-        }
-
         construct {
+            resizable = false;
+            use_header_bar = 1;
             icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,

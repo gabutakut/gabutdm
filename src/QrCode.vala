@@ -28,13 +28,9 @@ namespace Gabut {
         private Gtk.Button host_button;
         private bool local_server;
 
-        public QrCode () {
-            Object (resizable: false,
-                    use_header_bar: 1
-            );
-        }
-
         construct {
+            resizable = false;
+            use_header_bar = 1;
             var icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
