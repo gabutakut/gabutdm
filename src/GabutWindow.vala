@@ -54,6 +54,8 @@ namespace Gabut {
         private int64 totalfiles = 0;
         private int64 totalrecv = 0;
         private bool removing = false;
+        private bool starting = false;
+        private bool stoping = false;
 
         SortBy _sorttype = null;
         SortBy sorttype {
@@ -132,13 +134,9 @@ namespace Gabut {
             }
         }
 
-        public GabutWindow ( ) {
-            Object (hide_on_close: bool.parse (get_dbsetting (DBSettings.ONBACKGROUND)),
-                    title: _("Gabut Download Manager")
-            );
-        }
-
         construct {
+            hide_on_close = bool.parse (get_dbsetting (DBSettings.ONBACKGROUND));
+            title = _("Gabut Download Manager");
             dbmenu = bool.parse (get_dbsetting (DBSettings.DBUSMENU));
             dbusserver = new CanonicalDbusmenu ();
             dbusindicator = new DbusIndicator (dbusserver.dbus_object);
@@ -228,6 +226,7 @@ namespace Gabut {
             var scrolled = new Gtk.ScrolledWindow () {
                 height_request = 350,
                 width_request = 650,
+                overlay_scrolling = true,
                 vexpand = true,
                 child = list_box
             };
@@ -742,10 +741,6 @@ namespace Gabut {
                         set_progress_visible.begin (0.0, false);
                         set_count_visible.begin (globalactive);
                         update_info ();
-                        if (indmenu) {
-                            dbusindicator.updateiconame = "com.github.gabutakut.gabutdm";
-                            dbusindicator.new_icon ();
-                        }
                         stoped--;
                         return stoped != 0;
                     });
@@ -844,31 +839,29 @@ namespace Gabut {
 
         public void remove_all () {
             var totalsize = listrow.size;
-            int count = 0;
+            int index = 0;
             Idle.add (()=> {
-                count++;
+                index++;
                 if (listrow.size > 0) {
                     removing = true;
-                    labelview.label = _("Removing... (%i of %i)").printf (count, totalsize);
+                    labelview.label = _("Removing… (%i of %i)").printf (index, totalsize);
+                    indicatorstatus ();
                     listrow.get (0).remove_down ();
                 } else {
                     removing = false;
+                    update_info ();
+                    aria_purge_all ();
                     view_status ();
                 }
                 return removing;
             });
-            aria_purge_all ();
-            view_status ();
         }
 
         public void load_dowanload () {
             get_download ().foreach ((row)=> {
                 if (!get_exist (row.url)) {
-                    list_box.append (row);
-                    listrow.add (row);
-                    row.show ();
-                    row.notify_property ("status");
                     on_append (row);
+                    row.notify_property ("status");
                 }
             });
         }
@@ -877,28 +870,29 @@ namespace Gabut {
             if (get_exist (url)) {
                 return;
             }
-            var row = new DownloadRow.Url (url, options, linkmode, activedm ()) {
+            var row = new DownloadRow.Url (url, options, linkmode, activedm (), later) {
                 timeadded = new GLib.DateTime.now_local ().to_unix ()
             };
-            list_box.append (row);
-            listrow.add (row);
-            row.show ();
             on_append (row);
             if (!later) {
                 row.download ();
             } else {
                 aria_pause (row.ariagid);
             }
-            row.start_notif (later);
         }
 
         private void on_append (DownloadRow row) {
+            list_box.append (row);
+            listrow.add (row);
+            row.show ();
             row.notify["status"].connect (()=> {
                 switch (row.status) {
                     case StatusMode.PAUSED:
                     case StatusMode.COMPLETE:
                     case StatusMode.ERROR:
-                        next_download ();
+                        if (!starting && !stoping) {
+                            next_download ();
+                        }
                         stop_launcher ();
                         remove_dbus.begin (row.rowbus);
                         break;
@@ -976,6 +970,9 @@ namespace Gabut {
             if (!indmenu) {
                 return;
             }
+            if (starting || stoping || removing) {
+                return;
+            }
             if (allactive > 0) {
                 switch (animation) {
                     case 1:
@@ -995,8 +992,10 @@ namespace Gabut {
                         animation++;
                         break;
                 }
-                dbusindicator.new_icon ();
+            } else {
+                dbusindicator.updateiconame = "com.github.gabutakut.gabutdm";
             }
+            dbusindicator.new_icon ();
             if (_menulabel == 0) {
                 dbusindicator.updateLabel = "";
             } else {
@@ -1007,6 +1006,19 @@ namespace Gabut {
                 }
             }
             dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
+        }
+
+        private void indicatorstatus () {
+            dbusindicator.updateLabel = labelview.label;
+            dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
+            if (starting) {
+                dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.active";
+            } else if (stoping) {
+                dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.pause";
+            } else {
+                dbusindicator.updateiconame = "com.github.gabutakut.gabutdm.clear";
+            }
+            dbusindicator.new_icon ();
         }
 
         private bool get_exist (string url) {
@@ -1020,29 +1032,77 @@ namespace Gabut {
             return linkexist;
         }
 
-        private void start_all () {
-            int index = 0;
+        public int beforest () {
+            int count = 0;
             listrow.foreach ((row)=> {
                 if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                    aria_position (row.ariagid, index++);
-                    aria_unpause (row.ariagid);
-                    row.update_progress ();
+                    count++;
                 }
                 return true;
             });
-            view_status ();
+            return count;
+        }
+
+        private void start_all () {
+            if (stoping) {
+                return;
+            }
+            int index = activedm ();
+            int onstr = beforest ();
+            int count = 0;
+            Idle.add (()=> {
+                if (listrow.size > 0) {
+                    starting = true;
+                    var row = listrow.get (count);
+                    if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                        aria_position (row.ariagid, index);
+                        aria_unpause (row.ariagid);
+                        row.update_progress ();
+                        index++;
+                        labelview.label = _("Starting… (%i of %i)").printf (index, onstr);
+                        indicatorstatus ();
+                    }
+                    count++;
+                } 
+                if (listrow.size == count) {
+                    starting = false;
+                    update_info ();
+                    view_status ();
+                }
+                return starting;
+            });
         }
 
         private void stop_all () {
-            listrow.foreach ((row)=> {
-                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                    aria_pause (row.ariagid);
-                    row.idle_progress ();
+            if (starting) {
+                return;
+            }
+            int index = 0;
+            int count = 0;
+            int acti = activedm ();
+            Idle.add (()=> {
+                if (listrow.size > 0) {
+                    stoping = true;
+                    var row = listrow.get (index);
+                    if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                        aria_pause (row.ariagid);
+                        row.update_progress ();
+                        count++;
+                        if (acti > 0 && count <= acti) {
+                            labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
+                            indicatorstatus ();
+                        }
+                    }
+                    index++;
+                } 
+                if (listrow.size == index) {
+                    stoping = false;
+                    update_info ();
+                    aria_pause_all ();
+                    view_status ();
                 }
-                return true;
+                return stoping;
             });
-            aria_pause_all ();
-            view_status ();
         }
 
         public string set_selected (string ariagid, string selected) {
@@ -1179,7 +1239,7 @@ namespace Gabut {
         }
 
         public void view_status () {
-            if (removing) {
+            if (starting || stoping || removing) {
                 return;
             }
             int indexv = 0;

@@ -90,13 +90,9 @@ namespace Gabut {
             }
         }
 
-        public Preferences () {
-            Object (resizable: false,
-                    use_header_bar: 1
-            );
-        }
-
         construct {
+            resizable = false;
+            use_header_bar = 1;
             var view_mode = new ModeButton () {
                 hexpand = false,
                 homogeneous = true,

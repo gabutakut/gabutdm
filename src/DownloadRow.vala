@@ -324,7 +324,7 @@ namespace Gabut {
             if_not_exist (ariagid, linkmode, status);
         }
 
-        public DownloadRow.Url (string url, Gee.HashMap<string, string> options, int linkmode, int activedm) {
+        public DownloadRow.Url (string url, Gee.HashMap<string, string> options, int linkmode, int activedm, bool later) {
             this.hashoption = options;
             this.linkmode = linkmode;
             if (linkmode == LinkMode.TORRENT) {
@@ -337,7 +337,11 @@ namespace Gabut {
             this.url = url;
             add_db_download (this);
             set_dboptions (url, hashoption);
-            idle_progress ();
+            Idle.add (()=> {
+                update_progress ();
+                start_notif (later);
+                return GLib.Source.REMOVE;
+            });
         }
 
         construct {
@@ -465,10 +469,6 @@ namespace Gabut {
                 }
                 return GLib.Source.REMOVE;
             });
-        }
-
-        public void idle_progress () {
-            Idle.add (()=> { update_progress (); return GLib.Source.REMOVE;});
         }
 
         private void action_dowload () {
