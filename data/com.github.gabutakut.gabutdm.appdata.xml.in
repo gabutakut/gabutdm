@@ -31,6 +31,16 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="2.6.0" date="2024-7-29">
+      <description>
+        <p>Remove Minimize button</p>
+        <p>Fix Notrespond Remove, Start download and stop download</p>
+        <p>Popover button open Torrent and add url</p>
+        <p>Buttons Sort on mode search</p>
+        <p>Info start stop and remove on indicator Menu</p>
+        <p>and other fixes</p>
+      </description>
+    </release>
     <release version="2.5.0" date="2024-7-6">
       <description>
         <p>Replace Treeview to Listbox</p>
