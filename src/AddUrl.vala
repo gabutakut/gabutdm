@@ -577,10 +577,12 @@ namespace Gabut {
                 ((Gtk.Label)((ChecksumType) checksumtype).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 checksumtype = checksum as ChecksumType;
                 ((Gtk.Label)checksumtype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
+                checksum_entry.sensitive = checksumtype.checksums != AriaChecksumTypes.NONE? true : false;
                 checksums_popover.hide ();
             });
             checksumtype = checksums_flow.get_child_at_index (0) as ChecksumType;
             ((Gtk.Label)checksumtype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
+            checksum_entry.sensitive = checksumtype.checksums != AriaChecksumTypes.NONE? true : false;
 
             checksums_popover.show.connect (() => {
                 checksums_flow.unselect_all ();
@@ -1034,6 +1036,7 @@ namespace Gabut {
                     if (aria_get_option (row.ariagid, AriaOptions.CHECKSUM).contains (((ChecksumType) checksflow).checksums.to_string ())) {
                         checksumtype = checksflow as ChecksumType;
                         checksum_entry.text = aria_get_option (row.ariagid, AriaOptions.CHECKSUM).split ("=")[1];
+                        checksum_entry.sensitive = checksumtype.checksums != AriaChecksumTypes.NONE? true : false;
                     }
                 }
                 if (encrypt.active) {
