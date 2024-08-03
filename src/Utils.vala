@@ -1853,8 +1853,8 @@ namespace Gabut {
         return listgid;
     }
 
-    private Gee.ArrayList<TorrentRow> aria_files_store (string gid) {
-        var torrentstore = new Gee.ArrayList<TorrentRow> ();
+    private Gee.HashMap<string, TorrentRow> aria_files_store (string gid) {
+        var torrentstore = new Gee.HashMap<string, TorrentRow> ();
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return torrentstore;
@@ -1877,12 +1877,12 @@ namespace Gabut {
                         filebasename = file.get_basename (),
                         filepath = file.get_path (),
                         completesize = GLib.format_size (total),
-                        filesize = GLib.format_size (transfer),
+                        sizetransfered = GLib.format_size (transfer),
                         fraction = fraction,
                         status = status,
                         persen = persen
                     };
-                    torrentstore.add (torrentfile);
+                    torrentstore.set (file.get_path (), torrentfile);
                     match_info.next ();
                 }
             }

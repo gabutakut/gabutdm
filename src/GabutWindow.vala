@@ -838,6 +838,9 @@ namespace Gabut {
         }
 
         public void remove_all () {
+            if (starting || stoping || removing) {
+                return;
+            }
             var totalsize = listrow.size;
             int index = 0;
             Idle.add (()=> {
@@ -1044,7 +1047,7 @@ namespace Gabut {
         }
 
         private void start_all () {
-            if (stoping) {
+            if (starting || stoping || removing) {
                 return;
             }
             int index = activedm ();
@@ -1074,7 +1077,7 @@ namespace Gabut {
         }
 
         private void stop_all () {
-            if (starting) {
+            if (starting || stoping || removing) {
                 return;
             }
             int index = 0;

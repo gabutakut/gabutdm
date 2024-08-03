@@ -25,7 +25,6 @@ namespace Gabut {
 
         public OpenMenu (OpenMenus openmn) {
             this.openmn = openmn;
-            halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (openmn.to_string ()) {
                 xalign = 0,
                 margin_top = 6,
@@ -38,6 +37,7 @@ namespace Gabut {
             };
             var imgstatus = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
+                halign = Gtk.Align.START,
                 gicon = new ThemedIcon (openmn.to_icon ())
             };
             var box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);

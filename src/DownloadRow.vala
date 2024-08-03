@@ -32,6 +32,7 @@ namespace Gabut {
         public Gtk.Image badge_img;
         public DbusmenuItem rowbus;
         private bool stoptimer;
+        private uint timeout_id = 0;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
 
         private int _linkmode;
@@ -570,7 +571,6 @@ namespace Gabut {
             GLib.Application.get_default ().lookup_action ("downloader").activate (new Variant.string (ariagid));
         }
 
-        private uint timeout_id = 0;
         private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = GLib.Source.CONTINUE;

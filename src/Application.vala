@@ -170,7 +170,7 @@ namespace Gabut {
                     open_now ();
                 }
                 lastclipboard = get_dbsetting (Gabut.DBSettings.LASTCLIPBOARD);
-                clipboard = Gdk.Display.get_default ().get_clipboard ();
+                clipboard = gabutwindow.get_clipboard ();
                 Timeout.add_seconds (1, on_clipboard);
             } else {
                 open_now ();

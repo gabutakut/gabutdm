@@ -40,7 +40,7 @@ namespace Gabut {
             cr.set_source_rgba (0.0, 1.0, 0.0 , 1.0);
             cr.arc (0, 0, width / 2.0 + 1, -GLib.Math.PI / 2, arc_end);
             cr.stroke ();
-            cr.set_source_rgba (1.0, 0.0, 0.0, 1.0);
+            cr.set_source_rgba (1.0, 0.5, 0.0, 1.0);
             cr.arc (0, 0, width / 2.0 + 1, arc_end, 3.0 * GLib.Math.PI / 2.0);
             cr.stroke ();
         }

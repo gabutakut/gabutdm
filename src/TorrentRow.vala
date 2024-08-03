@@ -30,6 +30,7 @@ namespace Gabut {
         private Gtk.Label filesizelabel;
         private Gtk.Label statuslabel;
         private Gtk.Label persenlabel;
+        private Gtk.Label index_label;
         private ProgressPaintable progrespaint;
 
         private int _index;
@@ -39,7 +40,7 @@ namespace Gabut {
             }
             set {
                 _index = value;
-                checkbtn.tooltip_text = _index.to_string ();
+                index_label.label = _index.to_string ();
             }
         }
 
@@ -76,14 +77,14 @@ namespace Gabut {
             }
         }
 
-        private string _filesize;
-        public string filesize {
+        private string _sizetransfered;
+        public string sizetransfered {
             get {
-                return _filesize;
+                return _sizetransfered;
             }
             set {
-                _filesize = value;
-                filesizelabel.label = _filesize;
+                _sizetransfered = value;
+                filesizelabel.label = _sizetransfered;
             }
         }
 
@@ -116,7 +117,7 @@ namespace Gabut {
             }
             set {
                 _persen = value;
-                persenlabel.label = _("%s%s").printf (_persen.to_string (), "%");
+                persenlabel.tooltip_text = persenlabel.label = _("%s%s").printf (_persen.to_string (), "%");
             }
         }
 
@@ -137,6 +138,14 @@ namespace Gabut {
             checkbtn.toggled.connect (()=> {
                 selecting (index, !selected);
             });
+
+            index_label = new Gtk.Label (null) {
+                use_markup = true,
+                valign = Gtk.Align.CENTER,
+                width_request = 35,
+                tooltip_text = _("Index"),
+                attributes = color_attribute (60000, 0, 0)
+            };
 
             fileimg = new Gtk.Image () {
                 valign = Gtk.Align.CENTER
@@ -173,7 +182,7 @@ namespace Gabut {
                 use_markup = true,
                 width_request = 55,
                 valign = Gtk.Align.CENTER,
-                attributes = color_attribute (60000, 0, 0)
+                attributes = color_attribute (60000, 30000, 0)
             };
             progrespaint = new ProgressPaintable ();
             var progresimg = new Gtk.Image () {
@@ -186,11 +195,14 @@ namespace Gabut {
             persenlabel = new Gtk.Label (null) {
                 xalign = 0,
                 use_markup = true,
-                width_request = 35,
                 valign = Gtk.Align.CENTER,
                 halign = Gtk.Align.CENTER,
-                attributes = set_attribute (Pango.Weight.SEMIBOLD)
+                attributes = set_attribute (Pango.Weight.BOLD, 0.5)
             };
+            var prgoverlay = new Gtk.Overlay () {
+                child = progresimg
+            };
+            prgoverlay.add_overlay (persenlabel);
 
             imgstatus = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
@@ -216,14 +228,14 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             grid.attach (checkbtn, 0, 0);
-            grid.attach (fileimg, 1, 0);
-            grid.attach (file_label, 2, 0);
-            grid.attach (downloadingimg, 3, 0);
-            grid.attach (filesizelabel, 4, 0);
-            grid.attach (imgfilesize, 5, 0);
-            grid.attach (coplatelabel, 6, 0);
-            grid.attach (progresimg, 7, 0);
-            grid.attach (persenlabel, 8, 0);
+            grid.attach (index_label, 1, 0);
+            grid.attach (fileimg, 2, 0);
+            grid.attach (file_label, 3, 0);
+            grid.attach (downloadingimg, 4, 0);
+            grid.attach (filesizelabel, 5, 0);
+            grid.attach (imgfilesize, 6, 0);
+            grid.attach (coplatelabel, 7, 0);
+            grid.attach (prgoverlay, 8, 0);
             grid.attach (imgstatus, 9, 0);
             grid.attach (statuslabel, 10, 0);
             child = grid;

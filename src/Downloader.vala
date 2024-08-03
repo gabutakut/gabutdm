@@ -49,6 +49,9 @@ namespace Gabut {
         private Gtk.Stack connpeers;
         private ModeButton view_mode;
         private bool stoptimer;
+        private int loadfile = 0;
+        private int totalfile = 0;
+        private uint timeout_id = 0;
 
         private bool _switch_rev;
         public bool switch_rev {
@@ -187,13 +190,9 @@ namespace Gabut {
             }
         }
 
-        public Downloader () {
-            Object (resizable: false,
-                    use_header_bar: 1
-            );
-        }
-
         construct {
+            resizable = false;
+            use_header_bar = 1;
             view_mode = new ModeButton () {
                 hexpand = true,
                 homogeneous = true,
@@ -209,14 +208,16 @@ namespace Gabut {
                 switch (view_mode.selected) {
                     case 1:
                         torrentmode.label = _("Mode: %s").printf (aria_tell_bittorent (ariagid, TellBittorrent.MODE));
-                        var timesn = new GLib.DateTime.from_unix_local (int64.parse (aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE)));
-                        timecreation.label = _("Time Creation: %s").printf (timesn.format ("%a, %I:%M %p %x"));
+                        var datetime = aria_tell_bittorent (ariagid, TellBittorrent.CREATIONDATE);
+                        timecreation.label = _("Time Creation: %s").printf (datetime.strip () != ""? new GLib.DateTime.from_unix_local (int64.parse (datetime)).format ("%a, %I:%M %p %x") : "");
                         infotorrent.buffer.text = aria_tell_bittorent (ariagid, TellBittorrent.ANNOUNCELIST).strip ();
                         var commenttorrent = aria_tell_bittorent (ariagid, TellBittorrent.COMMENT);
                         commenttext.buffer.text = commenttorrent.contains ("\\/")? GLib.Uri.unescape_string (commenttorrent.replace ("\\/", "/")) : commenttorrent;
                         break;
                     case 2:
-                        show_files ();
+                        if (status != StatusMode.ACTIVE) {
+                            show_files ();
+                        }
                         break;
                     case 3:
                         down_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT)) / 1024;
@@ -383,6 +384,7 @@ namespace Gabut {
             };
             listboxtorrent = new Gtk.ListBox ();
             listtorrent = new Gee.ArrayList<TorrentRow> ();
+            listboxtorrent.set_sort_func ((Gtk.ListBoxSortFunc) sort_index);
 
             var torrscrolled = new Gtk.ScrolledWindow () {
                 hexpand = true,
@@ -558,6 +560,19 @@ namespace Gabut {
             });
         }
 
+        [CCode (instance_pos = -1)]
+        private int sort_index (TorrentRow row1, TorrentRow row2) {
+            var total1 = row1.index;
+            var total2 = row2.index;
+            if (total1 > total2) {
+                return 1;
+            }
+            if (total1 < total2) {
+                return -1;
+            }
+            return 0;
+        }
+
         public override void show () {
             update_progress ();
             base.show ();
@@ -567,7 +582,6 @@ namespace Gabut {
             status = status_aria (aria_tell_status (ariagid, TellStatus.STATUS));
         }
 
-        private uint timeout_id = 0;
         private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = GLib.Source.CONTINUE;
@@ -638,6 +652,7 @@ namespace Gabut {
                 }
             } else if (view_mode.selected == 2) {
                 show_files ();
+                loadfile++;
             }
             if (switch_rev) {
                 if (connpeers.get_visible_child_name () == "serverconn") {
@@ -736,60 +751,62 @@ namespace Gabut {
         }
 
         private void show_files () {
-            aria_files_store (ariagid).foreach ((torrentstore) => {
-                if (torrentstore.filepath == "" || torrentstore.filepath == null) {
-                    return true;
-                }
-                if (torrentstore.filepath.contains ("[METADATA]")) {
-                    return true;
-                }
-                if (torrentstore.filebasename == null || torrentstore.filesize == null || torrentstore.completesize == null) {
-                    return true;
-                }
-                if (!files_exist (torrentstore)) {
-                    listtorrent.add (torrentstore);
-                    listboxtorrent.append (torrentstore);
-                    torrentstore.show ();
-                    torrentstore.selecting.connect ((index, selected)=> {
-                        var builder = new StringBuilder ();
-                        uint hashb = builder.str.hash ();
-                        listtorrent.foreach ((torrentrow)=> {
-                            var selectfile = torrentrow.selected;
-                            if (torrentrow.index == index) {
-                                selectfile = selected;
-                            }
-                            if (selectfile) {
-                                if (hashb == builder.str.hash ()) {
-                                    builder.append (torrentrow.index.to_string ());
-                                } else {
-                                    builder.append (",");
-                                    builder.append (torrentrow.index.to_string ());
+            if (loadfile >= totalfile) {
+                var fileshow = aria_files_store (ariagid);
+                totalfile = fileshow.size > 100? 6 : 2;
+                fileshow.foreach ((torrentstore) => {
+                    if (torrentstore.value.filepath == "" || torrentstore.value.filepath == null) {
+                        return true;
+                    }
+                    if (torrentstore.value.filepath.contains ("[METADATA]")) {
+                        return true;
+                    }
+                    if (torrentstore.value.filebasename == null || torrentstore.value.sizetransfered == null || torrentstore.value.completesize == null) {
+                        return true;
+                    }
+                    if (!files_exist (torrentstore.key, torrentstore.value)) {
+                        listtorrent.add (torrentstore.value);
+                        listboxtorrent.append (torrentstore.value);
+                        torrentstore.value.show ();
+                        torrentstore.value.selecting.connect ((index, selected)=> {
+                            var builder = new StringBuilder ();
+                            uint hashb = builder.str.hash ();
+                            listtorrent.foreach ((torrentrow)=> {
+                                var selectfile = torrentrow.selected;
+                                if (torrentrow.index == index) {
+                                    selectfile = selected;
                                 }
+                                if (selectfile) {
+                                    if (hashb == builder.str.hash ()) {
+                                        builder.append (torrentrow.index.to_string ());
+                                    } else {
+                                        builder.append (",");
+                                        builder.append (torrentrow.index.to_string ());
+                                    }
+                                }
+                                return true;
+                            });
+                            if (hashb == builder.str.hash ()) {
+                                return;
                             }
-                            return true;
+                            string aria_gid = sendselected (ariagid, builder.str);
+                            this.ariagid = aria_gid;
+                            update_progress ();
                         });
-                        if (hashb == builder.str.hash ()) {
-                            return;
-                        }
-                        string aria_gid = sendselected (ariagid, builder.str);
-                        this.ariagid = aria_gid;
-                        update_progress ();
-                    });
-                }
-                return true;
-            });
+                    }
+                    return true;
+                });
+                loadfile = 0;
+            }
         }
 
-        private bool files_exist (TorrentRow torrentrw) {
+        private bool files_exist (string path, TorrentRow torrentrw) {
             bool exist = false;
             listtorrent.foreach ((torrentrow)=> {
-                if (torrentrow.filepath == torrentrw.filepath) {
+                if (torrentrow.filepath == path) {
                     exist = true;
-                    torrentrow.index = torrentrw.index;
                     torrentrow.selected = torrentrw.selected;
-                    torrentrow.filebasename = torrentrw.filebasename;
-                    torrentrow.filesize = torrentrw.filesize;
-                    torrentrow.completesize = torrentrw.completesize;
+                    torrentrow.sizetransfered = torrentrw.sizetransfered;
                     torrentrow.fraction = torrentrw.fraction;
                     torrentrow.status = torrentrw.status;
                     torrentrow.persen = torrentrw.persen;
