@@ -1230,7 +1230,9 @@ namespace Gabut {
                 row1.set_header (label);
             } else {
                 if (showtime.active) {
-                    if (formdate != new GLib.DateTime.from_unix_local (row2.timeadded).format (@"%A - %I:%M %p - %d %B %Y")) {
+                    if (formdate != new GLib.DateTime.from_unix_local (row2.timeadded).format ("%A - %I:%M %p ") && !showdate.active) {
+                        row1.set_header (label);
+                    } else if (formdate != new GLib.DateTime.from_unix_local (row2.timeadded).format ("%A - %I:%M %p - %d %B %Y") && showdate.active) {
                         row1.set_header (label);
                     } else {
                         row1.set_header (null);
