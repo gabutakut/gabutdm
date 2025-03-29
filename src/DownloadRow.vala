@@ -574,11 +574,11 @@ namespace Gabut {
         private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = GLib.Source.CONTINUE;
-                timeout_id = Timeout.add_seconds (1, update_progress);
+                timeout_id = Timeout.add (1000, update_progress);
             }
         }
 
-        private void remove_timeout () {
+        public void remove_timeout () {
             if (timeout_id != 0) {
                 Source.remove (timeout_id);
                 timeout_id = 0;
