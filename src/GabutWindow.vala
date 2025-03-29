@@ -38,6 +38,7 @@ namespace Gabut {
         private AlertView nodown_alert;
         private Gee.ArrayList<AddUrl> properties;
         private Gee.ArrayList<DownloadRow> listrow;
+        private Gee.HashMap<DownloadRow, DownloadRow> hashrow; 
         private DbusmenuItem menudbus;
         private DbusmenuItem openmenu;
         private CanonicalDbusmenu dbusserver;
@@ -48,6 +49,7 @@ namespace Gabut {
         private Gtk.Label upload_rate;
         private Gtk.Label labelact;
         private Gtk.Image modeview;
+        private Gtk.Image badge_img;
         private int animation = 0;
         private int allactive = 0;
         private int limitcount = 0;
@@ -215,6 +217,7 @@ namespace Gabut {
             );
             nodown_alert.show ();
             listrow = new Gee.ArrayList<DownloadRow> ();
+            hashrow = new Gee.HashMap<DownloadRow, DownloadRow> ();
             listrow.sort (sort_dm);
             list_box = new Gtk.ListBox () {
                 activate_on_single_click = true,
@@ -419,10 +422,25 @@ namespace Gabut {
             };
             headerbar.pack_start (stopall_button);
             stopall_button.clicked.connect (stop_all);
+            var imagefile = new Gtk.Image () {
+                icon_size = Gtk.IconSize.INHERIT,
+                icon_name = "com.github.gabutakut.gabutdm.clear"
+            };
 
-            var removeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
+            badge_img = new Gtk.Image () {
+                halign = Gtk.Align.END,
+                valign = Gtk.Align.END,
+                pixel_size = 12
+            };
+
+            var overlay = new Gtk.Overlay () {
+                child = imagefile
+            };
+            overlay.add_overlay (badge_img);
+
+            var removeall_button = new Gtk.Button () {
                 has_frame = false,
-                tooltip_text = _("Remove All")
+                child = overlay
             };
             headerbar.pack_start (removeall_button);
             removeall_button.clicked.connect (remove_all);
@@ -838,22 +856,99 @@ namespace Gabut {
         }
 
         public void remove_all () {
+            if (headerstack.visible_child_name == "search") {
+                return;
+            }
             if (starting || stoping || removing) {
                 return;
             }
-            var totalsize = listrow.size;
+            switch (view_mode.selected) {
+                case 1:
+                    hashrow.clear ();
+                    var totalsize = hashrow.size;
+                    listrow.foreach ((row)=> {
+                        if (row.status == StatusMode.ACTIVE) {
+                            hashrow.set (row, row);
+                        }
+                        return true;
+                    });
+                    rm_perpart (hashrow, totalsize);
+                    break;
+                case 2:
+                    hashrow.clear ();
+                    var totalsize = hashrow.size;
+                    listrow.foreach ((row)=> {
+                        if (row.status == StatusMode.PAUSED) {
+                            hashrow.set (row, row);
+                        }
+                        return true;
+                    });
+                    rm_perpart (hashrow, totalsize);
+                    break;
+                case 3:
+                    hashrow.clear ();
+                    var totalsize = hashrow.size;
+                    listrow.foreach ((row)=> {
+                        if (row.status == StatusMode.COMPLETE) {
+                            hashrow.set (row, row);
+                        }
+                        return true;
+                    });
+                    rm_perpart (hashrow, totalsize);
+                    break;
+                case 4:
+                    hashrow.clear ();
+                    var totalsize = hashrow.size;
+                    listrow.foreach ((row)=> {
+                        if (row.status == StatusMode.WAIT) {
+                            hashrow.set (row, row);
+                        }
+                        return true;
+                    });
+                    rm_perpart (hashrow, totalsize);
+                    break;
+                case 5:
+                    hashrow.clear ();
+                    var totalsize = hashrow.size;
+                    listrow.foreach ((row)=> {
+                        if (row.status == StatusMode.ERROR) {
+                            hashrow.set (row, row);
+                        }
+                        return true;
+                    });
+                    rm_perpart (hashrow, totalsize);
+                    break;
+                default:
+                    hashrow.clear ();
+                    var totalsize = hashrow.size;
+                    listrow.foreach ((row)=> {
+                        hashrow.set (row, row);
+                        return true;
+                    });
+                    rm_perpart (hashrow, totalsize);
+                    aria_purge_all ();
+                    break;
+            }
+        }
+
+        private void rm_perpart (Gee.HashMap<DownloadRow, DownloadRow> hashrow, int totalsize) {
             int index = 0;
             Idle.add (()=> {
                 index++;
-                if (listrow.size > 0) {
+                if (hashrow.size > 0) {
                     removing = true;
                     labelview.label = _("Removing… (%i of %i)").printf (index, totalsize);
                     indicatorstatus ();
-                    listrow.get (0).remove_down ();
+                    listrow.foreach ((row)=> {
+                        if (hashrow.has_key (row)) {
+                            listrow.get (listrow.index_of (row)).remove_down ();
+                            hashrow.unset (row);
+                        }
+                        return true;
+                    });
                 } else {
                     removing = false;
                     update_info ();
-                    aria_purge_all ();
                     view_status ();
                 }
                 return removing;
@@ -907,8 +1002,10 @@ namespace Gabut {
                         on_active (row);
                         return;
                 }
-                view_status ();
-                update_info ();
+                if (allactive < 2) {
+                    view_status ();
+                    update_info ();
+                }
             });
             row.destroy.connect (()=> {
                 listrow.remove (row);
@@ -936,7 +1033,6 @@ namespace Gabut {
                 if (!active_downloader (row.ariagid)) {
                     append_dbus.begin (row.rowbus);
                 }
-                view_status ();
             }
             if (limitcount >= allactive) {
                 double fraction = (double) totalrecv / (double) totalfiles;
@@ -946,6 +1042,7 @@ namespace Gabut {
                     }
                 }
                 update_info ();
+                view_status ();
                 totalfiles = totalrecv = limitcount = 0;
             }
             totalrecv = totalrecv + row.transferred;
@@ -1090,6 +1187,7 @@ namespace Gabut {
                     if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                         aria_pause (row.ariagid);
                         row.update_progress ();
+                        row.remove_timeout ();
                         count++;
                         if (acti > 0 && count <= acti) {
                             labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
@@ -1249,7 +1347,8 @@ namespace Gabut {
             }
             int indexv = 0;
             if (headerstack.visible_child_name == "search") {
-                modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.find");
+                badge_img.gicon = modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.find");
+                badge_img.tooltip_text = _("Disabled");
                 if (search_entry.text.strip () == "") {
                     list_box.set_filter_func ((item) => {
                         indexv = 0;
@@ -1303,7 +1402,8 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.active"
                     );
-                    modeview.gicon = new ThemedIcon (active_alert.icon_name);
+                    badge_img.gicon = modeview.gicon = new ThemedIcon (active_alert.icon_name);
+                    badge_img.tooltip_text = _("Remove All ACTIVE");
                     active_alert.show ();
                     list_box.set_placeholder (active_alert);
                     break;
@@ -1319,7 +1419,8 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.pause"
                     );
-                    modeview.gicon = new ThemedIcon (nopause_alert.icon_name);
+                    badge_img.gicon = modeview.gicon = new ThemedIcon (nopause_alert.icon_name);
+                    badge_img.tooltip_text = _("Remove All PAUSED");
                     nopause_alert.show ();
                     list_box.set_placeholder (nopause_alert);
                     break;
@@ -1335,7 +1436,8 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.complete"
                     );
-                    modeview.gicon = new ThemedIcon (nocomp_alerst.icon_name);
+                    badge_img.gicon = modeview.gicon = new ThemedIcon (nocomp_alerst.icon_name);
+                    badge_img.tooltip_text = _("Remove All COMPLETE");
                     nocomp_alerst.show ();
                     list_box.set_placeholder (nocomp_alerst);
                     break;
@@ -1351,7 +1453,8 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.waiting"
                     );
-                    modeview.gicon = new ThemedIcon (nowait_alert.icon_name);
+                    badge_img.gicon = modeview.gicon = new ThemedIcon (nowait_alert.icon_name);
+                    badge_img.tooltip_text = _("Remove All WAITING");
                     nowait_alert.show ();
                     list_box.set_placeholder (nowait_alert);
                     break;
@@ -1367,7 +1470,8 @@ namespace Gabut {
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                         "com.github.gabutakut.gabutdm.error"
                     );
-                    modeview.gicon = new ThemedIcon (noerr_alert.icon_name);
+                    badge_img.gicon = modeview.gicon = new ThemedIcon (noerr_alert.icon_name);
+                    badge_img.tooltip_text = _("Remove All ERROR");
                     noerr_alert.show ();
                     list_box.set_placeholder (noerr_alert);
                     break;
@@ -1380,7 +1484,8 @@ namespace Gabut {
                         return true;
                     });
                     indexv = listrow.size;
-                    modeview.gicon = new ThemedIcon (nodown_alert.icon_name);
+                    badge_img.gicon = modeview.gicon = new ThemedIcon (nodown_alert.icon_name);
+                    badge_img.tooltip_text = _("Remove All");
                     if (!hide_alert) {
                         list_box.set_placeholder (nodown_alert);
                     }
