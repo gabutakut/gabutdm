@@ -48,6 +48,7 @@ namespace Gabut {
         private Gtk.Button server_button;
         private Gtk.Stack connpeers;
         private ModeButton view_mode;
+        private string pack_data;
         private bool stoptimer;
         private int loadfile = 0;
         private int totalfile = 0;
@@ -626,7 +627,7 @@ namespace Gabut {
         }
 
         private bool update_progress () {
-            var pack_data = aria_v2_status (ariagid);
+            pack_data = aria_v2_status (ariagid);
             totalsize = int64.parse (pharse_tells (pack_data, TellStatus.TOTALLENGTH));
             transferred = int64.parse (pharse_tells (pack_data, TellStatus.COMPELETEDLENGTH));
             if (view_mode.selected == 0) {
@@ -752,7 +753,7 @@ namespace Gabut {
 
         private void show_files () {
             if (loadfile >= totalfile) {
-                var fileshow = aria_files_store (ariagid);
+                var fileshow = aria_files_store (pack_data);
                 totalfile = fileshow.size > 100? 6 : 2;
                 fileshow.foreach ((torrentstore) => {
                     if (torrentstore.value.filepath == "" || torrentstore.value.filepath == null) {

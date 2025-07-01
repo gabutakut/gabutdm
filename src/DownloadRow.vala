@@ -31,9 +31,9 @@ namespace Gabut {
         public Gtk.Image imagefile;
         public Gtk.Image badge_img;
         public DbusmenuItem rowbus;
+        public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
         private bool stoptimer;
         private uint timeout_id = 0;
-        public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
 
         private int _linkmode;
         public int linkmode {
@@ -234,7 +234,7 @@ namespace Gabut {
             }
             set {
                 _filename = value;
-                filename_label.label = _filename != null? _filename : url;
+                filename_label.tooltip_text = filename_label.label = _filename != null? _filename : url;
                 rowbus.property_set (MenuItem.LABEL.to_string (), _filename != null? _filename : url);
             }
         }
@@ -280,6 +280,7 @@ namespace Gabut {
                     double fraction = (double) transferred / (double) totalsize;
                     if (fraction > 0.0) {
                         progressbar.fraction = fraction;
+                        progressbar.tooltip_text = @"$((int)(fraction * 100)) %";
                     }
                 } else {
                     progressbar.pulse ();

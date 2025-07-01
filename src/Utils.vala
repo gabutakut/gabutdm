@@ -1853,16 +1853,15 @@ namespace Gabut {
         return listgid;
     }
 
-    private Gee.HashMap<string, TorrentRow> aria_files_store (string gid) {
+    private Gee.HashMap<string, TorrentRow> aria_files_store (string pack_data) {
         var torrentstore = new Gee.HashMap<string, TorrentRow> ();
-        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(gid)\"]}");
-        if (!result.down ().contains ("result") || result == null) {
+        if (!pack_data.down ().contains ("files") || pack_data == null) {
             return torrentstore;
         }
         try {
             MatchInfo match_info;
             Regex regex = new Regex ("{\"completedLength\":\"(.*?)\".*?\"index\":\"(.*?)\".*?\"length\":\"(.*?)\".*?\"path\":\"(.*?)\".*?\"selected\":\"(.*?)\".*?\"uris\":(.*?)}");
-            if (regex.match_full (result, -1, 0, 0, out match_info)) {
+            if (regex.match_full (pack_data, -1, 0, 0, out match_info)) {
                 while (match_info.matches ()) {
                     int64 total = int64.parse (match_info.fetch (3)).abs ();
                     int64 transfer = int64.parse (match_info.fetch (1)).abs ();
@@ -1876,8 +1875,8 @@ namespace Gabut {
                         index = int.parse (match_info.fetch (2)),
                         filebasename = file.get_basename (),
                         filepath = file.get_path (),
-                        completesize = GLib.format_size (total),
-                        sizetransfered = GLib.format_size (transfer),
+                        sizetransfered = transfer.to_string (),
+                        completesize = total.to_string (),
                         fraction = fraction,
                         status = status,
                         persen = persen
