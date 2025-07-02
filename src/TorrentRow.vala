@@ -29,6 +29,7 @@ namespace Gabut {
         private Gtk.Label coplatelabel;
         private Gtk.Label filesizelabel;
         private Gtk.Label persenlabel;
+        private Gtk.Label incompletelbl;
         private ProgressPaintable progrespaint;
         private Gtk.Popover popname;
         private Gtk.Popover popcomplete;
@@ -74,10 +75,10 @@ namespace Gabut {
             set {
                 _filebasename = value;
                 file_label.label = _filebasename;
-                var incompletelbl = new Gtk.Label (_("No. %s").printf(index.to_string ())) {
+                var indexlbl = new Gtk.Label (_("No. %s").printf(index.to_string ())) {
                     attributes = color_attribute (60000, 0, 0)
                 };
-                popname.child = incompletelbl;
+                popname.child = indexlbl;
                 var filenm = new Gtk.Label (filebasename) {
                     attributes = set_attribute (Pango.Weight.SEMIBOLD)
                 };
@@ -93,10 +94,9 @@ namespace Gabut {
             set {
                 _sizetransfered = value;
                 filesizelabel.label = GLib.format_size (int64.parse (_sizetransfered));
-                var incompletelbl = new Gtk.Label (GLib.format_size (int64.parse (completesize) - int64.parse (sizetransfered))) {
-                    attributes = color_attribute (60000, 30000, 0)
-                };
-                popcomplete.child = incompletelbl;
+                if (completesize != null) {
+                    incompletelbl.label = GLib.format_size (int64.parse (completesize) - int64.parse (_sizetransfered));
+                }
             }
         }
 
@@ -108,6 +108,9 @@ namespace Gabut {
             set {
                 _completesize = value;
                 coplatelabel.label = GLib.format_size (int64.parse (_completesize));
+                if (sizetransfered != null) {
+                    incompletelbl.label = GLib.format_size (int64.parse (completesize) - int64.parse (_sizetransfered));
+                }
             }
         }
 
@@ -185,7 +188,11 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER,
                 gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.down")
             };
+            incompletelbl = new Gtk.Label (null) {
+                attributes = color_attribute (60000, 30000, 0)
+            };
             popcomplete = new Gtk.Popover ();
+            popcomplete.child = incompletelbl;
             var getfilebtn = new Gtk.MenuButton () {
                 focus_on_click = false,
                 has_frame = false,
