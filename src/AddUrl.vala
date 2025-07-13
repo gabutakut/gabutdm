@@ -244,7 +244,8 @@ namespace Gabut {
                 tooltip_text = _("The directory to store the downloaded file")
             };
             folder_location.clicked.connect (()=> {
-                run_open_fd.begin (this, OpenFiles.OPENPERDONLOADFOLDER, (obj, res)=> {
+                string pathdir = hashoptions.@get (AriaOptions.DIR.to_string ()) == null? "" : hashoptions.@get (AriaOptions.DIR.to_string ()).replace ("\\/", "/");
+                run_open_fd.begin (this, OpenFiles.OPENPERDONLOADFOLDER, pathdir, (obj, res)=> {
                     try {
                         GLib.File file;
                         run_open_fd.end (res, out file);

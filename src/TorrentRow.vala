@@ -31,9 +31,8 @@ namespace Gabut {
         private Gtk.Label persenlabel;
         private Gtk.Label incompletelbl;
         private ProgressPaintable progrespaint;
-        private Gtk.Popover popname;
-        private Gtk.Popover popcomplete;
-        private Gtk.Popover poppath;
+        private Gtk.Label indexlbl;
+        private Gtk.Label filenm;
 
         private int _index;
         public int index {
@@ -75,14 +74,8 @@ namespace Gabut {
             set {
                 _filebasename = value;
                 file_label.label = _filebasename;
-                var indexlbl = new Gtk.Label (_("No. %s").printf(index.to_string ())) {
-                    attributes = color_attribute (60000, 0, 0)
-                };
-                popname.child = indexlbl;
-                var filenm = new Gtk.Label (filebasename) {
-                    attributes = set_attribute (Pango.Weight.SEMIBOLD)
-                };
-                poppath.child = filenm;
+                indexlbl.label = _("No. %s").printf(index.to_string ());
+                filenm.label = filebasename;
             }
         }
 
@@ -157,13 +150,17 @@ namespace Gabut {
             fileimg = new Gtk.Image () {
                 valign = Gtk.Align.CENTER
             };
-            popname = new Gtk.Popover ();
+            indexlbl = new Gtk.Label ("") {
+                attributes = color_attribute (60000, 0, 0)
+            };
+            var popname = new Gtk.Popover ();
+            popname.child = indexlbl;
             var openname = new Gtk.MenuButton () {
                 focus_on_click = false,
                 has_frame = false,
                 child = fileimg,
                 popover = popname,
-                tooltip_text = _("Details")
+                tooltip_text = _("Index")
             };
 
             file_label = new Gtk.Label (null) {
@@ -175,8 +172,11 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER,
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
-
-            poppath = new Gtk.Popover ();
+            filenm = new Gtk.Label ("") {
+                attributes = set_attribute (Pango.Weight.SEMIBOLD)
+            };
+            var poppath = new Gtk.Popover ();
+            poppath.child = filenm;
             var openpath = new Gtk.MenuButton () {
                 focus_on_click = false,
                 has_frame = false,
@@ -191,14 +191,14 @@ namespace Gabut {
             incompletelbl = new Gtk.Label (null) {
                 attributes = color_attribute (60000, 30000, 0)
             };
-            popcomplete = new Gtk.Popover ();
+            var popcomplete = new Gtk.Popover ();
             popcomplete.child = incompletelbl;
             var getfilebtn = new Gtk.MenuButton () {
                 focus_on_click = false,
                 has_frame = false,
                 child = downloadingimg,
                 popover = popcomplete,
-                tooltip_text = _("Info")
+                tooltip_text = _("Not yet downloaded")
             };
             filesizelabel = new Gtk.Label (null) {
                 xalign = 0,
