@@ -368,7 +368,7 @@ namespace Gabut {
                 focus_on_click = false,
                 has_frame = false,
                 child = overlay,
-                tooltip_text = _("Open Details")
+                tooltip_text = _("Progress")
             };
             openimage.clicked.connect (download);
 

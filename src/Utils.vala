@@ -2647,8 +2647,8 @@ namespace Gabut {
         }
     }
 
-    private async void run_open_fd (Gtk.Window window, OpenFiles location, out GLib.File? file) throws Error {
-        var fdrecently = File.new_for_path (get_db_lastop (location));
+    private async void run_open_fd (Gtk.Window window, OpenFiles location, string path, out GLib.File? file) throws Error {
+        var fdrecently = File.new_for_path (path == ""? get_db_lastop (location) : path);
         var filechooser = new Gtk.FileDialog () {
             title = _("Open Folder"),
             accept_label = _("Open"),

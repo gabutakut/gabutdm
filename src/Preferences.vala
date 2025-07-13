@@ -452,7 +452,7 @@ namespace Gabut {
                 tooltip_text = _("The directory to store the downloaded file")
             };
             folder_location.clicked.connect (()=> {
-                run_open_fd.begin (this, OpenFiles.OPENGLOBALFOLDER, (obj, res)=> {
+                run_open_fd.begin (this, OpenFiles.OPENGLOBALFOLDER, "", (obj, res)=> {
                     try {
                         GLib.File file;
                         run_open_fd.end (res, out file);
@@ -470,7 +470,7 @@ namespace Gabut {
                 tooltip_text = _("The directory is Shared for connected the same Network")
             };
             folder_sharing.clicked.connect (()=> {
-                run_open_fd.begin (this, OpenFiles.OPENFOLDERSHARING, (obj, res)=> {
+                run_open_fd.begin (this, OpenFiles.OPENFOLDERSHARING, "", (obj, res)=> {
                     try {
                         GLib.File file;
                         run_open_fd.end (res, out file);
