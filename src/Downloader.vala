@@ -586,7 +586,7 @@ namespace Gabut {
         private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = GLib.Source.CONTINUE;
-                timeout_id = Timeout.add (500, update_progress);
+                timeout_id = Timeout.add (500, update_progress, GLib.Priority.HIGH);
             }
         }
 

@@ -343,7 +343,7 @@ namespace Gabut {
                 update_progress ();
                 start_notif (later);
                 return GLib.Source.REMOVE;
-            });
+            }, GLib.Priority.HIGH_IDLE);
         }
 
         construct {
@@ -470,7 +470,7 @@ namespace Gabut {
                     play_sound ("device-added");
                 }
                 return GLib.Source.REMOVE;
-            });
+            }, GLib.Priority.HIGH_IDLE);
         }
 
         private void action_dowload () {
@@ -575,7 +575,7 @@ namespace Gabut {
         private void add_timeout () {
             if (timeout_id == 0) {
                 stoptimer = GLib.Source.CONTINUE;
-                timeout_id = Timeout.add (1000, update_progress);
+                timeout_id = Timeout.add (1000, update_progress, GLib.Priority.HIGH);
             }
         }
 
