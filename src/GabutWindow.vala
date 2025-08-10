@@ -761,7 +761,7 @@ namespace Gabut {
                         update_info ();
                         stoped--;
                         return stoped != 0;
-                    });
+                    }, GLib.Priority.HIGH);
                 }
                 if (timeout_id != 0) {
                     Source.remove (timeout_id);
@@ -778,14 +778,14 @@ namespace Gabut {
         private uint timeout_id = 0;
         private void run_launcher () {
             if (timeout_id == 0) {
-                timeout_id = Timeout.add (500, set_menulauncher);
+                timeout_id = Timeout.add (500, set_menulauncher, GLib.Priority.HIGH);
             }
         }
 
         private uint rmtimeout_id = 0;
         private void stop_launcher () {
             if (rmtimeout_id == 0) {
-                rmtimeout_id = Timeout.add (500, set_menulauncher);
+                rmtimeout_id = Timeout.add (500, set_menulauncher, GLib.Priority.HIGH);
             }
         }
 
@@ -952,7 +952,7 @@ namespace Gabut {
                     view_status ();
                 }
                 return removing;
-            });
+            }, GLib.Priority.HIGH_IDLE);
         }
 
         public void load_dowanload () {
@@ -1170,7 +1170,7 @@ namespace Gabut {
                     view_status ();
                 }
                 return starting;
-            });
+            }, GLib.Priority.HIGH_IDLE);
         }
 
         private void stop_all () {
@@ -1203,7 +1203,7 @@ namespace Gabut {
                     view_status ();
                 }
                 return stoping;
-            });
+            }, GLib.Priority.HIGH_IDLE);
         }
 
         public string set_selected (string ariagid, string selected) {

@@ -171,7 +171,7 @@ namespace Gabut {
                 }
                 lastclipboard = get_dbsetting (Gabut.DBSettings.LASTCLIPBOARD);
                 clipboard = gabutwindow.get_clipboard ();
-                Timeout.add_seconds (1, on_clipboard);
+                Timeout.add_seconds (1, on_clipboard, GLib.Priority.HIGH);
             } else {
                 open_now ();
             }
