@@ -827,11 +827,15 @@ namespace Gabut {
         }
 
         private void next_download () {
-            listrow.foreach ((row)=> {
-                if (row.status == StatusMode.WAIT) {
-                    row.update_progress ();
-                }
-                return true;
+            aria_tell_active ().foreach ((strgid)=> {
+                listrow.foreach ((row)=> {
+                    if (row.ariagid == strgid) {
+                        if (row.status != StatusMode.ACTIVE) {
+                            row.update_progress ();
+                        }
+                    }
+                    return true;
+                });
             });
         }
 
