@@ -685,22 +685,22 @@ namespace Gabut {
             if (switch_rev) {
                 if (connpeers.get_visible_child_name () == "serverconn") {
                     var arrayserv = aria_servers_store (ariagid);
-                    arrayserv.foreach ((serverrow) => {
+                    arrayserv.map_iterator ().foreach ((keyserver, serverrow) => {
                         bool servext = false;
                         for (int b = 0; b < listserver.size ; b++) {
                             var serverrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
-                            if (serverrow.key == serverrow2.index) {
+                            if (keyserver == serverrow2.index) {
                                 servext = true;
-                                serverrow2.currenturi = serverrow.value.currenturi;
-                                serverrow2.downloadspeed = serverrow.value.downloadspeed;
-                                serverrow2.uriserver = serverrow.value.uriserver;
+                                serverrow2.currenturi = serverrow.currenturi;
+                                serverrow2.downloadspeed = serverrow.downloadspeed;
+                                serverrow2.uriserver = serverrow.uriserver;
                             }
                         }
                         if (!servext) {
-                            if (!server_exist (serverrow.key)) {
-                                lisboxserver.append (serverrow.value);
-                                listserver.add (serverrow.value);
-                                serverrow.value.show ();
+                            if (!server_exist (keyserver)) {
+                                lisboxserver.append (serverrow);
+                                listserver.add (serverrow);
+                                serverrow.show ();
                             }
                         }
                         return true;
@@ -715,26 +715,26 @@ namespace Gabut {
                     arrayserv.clear ();
                 } else {
                     var arraypeers = aria_get_peers (ariagid);
-                    arraypeers.foreach ((peersrow) => {
+                    arraypeers.map_iterator ().foreach ((peerkey, peersrow) => {
                         bool peerext = false;
                         for (int b = 0; b < listpeers.size ; b++) {
                             var peersrow2 = (PeersRow) listboxpeers.get_row_at_index (b);
-                            if (peersrow2.host == peersrow.key) {
+                            if (peersrow2.host == peerkey) {
                                 peerext = true;
-                                peersrow2.peerid = peersrow.value.peerid;
-                                peersrow2.downloadspeed = peersrow.value.downloadspeed;
-                                peersrow2.uploadspeed = peersrow.value.uploadspeed;
-                                peersrow2.peerschoking = peersrow.value.peerschoking;
-                                peersrow2.seeder = peersrow.value.seeder;
-                                peersrow2.amchoking = peersrow.value.amchoking;
-                                peersrow2.bitfield = peersrow.value.bitfield;
+                                peersrow2.peerid = peersrow.peerid;
+                                peersrow2.downloadspeed = peersrow.downloadspeed;
+                                peersrow2.uploadspeed = peersrow.uploadspeed;
+                                peersrow2.peerschoking = peersrow.peerschoking;
+                                peersrow2.seeder = peersrow.seeder;
+                                peersrow2.amchoking = peersrow.amchoking;
+                                peersrow2.bitfield = peersrow.bitfield;
                             }
                         }
                         if (!peerext) {
-                            if (!peer_exist (peersrow.key)) {
-                                listboxpeers.append (peersrow.value);
-                                listpeers.add (peersrow.value);
-                                peersrow.value.show ();
+                            if (!peer_exist (peerkey)) {
+                                listboxpeers.append (peersrow);
+                                listpeers.add (peersrow);
+                                peersrow.show ();
                             }
                         }
                         return true;
