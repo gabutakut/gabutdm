@@ -130,6 +130,7 @@ namespace Gabut {
                                     progressbar.fraction = 0.0;
                                     foundgid = true;
                                 }
+                                return true;
                             });
                             if (foundgid) {
                                 break;
@@ -579,7 +580,7 @@ namespace Gabut {
             }
         }
 
-        public void remove_timeout () {
+        private void remove_timeout () {
             if (timeout_id != 0) {
                 Source.remove (timeout_id);
                 timeout_id = 0;

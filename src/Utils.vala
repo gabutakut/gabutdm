@@ -1829,8 +1829,8 @@ namespace Gabut {
         return "";
     }
 
-    private GLib.List<string> aria_tell_active () {
-        var listgid = new GLib.List<string> ();
+    private Gee.ArrayList<string> aria_tell_active () {
+        var listgid = new Gee.ArrayList<string> ();
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}");
         if (!result.down ().contains ("result") || result == null) {
             return listgid;
@@ -1842,7 +1842,7 @@ namespace Gabut {
                 while (match_info.matches ()) {
                     string matchgid = match_info.fetch (1);
                     if (matchgid != null) {
-                        listgid.append (matchgid);
+                        listgid.add (matchgid);
                     }
                     match_info.next ();
                 }
@@ -1855,9 +1855,6 @@ namespace Gabut {
 
     private Gee.HashMap<string, TorrentRow> aria_files_store (string pack_data) {
         var torrentstore = new Gee.HashMap<string, TorrentRow> ();
-        if (!pack_data.down ().contains ("files") || pack_data == null) {
-            return torrentstore;
-        }
         try {
             MatchInfo match_info;
             Regex regex = new Regex ("{\"completedLength\":\"(.*?)\".*?\"index\":\"(.*?)\".*?\"length\":\"(.*?)\".*?\"path\":\"(.*?)\".*?\"selected\":\"(.*?)\".*?\"uris\":(.*?)}");

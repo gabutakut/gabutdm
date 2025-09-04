@@ -686,8 +686,9 @@ namespace Gabut {
             };
             var label_mode = new ModeTogle ();
             label_mode.add_item (new ModeTogle.with_label (_("None")));
-            label_mode.add_item (new ModeTogle.with_label (_("App Name")));
+            label_mode.add_item (new ModeTogle.with_label (_("Total Progress")));
             label_mode.add_item (new ModeTogle.with_label (_("Total Speed")));
+            label_mode.add_item (new ModeTogle.with_label (_("All")));
             label_mode.id = int.parse (get_dbsetting (DBSettings.LABELMODE));
             var label_rev = new Gtk.Revealer () {
                 child = label_mode

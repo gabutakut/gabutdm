@@ -47,6 +47,7 @@ namespace Gabut {
         private Gtk.TextView commenttext;
         private Gtk.Button server_button;
         private Gtk.Stack connpeers;
+        private Gtk.Spinner trspinner;
         private ModeButton view_mode;
         private string pack_data;
         private bool stoptimer;
@@ -216,6 +217,7 @@ namespace Gabut {
                         commenttext.buffer.text = commenttorrent.contains ("\\/")? GLib.Uri.unescape_string (commenttorrent.replace ("\\/", "/")) : commenttorrent;
                         break;
                     case 2:
+                        loadfile = 0;
                         if (status != StatusMode.ACTIVE) {
                             show_files ();
                         }
@@ -371,8 +373,13 @@ namespace Gabut {
             torrentinfo.attach (timecreation, 1, 0, 1, 1);
             torrentinfo.attach (headerlabel (_("Comment:"), 250), 1, 1, 1, 1);
             torrentinfo.attach (comment, 1, 2, 1, 1);
-
+            var peers_alert = new AlertView (
+               _("Peers"),
+                _("Client and Peer here"),
+                "com.github.gabutakut.gabutdm"
+            );
             listboxpeers = new Gtk.ListBox ();
+            listboxpeers.set_placeholder (peers_alert);
             listpeers = new Gee.ArrayList<PeersRow> ();
 
             var peerscrolled = new Gtk.ScrolledWindow () {
@@ -383,7 +390,18 @@ namespace Gabut {
                 valign = Gtk.Align.FILL,
                 child = listboxpeers
             };
+            var file_alert = new AlertView (
+               _("List File Download"),
+                _("File Apprear here."),
+                "com.github.gabutakut.gabutdm"
+            );
+            
             listboxtorrent = new Gtk.ListBox ();
+            listboxtorrent.set_placeholder (file_alert);
+            trspinner = new Gtk.Spinner () {
+                margin_end = 10,
+                margin_bottom = 15
+            };
             listtorrent = new Gee.ArrayList<TorrentRow> ();
             listboxtorrent.set_sort_func ((Gtk.ListBoxSortFunc) sort_index);
 
@@ -396,6 +414,10 @@ namespace Gabut {
                 child = listboxtorrent
             };
 
+            var troverlay = new Gtk.Overlay () {
+                child = torrscrolled
+            };
+            troverlay.add_overlay (trspinner);
             down_limit = new Gtk.SpinButton.with_range (0, 999999, 1) {
                 width_request = 550,
                 hexpand = true
@@ -441,7 +463,7 @@ namespace Gabut {
             };
             stack.add_named (downstatusgrid, "downstatusgrid");
             stack.add_named (torrentinfo, "torrentinfo");
-            stack.add_named (torrscrolled, "torrscrolled");
+            stack.add_named (troverlay, "torrscrolled");
             stack.add_named (limitergrid, "limitergrid");
             stack.visible_child = downstatusgrid;
             stack.show ();
@@ -499,8 +521,13 @@ namespace Gabut {
                 start_widget = server_button,
                 end_widget = box_action
             };
-
+            var serv_alert = new AlertView (
+               _("Server"),
+                _("Server Downloads"),
+                "com.github.gabutakut.gabutdm"
+            );
             lisboxserver = new Gtk.ListBox ();
+            lisboxserver.set_placeholder (serv_alert);
             listserver = new Gee.ArrayList<ServerRow> ();
 
             var servscrolled = new Gtk.ScrolledWindow () {
@@ -549,7 +576,7 @@ namespace Gabut {
                         stack.visible_child = torrentinfo;
                         break;
                     case 2:
-                        stack.visible_child = torrscrolled;
+                        stack.visible_child = troverlay;
                         break;
                     case 3:
                         stack.visible_child = limitergrid;
@@ -660,15 +687,15 @@ namespace Gabut {
                     var arrayserv = aria_servers_store (ariagid);
                     arrayserv.foreach ((serverrow) => {
                         bool servext = false;
-                        listserver.foreach ((serverrow2) => {
+                        for (int b = 0; b < listserver.size ; b++) {
+                            var serverrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
                             if (serverrow.key == serverrow2.index) {
                                 servext = true;
                                 serverrow2.currenturi = serverrow.value.currenturi;
                                 serverrow2.downloadspeed = serverrow.value.downloadspeed;
                                 serverrow2.uriserver = serverrow.value.uriserver;
                             }
-                            return true;
-                        });
+                        }
                         if (!servext) {
                             if (!server_exist (serverrow.key)) {
                                 lisboxserver.append (serverrow.value);
@@ -678,19 +705,20 @@ namespace Gabut {
                         }
                         return true;
                     });
-                    listserver.foreach ((servrow2) => {
+                    for (int b = 0; b < listserver.size ; b++) {
+                        var servrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
                         if (!arrayserv.has_key (servrow2.index)) {
                             listserver.remove (servrow2);
                             lisboxserver.remove (servrow2);
                         }
-                        return true;
-                    });
+                    }
                     arrayserv.clear ();
                 } else {
                     var arraypeers = aria_get_peers (ariagid);
                     arraypeers.foreach ((peersrow) => {
                         bool peerext = false;
-                        listpeers.foreach ((peersrow2) => {
+                        for (int b = 0; b < listpeers.size ; b++) {
+                            var peersrow2 = (PeersRow) listboxpeers.get_row_at_index (b);
                             if (peersrow2.host == peersrow.key) {
                                 peerext = true;
                                 peersrow2.peerid = peersrow.value.peerid;
@@ -701,8 +729,7 @@ namespace Gabut {
                                 peersrow2.amchoking = peersrow.value.amchoking;
                                 peersrow2.bitfield = peersrow.value.bitfield;
                             }
-                            return true;
-                        });
+                        }
                         if (!peerext) {
                             if (!peer_exist (peersrow.key)) {
                                 listboxpeers.append (peersrow.value);
@@ -712,13 +739,13 @@ namespace Gabut {
                         }
                         return true;
                     });
-                    listpeers.foreach ((peersrow2) => {
+                    for (int b = 0; b < listpeers.size ; b++) {
+                        var peersrow2 = (PeersRow) listboxpeers.get_row_at_index (b);
                         if (!arraypeers.has_key (peersrow2.host)) {
                             listpeers.remove (peersrow2);
                             listboxpeers.remove (peersrow2);
                         }
-                        return true;
-                    });
+                    }
                     arraypeers.clear ();
                 }
             }
@@ -731,65 +758,81 @@ namespace Gabut {
 
         private bool server_exist (int index) {
             bool exist = false;
-            listserver.foreach ((servrow2) => {
+            for (int b = 0; b < listserver.size ; b++) {
+                var servrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
                 if (servrow2.index == index) {
                     exist = true;
                 }
-                return true;
-            });
+            }
             return exist;
         }
 
         private bool peer_exist (string host) {
             bool exist = false;
-            listpeers.foreach ((peersrow2) => {
+            for (int b = 0; b < listpeers.size ; b++) {
+                var peersrow2 = (PeersRow) listboxpeers.get_row_at_index (b);
                 if (peersrow2.host == host) {
                     exist = true;
                 }
-                return true;
-            });
+            }
             return exist;
         }
 
         private void show_files () {
             if (loadfile >= totalfile) {
                 var fileshow = aria_files_store (pack_data);
-                totalfile = fileshow.size > 100? 6 : 2;
-                fileshow.foreach ((torrentstore) => {
-                    if (torrentstore.value.filepath == "" || torrentstore.value.filepath == null) {
+                totalfile = fileshow.size > 10? 8 : 2;
+                fileshow.map_iterator ().foreach ((torrkey, torrvall) => {
+                    if (torrkey == "" || torrkey == null) {
                         return true;
                     }
-                    if (torrentstore.value.filepath.contains ("[METADATA]")) {
+                    if (torrvall.filepath == "" || torrvall.filepath == null) {
                         return true;
                     }
-                    if (torrentstore.value.filebasename == null || torrentstore.value.sizetransfered == null || torrentstore.value.completesize == null) {
+                    if (torrvall.filepath.contains ("[METADATA]")) {
                         return true;
                     }
-                    if (!files_exist (torrentstore.key, torrentstore.value)) {
-                        listtorrent.add (torrentstore.value);
-                        listboxtorrent.append (torrentstore.value);
-                        torrentstore.value.show ();
-                        torrentstore.value.selecting.connect ((index, selected)=> {
+                    if (torrvall.filebasename == null || torrvall.sizetransfered == null || torrvall.completesize == null) {
+                        return true;
+                    }
+                    trspinner.spinning = false;
+                    trspinner.halign = Gtk.Align.END;
+                    trspinner.valign = Gtk.Align.END;
+                    if (!files_exist (torrkey, torrvall)) {
+                        listtorrent.add (torrvall);
+                        listboxtorrent.append (torrvall);
+                        torrvall.show ();
+                        torrvall.selecting.connect ((index, selected)=> {
                             var builder = new StringBuilder ();
                             uint hashb = builder.str.hash ();
-                            listtorrent.foreach ((torrentrow)=> {
+                            for (int b = 0; b < listtorrent.size ; b++) {
+                                var torrentrow = (TorrentRow) listboxtorrent.get_row_at_index (b);
                                 var selectfile = torrentrow.selected;
                                 if (torrentrow.index == index) {
                                     selectfile = selected;
                                 }
                                 if (selectfile) {
                                     if (hashb == builder.str.hash ()) {
-                                        builder.append (torrentrow.index.to_string ());
+                                         builder.append (torrentrow.index.to_string ());
                                     } else {
                                         builder.append (",");
                                         builder.append (torrentrow.index.to_string ());
                                     }
                                 }
-                                return true;
-                            });
+                            }
                             if (hashb == builder.str.hash ()) {
                                 return;
                             }
+                            if (trspinner.spinning) {
+                                return;
+                            }
+                            trspinner.spinning = true;
+                            trspinner.halign = Gtk.Align.FILL;
+                            trspinner.valign = Gtk.Align.FILL;
+                            pack_data = "";
+                            loadfile = 0;
+                            remove_timeout ();
+                            aria_pause (ariagid);
                             string aria_gid = sendselected (ariagid, builder.str);
                             this.ariagid = aria_gid;
                             update_progress ();
@@ -798,12 +841,17 @@ namespace Gabut {
                     return true;
                 });
                 loadfile = 0;
+            } else if (loadfile == 7) {
+                trspinner.spinning = true;
+                trspinner.halign = Gtk.Align.END;
+                trspinner.valign = Gtk.Align.END;
             }
         }
 
         private bool files_exist (string path, TorrentRow torrentrw) {
             bool exist = false;
-            listtorrent.foreach ((torrentrow)=> {
+                for (int b = 0; b < listtorrent.size; b++) {
+                var torrentrow = (TorrentRow) listboxtorrent.get_row_at_index (b);
                 if (torrentrow.filepath == path) {
                     exist = true;
                     torrentrow.selected = torrentrw.selected;
@@ -812,8 +860,7 @@ namespace Gabut {
                     torrentrow.status = torrentrw.status;
                     torrentrow.persen = torrentrw.persen;
                 }
-                return true;
-            });
+            }
             return exist;
         }
     }
