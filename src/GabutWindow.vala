@@ -38,7 +38,6 @@ namespace Gabut {
         private AlertView nodown_alert;
         private Gee.ArrayList<AddUrl> properties;
         private Gee.ArrayList<DownloadRow> listrow;
-        private Gee.HashMap<DownloadRow, DownloadRow> hashrow; 
         private DbusmenuItem menudbus;
         private DbusmenuItem openmenu;
         private CanonicalDbusmenu dbusserver;
@@ -217,8 +216,6 @@ namespace Gabut {
             );
             nodown_alert.show ();
             listrow = new Gee.ArrayList<DownloadRow> ();
-            hashrow = new Gee.HashMap<DownloadRow, DownloadRow> ();
-            listrow.sort (sort_dm);
             list_box = new Gtk.ListBox () {
                 activate_on_single_click = true,
                 selection_mode = Gtk.SelectionMode.BROWSE
@@ -516,10 +513,10 @@ namespace Gabut {
                     restart_server ();
                 });
                 preferences.restart_process.connect (()=> {
-                    listrow.foreach ((row)=> {
+                    for (int index = 0; index < listrow.size ; index++) {
+                        var row = (DownloadRow) list_box.get_row_at_index (index);
                         row.if_not_exist (row.ariagid, row.linkmode, row.status);
-                        return true;
-                    });
+                    }
                 });
                 preferences.max_active.connect (()=> {
                     next_download ();
@@ -694,7 +691,6 @@ namespace Gabut {
                 sort_popover.hide ();
                 deascend = (DeAscend) dsasc.id;
                 set_dbsetting (DBSettings.ASCEDESCEN, dsasc.id.to_string ());
-                listrow.sort (sort_dm);
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
             });
             dsasc.id = int.parse (get_dbsetting (DBSettings.ASCEDESCEN));
@@ -724,7 +720,6 @@ namespace Gabut {
                 ((Gtk.Label)((SortBy) sorttype).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 sorttype = shorty as SortBy;
                 ((Gtk.Label)sorttype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                listrow.sort (sort_dm);
                 list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
             });
             sorttype = sort_flow.get_child_at_index (int.parse (get_dbsetting (DBSettings.SORTBY))) as SortBy;
@@ -791,9 +786,10 @@ namespace Gabut {
 
         public void save_all_download () {
             var downloads = new GLib.List<DownloadRow> ();
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.url == "") {
-                    return true;
+                    return;
                 }
                 if (!db_option_exist (row.url)) {
                     set_dboptions (row.url, row.hashoption);
@@ -801,62 +797,60 @@ namespace Gabut {
                     update_optionts (row.url, row.hashoption);
                 }
                 downloads.append (row);
-                return true;
-            });
+            }
             set_download (downloads);
         }
 
         public Gee.ArrayList<DownloadRow> get_dl_row (int status) {
             var rowlist = new Gee.ArrayList<DownloadRow> ();
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.status == status) {
                     rowlist.add (row);
                 }
-                return true;
-            });
+            }
             return rowlist;
         }
 
         private void update_options () {
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                     glob_to_opt (row.ariagid);
                 }
-                return true;
-            });
+            }
         }
 
         private void next_download () {
-            aria_tell_active ().foreach ((strgid)=> {
-                listrow.foreach ((row)=> {
-                    if (row.ariagid == strgid) {
-                        if (row.status != StatusMode.ACTIVE) {
-                            row.update_progress ();
-                        }
+            var a2active = aria_tell_active ();
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
+                if (a2active.contains (row.ariagid)) {
+                    if (row.status != StatusMode.ACTIVE) {
+                       row.update_progress ();
                     }
-                    return true;
-                });
-            });
+               }
+            }
         }
 
         public string server_action (string ariagid, int status = 2) {
             var agid = ariagid;
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.ariagid == ariagid) {
                     agid = row.action_btn (status);
                 }
-                return true;
-            });
+            }
             return agid;
         }
 
         public void remove_item (string ariagid) {
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.ariagid == ariagid) {
                     row.remove_down ();
                 }
-                return true;
-            });
+            }
         }
 
         public void remove_all () {
@@ -868,88 +862,50 @@ namespace Gabut {
             }
             switch (view_mode.selected) {
                 case 1:
-                    hashrow.clear ();
-                    var totalsize = hashrow.size;
-                    listrow.foreach ((row)=> {
-                        if (row.status == StatusMode.ACTIVE) {
-                            hashrow.set (row, row);
-                        }
-                        return true;
-                    });
-                    rm_perpart (hashrow, totalsize);
+                    rm_perpart (StatusMode.ACTIVE);
                     break;
                 case 2:
-                    hashrow.clear ();
-                    var totalsize = hashrow.size;
-                    listrow.foreach ((row)=> {
-                        if (row.status == StatusMode.PAUSED) {
-                            hashrow.set (row, row);
-                        }
-                        return true;
-                    });
-                    rm_perpart (hashrow, totalsize);
+                    rm_perpart (StatusMode.PAUSED);
                     break;
                 case 3:
-                    hashrow.clear ();
-                    var totalsize = hashrow.size;
-                    listrow.foreach ((row)=> {
-                        if (row.status == StatusMode.COMPLETE) {
-                            hashrow.set (row, row);
-                        }
-                        return true;
-                    });
-                    rm_perpart (hashrow, totalsize);
+                    rm_perpart (StatusMode.COMPLETE);
                     break;
                 case 4:
-                    hashrow.clear ();
-                    var totalsize = hashrow.size;
-                    listrow.foreach ((row)=> {
-                        if (row.status == StatusMode.WAIT) {
-                            hashrow.set (row, row);
-                        }
-                        return true;
-                    });
-                    rm_perpart (hashrow, totalsize);
+                    rm_perpart (StatusMode.WAIT);
                     break;
                 case 5:
-                    hashrow.clear ();
-                    var totalsize = hashrow.size;
-                    listrow.foreach ((row)=> {
-                        if (row.status == StatusMode.ERROR) {
-                            hashrow.set (row, row);
-                        }
-                        return true;
-                    });
-                    rm_perpart (hashrow, totalsize);
+                    rm_perpart (StatusMode.ERROR);
                     break;
                 default:
-                    hashrow.clear ();
-                    var totalsize = hashrow.size;
-                    listrow.foreach ((row)=> {
-                        hashrow.set (row, row);
-                        return true;
-                    });
-                    rm_perpart (hashrow, totalsize);
+                    rm_perpart (7);
                     aria_purge_all ();
                     break;
             }
         }
 
-        private void rm_perpart (Gee.HashMap<DownloadRow, DownloadRow> hashrow, int totalsize) {
+        private void rm_perpart (StatusMode status) {
+            var hashrow = new Gee.ArrayList<DownloadRow> ();
+            for (int c = 0; c < listrow.size ; c++) {
+                var rowc = (DownloadRow) list_box.get_row_at_index (c);
+                if (rowc.status == status || status == 7) {
+                    hashrow.add (rowc);
+                }
+            }
+            int totaldx = hashrow.size;
             int index = 0;
             Idle.add (()=> {
                 index++;
                 if (hashrow.size > 0) {
                     removing = true;
-                    labelview.label = _("Removing… (%i of %i)").printf (index, totalsize);
+                    labelview.label = _("Removing… (%i of %i)").printf (index, totaldx);
                     indicatorstatus ();
-                    listrow.foreach ((row)=> {
-                        if (hashrow.has_key (row)) {
-                            listrow.get (listrow.index_of (row)).remove_down ();
-                            hashrow.unset (row);
+                    for (int b = 0; b < listrow.size ; b++) {
+                        var row = (DownloadRow) list_box.get_row_at_index (b);
+                        if (hashrow.contains (row)) {
+                            row.remove_down ();
+                            hashrow.remove (row);
                         }
-                        return true;
-                    });
+                    }
                 } else {
                     removing = false;
                     update_info ();
@@ -1025,7 +981,6 @@ namespace Gabut {
                 list_box.select_row (row);
                 list_box.row_activated (row);
             }
-            listrow.sort (sort_dm);
             list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
             update_info ();
             view_status ();
@@ -1056,12 +1011,12 @@ namespace Gabut {
 
         public int activedm () {
             int count = 0;
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.status == StatusMode.ACTIVE || row.status == StatusMode.WAIT) {
                     count++;
                 }
-                return true;
-            });
+            }
             return count;
         }
 
@@ -1104,9 +1059,15 @@ namespace Gabut {
                 dbusindicator.updateLabel = "";
             } else {
                 if (allactive > 0) {
-                    dbusindicator.updateLabel = GLib.format_size (allactive > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0);
+                    if (_menulabel == 2) {
+                        dbusindicator.updateLabel = GLib.format_size (allactive > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0);
+                    } else if (_menulabel == 1) {
+                        dbusindicator.updateLabel = @"$(allactive.to_string ())/$(listrow.size)";
+                    } else {
+                        dbusindicator.updateLabel = @"$(allactive.to_string ())/$(listrow.size) " + GLib.format_size (allactive > 0? int64.parse (infol.fetch (6)) + int64.parse (infol.fetch (1)) : 0);
+                    }
                 } else {
-                    dbusindicator.updateLabel = _menulabel == 1? _("GabutDM") : "";
+                    dbusindicator.updateLabel = listrow.size > 0? "GabutDM" : "";
                 }
             }
             dbusindicator.x_ayatana_new_label (dbusindicator.updateLabel, "");
@@ -1127,23 +1088,23 @@ namespace Gabut {
 
         private bool get_exist (string url) {
             bool linkexist = false;
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.url == url) {
                     linkexist = true;
                 }
-                return true;
-            });
+            }
             return linkexist;
         }
 
         public int beforest () {
             int count = 0;
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                     count++;
                 }
-                return true;
-            });
+            }
             return count;
         }
 
@@ -1157,7 +1118,7 @@ namespace Gabut {
             Idle.add (()=> {
                 if (listrow.size > 0) {
                     starting = true;
-                    var row = listrow.get (count);
+                    var row = (DownloadRow) list_box.get_row_at_index (count);
                     if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                         aria_position (row.ariagid, index);
                         aria_unpause (row.ariagid);
@@ -1187,11 +1148,10 @@ namespace Gabut {
             Idle.add (()=> {
                 if (listrow.size > 0) {
                     stoping = true;
-                    var row = listrow.get (index);
+                    var row = (DownloadRow) list_box.get_row_at_index (index);
                     if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                         aria_pause (row.ariagid);
                         row.update_progress ();
-                        row.remove_timeout ();
                         count++;
                         if (acti > 0 && count <= acti) {
                             labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
@@ -1212,35 +1172,35 @@ namespace Gabut {
 
         public string set_selected (string ariagid, string selected) {
             string aria_gid = "";
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.ariagid == ariagid) {
                     aria_gid = row.set_selected (selected);
                 }
-                return true;
-            });
+            }
             return aria_gid;
         }
 
         public void append_row (string ariagid) {
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.ariagid == ariagid) {
                     if (row.status == StatusMode.ACTIVE) {
                         append_dbus.begin (row.rowbus);
                     }
                 }
-                return true;
-            });
+            }
         }
 
         public void remove_row (string ariagid) {
-            listrow.foreach ((row)=> {
+            for (int index = 0; index < listrow.size ; index++) {
+                var row = (DownloadRow) list_box.get_row_at_index (index);
                 if (row.ariagid == ariagid) {
                     if (row.status == StatusMode.ACTIVE) {
                         remove_dbus.begin (row.rowbus);
                     }
                 }
-                return true;
-            });
+            }
         }
 
         private async void append_dbus (DbusmenuItem rowbus) throws GLib.Error {
@@ -1496,7 +1456,6 @@ namespace Gabut {
                     break;
             }
             labelview.label = indexv.to_string ();
-            listrow.sort (sort_dm);
             list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
         }
     }
