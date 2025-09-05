@@ -523,7 +523,7 @@ namespace Gabut {
             };
             var serv_alert = new AlertView (
                _("Server"),
-                _("Server Downloads"),
+                _("Speed and Connection Downloads"),
                 "com.github.gabutakut.gabutdm"
             );
             lisboxserver = new Gtk.ListBox ();
@@ -685,22 +685,22 @@ namespace Gabut {
             if (switch_rev) {
                 if (connpeers.get_visible_child_name () == "serverconn") {
                     var arrayserv = aria_servers_store (ariagid);
-                    arrayserv.map_iterator ().foreach ((keyserver, serverrow) => {
+                    arrayserv.foreach ((serverrow) => {
                         bool servext = false;
                         for (int b = 0; b < listserver.size ; b++) {
                             var serverrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
-                            if (keyserver == serverrow2.index) {
+                            if (serverrow.key == serverrow2.index) {
                                 servext = true;
-                                serverrow2.currenturi = serverrow.currenturi;
-                                serverrow2.downloadspeed = serverrow.downloadspeed;
-                                serverrow2.uriserver = serverrow.uriserver;
+                                serverrow2.currenturi = serverrow.value.currenturi;
+                                serverrow2.downloadspeed = serverrow.value.downloadspeed;
+                                serverrow2.uriserver = serverrow.value.uriserver;
                             }
                         }
                         if (!servext) {
-                            if (!server_exist (keyserver)) {
-                                lisboxserver.append (serverrow);
-                                listserver.add (serverrow);
-                                serverrow.show ();
+                            if (!server_exist (serverrow.key)) {
+                                lisboxserver.append (serverrow.value);
+                                listserver.add (serverrow.value);
+                                serverrow.value.show ();
                             }
                         }
                         return true;
@@ -715,26 +715,26 @@ namespace Gabut {
                     arrayserv.clear ();
                 } else {
                     var arraypeers = aria_get_peers (ariagid);
-                    arraypeers.map_iterator ().foreach ((peerkey, peersrow) => {
+                    arraypeers.foreach ((peersrow) => {
                         bool peerext = false;
                         for (int b = 0; b < listpeers.size ; b++) {
                             var peersrow2 = (PeersRow) listboxpeers.get_row_at_index (b);
-                            if (peersrow2.host == peerkey) {
+                            if (peersrow2.host == peersrow.key) {
                                 peerext = true;
-                                peersrow2.peerid = peersrow.peerid;
-                                peersrow2.downloadspeed = peersrow.downloadspeed;
-                                peersrow2.uploadspeed = peersrow.uploadspeed;
-                                peersrow2.peerschoking = peersrow.peerschoking;
-                                peersrow2.seeder = peersrow.seeder;
-                                peersrow2.amchoking = peersrow.amchoking;
-                                peersrow2.bitfield = peersrow.bitfield;
+                                peersrow2.peerid = peersrow.value.peerid;
+                                peersrow2.downloadspeed = peersrow.value.downloadspeed;
+                                peersrow2.uploadspeed = peersrow.value.uploadspeed;
+                                peersrow2.peerschoking = peersrow.value.peerschoking;
+                                peersrow2.seeder = peersrow.value.seeder;
+                                peersrow2.amchoking = peersrow.value.amchoking;
+                                peersrow2.bitfield = peersrow.value.bitfield;
                             }
                         }
                         if (!peerext) {
-                            if (!peer_exist (peerkey)) {
-                                listboxpeers.append (peersrow);
-                                listpeers.add (peersrow);
-                                peersrow.show ();
+                            if (!peer_exist (peersrow.key)) {
+                                listboxpeers.append (peersrow.value);
+                                listpeers.add (peersrow.value);
+                                peersrow.value.show ();
                             }
                         }
                         return true;
@@ -781,28 +781,28 @@ namespace Gabut {
         private void show_files () {
             if (loadfile >= totalfile) {
                 var fileshow = aria_files_store (pack_data);
-                totalfile = fileshow.size > 10? 8 : 2;
-                fileshow.map_iterator ().foreach ((torrkey, torrvall) => {
-                    if (torrkey == "" || torrkey == null) {
+                totalfile = fileshow.size > 10? 9 : 2;
+                fileshow.foreach ((torrvall) => {
+                    if (torrvall.key == "" || torrvall.key == null) {
                         return true;
                     }
-                    if (torrvall.filepath == "" || torrvall.filepath == null) {
+                    if (torrvall.value.filepath == "" || torrvall.value.filepath == null) {
                         return true;
                     }
-                    if (torrvall.filepath.contains ("[METADATA]")) {
+                    if (torrvall.value.filepath.contains ("[METADATA]")) {
                         return true;
                     }
-                    if (torrvall.filebasename == null || torrvall.sizetransfered == null || torrvall.completesize == null) {
+                    if (torrvall.value.filebasename == null || torrvall.value.sizetransfered == null || torrvall.value.completesize == null) {
                         return true;
                     }
                     trspinner.spinning = false;
                     trspinner.halign = Gtk.Align.END;
                     trspinner.valign = Gtk.Align.END;
-                    if (!files_exist (torrkey, torrvall)) {
-                        listtorrent.add (torrvall);
-                        listboxtorrent.append (torrvall);
-                        torrvall.show ();
-                        torrvall.selecting.connect ((index, selected)=> {
+                    if (!files_exist (torrvall.key, torrvall.value)) {
+                        listtorrent.add (torrvall.value);
+                        listboxtorrent.append (torrvall.value);
+                        torrvall.value.show ();
+                        torrvall.value.selecting.connect ((index, selected)=> {
                             var builder = new StringBuilder ();
                             uint hashb = builder.str.hash ();
                             for (int b = 0; b < listtorrent.size ; b++) {
@@ -840,8 +840,9 @@ namespace Gabut {
                     }
                     return true;
                 });
+                fileshow.clear ();
                 loadfile = 0;
-            } else if (loadfile == 7) {
+            } else if (loadfile == 8) {
                 trspinner.spinning = true;
                 trspinner.halign = Gtk.Align.END;
                 trspinner.valign = Gtk.Align.END;
@@ -858,7 +859,6 @@ namespace Gabut {
                     torrentrow.sizetransfered = torrentrw.sizetransfered;
                     torrentrow.fraction = torrentrw.fraction;
                     torrentrow.status = torrentrw.status;
-                    torrentrow.persen = torrentrw.persen;
                 }
             }
             return exist;
