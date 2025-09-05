@@ -1122,7 +1122,9 @@ namespace Gabut {
                     if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                         aria_position (row.ariagid, index);
                         aria_unpause (row.ariagid);
-                        row.update_progress ();
+                        if (row.status != StatusMode.ACTIVE) {
+                            row.update_progress ();
+                        }
                         index++;
                         labelview.label = _("Starting… (%i of %i)").printf (index, onstr);
                         indicatorstatus ();
@@ -1151,7 +1153,9 @@ namespace Gabut {
                     var row = (DownloadRow) list_box.get_row_at_index (index);
                     if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
                         aria_pause (row.ariagid);
-                        row.update_progress ();
+                        if (row.status == StatusMode.WAIT) {
+                            row.update_progress ();
+                        }
                         count++;
                         if (acti > 0 && count <= acti) {
                             labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
@@ -1361,6 +1365,9 @@ namespace Gabut {
                         }
                         return ((DownloadRow) item).status == StatusMode.ACTIVE;
                     });
+                    if (indexv != allactive) {
+                        next_download ();
+                    }
                     var active_alert = new AlertView (
                         _("No Active Download"),
                         _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),

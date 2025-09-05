@@ -230,7 +230,7 @@ namespace Gabut {
                 focus_on_click = false,
                 has_frame = false,
                 child = progresimg,
-                tooltip_text = _("Location")
+                tooltip_text = _("Folder Location")
             };
             openilocation.clicked.connect (()=> {
                 var file = File.new_for_path (filepath);
