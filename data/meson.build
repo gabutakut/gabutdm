@@ -40,6 +40,7 @@ actions = [
     '.amchok.svg',
     '.amchoking.svg',
     '.peerchok.svg',
+    '.select.svg',
     '.peerchoking.svg'
 ]
 

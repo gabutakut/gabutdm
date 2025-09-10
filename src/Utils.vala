@@ -298,7 +298,29 @@ namespace Gabut {
         WAIT = 3,
         ERROR = 4,
         NOTHING = 5,
-        SEED = 6
+        SEED = 6,
+        ALL = 7;
+
+        public string to_string () {
+            switch (this) {
+                case PAUSED:
+                    return _("Pause");
+                case COMPLETE:
+                    return _("Complete");
+                case WAIT:
+                    return _("Wait");
+                case ERROR:
+                    return _("Error");
+                case NOTHING:
+                    return _("Nothing");
+                case SEED:
+                    return _("Seed");
+                case ALL:
+                    return _("All");
+                default:
+                    return _("Active");
+            }
+        }
     }
 
     private enum OpenFiles {
@@ -2724,6 +2746,19 @@ namespace Gabut {
             return "file";
         }
     }
+
+    public bool match_keycode (uint keyval, uint code) {
+        Gdk.KeymapKey [] keys;
+        if (Gdk.Display.get_default ().map_keyval (keyval, out keys)) {
+            foreach (var key in keys) {
+                if (code == key.keycode) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public Sqlite.Database gabutdb;
     private int open_database (out Sqlite.Database db) {
         int opendb = 0;

@@ -23,13 +23,13 @@ namespace Gabut {
     public class DownloadRow : Gtk.ListBoxRow {
         public signal int activedm ();
         public signal void update_agid (string ariagid, string newgid);
-        public signal void gsmproperties ();
         private Gtk.Button start_button;
         private Gtk.Label transfer_rate;
         private Gtk.ProgressBar progressbar;
         private Gtk.Label filename_label;
         public Gtk.Image imagefile;
         public Gtk.Image badge_img;
+        public Gtk.Button remove_button;
         public DbusmenuItem rowbus;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
         private bool stoptimer;
@@ -398,7 +398,7 @@ namespace Gabut {
                 action_btn ();
             });
 
-            var remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
+            remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 valign = Gtk.Align.CENTER,
                 has_frame = false,
                 tooltip_text = _("Remove")
@@ -659,54 +659,33 @@ namespace Gabut {
             GLib.Application.get_default ().lookup_action ("succes").activate (new Variant.string (gabutinfo.get_info ()));
         }
 
-        public Gtk.Popover get_menu () {
-            var downloadmn = new Gtk.FlowBox ();
-            foreach (var dmmenu in DownloadMenu.get_all ()) {
-                downloadmn.append (new GdmMenu (dmmenu));
-            }
-            var urisel_popover = new Gtk.Popover () {
-                child = downloadmn
-            };
-            urisel_popover.show.connect (() => {
-                downloadmn.unselect_all ();
-            });
-            downloadmn.child_activated.connect ((dmmenu)=> {
-                urisel_popover.hide ();
-                var gdmmenu = dmmenu as GdmMenu;
-                switch (gdmmenu.downloadmenu) {
-                    case DownloadMenu.MOVETOTRASH:
-                        if (pathname != null) {
-                            remove_down ();
-                            try {
-                                var filec = File.new_for_path (@"$(pathname).aria2");
-                                if (filec.query_exists ()) {
-                                    filec.trash ();
-                                }
-                                var filep = File.new_for_path (pathname);
-                                if (filep.query_exists ()) {
-                                    filep.trash ();
-                                }
-                            } catch (Error e) {
-                                GLib.warning (e.message);
-                            }
-                        }
-                        break;
-                    case DownloadMenu.PROPERTIES:
-                        gsmproperties ();
-                        break;
-                    default:
-                        if (pathname != null) {
-                            var file = File.new_for_path (pathname);
-                            if (fileordir == "inode/directory") {
-                                open_fileman.begin (file.get_uri ());
-                            } else {
-                                open_fileman.begin (file.get_parent ().get_uri ());
-                            }
-                        }
-                        break;
+        public void to_trash () {
+            if (pathname != null) {
+                remove_down ();
+                try {
+                    var filec = File.new_for_path (@"$(pathname).aria2");
+                    if (filec.query_exists ()) {
+                        filec.trash ();
+                    }
+                    var filep = File.new_for_path (pathname);
+                    if (filep.query_exists ()) {
+                        filep.trash ();
+                    }
+                } catch (Error e) {
+                    GLib.warning (e.message);
                 }
-            });
-            return urisel_popover;
+            }
+        }
+
+        public void open_filesr () {
+            if (pathname != null) {
+                var file = File.new_for_path (pathname);
+                if (fileordir == "inode/directory") {
+                    open_fileman.begin (file.get_uri ());
+                } else {
+                    open_fileman.begin (file.get_parent ().get_uri ());
+                }
+            }
         }
     }
 }
