@@ -1393,6 +1393,17 @@ namespace Gabut {
             }
         }
 
+        public string to_tooltip () {
+            switch (this) {
+                case MOVETOTRASH:
+                    return _("DEL");
+                case PROPERTIES:
+                    return _("CTRL + M");
+                default:
+                    return _("CTRL + O");
+            }
+        }
+
         public string to_icon () {
             switch (this) {
                 case MOVETOTRASH:
