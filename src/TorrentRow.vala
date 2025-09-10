@@ -33,6 +33,7 @@ namespace Gabut {
         private ProgressPaintable progrespaint;
         private Gtk.Label indexlbl;
         private Gtk.Label filenm;
+        private Gtk.Image icon_badge;
 
         private int _index;
         public int index {
@@ -52,6 +53,11 @@ namespace Gabut {
             set {
                 _selected = value;
                 checkbtn.active = _selected;
+                if (_selected) {
+                    icon_badge.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.complete");
+                } else {
+                    icon_badge.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.error");
+                }
             }
         }
 
@@ -74,7 +80,7 @@ namespace Gabut {
             set {
                 _filebasename = value;
                 file_label.label = _filebasename;
-                indexlbl.label = _("No. %s").printf(index.to_string ());
+                indexlbl.label = _(" %s").printf(index.to_string ());
                 filenm.label = filebasename;
             }
         }
@@ -143,23 +149,38 @@ namespace Gabut {
 
         construct {
             checkbtn = new Gtk.CheckButton ();
-            checkbtn.toggled.connect (()=> {
-                selecting (index, !selected);
-            });
 
             fileimg = new Gtk.Image () {
                 valign = Gtk.Align.CENTER
             };
+            icon_badge = new Gtk.Image () {
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
+                gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.complete")
+            };
+            var boximgfi = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            boximgfi.append (icon_badge);
+            boximgfi.append (fileimg);
+
             indexlbl = new Gtk.Label ("") {
                 attributes = color_attribute (60000, 0, 0)
             };
+            var boxgr = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+            boxgr.append (checkbtn);
+            boxgr.append (indexlbl);
+
             var popname = new Gtk.Popover () {
-                child = indexlbl
+                child = boxgr
             };
+            checkbtn.toggled.connect (()=> {
+                selecting (index, !selected);
+                popname.popdown ();
+            });
+
             var openname = new Gtk.MenuButton () {
                 focus_on_click = false,
                 has_frame = false,
-                child = fileimg,
+                child = boximgfi,
                 popover = popname,
                 tooltip_text = _("Index")
             };
@@ -167,7 +188,7 @@ namespace Gabut {
             file_label = new Gtk.Label (null) {
                 xalign = 0,
                 use_markup = true,
-                width_request = 250,
+                width_request = 300,
                 max_width_chars = 36,
                 ellipsize = Pango.EllipsizeMode.MIDDLE,
                 valign = Gtk.Align.CENTER,
@@ -193,7 +214,7 @@ namespace Gabut {
             incompletelbl = new Gtk.Label (null) {
                 attributes = color_attribute (60000, 30000, 0)
             };
-            var popcomplete = new Gtk.Popover (){
+            var popcomplete = new Gtk.Popover () {
                 child = incompletelbl
             };
             var getfilebtn = new Gtk.MenuButton () {
@@ -267,7 +288,6 @@ namespace Gabut {
                 row_spacing = 2,
                 valign = Gtk.Align.CENTER
             };
-            grid.attach (checkbtn, 0, 0);
             grid.attach (openname, 1, 0);
             grid.attach (openpath, 2, 0);
             grid.attach (getfilebtn, 3, 0);

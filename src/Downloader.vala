@@ -91,7 +91,7 @@ namespace Gabut {
                         remove_timeout ();
                         break;
                     case StatusMode.COMPLETE:
-                        start_button.set_label (_("Open"));
+                        start_button.set_label (_("Complete"));
                         statuslabel.label = _("Complete");
                         statuslabel.attributes = color_attribute (60000, 30000, 19764);
                         remove_timeout ();
