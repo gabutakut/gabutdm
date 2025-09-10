@@ -1075,7 +1075,11 @@ namespace Gabut {
                     }
                 }
             } else {
-                list_box.get_selected_rows ().foreach ((rows)=> {
+                var selecteddl = list_box.get_selected_rows ();
+                if (selecteddl.length () < 1) {
+                    return;
+                }
+                selecteddl.foreach ((rows)=> {
                     hashrow.add ((DownloadRow) rows);
                 });
             }
