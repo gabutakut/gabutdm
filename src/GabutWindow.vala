@@ -423,9 +423,28 @@ namespace Gabut {
                 remove_all ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.a, keycode)) {
                 list_box.select_all ();
-            } else if (ctrl_pressed && match_keycode (Gdk.Key.i, keycode)) {
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.u, keycode)) {
                 send_file ("");
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.w, keycode)) {
+                list_box.get_selected_rows ().foreach ((row)=> {
+                    ((DownloadRow) row).download ();
+                });
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.v, keycode)) {
+                list_box.get_selected_rows ().foreach ((row)=> {
+                    ((DownloadRow) row).action_btn ();
+                });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.o, keycode)) {
+                list_box.get_selected_rows ().foreach ((row)=> {
+                    ((DownloadRow) row).open_filesr ();
+                });
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.r, keycode)) {
+                if (list_box.selection_mode != Gtk.SelectionMode.MULTIPLE) {
+                    var selecteddl = list_box.get_selected_rows ().length ();
+                    if (selecteddl == 1) {
+                        rm_perpart (StatusMode.SEED, (int) selecteddl);
+                    }
+                }
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.i, keycode)) {
                 run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
                     try {
                         GLib.File[] files;
@@ -509,14 +528,14 @@ namespace Gabut {
             };
             var menu_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.settings") {
                 has_frame = false,
-                tooltip_text = _("Settings")
+                tooltip_text = _("Settings\nCTRL + P")
             };
             headerbar.pack_end (menu_button);
             menu_button.clicked.connect (menuprefernces);
 
             var search_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm") {
                 has_frame = false,
-                tooltip_text = _("Search")
+                tooltip_text = _("Search\nCTRL + S")
             };
             headerbar.pack_end (search_button);
             search_button.clicked.connect (searchf);
@@ -532,7 +551,7 @@ namespace Gabut {
             });
             var host_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.gohome") {
                 has_frame = false,
-                tooltip_text = _("Remote")
+                tooltip_text = _("Remote\nCTRL + H")
             };
             headerbar.pack_end (host_button);
             host_button.clicked.connect (qrmenuopen);
@@ -541,19 +560,19 @@ namespace Gabut {
                 direction = Gtk.ArrowType.UP,
                 has_frame = false,
                 popover = get_openmenu (),
-                tooltip_text = _("Add/Open")
+                tooltip_text = _("Add\nCTRL + U\nOpen\nCTRL + I")
             };
             headerbar.pack_start (add_open);
             var resumeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.active") {
                 has_frame = false,
-                tooltip_text = _("Start All")
+                tooltip_text = _("Start All\nCTRL + Z")
             };
             headerbar.pack_start (resumeall_button);
             resumeall_button.clicked.connect (start_all);
 
             var stopall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.pause") {
                 has_frame = false,
-                tooltip_text = _("Pause All")
+                tooltip_text = _("Pause All\nCTRL + X")
             };
             headerbar.pack_start (stopall_button);
             stopall_button.clicked.connect (stop_all);
@@ -564,7 +583,7 @@ namespace Gabut {
 
             badge_rbtn = new Gtk.Image () {
                 gicon = new ThemedIcon (nodown_alert.icon_name),
-                tooltip_text = _("Remove All"),
+                tooltip_text = _("Remove All\nCTRL + C"),
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.END,
                 pixel_size = 12
@@ -1065,23 +1084,29 @@ namespace Gabut {
             }
         }
 
-        private void rm_perpart (StatusMode status) {
+        private void rm_perpart (StatusMode status, int single = 0) {
             var hashrow = new Gee.ArrayList<DownloadRow> ();
-            if (list_box.selection_mode != Gtk.SelectionMode.MULTIPLE) {
-                for (int c = 0; c < listrow.size ; c++) {
-                    var rowc = (DownloadRow) list_box.get_row_at_index (c);
-                    if (rowc.status == status || status == StatusMode.ALL) {
-                        hashrow.add (rowc);
-                    }
-                }
-            } else {
-                var selecteddl = list_box.get_selected_rows ();
-                if (selecteddl.length () < 1) {
-                    return;
-                }
-                selecteddl.foreach ((rows)=> {
+            if (single == 1) {
+                list_box.get_selected_rows ().foreach ((rows)=> {
                     hashrow.add ((DownloadRow) rows);
                 });
+            } else {
+                if (list_box.selection_mode != Gtk.SelectionMode.MULTIPLE) {
+                    for (int c = 0; c < listrow.size ; c++) {
+                        var rowc = (DownloadRow) list_box.get_row_at_index (c);
+                        if (rowc.status == status || status == StatusMode.ALL) {
+                            hashrow.add (rowc);
+                        }
+                    }
+                } else {
+                    var selecteddl = list_box.get_selected_rows ();
+                    if (selecteddl.length () < 1) {
+                        return;
+                    }
+                    selecteddl.foreach ((rows)=> {
+                        hashrow.add ((DownloadRow) rows);
+                    });
+                }
             }
             var dldia = new DeleteDialog () {
                 transient_for = this,
@@ -1520,7 +1545,7 @@ namespace Gabut {
             if (headerstack.visible_child_name == "search") {
                 if (list_box.selection_mode != Gtk.SelectionMode.MULTIPLE) {
                     badge_rbtn.gicon = modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.find");
-                    badge_rbtn.tooltip_text = _("Disabled");
+                    badge_rbtn.tooltip_text = _("Disabled\nCTRL + C");
                 }
                 if (search_entry.text.strip () == "") {
                     list_box.set_filter_func ((item) => {
@@ -1581,7 +1606,7 @@ namespace Gabut {
                         "com.github.gabutakut.gabutdm.active"
                     );
                     badge_rbtn.gicon = modeview.gicon = new ThemedIcon (active_alert.icon_name);
-                    badge_rbtn.tooltip_text = _("Remove All ACTIVE");
+                    badge_rbtn.tooltip_text = _("Remove All ACTIVE\nCTRL + C");
                     active_alert.show ();
                     list_box.set_placeholder (active_alert);
                     break;
@@ -1598,7 +1623,7 @@ namespace Gabut {
                         "com.github.gabutakut.gabutdm.pause"
                     );
                     badge_rbtn.gicon = modeview.gicon = new ThemedIcon (nopause_alert.icon_name);
-                    badge_rbtn.tooltip_text = _("Remove All PAUSED");
+                    badge_rbtn.tooltip_text = _("Remove All PAUSED\nCTRL + C");
                     nopause_alert.show ();
                     list_box.set_placeholder (nopause_alert);
                     break;
@@ -1615,7 +1640,7 @@ namespace Gabut {
                         "com.github.gabutakut.gabutdm.complete"
                     );
                     badge_rbtn.gicon = modeview.gicon = new ThemedIcon (nocomp_alerst.icon_name);
-                    badge_rbtn.tooltip_text = _("Remove All COMPLETE");
+                    badge_rbtn.tooltip_text = _("Remove All COMPLETE\nCTRL + C");
                     nocomp_alerst.show ();
                     list_box.set_placeholder (nocomp_alerst);
                     break;
@@ -1632,7 +1657,7 @@ namespace Gabut {
                         "com.github.gabutakut.gabutdm.waiting"
                     );
                     badge_rbtn.gicon = modeview.gicon = new ThemedIcon (nowait_alert.icon_name);
-                    badge_rbtn.tooltip_text = _("Remove All WAITING");
+                    badge_rbtn.tooltip_text = _("Remove All WAITING\nCTRL + C");
                     nowait_alert.show ();
                     list_box.set_placeholder (nowait_alert);
                     break;
@@ -1649,7 +1674,7 @@ namespace Gabut {
                         "com.github.gabutakut.gabutdm.error"
                     );
                     badge_rbtn.gicon = modeview.gicon = new ThemedIcon (noerr_alert.icon_name);
-                    badge_rbtn.tooltip_text = _("Remove All ERROR");
+                    badge_rbtn.tooltip_text = _("Remove All ERROR\nCTRL + C");
                     noerr_alert.show ();
                     list_box.set_placeholder (noerr_alert);
                     break;
@@ -1663,7 +1688,7 @@ namespace Gabut {
                     });
                     index_rowdm = listrow.size;
                     badge_rbtn.gicon = modeview.gicon = new ThemedIcon (nodown_alert.icon_name);
-                    badge_rbtn.tooltip_text = _("Remove All");
+                    badge_rbtn.tooltip_text = _("Remove All\nCTRL + C");
                     if (!hide_alert) {
                         list_box.set_placeholder (nodown_alert);
                     }
@@ -1679,7 +1704,7 @@ namespace Gabut {
             }
             if (list_box.selection_mode == Gtk.SelectionMode.MULTIPLE) {
                 badge_rbtn.gicon = modeview.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.select");
-                badge_rbtn.tooltip_text = _("Remove Selected");
+                badge_rbtn.tooltip_text = _("Remove Selected\nCTRL + C");
                 labelview.label = list_box.get_selected_rows ().length ().to_string ();
             } else {
                 labelview.label = index_rowdm.to_string ();

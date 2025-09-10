@@ -26,6 +26,7 @@ namespace Gabut {
         public GdmMenu (DownloadMenu downloadmenu) {
             this.downloadmenu = downloadmenu;
             var title = new Gtk.Label (downloadmenu.to_string ()) {
+                tooltip_text = downloadmenu.to_tooltip (),
                 xalign = 0,
                 margin_top = 6,
                 margin_start = 6,

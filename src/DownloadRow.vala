@@ -92,7 +92,7 @@ namespace Gabut {
                 switch (value) {
                     case StatusMode.PAUSED:
                         start_button.icon_name = "com.github.gabutakut.gabutdm.pause";
-                        start_button.tooltip_text = _("Paused");
+                        start_button.tooltip_text = _("Paused\nCTRL + V");
                         remove_timeout ();
                         labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
                         if (url != null && db_download_exist (url)) {
@@ -102,7 +102,7 @@ namespace Gabut {
                     case StatusMode.COMPLETE:
                         if (ariagid != null) {
                             start_button.icon_name = "com.github.gabutakut.gabutdm.complete";
-                            start_button.tooltip_text = _("Complete");
+                            start_button.tooltip_text = _("Complete\nCTRL + V");
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
@@ -140,7 +140,7 @@ namespace Gabut {
                         break;
                     case StatusMode.WAIT:
                         start_button.icon_name = "com.github.gabutakut.gabutdm.waiting";
-                        start_button.tooltip_text = _("Waiting");
+                        start_button.tooltip_text = _("Waiting\nCTRL + V");
                         remove_timeout ();
                         labeltransfer = @"$(GLib.format_size (transferred)) of $(GLib.format_size (totalsize))";
                         if (url != null && db_download_exist (url)) {
@@ -149,7 +149,7 @@ namespace Gabut {
                         break;
                     case StatusMode.ERROR:
                         start_button.icon_name = "com.github.gabutakut.gabutdm.error";
-                        start_button.tooltip_text = _("Error");
+                        start_button.tooltip_text = _("Error\nCTRL + V");
                         if (ariagid != null && url != null) {
                             labeltransfer = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
                             if (filename != null) {
@@ -165,12 +165,12 @@ namespace Gabut {
                         break;
                     case StatusMode.SEED:
                         start_button.icon_name = "com.github.gabutakut.gabutdm.seed";
-                        start_button.tooltip_text = _("Seeding");
+                        start_button.tooltip_text = _("Seeding\nCTRL + V");
                         add_timeout ();
                         break;
                     default:
                         start_button.icon_name = "com.github.gabutakut.gabutdm.active";
-                        start_button.tooltip_text = _("Downloading");
+                        start_button.tooltip_text = _("Downloading\nCTRL + V");
                         add_timeout ();
                         break;
                 }
@@ -369,7 +369,7 @@ namespace Gabut {
                 focus_on_click = false,
                 has_frame = false,
                 child = overlay,
-                tooltip_text = _("Progress")
+                tooltip_text = _("Progress\nCTRL + W")
             };
             openimage.clicked.connect (download);
 
@@ -401,7 +401,7 @@ namespace Gabut {
             remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
                 valign = Gtk.Align.CENTER,
                 has_frame = false,
-                tooltip_text = _("Remove")
+                tooltip_text = _("Remove\nCTRL + R")
             };
             remove_button.clicked.connect (remove_down);
 
