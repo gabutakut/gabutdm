@@ -543,6 +543,7 @@ namespace Gabut {
                 view_status ();
                 search_entry.text = "";
                 search_button.icon_name = headerstack.visible_child_name == "mode"? "com.github.gabutakut.gabutdm" : "com.github.gabutakut.gabutdm.find";
+                search_button.tooltip_text = headerstack.visible_child_name == "mode"? _("Search\nCTRL + S") : _("Search\nESC");
                 if (headerstack.visible_child_name == "search") {
                     search_entry.grab_focus ();
                 } else {
