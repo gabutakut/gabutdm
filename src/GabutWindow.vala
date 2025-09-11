@@ -42,6 +42,8 @@ namespace Gabut {
         private DbusmenuItem openmenu;
         private CanonicalDbusmenu dbusserver;
         private DbusIndicator dbusindicator;
+        private DeleteDialog remv_dialog;
+        private DeleteDialog delete_dialog;
         private Gtk.CheckButton showtime;
         private Gtk.CheckButton showdate;
         private Gtk.Label download_rate;
@@ -480,45 +482,53 @@ namespace Gabut {
         }
 
         private void dl_perpart () {
-            var selecteddl = list_box.get_selected_rows ();
-            if (selecteddl.length () < 1) {
-                return;
-            }
             var hashrow = new Gee.ArrayList<DownloadRow> ();
-            selecteddl.foreach ((rows)=> {
+            list_box.get_selected_rows ().foreach ((rows)=> {
                 hashrow.add ((DownloadRow) rows);
             });
-            var dldia = new DeleteDialog () {
-                transient_for = this,
-                datarow = hashrow,
-                icimg = "user-trash-full",
-                primmelb = _("Move to Trash"),
-                topikname = "Delete selected"
-            };
-            dldia.show ();
-            dldia.excuterd.connect (()=> {
-                int totaldx = hashrow.size;
-                Idle.add (()=> {
-                    if (hashrow.size > 0) {
-                        removing = true;
-                        for (int b = 0; b < listrow.size ; b++) {
-                            var row = (DownloadRow) list_box.get_row_at_index (b);
-                            if (hashrow.contains (row)) {
-                                labelview.label = _("Deleting… (%i of %i)").printf (((totaldx + 1) - hashrow.size), totaldx);
-                                row.to_trash ();
-                                indicatorstatus ();
-                                hashrow.remove (row);
+            if (hashrow.size < 1) {
+                return;
+            }
+            if (delete_dialog == null) {
+                delete_dialog = new DeleteDialog () {
+                    transient_for = this,
+                    datarow = hashrow,
+                    icimg = "user-trash-full",
+                    primmelb = _("Move to Trash"),
+                    topikname = "Delete selected"
+                };
+                delete_dialog.excuterd.connect (()=> {
+                    int totaldx = hashrow.size;
+                    Idle.add (()=> {
+                        if (hashrow.size > 0) {
+                            removing = true;
+                            for (int b = 0; b < listrow.size ; b++) {
+                                var row = (DownloadRow) list_box.get_row_at_index (b);
+                                if (hashrow.contains (row)) {
+                                    labelview.label = _("Deleting… (%i of %i)").printf (((totaldx + 1) - hashrow.size), totaldx);
+                                    row.to_trash ();
+                                    indicatorstatus ();
+                                    hashrow.remove (row);
+                                }
                             }
+                        } else {
+                            removing = false;
+                            update_info ();
+                            view_status ();
                         }
-                    } else {
-                        removing = false;
-                        update_info ();
-                        view_status ();
-                    }
-                    return removing;
-                }, GLib.Priority.HIGH_IDLE);
-                dldia.close ();
-            });
+                        return removing;
+                    }, GLib.Priority.HIGH_IDLE);
+                    delete_dialog.close ();
+                });
+                delete_dialog.close.connect (()=> {
+                    delete_dialog = null;
+                });
+                delete_dialog.close_request.connect (()=> {
+                    delete_dialog = null;
+                    return false;
+                });
+                delete_dialog.show ();
+            }
         }
 
         private Gtk.HeaderBar build_headerbar () {
@@ -1100,46 +1110,54 @@ namespace Gabut {
                         }
                     }
                 } else {
-                    var selecteddl = list_box.get_selected_rows ();
-                    if (selecteddl.length () < 1) {
-                        return;
-                    }
-                    selecteddl.foreach ((rows)=> {
+                    list_box.get_selected_rows ().foreach ((rows)=> {
                         hashrow.add ((DownloadRow) rows);
                     });
                 }
             }
-            var dldia = new DeleteDialog () {
-                transient_for = this,
-                icimg = "com.github.gabutakut.gabutdm.clear",
-                primmelb = _("Remove from list"),
-                datarow = hashrow,
-                topikname = _("Clear %s list").printf (status.to_string ())
-            };
-            dldia.show ();
-            dldia.excuterd.connect (()=> {
-                int totaldx = hashrow.size;
-                Idle.add (()=> {
-                    if (hashrow.size > 0) {
-                        removing = true;
-                        for (int b = 0; b < listrow.size ; b++) {
-                            var row = (DownloadRow) list_box.get_row_at_index (b);
-                            if (hashrow.contains (row)) {
-                                labelview.label = _("Removing… (%i of %i)").printf (((totaldx +1) - hashrow.size), totaldx);
-                                indicatorstatus ();
-                                row.remove_down ();
-                                hashrow.remove (row);
+            if (hashrow.size < 1) {
+                return;
+            }
+            if (remv_dialog == null) {
+                remv_dialog = new DeleteDialog () {
+                    transient_for = this,
+                    icimg = "com.github.gabutakut.gabutdm.clear",
+                    primmelb = _("Remove from list"),
+                    datarow = hashrow,
+                    topikname = _("Clear %s list").printf (status.to_string ())
+                };
+                remv_dialog.excuterd.connect (()=> {
+                    int totaldx = hashrow.size;
+                    Idle.add (()=> {
+                        if (hashrow.size > 0) {
+                            removing = true;
+                            for (int b = 0; b < listrow.size ; b++) {
+                                var row = (DownloadRow) list_box.get_row_at_index (b);
+                                if (hashrow.contains (row)) {
+                                    labelview.label = _("Removing… (%i of %i)").printf (((totaldx +1) - hashrow.size), totaldx);
+                                    indicatorstatus ();
+                                    row.remove_down ();
+                                    hashrow.remove (row);
+                                }
                             }
+                        } else {
+                            removing = false;
+                            update_info ();
+                            view_status ();
                         }
-                    } else {
-                        removing = false;
-                        update_info ();
-                        view_status ();
-                    }
-                    return removing;
-                }, GLib.Priority.HIGH_IDLE);
-                dldia.close ();
-            });
+                        return removing;
+                    }, GLib.Priority.HIGH_IDLE);
+                    remv_dialog.close ();
+                });
+                remv_dialog.close.connect (()=> {
+                    remv_dialog = null;
+                });
+                remv_dialog.close_request.connect (()=> {
+                    remv_dialog = null;
+                    return false;
+                });
+                remv_dialog.show ();
+            }
         }
 
         public void load_dowanload () {
