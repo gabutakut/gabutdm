@@ -101,6 +101,9 @@ namespace Gabut {
                         statuslabel.label = _("Waiting");
                         statuslabel.attributes = color_attribute (0, 0, 42588);
                         remove_timeout ();
+                        if (view_mode.selected == 2) {
+                            close ();
+                        }
                         break;
                     case StatusMode.ERROR:
                         start_button.set_label (_("Resume"));
