@@ -121,7 +121,7 @@ namespace Gabut {
                 lisbox_trash.remove_all ();
                 datarow.foreach ((dlrw)=> {
                     var dlrws = new DeleteRow () {
-                        filepath = dlrw.filepath,
+                        fileordir = dlrw.fileordir,
                         filebasename = dlrw.filename,
                         totalsize = dlrw.totalsize
                     };

@@ -31,7 +31,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="2.7.0" date="2025-9-15">
+    <release version="2.7.0" date="2025-9-12">
       <description>
         <p>Keyboard key</p>
       </description>

@@ -25,14 +25,14 @@ namespace Gabut {
         private Gtk.Label filesizelabel;
         private Gtk.Label file_label;
 
-        private string _filepath;
-        public string filepath {
+        private string _fileordir;
+        public string fileordir {
             get {
-                return _filepath;
+                return _fileordir;
             }
             set {
-                _filepath = value;
-                fileimg.gicon = GLib.ContentType.get_icon (get_mime_type (GLib.File.new_for_path (_filepath)));
+                _fileordir = value;
+                fileimg.gicon =  GLib.ContentType.get_icon (_fileordir);
             }
         }
 
