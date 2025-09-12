@@ -398,7 +398,7 @@ namespace Gabut {
                 action_btn ();
             });
 
-            remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clear") {
+            remove_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.clearone") {
                 valign = Gtk.Align.CENTER,
                 has_frame = false,
                 tooltip_text = _("Remove\nCTRL + R")

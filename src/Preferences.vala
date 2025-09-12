@@ -98,6 +98,7 @@ namespace Gabut {
                 homogeneous = true,
                 width_request = 300
             };
+            view_mode.append_text (_("Shorcuts"));
             view_mode.append_text (_("Default"));
             view_mode.append_text (_("BitTorrent"));
             view_mode.append_text (_("Sharing"));
@@ -109,6 +110,56 @@ namespace Gabut {
             header.decoration_layout = "none";
             header.title_widget = view_mode;
 
+            var boxshrot = new Gtk.Grid () {
+                margin_top = 10,
+                halign = Gtk.Align.CENTER,
+                valign = Gtk.Align.CENTER,
+                column_homogeneous = true,
+                row_spacing = 4,
+                height_request = 190
+            };
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.Escape, Gdk.ModifierType.NO_MODIFIER_MASK)), 0, 0);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.q, Gdk.ModifierType.CONTROL_MASK)), 0, 1);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.p, Gdk.ModifierType.CONTROL_MASK)), 0, 2);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.s, Gdk.ModifierType.CONTROL_MASK)), 0, 3);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.z, Gdk.ModifierType.CONTROL_MASK)), 0, 4);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.w, Gdk.ModifierType.CONTROL_MASK)), 0, 5);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.a, Gdk.ModifierType.CONTROL_MASK)), 0, 6);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.v, Gdk.ModifierType.CONTROL_MASK)), 0, 7);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.o, Gdk.ModifierType.CONTROL_MASK)), 0, 8);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.i, Gdk.ModifierType.CONTROL_MASK)), 0, 9);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.back"), 1, 0);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("window-close"), 1, 1);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.settings"), 1, 2);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.find"), 1, 3);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.activeall"), 1, 4);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.progress"), 1, 5);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("edit-select-all"), 1, 6);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.active"), 1, 7);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("folder-open"), 1, 8);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.uri"), 1, 9);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.Delete, Gdk.ModifierType.NO_MODIFIER_MASK)), 2, 0);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.d, Gdk.ModifierType.CONTROL_MASK)), 2, 1);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.h, Gdk.ModifierType.CONTROL_MASK)), 2, 2);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.m, Gdk.ModifierType.CONTROL_MASK)), 2, 3);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.x, Gdk.ModifierType.CONTROL_MASK)), 2, 4);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.c, Gdk.ModifierType.CONTROL_MASK)), 2, 5);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.u, Gdk.ModifierType.CONTROL_MASK)), 2, 6);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.f, Gdk.ModifierType.CONTROL_MASK)), 2, 7);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.r, Gdk.ModifierType.CONTROL_MASK)), 2, 8);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("user-trash-full"), 3, 0);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.select"), 3, 1);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.gohome"), 3, 2);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("document-properties"), 3, 3);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.pause"), 3, 4);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.clear"), 3, 5);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.insertlink"), 3, 6);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("view-fullscreen"), 3, 7);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.clearone"), 3, 8);
+            var scrolshort = new Gtk.ScrolledWindow () {
+                width_request = 614,
+                child = boxshrot
+            };
             var pack_data = aria_v2_globalops ();
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 300,
@@ -795,12 +846,13 @@ namespace Gabut {
                 transition_duration = 500,
                 hhomogeneous = false
             };
+            stack.add_child (scrolshort);
             stack.add_child (settings);
             stack.add_child (bittorrent);
             stack.add_child (folderopt);
             stack.add_child (moreoptions);
             stack.add_child (notyscr);
-            stack.visible_child = settings;
+            stack.visible_child = scrolshort;
             stack.show ();
 
             var close_button = new Gtk.Button.with_label (_("Close"));
@@ -910,19 +962,22 @@ namespace Gabut {
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:
-                        stack.visible_child = bittorrent;
+                        stack.visible_child = settings;
                         break;
                     case 2:
-                        stack.visible_child = folderopt;
+                        stack.visible_child = bittorrent;
                         break;
                     case 3:
-                        stack.visible_child = moreoptions;
+                        stack.visible_child = folderopt;
                         break;
                     case 4:
+                        stack.visible_child = moreoptions;
+                        break;
+                    case 5:
                         stack.visible_child = notyscr;
                         break;
                     default:
-                        stack.visible_child = settings;
+                        stack.visible_child = scrolshort;
                         break;
                 }
             });

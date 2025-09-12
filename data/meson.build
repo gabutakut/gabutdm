@@ -41,6 +41,10 @@ actions = [
     '.amchoking.svg',
     '.peerchok.svg',
     '.select.svg',
+    '.back.svg',
+    '.progress.svg',
+    '.clearone.svg',
+    '.activeall.svg',
     '.peerchoking.svg'
 ]
 
