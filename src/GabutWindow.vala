@@ -443,7 +443,7 @@ namespace Gabut {
                 if (list_box.selection_mode != Gtk.SelectionMode.MULTIPLE) {
                     var selecteddl = list_box.get_selected_rows ().length ();
                     if (selecteddl == 1) {
-                        rm_perpart (StatusMode.SEED, (int) selecteddl);
+                        rm_perpart (-1, (int) selecteddl);
                     }
                 }
             } else if (ctrl_pressed && match_keycode (Gdk.Key.i, keycode)) {
@@ -495,7 +495,7 @@ namespace Gabut {
                     datarow = hashrow,
                     icimg = "user-trash-full",
                     primmelb = _("Move to Trash"),
-                    topikname = "Delete selected"
+                    infolabel = _("Delete selected")
                 };
                 delete_dialog.excuterd.connect (()=> {
                     int totaldx = hashrow.size;
@@ -574,7 +574,7 @@ namespace Gabut {
                 tooltip_text = _("Add\nCTRL + U\nOpen\nCTRL + I")
             };
             headerbar.pack_start (add_open);
-            var resumeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.active") {
+            var resumeall_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.activeall") {
                 has_frame = false,
                 tooltip_text = _("Start All\nCTRL + Z")
             };
@@ -1124,7 +1124,8 @@ namespace Gabut {
                     icimg = "com.github.gabutakut.gabutdm.clear",
                     primmelb = _("Remove from list"),
                     datarow = hashrow,
-                    topikname = _("Clear %s list").printf (status.to_string ())
+                    infolabel = _("Clear %s list").printf (status.to_string ()),
+                    labelrm = _("Remove")
                 };
                 remv_dialog.excuterd.connect (()=> {
                     int totaldx = hashrow.size;

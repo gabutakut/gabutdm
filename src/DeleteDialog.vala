@@ -26,9 +26,7 @@ namespace Gabut {
         private Gtk.Label item_file;
         public Gee.ArrayList<DownloadRow> datarow;
         private Gtk.ListBox lisbox_trash;
-        private Gtk.Image icon_image;
-        private Gtk.Label primarylabel;
-        public string topikname;
+        public string infolabel;
 
         private string _primmelb;
         public string primmelb {
@@ -37,7 +35,6 @@ namespace Gabut {
             }
             set {
                 _primmelb = value;
-                primarylabel.label = _primmelb;
             }
         }
 
@@ -48,7 +45,16 @@ namespace Gabut {
             }
             set {
                 _icimg = value;
-                icon_image.icon_name = _icimg;
+            }
+        }
+
+        private string _labelrm;
+        public string labelrm {
+            get {
+                return _labelrm;
+            }
+            set {
+                _labelrm = value;
             }
         }
 
@@ -68,7 +74,7 @@ namespace Gabut {
             };
             resizable = false;
             use_header_bar = 1;
-            icon_image = new Gtk.Image () {
+            var icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
                 icon_size = Gtk.IconSize.LARGE,
@@ -87,7 +93,7 @@ namespace Gabut {
             };
             overlay.add_overlay (icon_badge);
 
-            primarylabel = new Gtk.Label ("") {
+            var primarylabel = new Gtk.Label ("") {
                 ellipsize = Pango.EllipsizeMode.END,
                 max_width_chars = 45,
                 use_markup = true,
@@ -150,6 +156,15 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            notify["labelrm"].connect(()=> {
+                move_file.label = labelrm;
+            });
+            notify["icimg"].connect(()=> {
+                icon_image.icon_name = icimg;
+            });
+            notify["primmelb"].connect(()=> {
+                primarylabel.label = primmelb;
+            });
             ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             close_button.clicked.connect (()=> {
                 close ();
@@ -178,7 +193,7 @@ namespace Gabut {
                 item_file.label = _("%s").printf (datarow.get (0).filename);
                 icon_badge.gicon = GLib.ContentType.get_icon (datarow.get (0).fileordir); 
             } else {
-                item_file.label = _("%s %i item").printf (topikname,datarow.size);
+                item_file.label = _("%s %i item").printf (infolabel,datarow.size);
             }
         }
     }
