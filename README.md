@@ -53,7 +53,21 @@ Made for peoples all needed download manager
 thank you all for the support and donations.
 we will continue to strive to make gabutdm a useful application.
 </p>
-
+#### v2.8.0
+- [ ] hls/m3u8.
+- [x] Torrent.
+- [x] Metalink.
+- [x] Magnetlink.
+- [x] URLs.
+- [x] File Transfer.
+- [x] File Sharing.
+- [x] Remote.
+- [x] Clipboard Manger.
+- [x] Open link in Pc.
+- [x] Dbus Menu.
+- [x] TrayIcon.
+- [x] Support extention Firefox and chrome.
+- [x] Keyboard keys.
 
 **PayPal**  
 You can transfer to my paypal account `torikhabib` or just click [PayPal Me](https://www.paypal.com/paypalme/TorikulHabib?locale.x=id_ID)
