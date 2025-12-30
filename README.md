@@ -54,7 +54,6 @@ thank you all for the support and donations.
 we will continue to strive to make gabutdm a useful application.
 </p>
 <p align="center">
-#### v2.8.0
 - [ ] bitfield visualize.
 - [ ] hls/m3u8.
 - [x] Torrent.
