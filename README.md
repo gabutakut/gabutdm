@@ -114,12 +114,12 @@ Send support to <code>torikhabib</code> or click
 </p>
 
 <p align="center">
-<b>Bitcoin</b><br>
-<code>19mZDWzZgzkHCi9YX9H3fYCUuCHq3W6wfT</code>
+thank you all for the support and donations.
+we will continue to strive to make gabutdm a useful application.
 </p>
 
----
+**PayPal**  
+You can transfer to my paypal account `torikhabib` or just click [PayPal Me](https://www.paypal.com/paypalme/TorikulHabib?locale.x=id_ID)
 
-<p align="center">
-⭐ If you like this project, don’t forget to star it!
-</p>
+**Bitcoin**  
+Bitcoin Address `19mZDWzZgzkHCi9YX9H3fYCUuCHq3W6wfT`
