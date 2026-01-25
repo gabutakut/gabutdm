@@ -118,8 +118,5 @@ thank you all for the support and donations.
 we will continue to strive to make gabutdm a useful application.
 </p>
 
-**PayPal**  
-You can transfer to my paypal account `torikhabib` or just click [PayPal Me](https://www.paypal.com/paypalme/TorikulHabib?locale.x=id_ID)
-
 **Bitcoin**  
 Bitcoin Address `19mZDWzZgzkHCi9YX9H3fYCUuCHq3W6wfT`
