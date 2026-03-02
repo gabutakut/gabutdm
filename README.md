@@ -60,6 +60,7 @@
 <p align="center">
 ✔ Multi-protocol downloads<br>
 ✔ Torrent support<br>
+✔ HLS/M3U8 support<br>
 ✔ File selection before download<br>
 ✔ Modern GTK4 interface<br>
 ✔ Lightweight & fast<br>
