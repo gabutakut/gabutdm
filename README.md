@@ -81,14 +81,24 @@
     <img src="Screenshot1.png" alt="Progress">
 </p>
 
-<h3 align="center">🧩 File Selection</h3>
+<h3 align="center">🧩 Torrent File Selection</h3>
 <p align="center">
     <img src="Screenshot2.png" alt="Select File">
 </p>
 
-<h3 align="center">📤 Sharing</h3>
+<h3 align="center">🧩 HLS Fetch Mode</h3>
 <p align="center">
     <img src="Screenshot3.png" alt="Sharing">
+</p>
+
+<h3 align="center">🚅 HLS Download Progress</h3>
+<p align="center">
+    <img src="Screenshot4.png" alt="Sharing">
+</p>
+
+<h3 align="center">📤 Sharing</h3>
+<p align="center">
+    <img src="Screenshot5.png" alt="Sharing">
 </p>
 
 ---
