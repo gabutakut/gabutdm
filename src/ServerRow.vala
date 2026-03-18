@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,18 +21,10 @@
 
 namespace Gabut {
     public class ServerRow : Gtk.ListBoxRow {
+        public int index { get; construct;}
+        public string uriserver { get; set;}
         private Gtk.Label download_rate;
         private Gtk.Label currenturi_label;
-
-        private int _index;
-        public int index {
-            get {
-                return _index;
-            }
-            set {
-                _index = value;
-            }
-        }
 
         private string _currenturi;
         public string currenturi {
@@ -56,14 +48,8 @@ namespace Gabut {
             }
         }
 
-        private string _uriserver;
-        public string uriserver {
-            get {
-                return _uriserver;
-            }
-            set {
-                _uriserver = value;
-            }
+        public ServerRow (int index) {
+            Object(index: index);
         }
 
         construct {

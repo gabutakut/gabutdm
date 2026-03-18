@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -28,9 +28,10 @@ namespace Gabut {
         private Gtk.Button host_button;
         private bool local_server;
 
+        public QrCode () {
+            Object (resizable: false, use_header_bar: 1);
+        }
         construct {
-            resizable = false;
-            use_header_bar = 1;
             var icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
@@ -80,7 +81,9 @@ namespace Gabut {
             var header = get_header_bar ();
             header.title_widget = header_grid;
             header.decoration_layout = "none";
-            qrpaint = new QrcodePaint ();
+            qrpaint = new QrcodePaint () {
+                icon_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm", 128)
+            };
             var imageqr = new Gtk.Image () {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER,
@@ -130,6 +133,15 @@ namespace Gabut {
             get_content_area ().append (imageqr);
             get_content_area ().append (link_box);
             get_content_area ().append (box_action);
+            move_window (this, imageqr);
+        }
+
+        public override bool close_request () {
+           return base.close_request ();
+        }
+
+        public override void close () {
+            base.close ();
         }
 
         public override void show () {

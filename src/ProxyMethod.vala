@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,12 @@
 
 namespace Gabut {
     public class ProxyMethod : Gtk.FlowBoxChild {
-        public ProxyMethods method { get; private set; }
+        public ProxyMethods method { get; construct; }
 
         public ProxyMethod (ProxyMethods method) {
-            this.method = method;
+            Object(method: method);
+        }
+        construct {            
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (method.to_string ()) {
                 halign = Gtk.Align.CENTER,

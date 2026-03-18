@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,12 @@
 
 namespace Gabut {
     public class FileAllocation : Gtk.FlowBoxChild {
-        public FileAllocations fileallocation { get; private set; }
+        public FileAllocations fileallocation { get; construct; }
 
         public FileAllocation (FileAllocations fileallocation) {
-            this.fileallocation = fileallocation;
+            Object(fileallocation: fileallocation);
+        }
+        construct{
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (fileallocation.to_string ()) {
                 halign = Gtk.Align.CENTER,

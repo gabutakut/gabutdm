@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,12 @@
 
 namespace Gabut {
     public class LoginUser : Gtk.FlowBoxChild {
-        public LoginUsers loginuser { get; private set; }
+        public LoginUsers loginuser { get; construct; }
 
         public LoginUser (LoginUsers loginuser) {
-            this.loginuser = loginuser;
+            Object(loginuser: loginuser);
+        }
+        construct {
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (loginuser.to_string ()) {
                 halign = Gtk.Align.CENTER,

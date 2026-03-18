@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -71,7 +71,11 @@ namespace Gabut {
         THEMESELECT = 47,
         THEMECUSTOM = 48,
         LASTCLIPBOARD = 49,
-        OPTIMIZEDOW = 50;
+        OPTIMIZEDOW = 50,
+        HLSPARALLELCON = 51,
+        HLSACTIVE = 52,
+        HLSTIMEOUT = 53,
+        HLSRETRIES = 54;
 
         public string to_string () {
             switch (this) {
@@ -175,6 +179,14 @@ namespace Gabut {
                     return "lastclipboard";
                 case OPTIMIZEDOW:
                     return "optimizedow";
+                case HLSPARALLELCON:
+                    return "hlsparallelcon";
+                case HLSACTIVE:
+                    return "hlsactive";
+                case HLSTIMEOUT:
+                    return "hlstimeout";
+                case HLSRETRIES:
+                    return "hlsretries";
                 default:
                     return "id";
             }
@@ -267,28 +279,14 @@ namespace Gabut {
         CREATIONDATE = 2,
         MODE = 3,
         NAME = 4;
-
-        public string to_string () {
-            switch (this) {
-                case COMMENT:
-                    return "comment";
-                case CREATIONDATE:
-                    return "creationDate";
-                case MODE:
-                    return "mode";
-                case NAME:
-                    return "name";
-                default:
-                    return "udp";
-            }
-        }
     }
 
     private enum LinkMode {
         METALINK = 0,
         TORRENT = 1,
         URL = 2,
-        MAGNETLINK = 3
+        MAGNETLINK = 3,
+        HLS = 4
     }
 
     private enum StatusMode {
@@ -299,28 +297,9 @@ namespace Gabut {
         ERROR = 4,
         NOTHING = 5,
         SEED = 6,
-        ALL = 7;
-
-        public string to_string () {
-            switch (this) {
-                case PAUSED:
-                    return _("Pause");
-                case COMPLETE:
-                    return _("Complete");
-                case WAIT:
-                    return _("Wait");
-                case ERROR:
-                    return _("Error");
-                case NOTHING:
-                    return _("Nothing");
-                case SEED:
-                    return _("Seed");
-                case ALL:
-                    return _("All");
-                default:
-                    return _("Active");
-            }
-        }
+        VERIFY = 7,
+        MERGE = 8,
+        ALL = 9;
     }
 
     private enum OpenFiles {
@@ -980,7 +959,10 @@ namespace Gabut {
         LINKMODE = 9,
         FILEORDIR = 10,
         LABELTRANSFER = 11,
-        TIMEADDED = 12;
+        TIMEADDED = 12,
+        BITFIELD = 13,
+        PIECECOUNT = 14,
+        ERRORCODE = 15;
 
         public string to_string () {
             switch (this) {
@@ -1008,6 +990,12 @@ namespace Gabut {
                     return "labeltransfer";
                 case TIMEADDED:
                     return "timeadded";
+                case BITFIELD:
+                    return "bitfield";
+                case PIECECOUNT:
+                    return "piececount";
+                case ERRORCODE:
+                    return "errorcode";
                 default:
                     return "id";
             }
@@ -1016,25 +1004,11 @@ namespace Gabut {
 
     private enum GlobalStat {
         DOWNLOADSPEED = 0,
-        NUMACTIVE = 1,
-        NUMSTOPPED = 2,
+        UPLOADSPEED = 1,
+        NUMACTIVE = 2,
         NUMWAITING = 3,
-        UPLOADSPEED = 4;
-
-        public string to_string () {
-            switch (this) {
-                case NUMACTIVE:
-                    return "numActive";
-                case NUMSTOPPED:
-                    return "numStopped";
-                case NUMWAITING:
-                    return "numWaiting";
-                case UPLOADSPEED:
-                    return "uploadSpeed";
-                default:
-                    return "downloadSpeed";
-            }
-        }
+        NUMSTOPPED = 4,
+        NUMSTOPPEDTOTAL = 5
     }
 
     private enum DBOption {
@@ -1061,7 +1035,9 @@ namespace Gabut {
         REQUIRECRYP = 20,
         INTEGRITY = 21,
         UNVERIFIED = 22,
-        PROXYTYPE = 23;
+        PROXYTYPE = 23,
+        SELECTED = 24,
+        HEADER = 25;
 
         public string to_string () {
             switch (this) {
@@ -1111,6 +1087,10 @@ namespace Gabut {
                     return "unverified";
                 case PROXYTYPE:
                     return "proxytype";
+                case SELECTED:
+                    return "selected";
+                case HEADER:
+                    return "header";
                 default:
                     return "id";
             }
@@ -1125,7 +1105,8 @@ namespace Gabut {
         MIME,
         FILESIZE,
         RESUMABLE,
-        URIS,
+        USERAGENT,
+        HEADER,
         N_COLUMNS
     }
 
@@ -1378,72 +1359,87 @@ namespace Gabut {
     }
 
     public enum DownloadMenu {
-        OPENFOLDER = 0,
-        MOVETOTRASH = 1,
-        PROPERTIES = 2;
+        SELECTALL = 0,
+        OPENFOLDER = 1,
+        MOVETOTRASH = 2,
+        PROPERTIES = 3;
 
         public string to_string () {
             switch (this) {
+                case OPENFOLDER:
+                    return _("Open Folder");
                 case MOVETOTRASH:
                     return _("Move to Trash");
                 case PROPERTIES:
                     return _("Properties");
                 default:
-                    return _("Open Folder");
+                    return _("Select ALL");
             }
         }
 
         public string to_tooltip () {
             switch (this) {
+                case OPENFOLDER:
+                    return _("CTRL + 0");
                 case MOVETOTRASH:
                     return _("DEL");
                 case PROPERTIES:
                     return _("CTRL + M");
                 default:
-                    return _("CTRL + O");
+                    return _("CTRL + A");
             }
         }
 
         public string to_icon () {
             switch (this) {
+                case OPENFOLDER:
+                    return "folder-open";
                 case MOVETOTRASH:
                     return "user-trash-full";
                 case PROPERTIES:
                     return "document-properties";
                 default:
-                    return "folder-open";
+                    return "edit-select-all";
             }
         }
 
         public static DownloadMenu [] get_all () {
-            return { OPENFOLDER, MOVETOTRASH, PROPERTIES};
+            return { SELECTALL, OPENFOLDER, MOVETOTRASH, PROPERTIES};
         }
     }
 
     public enum OpenMenus {
         ADDURL = 0,
-        OPENMN = 1;
+        ADDHLS = 1,
+        ADDMAGNET = 2,
+        OPENMN = 3;
 
         public string to_string () {
             switch (this) {
+                case ADDHLS:
+                    return _("HLS/M3U8");
+                case ADDMAGNET:
+                    return _("Magnetlink");
                 case OPENMN:
-                    return _("Torrent/Metalink");
+                    return _("Torrent");
                 default:
-                    return _("URL/Magnet");
+                    return _("URL");
             }
         }
-
         public string to_icon () {
             switch (this) {
+                case ADDHLS:
+                    return "com.github.gabutakut.gabutdm.hls";
+                case ADDMAGNET:
+                    return "com.github.gabutakut.gabutdm.magnet";
                 case OPENMN:
-                    return "document-open";
+                    return "com.github.gabutakut.gabutdm.torrent";
                 default:
                     return "com.github.gabutakut.gabutdm.uri";
             }
         }
-
         public static OpenMenus [] get_all () {
-            return { ADDURL, OPENMN};
+            return { ADDURL, ADDHLS, ADDMAGNET, OPENMN};
         }
     }
 
@@ -1504,26 +1500,6 @@ namespace Gabut {
         FILEPATH = 1,
         FILESIZE = 2,
         ICONNAME = 3
-    }
-
-    private struct DbusmenuMenuitem {
-        public int id {get; set;}
-        public GLib.HashTable<string, GLib.Variant> properties {get; set;}
-    }
-    private struct MenuItemLayout {
-        public int id {get; set;}
-        public GLib.HashTable<string, GLib.Variant> properties {get; set;}
-        public Variant[] children {get; set;}
-    }
-    private struct MenuItemPropertyDescriptor {
-        public int id {get; set;}
-        public string[] properties {get; set;}
-    }
-    private struct MenuEvent {
-        public int id {get; set;}
-        public string eventid {get; set;}
-        public Variant data {get; set;}
-        public uint timestamp {get; set;}
     }
 
     private struct UsersID {
@@ -1609,7 +1585,41 @@ namespace Gabut {
         }
     }
 
+    public enum DialogType {
+        ADDURL,
+        ADDTR,
+        ADDHLS,
+        ADDMAGNET,
+        PROPERTY
+    }
+
+    public enum EntryType {
+        STANDARD,
+        WITHSIGNAL,
+        INFO
+    }
+
+    public struct IncompleteRange {
+        public int start;
+        public int end;
+    }
+
+    private SourceFunc ariacll;
+    private Sqlite.Database gabutdb;
+    private Aria2.Engine engine;
     private string aria_listent;
+    private bool cliboardmenu;
+    private int hlsparalell_dld;
+    private int hlsparallel_active;
+    private int hls_timeout;
+    private int hls_max_retries;
+    private void menuglobal () {
+        cliboardmenu = bool.parse (get_dbsetting (Gabut.DBSettings.CLIPBOARD));
+        hlsparalell_dld = int.parse (get_dbsetting (Gabut.DBSettings.HLSPARALLELCON));
+        hlsparallel_active = int.parse (get_dbsetting (Gabut.DBSettings.HLSACTIVE));
+        hls_timeout = int.parse (get_dbsetting (Gabut.DBSettings.HLSTIMEOUT));
+        hls_max_retries = int.parse (get_dbsetting (Gabut.DBSettings.HLSRETRIES));
+    }
 
     private void setjsonrpchost () {
         aria_listent = @"http://localhost:$(get_dbsetting(DBSettings.RPCPORT))/jsonrpc";
@@ -1628,10 +1638,11 @@ namespace Gabut {
 
     private string get_soupmess (string datas) {
         try {
-            var session = new Soup.Session ();
+            var session = SoupSessionPool.get_default().acquire();
             var message = new Soup.Message ("POST", aria_listent);
             message.set_request_body_from_bytes (Soup.FORM_MIME_TYPE_MULTIPART, new GLib.Bytes (datas.data));
             GLib.Bytes bytes = session.send_and_read (message);
+            SoupSessionPool.get_default().release(session);
             return (string) bytes.get_data ();
         } catch (Error e) {
             GLib.warning (e.message);
@@ -1639,19 +1650,41 @@ namespace Gabut {
         return "";
     }
 
-    private string aria_url (string url, Gee.HashMap<string, string> options, int arpos) {
-        var nurl = url;
-        if (url.contains ("docs.googleusercontent.com/docs")) {
-            nurl = gdrive_pharse (url);
+    public string[]? get_content_type (string url, string cookie) {
+        string[]content = {};
+        try {
+            var message = new Soup.Message ("HEAD", url);
+            if (cookie != null && cookie != "") {
+                message.request_headers.append ("Cookie", cookie);
+            }
+            var session = SoupSessionPool.get_default().acquire();
+            var sesc = session.send (message);
+            content += message.response_headers.get_content_type (null);
+            string sizef = message.response_headers.get_one ("Content-Length");
+            content += sizef != null? sizef : "0";
+            sesc.close ();
+            SoupSessionPool.get_default().release(session);
+            message = null;
+            return content;
+        } catch (Error e) {
+            GLib.warning (@"Error: $(e.message)");
+            return content;
         }
+    }
+
+    private string aria_url (string url, Gee.HashMap<string, string> options, int arpos) {
         var stringbuild = new StringBuilder ();
-        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(nurl)\"], {");
+        stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
         uint hasempty = stringbuild.str.hash ();
         options.foreach ((value) => {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
             }
-            stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
+            if (value.key == AriaOptions.HEADER.to_string ()) {
+                stringbuild.append (@"\"$(value.key)\" : [ \"Cookie: $(value.value)\"]");
+            } else {
+                stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
+            }
             return true;
         });
         stringbuild.append (@"}, $(arpos)]}");
@@ -1716,24 +1749,8 @@ namespace Gabut {
         return result_ret (result);
     }
 
-    private string aria_pause_all () {
+    private string aria_pause_all (string portrpc = "") {
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}");
-        if (!result.down ().contains ("result") || result == null) {
-            return "";
-        }
-        return result_ret (result);
-    }
-
-    private string aria_purge_all () {
-        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\"}");
-        if (!result.down ().contains ("result") || result == null) {
-            return "";
-        }
-        return result_ret (result);
-    }
-
-    private string aria_shutdown () {
-        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.shutdown\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
@@ -1758,35 +1775,38 @@ namespace Gabut {
 
     private Gee.HashMap<string, PeersRow> aria_get_peers (string gid) {
         var liststore = new Gee.HashMap<string, PeersRow> ();
-        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}");
-        if (!result.down ().contains ("result") || result == null) {
+        string aresult = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getPeers\", \"params\":[\"$(gid)\"]}");
+        if (!aresult.down ().contains ("result") || aresult == null) {
             return liststore;
         }
+        var parser = new Json.Parser();
         try {
-            MatchInfo match_info;
-            Regex regex = new Regex ("{\"amChoking\":\"(.*?)\".*?\"bitfield\":\"(.*?)\".*?\"downloadSpeed\":\"(.*?)\".*?\"ip\":\"(.*?)\".*?\"peerChoking\":\"(.*?)\".*?\"peerId\":\"(.*?)\".*?\"port\":\"(.*?)\".*?\"seeder\":\"(.*?)\".*?\"uploadSpeed\":\"(.*?)\"}");
-            if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                while (match_info.matches ()) {
-                    string peerid = GLib.Uri.unescape_string (match_info.fetch (6));
-                    var peerschoking = bool.parse (match_info.fetch (5))? "com.github.gabutakut.gabutdm.peerchoking" : "com.github.gabutakut.gabutdm.peerchok";
-                    var seeder = bool.parse (match_info.fetch (8))? "com.github.gabutakut.gabutdm" : "com.github.gabutakut.gabutdm.seed";
-                    var amchoking = bool.parse (match_info.fetch (1))? "com.github.gabutakut.gabutdm.amchoking" : "com.github.gabutakut.gabutdm.amchok";
-                    var peersrow = new PeersRow () {
-                        host = @"$(match_info.fetch (4)):$(match_info.fetch (7))",
-                        peerid = peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow",
-                        downloadspeed = GLib.format_size (int64.parse (match_info.fetch (3))),
-                        uploadspeed = GLib.format_size (int64.parse (match_info.fetch (9))),
-                        peerschoking = peerschoking,
-                        seeder = seeder,
-                        amchoking = amchoking,
-                        bitfield = match_info.fetch (2)
-                    };
-                    liststore.set (@"$(match_info.fetch (4)):$(match_info.fetch (7))", peersrow);
-                    match_info.next ();
-                }
-            }
+            parser.load_from_data(aresult);
         } catch (Error e) {
-            GLib.warning (e.message);
+            GLib.warning(e.message);
+            return liststore;
+        }
+
+        var root = parser.get_root().get_object();
+        var result = root.get_array_member("result");
+
+        for (uint i = 0; i < result.get_length(); i++) {
+            var obj = result.get_object_element(i);
+            string ip = obj.get_string_member("ip");
+            string port = obj.get_string_member("port");
+            string peerid = GLib.Uri.unescape_string (obj.get_string_member("peerId"));
+            var peerschoking = bool.parse (obj.get_string_member("peerChoking"))? "com.github.gabutakut.gabutdm.peerchoking" : "com.github.gabutakut.gabutdm.peerchok";
+            var seeder = bool.parse (obj.get_string_member("seeder"))? "com.github.gabutakut.gabutdm" : "com.github.gabutakut.gabutdm.seed";
+            var amchoking = bool.parse (obj.get_string_member("amChoking"))? "com.github.gabutakut.gabutdm.amchoking" : "com.github.gabutakut.gabutdm.amchok";
+            var peersrow = new PeersRow (@"$(ip):$(port)", peerid != "" && peerid != null? get_peerid (peerid.slice (1, 3)) : "Unknow") {
+                downloadspeed = GLib.format_size (int64.parse (obj.get_string_member("downloadSpeed"))),
+                uploadspeed = GLib.format_size (int64.parse (obj.get_string_member("uploadSpeed"))),
+                peerschoking = peerschoking,
+                seeder = seeder,
+                amchoking = amchoking,
+                bitfield = obj.get_string_member("bitfield")
+            };
+            liststore.set (@"$(ip):$(port)", peersrow);
         }
         return liststore;
     }
@@ -1820,105 +1840,105 @@ namespace Gabut {
     }
 
     private string aria_tell_bittorent (string gid, TellBittorrent tellbit) {
-        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}");
-        if (!result.down ().contains ("result") || result == null) {
+        string json_text = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellStatus\", \"params\":[\"$(gid)\", [\"$(gid)\", \"bittorrent\"]]}");
+        if (!json_text.down ().contains ("result") || json_text == null) {
             return "";
         }
+        var parser = new Json.Parser();
         try {
-            MatchInfo match_info;
-            if (tellbit == TellBittorrent.ANNOUNCELIST) {
-                Regex regex = new Regex (@"$(tellbit.to_string ()):(.*?)\"");
-                if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                    string liststring = "";
-                    while (match_info.matches ()) {
-                        string matchgid = match_info.fetch (0);
-                        if (matchgid != null) {
-                            liststring += matchgid.replace ("\\/", "/").replace ("\"", "") + "\n";
-                        }
-                        match_info.next ();
-                    }
-                    return liststring;
-                }
-            } else if (tellbit == TellBittorrent.CREATIONDATE) {
-                Regex regex = new Regex (@"\"$(tellbit.to_string ())\":([0-9]+)");
-                if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                    string namefile = match_info.fetch (1);
-                    if (namefile != null) {
-                        return namefile;
-                    }
-                }
-            } else {
-                Regex regex = new Regex (@"\"$(tellbit.to_string ())\":\"(.*?)\"");
-                if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                    string namefile = match_info.fetch (1);
-                    if (namefile != null) {
-                        return namefile;
-                    }
+            parser.load_from_data(json_text);
+        } catch (Error e) {
+            return "";
+        }
+        var root = parser.get_root().get_object();
+        if (!root.has_member("result")) {
+            return "";
+        }
+        var result = root.get_object_member("result");
+        if (!result.has_member("bittorrent")) {
+            return "";
+        }
+        var bt = result.get_object_member("bittorrent");
+        if (tellbit == TellBittorrent.NAME) {
+            if (bt.has_member("info")) {
+                var info = bt.get_object_member("info");
+                if (info.has_member("name")) {
+                    return info.get_string_member("name");
+                } else {
+                    return "";
                 }
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
+        } else if (tellbit == TellBittorrent.MODE) {
+            if (bt.has_member("mode")) {
+                return bt.get_string_member("mode");
+            } else {
+                return "";
+            }
+        } else if (tellbit == TellBittorrent.COMMENT) {
+            if (bt.has_member("comment")) {
+                return bt.get_string_member("comment");
+            } else {
+                return "";
+            }
+        } else if (tellbit == TellBittorrent.ANNOUNCELIST) {
+            if (bt.has_member("announceList")) {
+                var sb = new StringBuilder();
+                var al = bt.get_array_member("announceList");
+                for (uint i = 0; i < al.get_length(); i++) {
+                    var tier = al.get_array_element(i);
+                    for (uint j = 0; j < tier.get_length(); j++) {
+                        sb.append(tier.get_string_element(j)).append("\n");
+                    }
+                }
+                return sb.str.strip();
+            } else {
+                return "";
+            }
+        } else if (tellbit == TellBittorrent.CREATIONDATE) {
+            if (bt.has_member("creationDate")) {
+                int64 ts = bt.get_int_member("creationDate");
+                return ts.to_string ();
+            } else {
+                return "";
+            }
         }
         return "";
     }
 
-    private Gee.ArrayList<string> aria_tell_active () {
+    private Gee.ArrayList<string> aria_tell_active (string portrpc = "") {
         var listgid = new Gee.ArrayList<string> ();
-        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}");
-        if (!result.down ().contains ("result") || result == null) {
+        string json_text = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}");
+        if (!json_text.down ().contains ("result") || json_text == null) {
             return listgid;
         }
+        var parser = new Json.Parser();
         try {
-            MatchInfo match_info;
-            Regex regex = new Regex ("\"gid\":\"(.*?)\"");
-            if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                while (match_info.matches ()) {
-                    string matchgid = match_info.fetch (1);
-                    if (matchgid != null) {
-                        listgid.add (matchgid);
-                    }
-                    match_info.next ();
-                }
-            }
+            parser.load_from_data(json_text);
         } catch (Error e) {
-            GLib.warning (e.message);
+            return listgid;
+        }
+        var root = parser.get_root().get_object();
+        if (!root.has_member("result")) {
+            return listgid;
+        }
+        var result = root.get_array_member("result");
+        for (uint i = 0; i < result.get_length(); i++) {
+            var obj = result.get_object_element(i);
+            if (obj.has_member("gid")) {
+                listgid.add (obj.get_string_member("gid"));
+            } else {
+                return listgid;
+            }
         }
         return listgid;
     }
 
-    private Gee.HashMap<string, TorrentRow> aria_files_store (string pack_data) {
-        var torrentstore = new Gee.HashMap<string, TorrentRow> ();
-        try {
-            MatchInfo match_info;
-            Regex regex = new Regex ("{\"completedLength\":\"(.*?)\".*?\"index\":\"(.*?)\".*?\"length\":\"(.*?)\".*?\"path\":\"(.*?)\".*?\"selected\":\"(.*?)\".*?\"uris\":(.*?)}");
-            if (regex.match_full (pack_data, -1, 0, 0, out match_info)) {
-                while (match_info.matches ()) {
-                    int64 total = int64.parse (match_info.fetch (3)).abs ();
-                    int64 transfer = int64.parse (match_info.fetch (1)).abs ();
-                    double fraction = (double) transfer / (double) total;
-                    int persen = total == 0 && transfer == 0? 0 : (int) (fraction * 100).abs ();
-                    string status = pharse_info (match_info.fetch (6));
-                    string path = match_info.fetch (4);
-                    var file = File.new_for_path (path.contains ("\\/")? path.replace ("\\/", "/") : path);
-                    var torrentfile = new TorrentRow () {
-                        selected = bool.parse (match_info.fetch (5)),
-                        index = int.parse (match_info.fetch (2)),
-                        filebasename = file.get_basename (),
-                        filepath = file.get_path (),
-                        sizetransfered = transfer.to_string (),
-                        completesize = total.to_string (),
-                        fraction = fraction,
-                        status = status,
-                        persen = persen
-                    };
-                    torrentstore.set (file.get_path (), torrentfile);
-                    match_info.next ();
-                }
-            }
-        } catch (Error e) {
-            GLib.warning (e.message);
+    private string aria_files_store (string ariagid) {
+        string result =  get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getFiles\", \"params\":[\"$(ariagid)\"]}").strip();
+        if (!result.down ().contains ("result") || result == null) {
+            return "";
         }
-        return torrentstore;
+        return result;
     }
 
     private Gee.HashMap<int, ServerRow> aria_servers_store (string gid) {
@@ -1934,11 +1954,10 @@ namespace Gabut {
                 int index = 0;
                 while (match_info.matches ()) {
                     var curi = match_info.fetch (1);
-                    var serverrow = new ServerRow () {
-                        index = index,
+                    var serverrow = new ServerRow (index) {
                         uriserver = match_info.fetch (3),
                         downloadspeed = GLib.format_size (int64.parse (match_info.fetch (2))),
-                        currenturi = curi != null? Markup.escape_text (curi.replace ("\\/", "/")) : curi
+                        currenturi = curi != null? GLib.Markup.escape_text (curi.replace ("\\/", "/")) : curi
                     };
                     serverstore.set (index, serverrow);
                     index++;
@@ -1996,7 +2015,7 @@ namespace Gabut {
         return "";
     }
 
-    private string aria_v2_globalops () {
+    private string aria_v2_globalops (string portrpc = "") {
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
@@ -2013,91 +2032,96 @@ namespace Gabut {
     }
 
     private string aria_deleteresult (string gid) {
-        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.removeDownloadResult\", \"params\":[\"$(gid)\"]}");
+        string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.purgeDownloadResult\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
         }
         return result_ret (result);
     }
 
-    private string aria_globalstat (GlobalStat stat) {
+    private string[] aria_globalstat (string portrpc = "") {
+        string[] stats = null;
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}");
         if (!result.down ().contains ("result") || result == null) {
-            return "";
+            return stats;
         }
         try {
-            MatchInfo match_info;
-            Regex regex = new Regex (@"\"$(stat.to_string ())\":\"(.*?)\"");
-            if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                return match_info.fetch (1);
-            }
+            var parser = new Json.Parser ();
+            parser.load_from_data (result);
+            var objres = parser.get_root ().get_object ().get_object_member ("result");
+            stats += objres.get_string_member("downloadSpeed");
+            stats += objres.get_string_member("uploadSpeed");
+            stats += objres.get_string_member("numActive");
+            stats += objres.get_string_member("numWaiting");
+            stats += objres.get_string_member("numStopped");
+            stats += objres.get_string_member("numStoppedTotal");
+            return stats;
         } catch (Error e) {
             GLib.warning (e.message);
         }
-        return "";
+        return stats;
     }
 
-    private MatchInfo aria_label_info () {
-        MatchInfo match_info = null;
-        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}");
-        if (!result.down ().contains ("result") || result == null) {
-            return match_info;
-        }
-        try {
-            Regex regex = new Regex (@"\"downloadSpeed\":\"(.*?)\",\"numActive\":\"(.*?)\",\"numStopped\":\"(.*?)\",\"numStoppedTotal\":\"(.*?)\",\"numWaiting\":\"(.*?)\",\"uploadSpeed\":\"(.*?)\"");
-            if (regex.match_full (result, -1, 0, 0, out match_info)) {
-                return match_info;
-            }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
-        return match_info;
-    }
-
-    private bool aria_get_ready () {
-        string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getVersion\"}");
-        return result.down ().contains ("result");
+    public int actwaiting () {
+        var global = aria_globalstat ();
+        int totalact = int.parse (global[GlobalStat.NUMACTIVE]) + int.parse (global[GlobalStat.NUMWAITING]);
+        return totalact;
     }
 
     private async void open_fileman (string fileuri) throws Error {
         yield AppInfo.launch_default_for_uri_async (fileuri, null);
     }
 
-    private string data_bencoder (GLib.Bytes byte) {
-        return Base64.encode (byte.get_data ());
-    }
-
     private string get_app_id () {
         return @"application://$(Environment.get_application_name ()).desktop";
     }
-    private int max_exec = 1000;
-    private void exec_aria () {
-        setjsonrpchost ();
-        int start_exec = 0;
-        do {
-            if (start_exec < max_exec) {
-                aria_start.begin ();
-            }
-            start_exec++;
-        } while (!aria_get_ready () && start_exec < max_exec);
-        if (aria_get_ready ()) {
-            set_startup ();
-        }
-    }
 
-    private async void aria_start () throws Error {
-        string[] exec = {"aria2c", "--no-conf", "--enable-rpc", "--quiet=true", "--pause=true", "--check-certificate=false"};
-        exec += @"--rpc-listen-port=$(get_dbsetting (DBSettings.RPCPORT))";
-        exec += @"--rpc-max-request-size=$(get_dbsetting (DBSettings.RPCSIZE))";
-        exec += @"--listen-port=$(get_dbsetting (DBSettings.BTLISTENPORT))";
-        exec += @"--dht-listen-port=$(get_dbsetting (DBSettings.DHTLISTENPORT))";
-        exec += @"--disk-cache=$(get_dbsetting (DBSettings.DISKCACHE))";
-        exec += @"--file-allocation=$(get_dbsetting (DBSettings.FILEALLOCATION).down ())";
-        GLib.SubprocessFlags flags = GLib.SubprocessFlags.STDIN_INHERIT | GLib.SubprocessFlags.STDOUT_SILENCE | GLib.SubprocessFlags.STDERR_MERGE;
-        GLib.Subprocess subprocess = new GLib.Subprocess.newv (exec, flags);
-        subprocess.wait_check_async.begin (null, ()=> {
-            subprocess.force_exit ();
-        });
+    private async void start_engine () throws Error {
+        if (engine.is_running ()) {
+            engine.stop ();
+        }
+        if (ariacll != null) {
+            Idle.add ((owned)ariacll);
+        }
+        setjsonrpchost ();
+        engine.add_option("enable-rpc", "true");
+        engine.add_option("rpc-listen-port", get_dbsetting (DBSettings.RPCPORT));
+        engine.add_option("check-certificate", "false");
+        engine.add_option("rpc-listen-all", "true");
+        engine.add_option("rpc-allow-origin-all", "true");
+        engine.add_option("quiet", "true");
+        engine.add_option("continue", "true");
+        engine.add_option("disk-cache", get_dbsetting (DBSettings.DISKCACHE));
+        engine.add_option("file-allocation", get_dbsetting (DBSettings.FILEALLOCATION).down ());
+        engine.add_option("dht-listen-port", get_dbsetting (DBSettings.DHTLISTENPORT));
+        engine.add_option("listen-port", get_dbsetting (DBSettings.BTLISTENPORT));
+        engine.add_option("rpc-max-request-size", get_dbsetting (DBSettings.RPCSIZE));
+        ariacll = start_engine.callback;
+        if (engine.start () == 0) {
+            aria_set_globalops(AriaOptions.MAX_CONNECTION_PER_SERVER, get_dbsetting (DBSettings.CONNSERVER));
+            aria_set_globalops(AriaOptions.MAX_TRIES, get_dbsetting (DBSettings.MAXTRIES));
+            aria_set_globalops(AriaOptions.TIMEOUT, get_dbsetting (DBSettings.TIMEOUT));
+            aria_set_globalops(AriaOptions.RETRY_WAIT, get_dbsetting (DBSettings.RETRY));
+            aria_set_globalops(AriaOptions.BT_MAX_PEERS, get_dbsetting (DBSettings.BTMAXPEERS));
+            aria_set_globalops(AriaOptions.BT_TRACKER_TIMEOUT, get_dbsetting (DBSettings.BTTIMEOUTTRACK));
+            aria_set_globalops(AriaOptions.MAX_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.MAXACTIVE));
+            aria_set_globalops(AriaOptions.SPLIT, get_dbsetting (DBSettings.SPLIT));
+            aria_set_globalops(AriaOptions.BT_MAX_OPEN_FILES, get_dbsetting (DBSettings.MAXOPENFILE));
+            aria_set_globalops(AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
+            aria_set_globalops(AriaOptions.ALLOW_OVERWRITE, get_dbsetting (DBSettings.OVERWRITE));
+            aria_set_globalops(AriaOptions.AUTO_FILE_RENAMING, get_dbsetting (DBSettings.AUTORENAMING));
+            aria_set_globalops(AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, get_dbsetting (DBSettings.UPLOADLIMIT));
+            aria_set_globalops(AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, get_dbsetting (DBSettings.DOWNLOADLIMIT));
+            aria_set_globalops(AriaOptions.BT_TRACKER, get_dbsetting (DBSettings.BTTRACKER));
+            aria_set_globalops(AriaOptions.BT_EXCLUDE_TRACKER, get_dbsetting (DBSettings.BTTRACKEREXC));
+            aria_set_globalops(AriaOptions.MIN_SPLIT_SIZE, get_dbsetting (DBSettings.SPLITSIZE));
+            aria_set_globalops(AriaOptions.LOWEST_SPEED_LIMIT, get_dbsetting (DBSettings.LOWESTSPEED));
+            aria_set_globalops(AriaOptions.URI_SELECTOR, get_dbsetting (DBSettings.URISELECTOR));
+            aria_set_globalops(AriaOptions.STREAM_PIECE_SELECTOR, get_dbsetting (DBSettings.PIECESELECTOR));
+            aria_set_globalops(AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.OPTIMIZEDOW));
+            aria_set_globalops(AriaOptions.DIR, get_dbsetting (DBSettings.DIR));
+            yield;
+        }
     }
 
     private void glob_to_opt (string ariagid) {
@@ -2154,87 +2178,6 @@ namespace Gabut {
         }
     }
 
-    private void set_startup () {
-        do {
-            aria_set_globalops (AriaOptions.MAX_TRIES, get_dbsetting (DBSettings.MAXTRIES));
-        } while (get_dbsetting (DBSettings.MAXTRIES) != aria_get_globalops (AriaOptions.MAX_TRIES));
-        do {
-            aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, get_dbsetting (DBSettings.CONNSERVER));
-        } while (get_dbsetting (DBSettings.CONNSERVER) != aria_get_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER));
-        do {
-            aria_set_globalops (AriaOptions.TIMEOUT, get_dbsetting (DBSettings.TIMEOUT));
-        } while (get_dbsetting (DBSettings.TIMEOUT) != aria_get_globalops (AriaOptions.TIMEOUT));
-        do {
-            aria_set_globalops (AriaOptions.RETRY_WAIT, get_dbsetting (DBSettings.RETRY));
-        } while (get_dbsetting (DBSettings.RETRY) != aria_get_globalops (AriaOptions.RETRY_WAIT));
-        do {
-            aria_set_globalops (AriaOptions.DIR, get_dbsetting (DBSettings.DIR));
-        } while (get_dbsetting (DBSettings.DIR) != aria_get_globalops (AriaOptions.DIR));
-        do {
-            aria_set_globalops (AriaOptions.BT_MAX_PEERS, get_dbsetting (DBSettings.BTMAXPEERS));
-        } while (get_dbsetting (DBSettings.BTMAXPEERS) != aria_get_globalops (AriaOptions.BT_MAX_PEERS));
-        do {
-            aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, get_dbsetting (DBSettings.BTTIMEOUTTRACK));
-        } while (get_dbsetting (DBSettings.BTTIMEOUTTRACK) != aria_get_globalops (AriaOptions.BT_TRACKER_TIMEOUT));
-        do {
-            aria_set_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.MAXACTIVE));
-        } while (get_dbsetting (DBSettings.MAXACTIVE) != aria_get_globalops (AriaOptions.MAX_CONCURRENT_DOWNLOADS));
-        do {
-            aria_set_globalops (AriaOptions.SPLIT, get_dbsetting (DBSettings.SPLIT));
-        } while (get_dbsetting (DBSettings.SPLIT) != aria_get_globalops (AriaOptions.SPLIT));
-        do {
-            aria_set_globalops (AriaOptions.BT_MAX_OPEN_FILES, get_dbsetting (DBSettings.MAXOPENFILE));
-        } while (get_dbsetting (DBSettings.MAXOPENFILE) != aria_get_globalops (AriaOptions.BT_MAX_OPEN_FILES));
-        do {
-            aria_set_globalops (AriaOptions.SEED_TIME, get_dbsetting (DBSettings.SEEDTIME));
-        } while (get_dbsetting (DBSettings.SEEDTIME) != aria_get_globalops (AriaOptions.SEED_TIME));
-        do {
-            aria_set_globalops (AriaOptions.ALLOW_OVERWRITE, get_dbsetting (DBSettings.OVERWRITE));
-        } while (get_dbsetting (DBSettings.OVERWRITE) != aria_get_globalops (AriaOptions.ALLOW_OVERWRITE));
-        do {
-            aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, get_dbsetting (DBSettings.AUTORENAMING));
-        } while (get_dbsetting (DBSettings.AUTORENAMING) != aria_get_globalops (AriaOptions.AUTO_FILE_RENAMING));
-        do {
-            aria_set_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, get_dbsetting (DBSettings.UPLOADLIMIT));
-        } while (get_dbsetting (DBSettings.UPLOADLIMIT) != aria_get_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT));
-        do {
-            aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, get_dbsetting (DBSettings.DOWNLOADLIMIT));
-        } while (get_dbsetting (DBSettings.DOWNLOADLIMIT) != aria_get_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT));
-        do {
-            aria_set_globalops (AriaOptions.BT_TRACKER, get_dbsetting (DBSettings.BTTRACKER));
-        } while (get_dbsetting (DBSettings.BTTRACKER) != aria_get_globalops (AriaOptions.BT_TRACKER));
-        do {
-            aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, get_dbsetting (DBSettings.BTTRACKEREXC));
-        } while (get_dbsetting (DBSettings.BTTRACKEREXC) != aria_get_globalops (AriaOptions.BT_EXCLUDE_TRACKER));
-        do {
-            aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, get_dbsetting (DBSettings.SPLITSIZE));
-        } while (get_dbsetting (DBSettings.SPLITSIZE) != aria_get_globalops (AriaOptions.MIN_SPLIT_SIZE));
-        do {
-            aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, get_dbsetting (DBSettings.LOWESTSPEED));
-        } while (get_dbsetting (DBSettings.LOWESTSPEED) != aria_get_globalops (AriaOptions.LOWEST_SPEED_LIMIT));
-        do {
-            aria_set_globalops (AriaOptions.URI_SELECTOR, get_dbsetting (DBSettings.URISELECTOR));
-        } while (get_dbsetting (DBSettings.URISELECTOR) != aria_get_globalops (AriaOptions.URI_SELECTOR));
-        do {
-            aria_set_globalops (AriaOptions.STREAM_PIECE_SELECTOR, get_dbsetting (DBSettings.PIECESELECTOR));
-        } while (get_dbsetting (DBSettings.PIECESELECTOR) != aria_get_globalops (AriaOptions.STREAM_PIECE_SELECTOR));
-        do {
-            aria_set_globalops (AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS, get_dbsetting (DBSettings.OPTIMIZEDOW));
-        } while (get_dbsetting (DBSettings.OPTIMIZEDOW) != aria_get_globalops (AriaOptions.OPTIMIZE_CONCURRENT_DOWNLOADS));
-    }
-
-    private async void boot_strap () throws Error {
-        yield get_css_online ("https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css", file_config (".bootstrap.min.css"));
-    }
-
-    private async void drop_zone () throws Error {
-        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.js", file_config (".dropzone.min.js"));
-    }
-
-    private async void drop_zonemin () throws Error {
-        yield get_css_online ("https://unpkg.com/dropzone@5/dist/min/dropzone.min.css", file_config (".dropzone.min.css"));
-    }
-
     private string pharse_tells (string status, TellStatus type) {
         try {
             MatchInfo match_info;
@@ -2280,89 +2223,179 @@ namespace Gabut {
         return "";
     }
 
-    private string pharse_info (string status) {
-        try {
-            MatchInfo match_info;
-            Regex regex = new Regex (@"\"status\":\"(.*?)\"");
-            if (regex.match_full (status, -1, 0, 0, out match_info)) {
-                string getinfo = match_info.fetch (1);
-                if (getinfo != "" || getinfo != null) {
-                    return getinfo;
-                }
-            }
-        } catch (Error e) {
-            GLib.warning (e.message);
+    public static string sanitize_filename (string name, int max_bytes = 200) {
+        if (name == null || name == "") {
+            return "output.mp4";
         }
-        return "";
-    }
-
-    private errordomain CurlError {
-        PERFORM_FAILED
-    }
-
-    private size_t write_function (char *contents, size_t size, size_t nmemb, void *userp) throws IOError {
-        size_t bytes = size * nmemb;
-        uint8[] buffer = new uint8[bytes];
-        Posix.memcpy ((void*) buffer, contents, bytes);
-        return ((OutputStream) userp).write (buffer);
-    }
-
-    private string gdrive_pharse (string url) {
-        var idgd = url.slice (url.last_index_of ("/") + 1, url.index_of ("?"));
-        try {
-            string locations;
-            var output_stream = new GdmOutstream ();
-            Native.Curl.EasyHandle curl_easy = new Native.Curl.EasyHandle ();
-            curl_easy.setopt (Native.Curl.Option.URL, @"https://docs.google.com/uc?export=download&id=$(idgd)");
-            curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, 0L);
-            curl_easy.setopt (Native.Curl.Option.WRITEFUNCTION, (Native.Curl.WriteCallback) write_function);
-            curl_easy.setopt (Native.Curl.Option.WRITEDATA, (void*) output_stream);
-            var res = curl_easy.perform ();
-            if (res != Native.Curl.Code.OK) {
-                throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
+        StringBuilder sb = new StringBuilder ();
+        for (int i = 0; i < name.length; i++) {
+            char c = name[i];
+            if ((int)c < 32 || c == 127 ||
+                c == ':' || c == '*' || c == '?' ||
+                c == '"' || c == '<' || c == '>' ||
+                c == '|' || c == '/' || c == '\\' ||
+                c == '\n' || c == '\r' || c == '\t') {
+                sb.append_c ('_');
             } else {
-                res = curl_easy.getinfo (Native.Curl.Info.REDIRECT_URL, out locations);
+                sb.append_c (c);
             }
-            var content = (string) output_stream.stream.read_bytes (8192).get_data ();
-            if (content != "") {
-                MatchInfo match_info;
-                Regex regex = new Regex ("action=\"(.*?)\"");
-                if (regex.match_full (content, -1, 0, 0, out match_info)) {
-                    var fixchar = GLib.Uri.unescape_string (match_info.fetch (1).replace ("&amp;", "&"));
-                    if (fixchar.has_prefix ("https://")) {
-                        curl_easy.setopt (Native.Curl.Option.URL, fixchar);
-                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, 0L);
-                        res = curl_easy.perform ();
-                        if (res != Native.Curl.Code.OK) {
-                            throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
-                        } else {
-                            res = curl_easy.getinfo (Native.Curl.Info.REDIRECT_URL, out locations);
-                        }
-                        return locations;
-                    } else {
-                        curl_easy.setopt (Native.Curl.Option.URL, fixchar.replace ("/v3/signin/identifier?continue=", ""));
-                        curl_easy.setopt (Native.Curl.Option.FOLLOWLOCATION, 0L);
-                        res = curl_easy.perform ();
-                        if (res != Native.Curl.Code.OK) {
-                            throw new CurlError.PERFORM_FAILED (Native.Curl.Global.strerror (res));
-                        } else {
-                            res = curl_easy.getinfo (Native.Curl.Info.REDIRECT_URL, out locations);
-                        }
-                        return locations;
-                    }
-                } else {
-                    if (locations == null) {
-                        res = curl_easy.getinfo (Native.Curl.Info.EFFECTIVE_URL, out locations);
-                    }
-                    return locations;
-                }
-            } else {
-                return locations;
-            }
-        } catch (Error e) {
-            GLib.warning (e.message);
         }
-        return url;
+        string cleaned = sb.str.strip ();
+        while (cleaned.length > 0 &&
+            (cleaned.has_suffix (" ") || cleaned.has_suffix ("."))) {
+            cleaned = cleaned.substring (0, cleaned.length - 1);
+        }
+        if (cleaned == "") {
+            return "output.mp4";
+        }
+        string ext = ".mp4";
+        int dot = cleaned.last_index_of_char ('.');
+        if (dot > 0 && (cleaned.length - dot) <= 10) {
+            ext = cleaned.substring (dot);
+            cleaned = cleaned.substring (0, dot);
+        }
+        if (cleaned.length > max_bytes) {
+            cleaned = cleaned.substring (0, max_bytes);
+        }
+        return cleaned + ext;
+    }
+
+    public static string sanitize_output_path (string full_path, int max_bytes = 200) {
+        if (full_path == null || full_path == "") {
+            return "output.mp4";
+        }
+        string dir = GLib.Path.get_dirname (full_path);
+        string bases = GLib.Path.get_basename (full_path);
+        string safe_name = sanitize_filename (bases, max_bytes);
+        if (dir == "." || dir == "") {
+            return safe_name;
+        }
+        return GLib.Path.build_filename (dir, safe_name);
+    }
+
+    private GLib.Icon get_icon_for_filename(string filename) {
+        if (filename == null || filename == "") {
+            return new ThemedIcon ("text-x-generic");
+        }
+        string? content_type = GLib.ContentType.guess(filename, null, null);
+        if (content_type == null) {
+            return new ThemedIcon ("text-x-generic");
+        }
+        return GLib.ContentType.get_icon(content_type);
+    }
+
+    private string[] normalize_aria2_path(string full_path, Json.Array result_array) {
+        if (full_path == null || full_path == "") {
+            return new string[0];
+        }
+        string path = full_path.replace("\\/", "/");
+        if (path.has_prefix("/")) {
+            path = path.substring(1);
+        }
+        string[] parts = path.split("/");
+        if (result_array.get_length() == 1) {
+            return new string[] { parts[parts.length - 1] };
+        }
+        Json.Object? first = result_array.get_object_element(0);
+        if (first == null) {
+            return parts;
+        }
+        Json.Node? pnode = first.get_member("path");
+        if (pnode == null) {
+            return parts;
+        }
+        string base_path = pnode.get_string().replace("\\/", "/");
+        if (base_path.has_prefix("/")) {
+            base_path = base_path.substring(1);
+        }
+        string[] bases = base_path.split("/");
+        int common_len = bases.length;
+
+        for (uint i = 1; i < result_array.get_length(); i++) {
+            Json.Object? obj = result_array.get_object_element(i);
+            if (obj == null) {
+                continue;
+            }
+            Json.Node? n = obj.get_member("path");
+            if (n == null) {
+                continue;
+            }
+            string cur_path = n.get_string().replace("\\/", "/");
+            if (cur_path.has_prefix("/")) {
+                cur_path = cur_path.substring(1);
+            }
+            string[] cur = cur_path.split("/");
+
+            int j = 0;
+            while (j < common_len && j < cur.length && bases[j] == cur[j]) {
+                j++;
+            }
+            common_len = j;
+        }
+        if (common_len < parts.length) {
+            int new_len = parts.length - common_len;
+            string[] outs = new string[new_len];
+
+            for (int i = 0; i < new_len; i++) {
+                outs[i] = parts[common_len + i];
+            }
+            return outs;
+        }
+        return new string[] { parts[parts.length - 1] };
+    }
+
+    private string remap_mime (string mime) {
+        switch (mime) {
+            case "video/quicktime":
+            case "video/x-msvideo":
+            case "video/x-matroska":
+            case "video/x-flv":
+            case "video/3gpp":
+            case "video/mpeg":
+                return "video/mp4";
+            case "video/x-ms-wmv":
+                return "video/mp4";
+            default:
+                return mime;
+        }
+    }
+
+    private void move_window (Gtk.Window window, Gtk.Widget widget) {
+        Gtk.GestureClick click = new Gtk.GestureClick() {
+            button = Gdk.BUTTON_PRIMARY
+        };
+        double start_x = 0;
+        double start_y = 0;
+        click.pressed.connect((n, x, y) => {
+            start_x = x;
+            start_y = y;
+        });
+        Gtk.GestureDrag drag = new Gtk.GestureDrag();
+        drag.drag_begin.connect((x, y) => {
+            start_x = x;
+            start_y = y;
+        });
+        drag.drag_update.connect((offset_x, offset_y) => {
+            Gdk.Surface surface = window.get_surface();
+            if (surface != null) {
+                Gdk.Toplevel toplevel = (Gdk.Toplevel)surface;
+                toplevel.begin_move(Gdk.Display.get_default().get_default_seat().get_pointer(), 1, (int)(start_x + offset_x), (int)(start_y + offset_y), Gdk.CURRENT_TIME);
+            }
+        });
+        widget.add_controller(click);
+        widget.add_controller(drag);
+    }
+
+    public string fix_path(string dirty_path) {
+        try {
+            var regex = new Regex ("\\\\/"); 
+            string clean = regex.replace(dirty_path, -1, 0, "/");
+            var regex_double = new Regex ("//+");
+            clean = regex_double.replace(clean, -1, 0, "/");
+            return clean;
+        } catch (RegexError e) {
+            return dirty_path;
+        }
     }
 
     private int get_container (File file) {
@@ -2386,17 +2419,11 @@ namespace Gabut {
         msg.set_response (get_mime_type (file), Soup.MemoryUse.COPY, file.load_bytes ().get_data ());
     }
 
-    private async void get_css_online (string url, string filename) throws Error {
-        var session = new Soup.Session.with_options ("max-conns", 16, "max-conns-per-host", 16);
-        var msg = new Soup.Message ("GET", url);
-        var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
-        write_file.begin (bytes, filename);
-    }
-
     private async void write_file (GLib.Bytes bytes, string filename) throws Error {
         var file = File.new_for_path (filename);
-        FileOutputStream out_stream = yield file.create_async (FileCreateFlags.REPLACE_DESTINATION, GLib.Priority.DEFAULT, null);
+        GLib.FileOutputStream out_stream = yield file.create_async (FileCreateFlags.REPLACE_DESTINATION, GLib.Priority.DEFAULT, null);
         out_stream.write (bytes.get_data ());
+        out_stream.close ();
     }
 
     private string format_time (int seconds) {
@@ -2425,13 +2452,25 @@ namespace Gabut {
         return data.split ("<gabut>")[succes];
     }
 
-    private string fixtoformat (string tracker) {
-        var tracker0 = tracker.replace (" ", "").replace ("\n", ",").replace (",,", ",");
-        var tracker1 = tracker0.replace ("announcehttp://", "announce,http://").replace ("announce.phphttp://", "announce.php,http://");
-        var tracker2 = tracker1.replace ("announcehttps://", "announce,https://").replace ("announce.phphttps://", "announce.php,https://");
-        var tracker3 = tracker2.replace ("announceudp://", "announce,udp://").replace ("announce.phpudp://", "announce.php,udp://");
-        var tracker4 = tracker3.replace ("announcewss://", "announce,wss://").replace ("announce.phpwss://", "announce.php,wss://");
-        return tracker4;
+    private string fixtoformat (string input) {
+        if (input == null || input.length == 0) {
+            return "";
+        }
+        string cleaned = input.strip ();
+        try {
+            var regex = new Regex ("\\s+");
+            string[] parts = regex.split (cleaned);
+            var list = new Gee.ArrayList<string> ();
+            foreach (string p in parts) {
+                string s = p.strip ();
+                if (s != "") {
+                    list.add (s);
+                }
+            }
+            return string.joinv (",", list.to_array ());
+        } catch (Error e) {
+            return cleaned.replace ("\n", ",").replace (" ", "");
+        }
     }
 
     private void set_account (Gtk.Grid usergrid, UsersID user, int rowpos) {
@@ -2443,11 +2482,13 @@ namespace Gabut {
             secondary_icon_tooltip_text = !user.activate? _("Reject") : _("Accept")
         };
         bool activable = user.activate;
-        user_entry.sclicked.connect (()=> {
-            activable = !activable;
-            user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
-            user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
-            update_user_id (user.id, UserID.ACTIVE, activable.to_string ());
+        user_entry.icon_press.connect ((icp)=> {
+            if (icp == Gtk.EntryIconPosition.SECONDARY) {
+                activable = !activable;
+                user_entry.secondary_icon_name = activable? "media-playback-start" : "process-stop";
+                user_entry.secondary_icon_tooltip_text = !activable? _("Reject") : _("Accept");
+                update_user_id (user.id, UserID.ACTIVE, activable.to_string ());               
+            }
         });
         user_entry.changed.connect (()=> {
             update_user_id (user.id, UserID.USER, user_entry.text);
@@ -2461,39 +2502,17 @@ namespace Gabut {
         pass_entry.changed.connect (()=> {
             update_user_id (user.id, UserID.PASSWD, pass_entry.text);
         });
-        pass_entry.sclicked.connect (()=> {
-            remove_user (user.id);
-            usergrid.remove (user_entry);
-            usergrid.remove (pass_entry);
-            user_entry.destroy ();
-            pass_entry.destroy ();
+        pass_entry.icon_press.connect ((icp)=> {
+            if (icp == Gtk.EntryIconPosition.SECONDARY) {
+                remove_user (user.id);
+                usergrid.remove (user_entry);
+                usergrid.remove (pass_entry);
+                user_entry.destroy ();
+                pass_entry.destroy ();
+            }
         });
         usergrid.attach (user_entry, 0, rowpos);
         usergrid.attach (pass_entry, 1, rowpos);
-    }
-
-    private async void set_count_visible (int64 count) throws GLib.Error {
-        unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("count-visible", new Variant.boolean (count > 0));
-        instance.set_app_property ("count", new GLib.Variant.int64 (count));
-    }
-
-    private async void set_progress_visible (double progress, bool visible = true) throws GLib.Error {
-        unowned UnityLauncherEntry instance = yield UnityLauncherEntry.get_instance ();
-        instance.set_app_property ("progress-visible", new Variant.boolean (visible));
-        instance.set_app_property ("progress", new GLib.Variant.double (progress));
-    }
-
-    private SourceFunc quickdbussource;
-    private async void open_quicklist_dbus (CanonicalDbusmenu dbusserver, DbusmenuItem menuitem) throws GLib.Error {
-        if (quickdbussource != null) {
-            Idle.add ((owned)quickdbussource);
-        }
-        quickdbussource = open_quicklist_dbus.callback;
-        unowned UnityLauncherEntry entrydbus = yield UnityLauncherEntry.get_instance ();
-        dbusserver.set_root (menuitem);
-        entrydbus.set_app_property ("quicklist", new Variant.string (dbusserver.dbus_object));
-        yield;
     }
 
     private string get_shorted (int sort, string username) {
@@ -2509,35 +2528,8 @@ namespace Gabut {
             return infos.get_content_type ();
         } catch (Error e) {
             GLib.warning (e.message);
-        }
-        return "";
-    }
-
-    private FileInfo get_finfo (File fileinput) {
-        FileInfo infos = null;
-        if (!fileinput.query_exists ()) {
-            return infos;
-        }
-        try {
-            infos = fileinput.query_info ("standard::*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
-            return infos;
-        } catch (Error e) {
-            GLib.warning (e.message);
-            return infos;
-        }
-    }
-
-    private string get_css (string cssloc) {
-        var file = File.new_for_path (cssloc);
-        if (!file.query_exists ()) {
             return "";
         }
-        try {
-            return (string) file.load_bytes ().get_data ();
-        } catch (Error eror) {
-            warning ("%s\n", eror.message);
-        }
-        return "";
     }
 
     private string config_folder (string folder) {
@@ -2554,6 +2546,33 @@ namespace Gabut {
 
     private string file_config (string name) {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
+    }
+
+    private Soup.Message full_message (string method, string url, string useragt) throws Error {
+        var message = new Soup.Message(method, url);
+        message.request_headers.append("User-Agent", useragt);
+        message.request_headers.append("Accept", "*/*");
+        message.request_headers.append("Accept-Encoding", "identity");
+        message.request_headers.append("Connection", "keep-alive");
+        var uri = GLib.Uri.parse(url, GLib.UriFlags.NONE);
+        if (uri != null && uri.get_scheme() != null && uri.get_host() != null) {
+            message.request_headers.append("Origin", "%s://%s".printf(uri.get_scheme(), uri.get_host()));
+            message.request_headers.append("Referer", "%s://%s/".printf(uri.get_scheme(), uri.get_host()));
+        }
+        return message;
+    }
+
+    private string? ext_filename (string uri) {
+        string without_ext;
+        int last_dot = uri.last_index_of (".", 0);
+        int last_slash = uri.last_index_of ("/", 0);
+
+        if (last_dot < last_slash) {
+            without_ext = uri;
+        } else {
+            without_ext = uri.slice (0, last_dot);
+        }
+        return without_ext + ".mp4";
     }
 
     private void notify_app (string message, string msg_bd, GLib.Icon iconimg) {
@@ -2610,7 +2629,7 @@ namespace Gabut {
         context.play_full (0, props);
     }
 
-    private async void run_open_file (Gtk.Window window, OpenFiles location, out GLib.File[]? files) throws Error {
+    private async GLib.File[]? run_open_file (Gtk.Window window, OpenFiles location) throws Error {
         var torrent = new Gtk.FileFilter ();
         torrent.set_filter_name (_("Torrent"));
         torrent.add_mime_type ("application/x-bittorrent");
@@ -2633,15 +2652,15 @@ namespace Gabut {
         for (int i = 0; i < listmodel.get_n_items (); i++) {
             nfiles += (File) listmodel.get_item (i);
         }
-        files = nfiles;
         if (!db_lastop_exist (location)) {
-            add_db_lastop (location, files[0].get_parent ().get_path ());
+            add_db_lastop (location, nfiles[0].get_parent ().get_path ());
         } else {
-            update_lastop_id (location, files[0].get_parent ().get_path ());
+            update_lastop_id (location, nfiles[0].get_parent ().get_path ());
         }
+        return nfiles;
     }
 
-    private async void run_open_text (Gtk.Window window, OpenFiles location, out GLib.File? file) throws Error {
+    private async GLib.File? run_open_text (Gtk.Window window, OpenFiles location) throws Error {
         var text_filter = new Gtk.FileFilter ();
         text_filter.set_filter_name (_("Text"));
         text_filter.add_mime_type ("text/*");
@@ -2654,42 +2673,29 @@ namespace Gabut {
             filters = lstore,
             initial_folder = fdrecently.query_exists (null)? fdrecently : null
         };
-        file = yield filechooser.open (window, null);
+        var file = yield filechooser.open (window, null);
         if (!db_lastop_exist (location)) {
             add_db_lastop (location, file.get_parent ().get_path ());
         } else {
             update_lastop_id (location, file.get_parent ().get_path ());
         }
+        return file;
     }
 
-    private async void run_open_all (Gtk.Window window, OpenFiles location, out GLib.File? file) throws Error {
-        var fdrecently = File.new_for_path (get_db_lastop (location));
-        var filechooser = new Gtk.FileDialog () {
-            title = _("Open Cookies"),
-            accept_label = _("Open"),
-            initial_folder = fdrecently.query_exists (null)? fdrecently : null
-        };
-        file = yield filechooser.open (window, null);
-        if (!db_lastop_exist (location)) {
-            add_db_lastop (location, file.get_parent ().get_path ());
-        } else {
-            update_lastop_id (location, file.get_parent ().get_path ());
-        }
-    }
-
-    private async void run_open_fd (Gtk.Window window, OpenFiles location, string path, out GLib.File? file) throws Error {
+    private async GLib.File? run_open_fd (Gtk.Window window, OpenFiles location, string path) throws Error {
         var fdrecently = File.new_for_path (path == ""? get_db_lastop (location) : path);
         var filechooser = new Gtk.FileDialog () {
             title = _("Open Folder"),
             accept_label = _("Open"),
             initial_folder = fdrecently.query_exists (null)? fdrecently : null
         };
-        file = yield filechooser.select_folder (window, null);
+        var file = yield filechooser.select_folder (window, null);
         if (!db_lastop_exist (location)) {
             add_db_lastop (location, file.get_path ());
         } else {
             update_lastop_id (location, file.get_path ());
         }
+        return file;
     }
 
     private Gtk.Grid button_chooser (GLib.File file, int widtc = 35) {
@@ -2713,23 +2719,14 @@ namespace Gabut {
         return grid;
     }
 
-    private Gtk.Grid none_chooser (string none) {
-        var grid = new Gtk.Grid () {
-            valign = Gtk.Align.CENTER,
-            halign = Gtk.Align.START,
-            column_spacing = 5
-        };
-        var img = new Gtk.Image.from_gicon (new ThemedIcon ("com.github.gabutakut.gabutdm.cookie")) {
-            icon_size = Gtk.IconSize.NORMAL
-        };
-        var tittle = new Gtk.Label (none) {
-            wrap_mode = Pango.WrapMode.WORD_CHAR,
-            xalign = 0,
-            attributes = set_attribute (Pango.Weight.BOLD)
-        };
-        grid.attach (img, 0, 0);
-        grid.attach (tittle, 1, 0);
-        return grid;
+    private bool is_video_mime (string mime) {
+        string[] video_mimes = { "video/mp4", "video/webm", "video/ogg", "video/x-matroska", "video/x-msvideo", "video/quicktime", "video/x-flv", "video/3gpp", "video/mpeg"};
+        foreach (string m in video_mimes) {
+            if (mime == m) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private string get_mime_css (string mime) {
@@ -2758,6 +2755,11 @@ namespace Gabut {
         }
     }
 
+    private Gtk.IconPaintable? load_icon_paintable (string icon_name, int size) {
+        var theme = Gtk.IconTheme.get_for_display (Gdk.Display.get_default ());
+        return theme.lookup_icon (icon_name, null, size, 1, Gtk.TextDirection.NONE, Gtk.IconLookupFlags.FORCE_REGULAR);
+    }
+
     public bool match_keycode (uint keyval, uint code) {
         Gdk.KeymapKey [] keys;
         if (Gdk.Display.get_default ().map_keyval (keyval, out keys)) {
@@ -2770,7 +2772,6 @@ namespace Gabut {
         return false;
     }
 
-    public Sqlite.Database gabutdb;
     private int open_database (out Sqlite.Database db) {
         int opendb = 0;
         if (!GLib.FileUtils.test (file_config (".db"), GLib.FileTest.EXISTS)) {
@@ -2832,7 +2833,10 @@ namespace Gabut {
             linkmode       INT     NOT NULL,
             fileordir      TEXT    NOT NULL,
             labeltransfer  TEXT    NOT NULL,
-            timeadded      INT64   NOT NULL);");
+            timeadded      INT64   NOT NULL,
+            bitfield       TEXT    NOT NULL,
+            piececount     INT     NOT NULL,
+            errorcode      TEXT    NOT NULL);");
     }
 
     private int last_opened (Sqlite.Database db) {
@@ -2869,7 +2873,9 @@ namespace Gabut {
             requirecryp    TEXT    NOT NULL,
             integrity      TEXT    NOT NULL,
             unverified     TEXT    NOT NULL,
-            proxytype      TEXT    NOT NULL);");
+            proxytype      TEXT    NOT NULL,
+            selected       TEXT    NOT NULL,
+            header         TEXT    NOT NULL);");
     }
 
     private int table_settings (Sqlite.Database db) {
@@ -2925,13 +2931,17 @@ namespace Gabut {
             themeselect    TEXT    NOT NULL,
             themecustom    TEXT    NOT NULL,
             lastclipboard  TEXT    NOT NULL,
-            optimizedow    TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, lastclipboard, optimizedow)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\", \"false\");");
+            optimizedow    TEXT    NOT NULL,
+            hlsparallelcon TEXT    NOT NULL,
+            hlsactive      TEXT    NOT NULL,
+            hlstimeout     TEXT    NOT NULL,
+            hlsretries     TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, lastclipboard, optimizedow, hlsparallelcon, hlsactive, hlstimeout, hlsretries)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\", \"false\", \"4\", \"1\", \"2000\", \"2\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.OPTIMIZEDOW) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.HLSRETRIES) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
@@ -2950,11 +2960,11 @@ namespace Gabut {
     }
 
     private void download_table () {
-        if ((db_get_cols ("download") - 1) != DBDownload.TIMEADDED) {
+        if ((db_get_cols ("download") - 1) != DBDownload.ERRORCODE) {
             gabutdb.exec ("DROP TABLE download;");
             table_download (gabutdb);
         }
-        if ((db_get_cols ("options") - 1) != DBOption.PROXYTYPE) {
+        if ((db_get_cols ("options") - 1) != DBOption.HEADER) {
             gabutdb.exec ("DROP TABLE options;");
             table_options (gabutdb);
         }
@@ -3148,21 +3158,26 @@ namespace Gabut {
     }
 
     private void add_db_download (DownloadRow download) {
+        int64 new_id = get_next_available_id ("download");
         Sqlite.Statement stmt;
-        string sql = "INSERT OR IGNORE INTO download (url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer, timeadded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        string sql = "INSERT OR IGNORE INTO download (id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer, timeadded, bitfield, piececount, errorcode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         int res = gabutdb.prepare_v2 (sql, -1, out stmt);
-        res = stmt.bind_text (DBDownload.URL, download.url);
-        res = stmt.bind_int (DBDownload.STATUS, download.status);
-        res = stmt.bind_text (DBDownload.ARIAGID, download.ariagid);
-        res = stmt.bind_text (DBDownload.FILEPATH, download.filepath == null? "" : download.filepath);
-        res = stmt.bind_text (DBDownload.FILENAME, download.filename == null? "" : download.filename);
-        res = stmt.bind_int64 (DBDownload.TOTALSIZE, download.totalsize);
-        res = stmt.bind_int (DBDownload.TRANSFERRATE, download.transferrate);
-        res = stmt.bind_int64 (DBDownload.TRANSFERRED, download.transferred);
-        res = stmt.bind_int (DBDownload.LINKMODE, download.linkmode);
-        res = stmt.bind_text (DBDownload.FILEORDIR, download.fileordir == null? "" : download.fileordir);
-        res = stmt.bind_text (DBDownload.LABELTRANSFER, download.labeltransfer == null? "" : download.labeltransfer);
-        res = stmt.bind_int64 (DBDownload.TIMEADDED, download.timeadded);
+        res = stmt.bind_int64 (DBDownload.ID+1, new_id);
+        res = stmt.bind_text (DBDownload.URL+1, download.url);
+        res = stmt.bind_int (DBDownload.STATUS+1, download.status);
+        res = stmt.bind_text (DBDownload.ARIAGID+1, download.ariagid);
+        res = stmt.bind_text (DBDownload.FILEPATH+1, download.filepath == null? "" : download.filepath);
+        res = stmt.bind_text (DBDownload.FILENAME+1, download.filename == null? "" : download.filename);
+        res = stmt.bind_int64 (DBDownload.TOTALSIZE+1, download.totalsize);
+        res = stmt.bind_int (DBDownload.TRANSFERRATE+1, download.transferrate);
+        res = stmt.bind_int64 (DBDownload.TRANSFERRED+1, download.transferred);
+        res = stmt.bind_int (DBDownload.LINKMODE+1, download.linkmode);
+        res = stmt.bind_text (DBDownload.FILEORDIR+1, download.fileordir == null? "" : download.fileordir);
+        res = stmt.bind_text (DBDownload.LABELTRANSFER+1, download.labeltransfer == null? "" : download.labeltransfer);
+        res = stmt.bind_int64 (DBDownload.TIMEADDED+1, download.timeadded);
+        res = stmt.bind_text (DBDownload.BITFIELD+1, download.bitfield == null? "" : download.bitfield);
+        res = stmt.bind_int (DBDownload.PIECECOUNT+1, download.piececount);
+        res = stmt.bind_text (DBDownload.ERRORCODE+1, download.errorcode == null? "" : download.errorcode);
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
@@ -3175,7 +3190,7 @@ namespace Gabut {
         buildstr.append ("UPDATE download SET");
         uint empty_hash = buildstr.str.hash ();
         int res = gabutdb.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
-        res = stmt.bind_text (1, download.url);
+        res = stmt.bind_text (DBDownload.URL, download.url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             if (stmt.column_int (DBDownload.STATUS) != download.status) {
                 buildstr.append (@" $(DBDownload.STATUS.to_string ()) = $(download.status)");
@@ -3240,13 +3255,31 @@ namespace Gabut {
                 }
                 buildstr.append (@" $(DBDownload.TIMEADDED.to_string ()) = \"$(download.timeadded)\"");
             }
+            if (stmt.column_text (DBDownload.BITFIELD) != download.bitfield && download.bitfield != null) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                buildstr.append (@" $(DBDownload.BITFIELD.to_string ()) = \"$(download.bitfield)\"");
+            }
+            if (stmt.column_int (DBDownload.PIECECOUNT) != download.piececount) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                buildstr.append (@" $(DBDownload.PIECECOUNT.to_string ()) = \"$(download.piececount)\"");
+            }
+            if (stmt.column_text (DBDownload.ERRORCODE) != download.errorcode && download.errorcode != null) {
+                if (buildstr.str.hash () != empty_hash) {
+                    buildstr.append (",");
+                }
+                buildstr.append (@" $(DBDownload.ERRORCODE.to_string ()) = \"$(download.errorcode)\"");
+            }
             if (buildstr.str.hash () == empty_hash) {
                 return;
             }
         }
         buildstr.append (" WHERE url = ?");
         res = gabutdb.prepare_v2 (buildstr.str, -1, out stmt);
-        res = stmt.bind_text (1, download.url);
+        res = stmt.bind_text (DBDownload.URL, download.url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
@@ -3256,7 +3289,7 @@ namespace Gabut {
     private void remove_download (string url) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 ("DELETE FROM download WHERE url = ?", -1, out stmt);
-        res = stmt.bind_text (1, url);
+        res = stmt.bind_text (DBDownload.URL, url);
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
@@ -3266,12 +3299,12 @@ namespace Gabut {
     private GLib.List<DownloadRow> get_download () {
         var downloads = new GLib.List<DownloadRow> ();
         Sqlite.Statement stmt;
-        int res = gabutdb.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer, timeadded FROM download ORDER BY url;", -1, out stmt);
+        int res = gabutdb.prepare_v2 ("SELECT id, url, status, ariagid, filepath, filename, totalsize, transferrate, transferred, linkmode, fileordir, labeltransfer, timeadded, bitfield, piececount, errorcode FROM download ORDER BY url;", -1, out stmt);
         if (res != Sqlite.OK) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
         }
         while (stmt.step () == Sqlite.ROW) {
-            downloads.append (new DownloadRow (stmt));
+            downloads.append (new DownloadRow.Smt (stmt));
         }
         stmt.reset ();
         return downloads;
@@ -3280,7 +3313,7 @@ namespace Gabut {
     private bool db_download_exist (string url) {
         Sqlite.Statement stmt;
         int res = gabutdb.prepare_v2 ("SELECT * FROM download WHERE url = ?", -1, out stmt);
-        res = stmt.bind_text (1, url);
+        res = stmt.bind_text (DBDownload.URL, url);
         if ((res = stmt.step ()) == Sqlite.ROW) {
             return true;
         }
@@ -3407,143 +3440,183 @@ namespace Gabut {
             if (unverify != "") {
                 hashoption[AriaOptions.BT_SEED_UNVERIFIED.to_string ()] = unverify;
             }
+            string selected = stmt.column_text (DBOption.SELECTED);
+            if (selected != "") {
+                hashoption[AriaOptions.SELECT_FILE.to_string ()] = selected;
+            }
+            string header = stmt.column_text (DBOption.HEADER);
+            if (header != "") {
+                hashoption[AriaOptions.HEADER.to_string ()] = header;
+            }
         }
         stmt.reset ();
         return hashoption;
     }
 
-    private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
+    private int64 get_next_available_id (string idtype) {
+        int64 next_id = 1;
+        string query = """
+            SELECT COALESCE(
+                (SELECT MIN(seq) FROM (
+                    SELECT 1 AS seq
+                    UNION
+                    SELECT id + 1 FROM %s
+                ) WHERE seq NOT IN (SELECT id FROM %s)),
+            1);
+        """.printf (idtype, idtype);
         Sqlite.Statement stmt;
-        string sql = "INSERT OR IGNORE INTO options (url, magnetbackup, torrentbackup, proxy, proxyusr, proxypass, httpusr, httppass, ftpusr, ftppass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp, integrity, unverified, proxytype) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        if (gabutdb.prepare_v2 (query, -1, out stmt) == Sqlite.OK) {
+            if (stmt.step () == Sqlite.ROW) {
+                next_id = stmt.column_int64 (0);
+            }
+        }
+        return next_id;
+    }
+
+    private void set_dboptions (string url, Gee.HashMap<string, string> hashoptions) {
+        int64 new_id = get_next_available_id ("options");
+        Sqlite.Statement stmt;
+        string sql = "INSERT OR IGNORE INTO options (id, url, magnetbackup, torrentbackup, proxy, proxyusr, proxypass, httpusr, httppass, ftpusr, ftppass, dir, cookie, referer, useragent, out, proxymethod, selectfile, checksum, cryptolvl, requirecryp, integrity, unverified, proxytype, selected, header) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         int res = gabutdb.prepare_v2 (sql, -1, out stmt);
-        res = stmt.bind_text (DBOption.URL, url);
+        res = stmt.bind_int64 (DBOption.ID+1, new_id);
+        res = stmt.bind_text (DBOption.URL+1, url);
         if (hashoptions.has_key (AriaOptions.BT_SAVE_METADATA.to_string ())) {
-            res = stmt.bind_text (DBOption.MAGNETBACKUP, hashoptions.@get (AriaOptions.BT_SAVE_METADATA.to_string ()));
+            res = stmt.bind_text (DBOption.MAGNETBACKUP+1, hashoptions.@get (AriaOptions.BT_SAVE_METADATA.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.MAGNETBACKUP, "false");
+            res = stmt.bind_text (DBOption.MAGNETBACKUP+1, "false");
         }
         if (hashoptions.has_key (AriaOptions.RPC_SAVE_UPLOAD_METADATA.to_string ())) {
-            res = stmt.bind_text (DBOption.TORRENTBACKUP, hashoptions.@get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.to_string ()));
+            res = stmt.bind_text (DBOption.TORRENTBACKUP+1, hashoptions.@get (AriaOptions.RPC_SAVE_UPLOAD_METADATA.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.TORRENTBACKUP, "false");
+            res = stmt.bind_text (DBOption.TORRENTBACKUP+1, "false");
         }
         if (hashoptions.has_key (AriaOptions.PROXY.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.PROXY.to_string ()));
-            res = stmt.bind_text (DBOption.PROXYTYPE, "all");
+            res = stmt.bind_text (DBOption.PROXY+1, hashoptions.@get (AriaOptions.PROXY.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE+1, "all");
         } else if (hashoptions.has_key (AriaOptions.FTP_PROXY.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.FTP_PROXY.to_string ()));
-            res = stmt.bind_text (DBOption.PROXYTYPE, "ftp");
+            res = stmt.bind_text (DBOption.PROXY+1, hashoptions.@get (AriaOptions.FTP_PROXY.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE+1, "ftp");
         } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.HTTP_PROXY.to_string ()));
-            res = stmt.bind_text (DBOption.PROXYTYPE, "http");
+            res = stmt.bind_text (DBOption.PROXY+1, hashoptions.@get (AriaOptions.HTTP_PROXY.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE+1, "http");
         } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXY, hashoptions.@get (AriaOptions.HTTPS_PROXY.to_string ()));
-            res = stmt.bind_text (DBOption.PROXYTYPE, "https");
+            res = stmt.bind_text (DBOption.PROXY+1, hashoptions.@get (AriaOptions.HTTPS_PROXY.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYTYPE+1, "https");
         } else {
-            res = stmt.bind_text (DBOption.PROXY, "NOTSET");
-            res = stmt.bind_text (DBOption.PROXYTYPE, "NOTSET");
+            res = stmt.bind_text (DBOption.PROXY+1, "NOTSET");
+            res = stmt.bind_text (DBOption.PROXYTYPE+1, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.PROXYUSER.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYUSER, hashoptions.@get (AriaOptions.PROXYUSER.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYUSER+1, hashoptions.@get (AriaOptions.PROXYUSER.to_string ()));
         } else if (hashoptions.has_key (AriaOptions.FTP_PROXY_USER.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYUSER, hashoptions.@get (AriaOptions.FTP_PROXY_USER.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYUSER+1, hashoptions.@get (AriaOptions.FTP_PROXY_USER.to_string ()));
         } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY_USER.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYUSER, hashoptions.@get (AriaOptions.HTTP_PROXY_USER.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYUSER+1, hashoptions.@get (AriaOptions.HTTP_PROXY_USER.to_string ()));
         } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_PASSWD.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.HTTPS_PROXY_PASSWD.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYPASSWORD+1, hashoptions.@get (AriaOptions.HTTPS_PROXY_PASSWD.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.PROXYUSER, "NOTSET");
+            res = stmt.bind_text (DBOption.PROXYUSER+1, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.PROXYPASSWORD.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.PROXYPASSWORD.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYPASSWORD+1, hashoptions.@get (AriaOptions.PROXYPASSWORD.to_string ()));
         } else if (hashoptions.has_key (AriaOptions.FTP_PROXY_PASSWD.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.FTP_PROXY_PASSWD.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYPASSWORD+1, hashoptions.@get (AriaOptions.FTP_PROXY_PASSWD.to_string ()));
         } else if (hashoptions.has_key (AriaOptions.HTTP_PROXY_PASSWD.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.HTTP_PROXY_PASSWD.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYPASSWORD+1, hashoptions.@get (AriaOptions.HTTP_PROXY_PASSWD.to_string ()));
         } else if (hashoptions.has_key (AriaOptions.HTTPS_PROXY_PASSWD.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYPASSWORD, hashoptions.@get (AriaOptions.HTTPS_PROXY_PASSWD.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYPASSWORD+1, hashoptions.@get (AriaOptions.HTTPS_PROXY_PASSWD.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.PROXYPASSWORD, "NOTSET");
+            res = stmt.bind_text (DBOption.PROXYPASSWORD+1, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.HTTP_USER.to_string ())) {
-            res = stmt.bind_text (DBOption.HTTPUSR, hashoptions.@get (AriaOptions.HTTP_USER.to_string ()));
+            res = stmt.bind_text (DBOption.HTTPUSR+1, hashoptions.@get (AriaOptions.HTTP_USER.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.HTTPUSR, "NOTSET");
+            res = stmt.bind_text (DBOption.HTTPUSR+1, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.HTTP_PASSWD.to_string ())) {
-            res = stmt.bind_text (DBOption.HTTPPASS, hashoptions.@get (AriaOptions.HTTP_PASSWD.to_string ()));
+            res = stmt.bind_text (DBOption.HTTPPASS+1, hashoptions.@get (AriaOptions.HTTP_PASSWD.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.HTTPPASS, "NOTSET");
+            res = stmt.bind_text (DBOption.HTTPPASS+1, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.FTP_USER.to_string ())) {
-            res = stmt.bind_text (DBOption.FTPUSR, hashoptions.@get (AriaOptions.FTP_USER.to_string ()));
+            res = stmt.bind_text (DBOption.FTPUSR+1, hashoptions.@get (AriaOptions.FTP_USER.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.FTPUSR, "NOTSET");
+            res = stmt.bind_text (DBOption.FTPUSR+1, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.FTP_PASSWD.to_string ())) {
-            res = stmt.bind_text (DBOption.FTPPASS, hashoptions.@get (AriaOptions.FTP_PASSWD.to_string ()));
+            res = stmt.bind_text (DBOption.FTPPASS+1, hashoptions.@get (AriaOptions.FTP_PASSWD.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.FTPPASS, "NOTSET");
+            res = stmt.bind_text (DBOption.FTPPASS+1, "NOTSET");
         }
         if (hashoptions.has_key (AriaOptions.DIR.to_string ())) {
-            res = stmt.bind_text (DBOption.DIR, hashoptions.@get (AriaOptions.DIR.to_string ()));
+            res = stmt.bind_text (DBOption.DIR+1, hashoptions.@get (AriaOptions.DIR.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.DIR, "");
+            res = stmt.bind_text (DBOption.DIR+1, "");
         }
         if (hashoptions.has_key (AriaOptions.COOKIE.to_string ())) {
-            res = stmt.bind_text (DBOption.COOKIE, hashoptions.@get (AriaOptions.COOKIE.to_string ()));
+            res = stmt.bind_text (DBOption.COOKIE+1, hashoptions.@get (AriaOptions.COOKIE.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.COOKIE, "");
+            res = stmt.bind_text (DBOption.COOKIE+1, "");
         }
         if (hashoptions.has_key (AriaOptions.REFERER.to_string ())) {
-            res = stmt.bind_text (DBOption.REFERER, hashoptions.@get (AriaOptions.REFERER.to_string ()));
+            res = stmt.bind_text (DBOption.REFERER+1, hashoptions.@get (AriaOptions.REFERER.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.REFERER, "");
+            res = stmt.bind_text (DBOption.REFERER+1, "");
         }
         if (hashoptions.has_key (AriaOptions.USER_AGENT.to_string ())) {
-            res = stmt.bind_text (DBOption.USERAGENT, hashoptions.@get (AriaOptions.USER_AGENT.to_string ()));
+            res = stmt.bind_text (DBOption.USERAGENT+1, hashoptions.@get (AriaOptions.USER_AGENT.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.USERAGENT, "");
+            res = stmt.bind_text (DBOption.USERAGENT+1, "");
         }
         if (hashoptions.has_key (AriaOptions.OUT.to_string ())) {
-            res = stmt.bind_text (DBOption.OUT, hashoptions.@get (AriaOptions.OUT.to_string ()));
+            res = stmt.bind_text (DBOption.OUT+1, hashoptions.@get (AriaOptions.OUT.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.OUT, "");
+            res = stmt.bind_text (DBOption.OUT+1, "");
         }
         if (hashoptions.has_key (AriaOptions.PROXY_METHOD.to_string ())) {
-            res = stmt.bind_text (DBOption.PROXYMETHOD, hashoptions.@get (AriaOptions.PROXY_METHOD.to_string ()));
+            res = stmt.bind_text (DBOption.PROXYMETHOD+1, hashoptions.@get (AriaOptions.PROXY_METHOD.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.PROXYMETHOD, "");
+            res = stmt.bind_text (DBOption.PROXYMETHOD+1, "");
         }
         if (hashoptions.has_key (AriaOptions.SELECT_FILE.to_string ())) {
-            res = stmt.bind_text (DBOption.SELECTFILE, hashoptions.@get (AriaOptions.SELECT_FILE.to_string ()));
+            res = stmt.bind_text (DBOption.SELECTFILE+1, hashoptions.@get (AriaOptions.SELECT_FILE.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.SELECTFILE, "");
+            res = stmt.bind_text (DBOption.SELECTFILE+1, "");
         }
         if (hashoptions.has_key (AriaOptions.CHECKSUM.to_string ())) {
-            res = stmt.bind_text (DBOption.CHECKSUM, hashoptions.@get (AriaOptions.CHECKSUM.to_string ()));
+            res = stmt.bind_text (DBOption.CHECKSUM+1, hashoptions.@get (AriaOptions.CHECKSUM.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.CHECKSUM, "");
+            res = stmt.bind_text (DBOption.CHECKSUM+1, "");
         }
         if (hashoptions.has_key (AriaOptions.BT_MIN_CRYPTO_LEVEL.to_string ())) {
-            res = stmt.bind_text (DBOption.CRYPTOLVL, hashoptions.@get (AriaOptions.BT_MIN_CRYPTO_LEVEL.to_string ()));
+            res = stmt.bind_text (DBOption.CRYPTOLVL+1, hashoptions.@get (AriaOptions.BT_MIN_CRYPTO_LEVEL.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.CRYPTOLVL, "");
+            res = stmt.bind_text (DBOption.CRYPTOLVL+1, "");
         }
         if (hashoptions.has_key (AriaOptions.BT_REQUIRE_CRYPTO.to_string ())) {
-            res = stmt.bind_text (DBOption.REQUIRECRYP, hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.to_string ()));
+            res = stmt.bind_text (DBOption.REQUIRECRYP+1, hashoptions.@get (AriaOptions.BT_REQUIRE_CRYPTO.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.REQUIRECRYP, "");
+            res = stmt.bind_text (DBOption.REQUIRECRYP+1, "");
         }
         if (hashoptions.has_key (AriaOptions.CHECK_INTEGRITY.to_string ())) {
-            res = stmt.bind_text (DBOption.INTEGRITY, hashoptions.@get (AriaOptions.CHECK_INTEGRITY.to_string ()));
+            res = stmt.bind_text (DBOption.INTEGRITY+1, hashoptions.@get (AriaOptions.CHECK_INTEGRITY.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.INTEGRITY, "");
+            res = stmt.bind_text (DBOption.INTEGRITY+1, "");
         }
         if (hashoptions.has_key (AriaOptions.BT_SEED_UNVERIFIED.to_string ())) {
-            res = stmt.bind_text (DBOption.UNVERIFIED, hashoptions.@get (AriaOptions.BT_SEED_UNVERIFIED.to_string ()));
+            res = stmt.bind_text (DBOption.UNVERIFIED+1, hashoptions.@get (AriaOptions.BT_SEED_UNVERIFIED.to_string ()));
         } else {
-            res = stmt.bind_text (DBOption.UNVERIFIED, "");
+            res = stmt.bind_text (DBOption.UNVERIFIED+1, "");
+        }
+        if (hashoptions.has_key (AriaOptions.SELECT_FILE.to_string ())) {
+            res = stmt.bind_text (DBOption.SELECTED+1, hashoptions.@get (AriaOptions.SELECT_FILE.to_string ()));
+        } else {
+            res = stmt.bind_text (DBOption.SELECTED+1, "");
+        }
+        if (hashoptions.has_key (AriaOptions.HEADER.to_string ())) {
+            res = stmt.bind_text (DBOption.HEADER+1, hashoptions.@get (AriaOptions.HEADER.to_string ()));
+        } else {
+            res = stmt.bind_text (DBOption.HEADER+1, "");
         }
         if ((res = stmt.step ()) != Sqlite.DONE) {
             warning ("Error: %d: %s", gabutdb.errcode (), gabutdb.errmsg ());
@@ -3920,6 +3993,24 @@ namespace Gabut {
                     buildstr.append (@" $(DBOption.UNVERIFIED.to_string ()) = \"$(unver)\"");
                 }
             }
+            if (hashoptions.has_key (AriaOptions.SELECT_FILE.to_string ())) {
+                string selected = hashoptions.@get (AriaOptions.SELECT_FILE.to_string ());
+                if (stmt.column_text (DBOption.SELECTED) != selected) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.SELECTED.to_string ()) = \"$(selected)\"");
+                }
+            }
+            if (hashoptions.has_key (AriaOptions.HEADER.to_string ())) {
+                string header = hashoptions.@get (AriaOptions.HEADER.to_string ());
+                if (stmt.column_text (DBOption.HEADER) != header) {
+                    if (buildstr.str.hash () != empty_hash) {
+                        buildstr.append (",");
+                    }
+                    buildstr.append (@" $(DBOption.HEADER.to_string ()) = \"$(header)\"");
+                }
+            }
         }
         if (buildstr.str.hash () == empty_hash) {
             stmt.reset ();
@@ -3963,111 +4054,46 @@ namespace Gabut {
         return attrlist;
     }
 
-    [DBus (name = "org.kde.StatusNotifierWatcher")]
-    public interface DbusStatusWhacher : GLib.Object {
-        public abstract void register_status_notifier_item (string service) throws GLib.Error;
-    }
-
-    [DBus (name = "org.freedesktop.DBus.Properties")]
-    private interface DBusProerties : Object {
-        public abstract Variant get (string interface, string name) throws DBusError, IOError;
-    }
-
-    [DBus (name = "org.freedesktop.portal.Settings")]
-    private interface PortalSettings : Object {
-        public abstract Variant read (string namespace, string key) throws DBusError, IOError;
-        public signal void setting_changed (string namespace, string key, Variant value);
-    }
-
     private string get_local_address () {
         try {
-            DBusProerties networkmanager = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager");
-            if (networkmanager != null) {
-                Variant nmconn = networkmanager.get ("org.freedesktop.NetworkManager", "PrimaryConnection");
-                if (nmconn != null && nmconn.get_string (null) != "/") {
-                    DBusProerties nmactive = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", nmconn.get_string (null));
-                    Variant activetype = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Type");
-                    if (activetype.get_string (null) != "vpn") {
-                        return ipv4address (nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config"));
-                    } else {
-                        Variant objspcific = nmactive.get ("org.freedesktop.NetworkManager.Connection.Active", "SpecificObject");
-                        DBusProerties nmactivevpn = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", objspcific.get_string (null));
-                        return ipv4address (nmactivevpn.get ("org.freedesktop.NetworkManager.Connection.Active", "Ip4Config"));
-                    }
+            var socket = new Socket (SocketFamily.IPV4, SocketType.DATAGRAM, SocketProtocol.UDP);
+            var addr = new InetSocketAddress (new InetAddress.from_string ("192.168.0.1"), 9);
+            socket.connect (addr);
+            var local = socket.get_local_address () as InetSocketAddress;
+            if (local != null) {
+                string ip = local.get_address ().to_string ();
+                if (ip != "0.0.0.0" && ip != "127.0.0.1") {
+                    return ip;
                 }
             }
         } catch (Error e) {
-            GLib.warning (e.message);
+            warning (e.message);
         }
-        return "0.0.0.0";
+        return "127.0.0.1";
     }
 
-    private string ipv4address (Variant pathip4) {
-        try {
-            DBusProerties ip4conf = GLib.Bus.get_proxy_sync (GLib.BusType.SYSTEM, "org.freedesktop.NetworkManager", pathip4.get_string (null));
-            Variant addressdata = ip4conf.get ("org.freedesktop.NetworkManager.IP4Config", "AddressData");
-            string addressstr = addressdata.print (true);
-            MatchInfo match_info;
-            Regex regex = new Regex ("<'(.*?)'>");
-            if (regex.match_full (addressstr, -1, 0, 0, out match_info)) {
-                return match_info.fetch (1);
-            }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
-        return "0.0.0.0";
-    }
-
-    private SourceFunc themecall;
-    private async void gdm_theme () throws Error {
-        if (themecall != null) {
-            Idle.add ((owned)themecall);
-        }
+    private void gdm_theme () {
         var tdefault = bool.parse (get_dbsetting (DBSettings.TDEFAULT));
         var adwt_settings = Adw.StyleManager.get_default ();
         var gtk_settings = Gtk.Settings.get_default ();
         int themesel = int.parse (get_dbsetting (DBSettings.THEMESELECT));
         var themename = get_dbsetting (DBSettings.THEMECUSTOM);
-        switch (int.parse (get_dbsetting (DBSettings.STYLE))) {
+        int stymd = int.parse (get_dbsetting (DBSettings.STYLE));
+        switch (stymd) {
             case 1:
                 adwt_settings.color_scheme = Adw.ColorScheme.FORCE_LIGHT;
-                if (!tdefault) {
-                    gtk_settings.gtk_theme_name = "Adwaita-empty";
-                } else {
-                    gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
-                }
                 break;
             case 2:
                 adwt_settings.color_scheme = Adw.ColorScheme.FORCE_DARK;
-                if (!tdefault) {
-                    gtk_settings.gtk_theme_name = "Adwaita-empty";
-                } else {
-                    gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
-                }
                 break;
             default:
-                PortalSettings portalsettings = yield GLib.Bus.get_proxy (GLib.BusType.SESSION, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop");
-                if (portalsettings != null) {
-                    themecall = gdm_theme.callback;
-                    adwt_settings.color_scheme = portalsettings.read ("org.freedesktop.appearance", "color-scheme").get_variant ().get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
-                    if (!tdefault) {
-                        gtk_settings.gtk_theme_name = "Adwaita-empty";
-                    } else {
-                        gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
-                    }
-                    portalsettings.setting_changed.connect ((scheme, key, value) => {
-                        if (scheme == "org.freedesktop.appearance" && key == "color-scheme") {
-                            adwt_settings.color_scheme = value.get_uint32 () == 1? Adw.ColorScheme.FORCE_DARK : Adw.ColorScheme.FORCE_LIGHT;
-                            if (!tdefault) {
-                                gtk_settings.gtk_theme_name = "Adwaita-empty";
-                            } else {
-                                gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
-                            }
-                        }
-                    });
-                    yield;
-                }
+                adwt_settings.color_scheme = Adw.ColorScheme.DEFAULT;
                 break;
+        }
+        if (!tdefault) {
+            gtk_settings.gtk_theme_name = "Adwaita-empty";
+        } else {
+            gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
         }
     }
 }

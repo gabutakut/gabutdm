@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,14 +21,20 @@
 
 namespace Gabut {
     public class GabutServer : Soup.Server {
-        public signal void updat_row (string ariagid);
+        public signal void server_action (string ariagid);
+        public signal void hls_action (string hash);
         public signal void delete_row (string ariagid);
         public signal void send_post_data (MatchInfo match_info);
         public signal void address_url (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
         public signal Gee.ArrayList<DownloadRow> get_dl_row (int status);
-        private string username;
+        public signal DownloadRow get_dm_row (string ariagid);
+        public signal DownloadRow get_hls_row (string hurlu);
         private Soup.AuthDomainDigest authenti;
         private SourceFunc callback;
+        private GLib.File sourcef;
+        private int path_lenght = 0;
+        private bool firstscan = false;
+        private string username;
 
         public async void set_listent (int port) throws Error {
             callback = set_listent.callback;
@@ -44,6 +50,9 @@ namespace Gabut {
             authenti.set_auth_callback (authentication);
             this.add_auth_domain (authenti);
             this.add_handler ("/", home_handler);
+            this.add_handler ("/Arirow", dlrow_handler);
+            this.add_handler ("/HLSrow", hlsrow_handler);
+            this.add_handler ("/Player", player_handler);
             this.add_handler ("/Upload", upload_handler);
             this.add_handler ("/Home", share_handler);
             this.add_handler ("/Downloading", gabut_handler);
@@ -75,6 +84,46 @@ namespace Gabut {
             return Soup.AuthDomainDigest.encode_password (get_db_user (UserID.USER, username), "server-gabut", get_db_user (UserID.PASSWD, username));
         }
 
+        private void dlrow_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
+            if (msg.get_method () == "POST") {
+                if (msg.get_request_body () != null) {
+                    string result = (string) msg.get_request_body ().data;
+                    var row = get_dm_row (result);
+                    if (row != null) {
+                        if (row.status == StatusMode.ACTIVE) {
+                            var respond = @"{\"fraction\": $((double) row.transferred / (double) row.totalsize),\"label\": \"$(row.labeltransfer)\"}";
+                            msg.set_response ("application/json; charset=utf-8", Soup.MemoryUse.COPY, respond.data);
+                            msg.set_status (Soup.Status.OK, "OK");
+                        } else {
+                            msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "ERROR");
+                        }
+                    } else {
+                        msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "ERROR");
+                    }
+                }
+            }
+        }
+
+        private void hlsrow_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
+            if (msg.get_method () == "POST") {
+                if (msg.get_request_body () != null) {
+                    string result = (string) msg.get_request_body ().data;
+                    var row = get_hls_row (result);
+                    if (row != null) {
+                        if (row.status == StatusMode.ACTIVE) {
+                            var hrespond = @"{\"fraction\": $((double)row.fraction),\"label\": \"$(row.labeltransfer)\"}";
+                            msg.set_response ("application/json; charset=utf-8", Soup.MemoryUse.COPY, hrespond.data);
+                            msg.set_status (Soup.Status.OK, "OK");
+                        } else {
+                            msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "ERROR");
+                        }
+                    } else {
+                        msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "ERROR");
+                    }
+                }
+            }
+        }
+
         private void upload_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
             if (msg.get_method () == "POST") {
                 string result = (string) msg.get_request_body ().data;
@@ -89,9 +138,16 @@ namespace Gabut {
                     if (filename != null && filename != "") {
                         File filed = GLib.File.new_build_filename (aria_get_globalops (AriaOptions.DIR).replace ("\\/", "/"), filename);
                         if (!filed.query_exists ()) {
-                            write_file.begin (body, filed.get_path ());
-                            notify_app (_("File Transfered"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
-                            play_sound ("complete");
+                            write_file.begin (body, filed.get_path (), (obj, res)=> {
+                                try {
+                                    write_file.end (res);
+                                } catch (GLib.Error e) {
+                                } finally {
+                                    notify_app (_("File Transfered"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
+                                    play_sound ("complete");
+                                    multipart = null;
+                                }
+                            });
                         } else {
                             notify_app (_("File Exist"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
                             play_sound ("dialog-error");
@@ -123,17 +179,23 @@ namespace Gabut {
                 string result = (string) msg.get_request_body ().data;
                 if (result.contains ("actiondm")) {
                     var dlist = get_dl_row (StatusMode.COMPLETE);
-                    dlist.sort (sort_dm);
-                    dlist.foreach ((row)=> {
-                        if (row.ariagid == result.slice (result.last_index_of ("+") + 1, result.last_index_of ("="))) {
-                            msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
-                            msg.set_status (Soup.Status.OK, "OK");
-                        } else {
-                            msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
-                            msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
-                        }
-                        return true;
-                    });
+                    if (dlist.size > 0) {
+                        dlist.foreach ((row)=> {
+                            if (result.contains ("linkmodeurl")) {
+                                if (row.ariagid == result.slice (result.last_index_of ("+") + 1, result.last_index_of ("linkmodeurl="))) {
+                                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
+                                    msg.set_status (Soup.Status.OK, "OK");
+                                }
+                            } else if (result.contains ("linkmodehls")) {
+                                var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
+                                if (check == result.slice (result.last_index_of ("+") + 1, result.last_index_of ("linkmodehls="))) {
+                                    msg.set_response ("text/html", Soup.MemoryUse.COPY, get_complete (row).data);
+                                    msg.set_status (Soup.Status.OK, "OK");
+                                }
+                            }
+                            return true;
+                        });
+                    }
                 } else {
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_not_found ().data);
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
@@ -170,7 +232,7 @@ namespace Gabut {
                 string result = (string) msg.get_request_body ().data;
                 try {
                     MatchInfo match_info;
-                    Regex regex = new Regex ("link:(.*?),filename:(.*?),referrer:(.*?),mimetype:(.*?),filesize:(.*?),resumable:(.*?),");
+                    Regex regex = new Regex ("link:(.*?);,filename:(.*?);,referrer:(.*?);,mimetype:(.*?);,filesize:(.*?);,resumable:(.*?);,useragent:(.*?);,header:(.*?);,");
                     if (regex.match_full (result, -1, 0, 0, out match_info)) {
                         send_post_data (match_info);
                         msg.set_response ("text/html", Soup.MemoryUse.COPY, get_home ().data);
@@ -215,7 +277,7 @@ namespace Gabut {
                     headers.get_content_disposition (null, out params);
                     string filename = params.get ("filename");
                     if (filename != null && filename != "") {
-                        string bencode = data_bencoder (body);
+                        string bencode = GLib.Base64.encode (body.get_data ());
                         if (filename.down ().has_suffix (".torrent")) {
                             address_url (bencode, hashoption, false, LinkMode.TORRENT);
                         } else if (filename.down ().has_suffix (".metalink")) {
@@ -225,7 +287,12 @@ namespace Gabut {
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
                 } else if (result.contains ("actiondm")) {
-                    updat_row (result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")));
+                    var typeact = result.slice (result.last_index_of ("+") + 1, result.last_index_of ("=")).split ("linkmode");
+                    if (typeact[1] == "url") {
+                        server_action (typeact[0]);
+                    } else if (typeact[1] == "hls") {
+                        hls_action (typeact[0]);
+                    }
                     msg.set_response ("text/html", Soup.MemoryUse.COPY, get_dm (pathname, html_dm (path), javascr_dm (path), username).data);
                     msg.set_status (Soup.Status.OK, "OK");
                 } else if (result.contains ("actiondelete")) {
@@ -250,8 +317,8 @@ namespace Gabut {
             var htmlstr = "";
             if (path == "/Downloading") {
                 var dlist = get_dl_row (StatusMode.ACTIVE);
-                dlist.sort (sort_dm);
                 if (dlist.size > 0) {
+                    dlist.sort (sort_dm);
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Pause", path);
@@ -261,8 +328,8 @@ namespace Gabut {
                 }
             } else if (path == "/Paused") {
                 var dlist = get_dl_row (StatusMode.PAUSED);
-                dlist.sort (sort_dm);
                 if (dlist.size > 0) {
+                    dlist.sort (sort_dm);
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Start", path);
@@ -272,8 +339,8 @@ namespace Gabut {
                 }
             } else if (path == "/Complete") {
                 var dlist = get_dl_row (StatusMode.COMPLETE);
-                dlist.sort (sort_dm);
                 if (dlist.size > 0) {
+                    dlist.sort (sort_dm);
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Complete", path);
@@ -283,8 +350,8 @@ namespace Gabut {
                 }
             } else if (path == "/Waiting") {
                 var dlist = get_dl_row (StatusMode.WAIT);
-                dlist.sort (sort_dm);
                 if (dlist.size > 0) {
+                    dlist.sort (sort_dm);
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Waiting", path);
@@ -294,8 +361,8 @@ namespace Gabut {
                 }
             } else if (path == "/Error") {
                 var dlist = get_dl_row (StatusMode.ERROR);
-                dlist.sort (sort_dm);
                 if (dlist.size > 0) {
+                    dlist.sort (sort_dm);
                     htmlstr = "<div class=\"append\">";
                     dlist.foreach ((row)=> {
                         htmlstr += dm_div (row, "Error", path);
@@ -310,61 +377,39 @@ namespace Gabut {
         private string javascr_dm (string path) {
             var script = "";
             if (path == "/Downloading") {
-                if (get_dl_row (StatusMode.ACTIVE).size > 0) {
-                    script = "<script>setInterval(function () { if (document.getElementById(\"myOverlay\").style.display != \"block\") {window.location.reload ();} }, 1300); </script>\n";
+                script += "<script> function update_progress(){if (document.getElementById(\"myOverlay\").style.display != \"block\") {";
+                var dlrow = get_dl_row (StatusMode.ACTIVE);
+                if (dlrow.size > 0) {
+                    dlrow.sort (sort_dm);
+                    dlrow.foreach ((row)=> {
+                        if (row.linkmode != LinkMode.HLS) {
+                            script += @"fetch(\"/Arirow\", {
+                                method: \"POST\",
+                                body: \"$(row.ariagid)\"
+                            }).then(r => r.json()).then(data => {
+                                document.getElementById(\"bar$(row.ariagid)\").style.width = (data.fraction * 100) + \"%\";
+                                document.getElementById(\"label$(row.ariagid)\").innerText = data.label;
+                            }).catch(() => {
+                                window.location.reload();
+                            });";
+                        } else {
+                            var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
+                            script += @"fetch(\"/HLSrow\", {
+                                method: \"POST\",
+                                body: \"$(check)\"
+                            }).then(r => r.json()).then(data => {
+                                document.getElementById(\"bar$(check)\").style.width = (data.fraction * 100) + \"%\";
+                                document.getElementById(\"label$(check)\").innerText = data.label;
+                            }).catch(() => {
+                                window.location.reload();
+                            });";
+                        }
+                        return true;
+                    });
                 }
+                script += "}} setInterval(update_progress, 1000); </script>";
             }
             return script;
-        }
-
-        private int sort_dm (DownloadRow row1, DownloadRow row2) {
-            var sortpos = int.parse (get_db_user (UserID.SHORTBY, username));
-            if (sortpos == 0) {
-                if (row1.filename != null && row2.filename != null) {
-                    var name1 = row1.filename.down ();
-                    var name2 = row2.filename.down ();
-                    if (name1 > name2) {
-                        return 1;
-                    }
-                    if (name1 < name2) {
-                        return -1;
-                    }
-                } else {
-                    return 0;
-                }
-            } else if (sortpos == 1) {
-                var total1 = row1.totalsize;
-                var total2 = row2.totalsize;
-                if (total1 > total2) {
-                    return 1;
-                }
-                if (total1 < total2) {
-                    return -1;
-                }
-            } else if (sortpos == 2) {
-                if (row1.fileordir != null && row2.fileordir != null) {
-                    var fordir1 = row1.fileordir.down ();
-                    var fordir2 = row2.fileordir.down ();
-                    if (fordir1 > fordir2) {
-                        return 1;
-                    }
-                    if (fordir1 < fordir2) {
-                        return -1;
-                    }
-                } else {
-                    return 0;
-                }
-            } else {
-                var timeadded1 = row1.timeadded;
-                var timeadded2 = row2.timeadded;
-                if (timeadded1 > timeadded2) {
-                    return 1;
-                }
-                if (timeadded1 < timeadded2) {
-                    return -1;
-                }
-            }
-            return 0;
         }
 
         private void share_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable? query) {
@@ -384,40 +429,91 @@ namespace Gabut {
             }
         }
 
-        private string dm_div (DownloadRow? row, string action, string path) {
+       private string dm_div (DownloadRow? row, string action, string path) {
             double fraction = ((double) row.transferred / (double) row.totalsize);
-            var sbuilder = "<div class=\"item\">";
-            if (row.fileordir != null) {
-                sbuilder += @"<a class=\"icon $(get_mime_css (row.fileordir))\"></a>";
+            var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
+
+            var sbuilder = "<div class=\"dm-item\">";
+
+            string mime_class = row.fileordir != null ? get_mime_css (row.fileordir) : "file";
+            sbuilder += @"<div class=\"dm-icon $(mime_class)\"></div>";
+
+            sbuilder += "<div class=\"dm-info\">";
+
+            if (row.filename != null) {
+                sbuilder += @"<div class=\"dm-name\" title=\"$(row.pathname ?? "")\">$(row.filename)</div>";
             } else {
-                sbuilder += "<a class=\"icon file\"></a>";
+                sbuilder += "<div class=\"dm-name dm-loading\">Loading information…</div>";
             }
-            sbuilder += "<ul class=\"name\">";
-            if (row.filename != null && row.pathname != null) {
-                sbuilder += @"<li><h4 title=\"$(row.pathname)\">$(row.filename)</h4></li>";
-            } else {
-                sbuilder += "<li><h4 title=\"Loading Informatioan\">\"Loading Informatioan\"</h4></li>";
-            }
+
             if (row.totalsize > 0) {
-                sbuilder += @"<li><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" style=\"width:$(fraction * 100)%\"></div></div></li>";
+                double pct = fraction * 100.0;
+                sbuilder += "<div class=\"dm-progress\"><div class=\"dm-progress-track\">";
+                sbuilder += @"<div class=\"dm-progress-fill\" id=\"bar$(row.ariagid)\" style=\"width:$(pct)%\"></div>";
+                sbuilder += "</div></div>";
+            } else if (row.linkmode == LinkMode.HLS) {
+                sbuilder += "<div class=\"dm-progress\"><div class=\"dm-progress-track\">";
+                sbuilder += @"<div class=\"dm-progress-fill\" id=\"bar$(check)\" style=\"width:$(row.fraction * 100)%\"></div>";
+                sbuilder += "</div></div>";
             } else {
-                sbuilder += "<li><div class=\"progress\"></div></li>";
+                sbuilder += "<div class=\"dm-progress\"><div class=\"dm-progress-track\">";
+                sbuilder += "<div class=\"dm-progress-fill dm-indeterminate\"></div>";
+                sbuilder += "</div></div>";
             }
+
             if (row.labeltransfer != null) {
-                sbuilder += @"<li>$(row.labeltransfer.to_ascii ())</li>";
+                if (path == "/Downloading") {
+                    string label_id = row.linkmode != LinkMode.HLS ? @"label$(row.ariagid)" : @"label$(check)";
+                    sbuilder += @"<div class=\"dm-label\" id=\"$(label_id)\"></div>";
+                } else {
+                    sbuilder += @"<div class=\"dm-label\">$(row.labeltransfer.to_ascii ())</div>";
+                }
             } else {
-                sbuilder += "<li>\"Loading file...\"</li>";
+                sbuilder += "<div class=\"dm-label dm-loading\">Loading file…</div>";
             }
-            sbuilder += "</ul>";
-            sbuilder += @"<div class=\"deleteb\"><form action=\"$(path)\" method=\"post\"> <input type=\"submit\" name=\"actiondelete $(row.ariagid)\" value=\"Delete\" class=\"btn btn-danger btn-lg active\"/></form></div>";
-            sbuilder += @"<form action=\"$(action != "Complete"? path : "/Dialog")\" method=\"post\"> <input type=\"submit\" name=\"actiondm $(row.ariagid)\" value=\"$(action)\" class=\"btn btn-primary btn-lg active\"/></form>";
+
+            sbuilder += "</div>";
+
+            sbuilder += "<div class=\"dm-actions\">";
+
+            string del_name  = row.linkmode != LinkMode.HLS ? @"actiondelete $(row.ariagid)linkmodeurl"  : @"actiondelete $(check)linkmodehls";
+            string act_name  = row.linkmode != LinkMode.HLS ? @"actiondm $(row.ariagid)linkmodeurl"       : @"actiondm $(check)linkmodehls";
+            string act_path  = action != "Complete" ? path : "/Dialog";
+
+            sbuilder += @"<form action=\"$(path)\" method=\"post\">";
+            sbuilder += @"<button class=\"dm-btn dm-btn-del\" type=\"submit\" name=\"$(del_name)\" value=\"Delete\" title=\"Delete\">";
+            sbuilder += "<svg viewBox=\"0 0 16 16\"><polyline points=\"2,4 14,4\"/><path d=\"M5 4V2h6v2\"/><path d=\"M6 7v5M10 7v5\"/><rect x=\"3\" y=\"4\" width=\"10\" height=\"10\" rx=\"1.5\"/></svg>";
+            sbuilder += "</button></form>";
+
+            string act_icon = "";
+            string act_class = "dm-btn-act";
+            if (action == "Pause") {
+                act_icon = "<svg viewBox=\"0 0 16 16\"><rect x=\"4\" y=\"3\" width=\"3\" height=\"10\" rx=\"1\"/><rect x=\"9\" y=\"3\" width=\"3\" height=\"10\" rx=\"1\"/></svg>";
+            } else if (action == "Start") {
+                act_icon = "<svg viewBox=\"0 0 16 16\"><path d=\"M5 3l8 5-8 5V3z\"/></svg>";
+            } else if (action == "Complete") {
+                act_icon = "<svg viewBox=\"0 0 16 16\"><polyline points=\"3,8 7,12 13,4\"/></svg>";
+                act_class = "dm-btn-done";
+            } else if (action == "Waiting") {
+                act_icon = "<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"6\"/><polyline points=\"8,5 8,8 10,10\"/></svg>";
+                act_class = "dm-btn-wait";
+            } else if (action == "Error") {
+                act_icon = "<svg viewBox=\"0 0 16 16\"><circle cx=\"8\" cy=\"8\" r=\"6\"/><line x1=\"8\" y1=\"5\" x2=\"8\" y2=\"9\"/><circle cx=\"8\" cy=\"11\" r=\"0.5\" fill=\"currentColor\"/></svg>";
+                act_class = "dm-btn-err";
+            }
+
+            sbuilder += @"<form action=\"$(act_path)\" method=\"post\">";
+            sbuilder += @"<button class=\"dm-btn $(act_class)\" type=\"submit\" name=\"$(act_name)\" value=\"$(action)\" title=\"$(action)\">";
+            sbuilder += act_icon;
+            sbuilder += "</button></form>";
+
+            sbuilder += "</div>";
             sbuilder += "</div>\n";
             return sbuilder;
         }
 
-        private int path_lenght = 0;
-        private bool firstscan = false;
         private async void directory_mode (Soup.ServerMessage msg, File file, File sourcef) throws Error {
+            this.sourcef = sourcef;
             var filesorters = new Gee.ArrayList<FSorter?> ();
             GLib.FileEnumerator enumerator = file.enumerate_children ("*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             GLib.FileInfo info;
@@ -491,6 +587,171 @@ namespace Gabut {
             var opcls = path_lenght < pathfile.length? "fadeInRight" : "fadeInLeft";
             msg.set_response ("text/html", Soup.MemoryUse.COPY, get_share (pathfile, htmlstr, opcls, username).data);
             path_lenght = pathfile.length;
+        }
+
+        private string load_item (Gee.ArrayList<FSorter?> filesorter, string pathfile, int dirfirst) {
+            string htmlstr = "";
+            filesorter.foreach ((fsorter) => {
+                switch (dirfirst) {
+                    case 1:
+                        if (fsorter.fileordir) {
+                            htmlstr += loaddiv (pathfile + fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
+                        }
+                        return true;
+                    case 2:
+                        if (!fsorter.fileordir) {
+                            htmlstr += loaddiv (pathfile +  fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
+                        }
+                        return true;
+                    default:
+                        htmlstr += loaddiv (pathfile +  fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
+                        return true;
+                }
+            });
+            return htmlstr;
+        }
+
+        private string loaddiv (string path, FileInfo? fileinfo, bool goback = true, bool fileordir = false, string mime = "", int64 size = 0, int infolder = 0) {
+            var sbuilder = "<div class=\"item\">";
+            if (goback) {
+                sbuilder += @"<a class=\"icon up\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
+            } else if (fileordir) {
+                sbuilder += @"<a class=\"icon folder\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
+            } else {
+                sbuilder += @"<a class=\"icon $(get_mime_css (mime))\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
+            }
+
+            if (fileinfo != null) {
+                string href_path   = GLib.Uri.unescape_string (path);
+                string link_target;
+                if (!fileordir && (is_video_mime (mime) || mime.has_prefix ("image/"))) {
+                    link_target = "/Player?path=" + GLib.Uri.escape_string (href_path, "", true);
+                } else {
+                    link_target = href_path;
+                }
+
+                sbuilder += @"<div class=\"col-name\"><a title=\"$(fileinfo.get_name ())\" href=\"$(link_target)\">$(fileinfo.get_name ())</a></div>";
+
+                if (goback) {
+                    sbuilder += "<div class=\"col-type\">—</div>";
+                } else if (fileordir) {
+                    sbuilder += "<div class=\"col-type\">Folder</div>";
+                } else {
+                    var type_label = mime.replace ("application/", "").replace ("image/", "").replace ("video/", "").replace ("audio/", "").replace ("text/", "").up ();
+                    if (type_label.length > 10) {
+                        type_label = type_label.substring (0, 10);
+                    }
+                    sbuilder += @"<div class=\"col-type\">$(type_label)</div>";
+                }
+
+                if (!fileordir) {
+                    sbuilder += @"<div class=\"col-size\">$(GLib.format_size (size).to_ascii ())</div>";
+                } else {
+                    authenti.add_path (path);
+                    sbuilder += @"<div class=\"col-size\">$(infolder != 0 ? infolder.to_string () + " items" : "Empty")</div>";
+                }
+
+                sbuilder += @"<div class=\"col-date\">$(fileinfo.get_modification_date_time ().format ("%b %d, %Y  %I:%M %p"))</div>";
+            } else {
+                sbuilder += "<div class=\"col-name\"><a href=\"" + GLib.Uri.unescape_string (path) + "\">Go Up</a></div>";
+                sbuilder += "<div class=\"col-type\">—</div>";
+                sbuilder += "<div class=\"col-size\">—</div>";
+                sbuilder += "<div class=\"col-date\">—</div>";
+            }
+            sbuilder += "</div>\n";
+            return sbuilder;
+        }
+
+        private void player_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
+            if (username == null) {
+                msg.set_redirect (Soup.Status.TEMPORARY_REDIRECT, "/Home");
+                return;
+            }
+
+            string? file_path = null;
+            if (query != null) {
+                file_path = query.get ("path");
+            }
+
+            if (file_path == null || file_path == "") {
+                msg.set_status (Soup.Status.BAD_REQUEST, "BAD");
+                return;
+            }
+            File sourcef = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
+            var full_path = sourcef.get_path () + file_path;
+            var file = File.new_for_path (full_path);
+
+            if (!file.query_exists ()) {
+                msg.set_status (Soup.Status.NOT_FOUND, "NOT FOUND");
+                return;
+            }
+
+            try {
+                FileInfo info = file.query_info ("standard::*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+                var mime = info.get_content_type () ?? "video/mp4";
+                    mime = remap_mime (mime);
+                var filename = info.get_name ();
+                string html;
+                if (mime.has_prefix ("image/")) {
+                    html = get_image_page (file_path, filename, mime);
+                } else {
+                    html = get_video_page (file_path, filename, remap_mime (mime));
+                }
+                msg.set_response ("text/html", Soup.MemoryUse.COPY, html.data);
+                msg.set_status (Soup.Status.OK, "OK");
+            } catch (Error e) {
+                msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "ERROR");
+            }
+        }
+
+        private int sort_dm (DownloadRow row1, DownloadRow row2) {
+            var sortpos = int.parse (get_db_user (UserID.SHORTBY, username));
+            if (sortpos == 0) {
+                if (row1.filename != null && row2.filename != null) {
+                    var name1 = row1.filename.down ();
+                    var name2 = row2.filename.down ();
+                    if (name1 > name2) {
+                        return 1;
+                    }
+                    if (name1 < name2) {
+                        return -1;
+                    }
+                } else {
+                    return 0;
+                }
+            } else if (sortpos == 1) {
+                var total1 = row1.totalsize;
+                var total2 = row2.totalsize;
+                if (total1 > total2) {
+                    return 1;
+                }
+                if (total1 < total2) {
+                    return -1;
+                }
+            } else if (sortpos == 2) {
+                if (row1.fileordir != null && row2.fileordir != null) {
+                    var fordir1 = row1.fileordir.down ();
+                    var fordir2 = row2.fileordir.down ();
+                    if (fordir1 > fordir2) {
+                        return 1;
+                    }
+                    if (fordir1 < fordir2) {
+                        return -1;
+                    }
+                } else {
+                    return 0;
+                }
+            } else {
+                var timeadded1 = row1.timeadded;
+                var timeadded2 = row2.timeadded;
+                if (timeadded1 > timeadded2) {
+                    return 1;
+                }
+                if (timeadded1 < timeadded2) {
+                    return -1;
+                }
+            }
+            return 0;
         }
 
         [CCode (instance_pos = -1)]
@@ -570,66 +831,18 @@ namespace Gabut {
             return 0;
         }
 
-        private string load_item (Gee.ArrayList<FSorter?> filesorter, string pathfile, int dirfirst) {
-            string htmlstr = "";
-            filesorter.foreach ((fsorter) => {
-                switch (dirfirst) {
-                    case 1:
-                        if (fsorter.fileordir) {
-                            htmlstr += loaddiv (pathfile + fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
-                        }
-                        return true;
-                    case 2:
-                        if (!fsorter.fileordir) {
-                            htmlstr += loaddiv (pathfile +  fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
-                        }
-                        return true;
-                    default:
-                        htmlstr += loaddiv (pathfile +  fsorter.name, fsorter.fileinfo, false, fsorter.fileordir, fsorter.mimetype, fsorter.size, fsorter.fileindir);
-                        return true;
-                }
-            });
-            return htmlstr;
-        }
-
-        private string loaddiv (string path, FileInfo? fileinfo, bool goback = true, bool fileordir = false, string mime = "", int64 size = 0, int infolder = 0) {
-            var sbuilder = "<div class=\"item\">";
-            if (goback) {
-                sbuilder += @"<a class=\"icon up\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
-            } else {
-                if (fileordir) {
-                    sbuilder += @"<a class=\"icon folder\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
-                } else {
-                    sbuilder += @"<a class=\"icon $(get_mime_css (mime))\" href=\"$(GLib.Uri.unescape_string (path))\"></a>";
-                }
-            }
-            if (fileinfo != null) {
-                sbuilder += @"<div class=\"name\"><a title=\"$(fileinfo.get_name ())\" href=\"$(GLib.Uri.unescape_string (path))\">$(fileinfo.get_name ())</a></div>";
-                if (!fileordir) {
-                    sbuilder += @"<div class=\"size\">$(GLib.format_size (size).to_ascii ())</div>";
-                } else {
-                    authenti.add_path (path);
-                    if (infolder != 0) {
-                        sbuilder += @"<div class=\"size\">$(infolder) items</div>";
-                    } else {
-                        sbuilder += "<div class=\"size\">Empty</div>";
-                    }
-                }
-                sbuilder += @"<div class=\"modified\">$(fileinfo.get_modification_date_time ().format ("%I:%M %p %x"))</div>";
-            } else {
-                sbuilder += @"<div class=\"name\"><a title=\"Go Up\" href=\"$(GLib.Uri.unescape_string (path))\">Go Up</a></div>";
-            }
-            sbuilder += "</div>\n";
-            return sbuilder;
-        }
-
         public string get_address () {
-            var soupuri = get_uris ().nth_data (0);
-            if (!bool.parse (get_dbsetting (DBSettings.IPLOCAL))) {
-                return @"$(soupuri.get_scheme ())://$(get_local_address ()):$(soupuri.get_port ())";
-            } else {
-                return @"$(soupuri.get_scheme ())://$(get_listeners ().nth_data (0).local_address)";
+            var uris = this.get_uris ();
+            if (uris != null && uris.length () > 0) {
+                var uri = uris.nth_data (0);
+                string host = uri.get_host ();
+                int port = uri.get_port ();
+                if (host == "0.0.0.0" || host == "::") {
+                    host = get_local_address ();
+                }
+                return @"$(uri.get_scheme ())://$(host):$(port)";
             }
+            return @"http://$(get_local_address ())";
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -22,8 +22,20 @@
 namespace Gabut {
     public class DeleteRow : Gtk.ListBoxRow {
         private Gtk.Image fileimg;
+        private Gtk.Image rmdlimg;
         private Gtk.Label filesizelabel;
         private Gtk.Label file_label;
+
+        private string _iconrmdl;
+        public string iconrmdl {
+            get {
+                return _iconrmdl;
+            }
+            set {
+                _iconrmdl = value;
+                rmdlimg.icon_name = _iconrmdl;
+            }
+        }
 
         private string _fileordir;
         public string fileordir {
@@ -43,7 +55,10 @@ namespace Gabut {
             }
             set {
                 _filebasename = value;
-                file_label.label = _filebasename;
+                file_label.label = GLib.Markup.escape_text (_filebasename);
+                if (fileordir == "") {
+                    fileordir = GLib.ContentType.guess(filebasename, null, null);
+                }
             }
         }
 
@@ -59,42 +74,40 @@ namespace Gabut {
         }
 
         construct {
-            fileimg = new Gtk.Image () {
-                valign = Gtk.Align.CENTER
+            Gtk.Box row = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 5) {
+                margin_start = 2,
+                margin_end = 5,
+                hexpand = true
             };
+
+            fileimg = new Gtk.Image () {
+                valign = Gtk.Align.CENTER,
+                halign = Gtk.Align.START
+            };
+            row.append (fileimg);
 
             file_label = new Gtk.Label (null) {
                 xalign = 0,
                 use_markup = true,
-                width_request = 395,
+                width_request = 385,
                 max_width_chars = 36,
                 ellipsize = Pango.EllipsizeMode.MIDDLE,
                 valign = Gtk.Align.CENTER,
+                halign = Gtk.Align.START,
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
+            row.append (file_label);
 
             filesizelabel = new Gtk.Label (null) {
-                xalign = 0,
-                use_markup = true,
-                width_request = 55,
                 halign = Gtk.Align.END,
                 attributes = color_attribute (0, 60000, 0)
             };
-
-            var grid = new Gtk.Grid () {
-                hexpand = true,
-                margin_start = 4,
-                margin_end = 4,
-                margin_top = 2,
-                margin_bottom = 2,
-                column_spacing = 4,
-                row_spacing = 2,
+            row.append (filesizelabel);
+            rmdlimg = new Gtk.Image () {
                 valign = Gtk.Align.CENTER
             };
-            grid.attach (fileimg, 1, 0);
-            grid.attach (file_label, 2, 0);
-            grid.attach (filesizelabel, 3, 0);
-            child = grid;
+            row.append (rmdlimg);
+            child = row;
         }
     }
 }

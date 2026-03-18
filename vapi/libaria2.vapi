@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -18,23 +18,3 @@
 *
 * Authored by: torikulhabib <torik.habib@Gmail.com>
 */
-
-namespace Gabut {
-	public class GdmOutstream : GLib.OutputStream {
-		public MemoryInputStream stream;
-
-		public GdmOutstream () {
-			stream = new MemoryInputStream ();
-		}
-
-		public override ssize_t write (uint8[] buffer, Cancellable? cancellable = null) throws IOError {
-			var byte = new GLib.Bytes (buffer);
-			stream.add_bytes (byte);
-			return (ssize_t) byte.get_size ();
-		}
-
-		public override bool close (Cancellable? cancellable = null) throws IOError {
-			return stream.close ();
-		}
-	}
-}

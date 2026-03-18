@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,12 @@
 
 namespace Gabut {
     public class PieceSelector : Gtk.FlowBoxChild {
-        public PieceSelectors selector { get; private set; }
+        public PieceSelectors selector { get; construct; }
 
         public PieceSelector (PieceSelectors selector) {
-            this.selector = selector;
+            Object(selector: selector);
+        }
+        construct {
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (selector.to_string ()) {
                 halign = Gtk.Align.CENTER,

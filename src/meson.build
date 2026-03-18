@@ -1,4 +1,23 @@
-sources = files (
+cheaders = files(
+    'ffmpeg_merger.h',
+    'aria2_wrapper.h'
+ )
+
+csources = files(
+    'ffmpeg_merger.cc',
+    'aria2_wrapper.cc'
+)
+
+cplus_files = [
+    csources,
+    cheaders,
+]
+
+install_headers(cheaders)
+add_languages('cpp')
+executable (
+    meson.project_name (),
+    cplus_files,
     'Application.vala',
     'Downloader.vala',
     'DownloadRow.vala',
@@ -16,7 +35,8 @@ sources = files (
     'ServerUpload.vala',
     'ServerHome.vala',
     'ServerDM.vala',
-    'ServerCss.vala',
+    'ServerVideo.vala',
+    'ServerImage.vala',
     'FileAllocation.vala',
     'ProxyMethod.vala',
     'ChecksumType.vala',
@@ -33,11 +53,9 @@ sources = files (
     'ServerNotFound.vala',
     'ServerComplete.vala',
     'SortBy.vala',
-    'GdmOutstream.vala',
     'DbusIndicator.vala',
     'PeersRow.vala',
     'ServerRow.vala',
-    'TorrentRow.vala',
     'GdmPaint.vala',
     'GdmMenu.vala',
     'ProgressPaint.vala',
@@ -45,5 +63,27 @@ sources = files (
     'OpenMenu.vala',
     'DeleteDialog.vala',
     'DeleteRow.vala',
-    'ProxyRecently.vala'
+    'ProxyRecently.vala',
+    'BitfieldPaint.vala',
+    'TrFileInfo.vala',
+    'BencodeValue.vala',
+    'BencodeParser.vala',
+    'TorrentInfo.vala',
+    'TorrentParser.vala',
+    'FileTreeItem.vala',
+    'AddTorrent.vala',
+    'SegmentDownloader.vala',
+    'ModeItem.vala',
+    'AddHls.vala',
+    'HLSRow.vala',
+    'HLSLBox.vala',
+    'HlsOption.vala',
+    'DownloaderHls.vala',
+    'HlsManBox.vala',
+    'SoupSessionPool.vala',
+    'DbusStatusWhacher.vala',
+    dependencies: dependencies,
+    cpp_args: ['-std=c++17'],
+    link_args: ['-lm', '-lstdc++'],
+    install: true
 )

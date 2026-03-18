@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2025} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -25,6 +25,7 @@ namespace Gabut {
         private Gtk.Image icon_badge;
         private Gtk.Label item_file;
         public Gee.ArrayList<DownloadRow> datarow;
+        public int totalrow;
         private Gtk.ListBox lisbox_trash;
         public string infolabel;
 
@@ -58,6 +59,10 @@ namespace Gabut {
             }
         }
 
+        public DeleteDialog () {
+            Object (resizable: false, use_header_bar: 1);
+        }
+
         construct {
             lisbox_trash = new Gtk.ListBox ();
             var scr_trash = new Gtk.ScrolledWindow () {
@@ -72,8 +77,6 @@ namespace Gabut {
                 transition_type = Gtk.RevealerTransitionType.SLIDE_DOWN,
                 child = scr_trash
             };
-            resizable = false;
-            use_header_bar = 1;
             var icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
@@ -123,7 +126,8 @@ namespace Gabut {
                     var dlrws = new DeleteRow () {
                         fileordir = dlrw.fileordir,
                         filebasename = dlrw.filename,
-                        totalsize = dlrw.totalsize
+                        totalsize = dlrw.totalsize,
+                        iconrmdl = icimg
                     };
                     lisbox_trash.append (dlrws);
                     return  true;
@@ -185,15 +189,29 @@ namespace Gabut {
             area.halign = Gtk.Align.CENTER;
             area.append (revtrash);
             area.append (centerbox);
+            move_window (this, revtrash);
+        }
+
+        public override bool close_request () {
+           return base.close_request ();
+        }
+
+        public override void close () {
+            base.close ();
         }
 
         public override void show () {
             base.show ();
             if (datarow.size < 2) {
-                item_file.label = _("%s").printf (datarow.get (0).filename);
-                icon_badge.gicon = GLib.ContentType.get_icon (datarow.get (0).fileordir); 
+                item_file.label = GLib.Markup.escape_text(datarow.get (0).filename);
+                var fileordir = datarow.get (0).fileordir;
+                if (fileordir != "") {
+                    icon_badge.gicon = GLib.ContentType.get_icon (fileordir); 
+                } else {
+                    icon_badge.gicon = get_icon_for_filename (datarow.get (0).filename);
+                }
             } else {
-                item_file.label = _("%s %i item").printf (infolabel,datarow.size);
+                item_file.label = _("%s %i of %i item").printf (infolabel,datarow.size, totalrow);
             }
         }
     }

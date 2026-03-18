@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -20,11 +20,13 @@
 */
 
 namespace Gabut {
-    public class ChecksumType : Gtk.FlowBoxChild {
-        public AriaChecksumTypes checksums { get; private set; }
+    public class GdmChecksumType : Gtk.FlowBoxChild {
+        public AriaChecksumTypes checksums { get; construct; }
 
-        public ChecksumType (AriaChecksumTypes checksums) {
-            this.checksums = checksums;
+        public GdmChecksumType (AriaChecksumTypes checksums) {
+            Object(checksums: checksums);
+        }
+        construct {
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (checksums.to_string ().up ().replace ("=", "").replace ("-", "")) {
                 halign = Gtk.Align.CENTER,

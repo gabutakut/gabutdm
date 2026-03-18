@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,13 +21,6 @@
 
 namespace Gabut {
     private class MediaEntry : Gtk.Entry {
-        public enum EntryType {
-            STANDARD,
-            WITHSIGNAL,
-            INFO
-        }
-        public signal void pclicked ();
-        public signal void sclicked ();
         private Gdk.Clipboard clipboard;
         public EntryType entrytype { get; construct; }
 
@@ -69,22 +62,15 @@ namespace Gabut {
         }
 
         construct {
+            clipboard = get_display ().get_clipboard ();
             icon_press.connect ((pos) => {
                 switch (entrytype) {
                     case EntryType.WITHSIGNAL:
-                        if (pos == Gtk.EntryIconPosition.PRIMARY) {
-                            pclicked ();
-                        }
-                        if (pos == Gtk.EntryIconPosition.SECONDARY) {
-                            sclicked ();
-                        }
                         break;
                     default:
-                        clipboard = get_display ().get_clipboard ();
                         if (pos == Gtk.EntryIconPosition.PRIMARY) {
                             clipboard.set_text (text);
-                        }
-                        if (pos == Gtk.EntryIconPosition.SECONDARY) {
+                        } else if (pos == Gtk.EntryIconPosition.SECONDARY) {
                             get_value.begin ();
                         }
                         break;
@@ -92,7 +78,7 @@ namespace Gabut {
             });
         }
 
-        private async void get_value () throws Error {
+        public async void get_value () throws Error {
             unowned GLib.Value? value = yield clipboard.read_value_async (GLib.Type.STRING, GLib.Priority.DEFAULT, null);
             text = value.get_string ();
         }

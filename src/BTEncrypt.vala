@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,13 @@
 
 namespace Gabut {
     public class BTEncrypt : Gtk.FlowBoxChild {
-        public BTEncrypts btencrypt { get; private set; }
+        public BTEncrypts btencrypt { get; construct; }
 
         public BTEncrypt (BTEncrypts btencrypt) {
-            this.btencrypt = btencrypt;
+            Object(btencrypt: btencrypt);
+        }
+
+        construct {
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (btencrypt.to_string ()) {
                 halign = Gtk.Align.CENTER,

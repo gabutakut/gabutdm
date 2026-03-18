@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -94,16 +94,15 @@ namespace Gabut {
             resizable = false;
             use_header_bar = 1;
             var view_mode = new ModeButton () {
-                hexpand = false,
-                homogeneous = true,
-                width_request = 300
+                hexpand = false
             };
-            view_mode.append_text (_("Shorcuts"));
-            view_mode.append_text (_("Default"));
-            view_mode.append_text (_("BitTorrent"));
-            view_mode.append_text (_("Sharing"));
-            view_mode.append_text (_("Option"));
-            view_mode.append_text (_("System"));
+            view_mode.append_icon ("com.github.gabutakut.gabutdm.shortcut", 32);
+            view_mode.append_icon ("com.github.gabutakut.gabutdm.default", 32);
+            view_mode.append_icon ("com.github.gabutakut.gabutdm.hls", 32);
+            view_mode.append_icon ("com.github.gabutakut.gabutdm.torrent", 32);
+            view_mode.append_icon ("com.github.gabutakut.gabutdm.sharing", 32);
+            view_mode.append_icon ("com.github.gabutakut.gabutdm.system", 32);
+            view_mode.append_icon ("com.github.gabutakut.gabutdm.notify", 32);
             view_mode.selected = 0;
 
             var header = get_header_bar ();
@@ -132,34 +131,34 @@ namespace Gabut {
             boxshrot.attach (new Gtk.Image.from_icon_name ("window-close"), 1, 1);
             boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.settings"), 1, 2);
             boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.find"), 1, 3);
-            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.activeall"), 1, 4);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.active"), 1, 4);
             boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.progress"), 1, 5);
             boxshrot.attach (new Gtk.Image.from_icon_name ("edit-select-all"), 1, 6);
-            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.active"), 1, 7);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.activeall"), 1, 7);
             boxshrot.attach (new Gtk.Image.from_icon_name ("folder-open"), 1, 8);
-            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.uri"), 1, 9);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.torrent"), 1, 9);
             boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.Delete, Gdk.ModifierType.NO_MODIFIER_MASK)), 2, 0);
-            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.d, Gdk.ModifierType.CONTROL_MASK)), 2, 1);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.y, Gdk.ModifierType.CONTROL_MASK)), 2, 1);
             boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.h, Gdk.ModifierType.CONTROL_MASK)), 2, 2);
             boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.m, Gdk.ModifierType.CONTROL_MASK)), 2, 3);
             boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.x, Gdk.ModifierType.CONTROL_MASK)), 2, 4);
-            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.c, Gdk.ModifierType.CONTROL_MASK)), 2, 5);
+            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.r, Gdk.ModifierType.CONTROL_MASK)), 2, 5);
             boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.u, Gdk.ModifierType.CONTROL_MASK)), 2, 6);
             boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.f, Gdk.ModifierType.CONTROL_MASK)), 2, 7);
-            boxshrot.attach (new Gtk.ShortcutLabel (Gtk.accelerator_name (Gdk.Key.r, Gdk.ModifierType.CONTROL_MASK)), 2, 8);
             boxshrot.attach (new Gtk.Image.from_icon_name ("user-trash-full"), 3, 0);
-            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.select"), 3, 1);
+            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.hls"), 3, 1);
             boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.gohome"), 3, 2);
             boxshrot.attach (new Gtk.Image.from_icon_name ("document-properties"), 3, 3);
             boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.pause"), 3, 4);
             boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.clear"), 3, 5);
             boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.insertlink"), 3, 6);
             boxshrot.attach (new Gtk.Image.from_icon_name ("view-fullscreen"), 3, 7);
-            boxshrot.attach (new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.clearone"), 3, 8);
             var scrolshort = new Gtk.ScrolledWindow () {
                 width_request = 614,
                 child = boxshrot
             };
+            move_window (this, scrolshort);
+
             var pack_data = aria_v2_globalops ();
             var numbtries = new Gtk.SpinButton.with_range (0, 100, 1) {
                 width_request = 300,
@@ -175,7 +174,7 @@ namespace Gabut {
                 value = double.parse (pharse_options (pack_data, AriaOptions.MAX_CONNECTION_PER_SERVER))
             };
 
-            var maxcurrent = new Gtk.SpinButton.with_range (1, 50, 1) {
+            var maxcurrent = new Gtk.SpinButton.with_range (1, 20, 1) {
                 width_request = 300,
                 hexpand = true,
                 tooltip_text = _("The maximum number of parallel downloads for every queue item"),
@@ -307,6 +306,51 @@ namespace Gabut {
             settings.attach (headerlabel (_("Uri Selector:"), 300), 0, 8, 1, 1);
             settings.attach (urisel_button, 0, 9, 1, 1);
 
+            var hlsconn = new Gtk.SpinButton.with_range (0, 64, 1) {
+                width_request = 300,
+                hexpand = true,
+                tooltip_text = _("The maximum number of connections to one server for each download"),
+                value = double.parse (get_dbsetting (DBSettings.HLSPARALLELCON))
+            };
+
+            var hlsactive = new Gtk.SpinButton.with_range (1, 20, 1) {
+                width_request = 300,
+                hexpand = true,
+                tooltip_text = _("The maximum number of parallel downloads for every queue item"),
+                value = double.parse (get_dbsetting (DBSettings.HLSACTIVE))
+            };
+
+            var hlstimeout = new Gtk.SpinButton.with_range (0, 10000, 1) {
+                width_request = 300,
+                hexpand = true,
+                tooltip_text = _("Timeout"),
+                value = double.parse (get_dbsetting (DBSettings.HLSTIMEOUT))
+            };
+
+            var hlsretry = new Gtk.SpinButton.with_range (0, 5, 1) {
+                width_request = 300,
+                hexpand = true,
+                tooltip_text = _("The seconds to wait between retries"),
+                value = double.parse (get_dbsetting (DBSettings.HLSRETRIES))
+            };
+            var hlssets = new Gtk.Grid () {
+                column_homogeneous = true,
+                height_request = 150,
+                margin_bottom = 5,
+                column_spacing = 10,
+                margin_start = 2,
+                margin_end = 2,
+                halign = Gtk.Align.START
+            };
+            hlssets.attach (headerlabel (_("HLS Active Download:"), 300), 1, 0, 1, 1);
+            hlssets.attach (hlsactive, 1, 1, 1, 1);
+            hlssets.attach (headerlabel (_("HLS Connection:"), 300), 0, 0, 1, 1);
+            hlssets.attach (hlsconn, 0, 1, 1, 1);
+            hlssets.attach (headerlabel (_("HLS Timeout:"), 300), 1, 2, 1, 1);
+            hlssets.attach (hlstimeout, 1, 3, 1, 1);
+            hlssets.attach (headerlabel (_("HLS Retry:"), 300), 0, 2, 1, 1);
+            hlssets.attach (hlsretry, 0, 3, 1, 1);
+
             var maxopfile = new Gtk.SpinButton.with_range (0, 200, 1) {
                 width_request = 300,
                 hexpand = true,
@@ -352,7 +396,7 @@ namespace Gabut {
                 wrap_mode = Gtk.WrapMode.WORD_CHAR,
                 tooltip_text = _("Comma separated list of additional BitTorrent tracker's announce URI")
             };
-            trackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_TRACKER).replace ("\\/", "/");
+            trackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_TRACKER);
 
             var trackerscr = new Gtk.ScrolledWindow () {
                 width_request = 300,
@@ -367,14 +411,9 @@ namespace Gabut {
             load_tr.clicked.connect (() => {
                 run_open_text.begin (this, OpenFiles.OPENTEXTONE, (obj, res)=> {
                     try {
-                        GLib.File file;
-                        run_open_text.end (res, out file);
+                        GLib.File file = run_open_text.end (res);
                         if (file != null) {
-                            try {
-                                trackertext.buffer.text = (string) file.load_bytes ().get_data ();
-                            } catch (Error e) {
-                                GLib.warning (e.message);
-                            }
+                            trackertext.buffer.text = (string) file.load_bytes ().get_data ();
                         }
                     } catch (GLib.Error e) {
                         critical (e.message);
@@ -416,7 +455,7 @@ namespace Gabut {
                 wrap_mode = Gtk.WrapMode.WORD_CHAR,
                 tooltip_text = _("Comma separated list of BitTorrent tracker's announce URI to remove")
             };
-            etrackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_EXCLUDE_TRACKER).replace ("\\/", "/");
+            etrackertext.buffer.text = pharse_options (pack_data, AriaOptions.BT_EXCLUDE_TRACKER);
 
             var etrackerscr = new Gtk.ScrolledWindow () {
                 width_request = 300,
@@ -431,14 +470,9 @@ namespace Gabut {
             load_etr.clicked.connect (() => {
                 run_open_text.begin (this, OpenFiles.OPENTEXTTWO, (obj, res)=> {
                     try {
-                        GLib.File file;
-                        run_open_text.end (res, out file);
+                        GLib.File file = run_open_text.end (res);
                         if (file != null) {
-                            try {
-                                etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
-                            } catch (Error e) {
-                                GLib.warning (e.message);
-                            }
+                            etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
                         }
                     } catch (GLib.Error e) {
                         critical (e.message);
@@ -505,8 +539,7 @@ namespace Gabut {
             folder_location.clicked.connect (()=> {
                 run_open_fd.begin (this, OpenFiles.OPENGLOBALFOLDER, "", (obj, res)=> {
                     try {
-                        GLib.File file;
-                        run_open_fd.end (res, out file);
+                        GLib.File file = run_open_fd.end (res);
                         if (file != null) {
                             selectfd = file;
                         }
@@ -515,7 +548,8 @@ namespace Gabut {
                     }
                 });
             });
-            selectfd = File.new_for_path (pharse_options (pack_data, AriaOptions.DIR).replace ("\\/", "/"));
+
+            selectfd = File.new_for_path (fix_path (pharse_options (pack_data, AriaOptions.DIR)));
 
             folder_sharing = new Gtk.Button () {
                 tooltip_text = _("The directory is Shared for connected the same Network")
@@ -523,8 +557,7 @@ namespace Gabut {
             folder_sharing.clicked.connect (()=> {
                 run_open_fd.begin (this, OpenFiles.OPENFOLDERSHARING, "", (obj, res)=> {
                     try {
-                        GLib.File file;
-                        run_open_fd.end (res, out file);
+                        GLib.File file = run_open_fd.end (res);
                         if (file != null) {
                             selectfs = file;
                         }
@@ -552,8 +585,9 @@ namespace Gabut {
 
             add_auth.clicked.connect (()=> {
                 rowpos++;
+                int64 new_id = get_next_available_id ("users");
                 var users = UsersID ();
-                users.id = add_db_user (get_real_time ());;
+                users.id = add_db_user (new_id);;
                 users.activate = false;
                 users.user = "";
                 users.passwd = "";
@@ -848,6 +882,7 @@ namespace Gabut {
             };
             stack.add_child (scrolshort);
             stack.add_child (settings);
+            stack.add_child (hlssets);
             stack.add_child (bittorrent);
             stack.add_child (folderopt);
             stack.add_child (moreoptions);
@@ -874,6 +909,10 @@ namespace Gabut {
                 set_dbsetting (DBSettings.SYSTEMNOTIF, systemnotif.active.to_string ());
                 set_dbsetting (DBSettings.DBUSMENU, dbusmenu.active.to_string ());
                 set_dbsetting (DBSettings.NOTIFSOUND, soundnotif.active.to_string ());
+                set_dbsetting (DBSettings.HLSPARALLELCON, hlsconn.value.to_string ());
+                set_dbsetting (DBSettings.HLSACTIVE, hlsactive.value.to_string ());
+                set_dbsetting (DBSettings.HLSTIMEOUT, hlstimeout.value.to_string ());
+                set_dbsetting (DBSettings.HLSRETRIES, hlsretry.value.to_string ());
                 if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE))
                 || tdefault.active != bool.parse (get_dbsetting (DBSettings.TDEFAULT))
                 || theme_mode.id.to_string () != get_dbsetting (DBSettings.THEMESELECT)
@@ -883,16 +922,17 @@ namespace Gabut {
                     set_dbsetting (DBSettings.THEMESELECT, theme_mode.id.to_string ());
                     set_dbsetting (DBSettings.THEMECUSTOM, theme_entry.text);
                 }
-                gdm_theme.begin ();
+                gdm_theme ();
+                menuglobal ();
                 if (label_mode.id != int.parse (get_dbsetting (DBSettings.LABELMODE))) {
                     set_dbsetting (DBSettings.LABELMODE, label_mode.id.to_string ());
                 }
-                if (aria_get_ready ()) {
+                if (engine.is_running ()) {
                     aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
                     aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, set_dbsetting (DBSettings.CONNSERVER, numbconn.value.to_string ()));
                     aria_set_globalops (AriaOptions.TIMEOUT, set_dbsetting (DBSettings.TIMEOUT, timeout.value.to_string ()));
                     aria_set_globalops (AriaOptions.RETRY_WAIT, set_dbsetting (DBSettings.RETRY, retry.value.to_string ()));
-                    aria_set_globalops (AriaOptions.DIR, set_dbsetting (DBSettings.DIR, selectfd.get_path ().replace ("/", "\\/")));
+                    aria_set_globalops (AriaOptions.DIR, set_dbsetting (DBSettings.DIR, selectfd.get_path ()));
                     aria_set_globalops (AriaOptions.BT_MAX_PEERS, set_dbsetting (DBSettings.BTMAXPEERS, maxpeers.value.to_string ()));
                     aria_set_globalops (AriaOptions.SPLIT, set_dbsetting (DBSettings.SPLIT, split.value.to_string ()));
                     aria_set_globalops (AriaOptions.BT_TRACKER_TIMEOUT, set_dbsetting (DBSettings.BTTIMEOUTTRACK, bt_timeout.value.to_string ()));
@@ -902,8 +942,8 @@ namespace Gabut {
                     aria_set_globalops (AriaOptions.AUTO_FILE_RENAMING, set_dbsetting (DBSettings.AUTORENAMING, autorename.active.to_string ()));
                     aria_set_globalops (AriaOptions.MAX_OVERALL_UPLOAD_LIMIT, set_dbsetting (DBSettings.UPLOADLIMIT, (bt_upload.value * 1024).to_string ()));
                     aria_set_globalops (AriaOptions.MAX_OVERALL_DOWNLOAD_LIMIT, set_dbsetting (DBSettings.DOWNLOADLIMIT, (bt_download.value * 1024).to_string ()));
-                    aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, trackertext.buffer.text.replace ("/", "\\/")));
-                    aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, etrackertext.buffer.text.replace ("/", "\\/")));
+                    aria_set_globalops (AriaOptions.BT_TRACKER, set_dbsetting (DBSettings.BTTRACKER, trackertext.buffer.text));
+                    aria_set_globalops (AriaOptions.BT_EXCLUDE_TRACKER, set_dbsetting (DBSettings.BTTRACKEREXC, etrackertext.buffer.text));
                     aria_set_globalops (AriaOptions.MIN_SPLIT_SIZE, set_dbsetting (DBSettings.SPLITSIZE, (splitsize.value * 1024).to_string ()));
                     aria_set_globalops (AriaOptions.LOWEST_SPEED_LIMIT, set_dbsetting (DBSettings.LOWESTSPEED, (lowestspd.value * 1024).to_string ()));
                     aria_set_globalops (AriaOptions.URI_SELECTOR, set_dbsetting (DBSettings.URISELECTOR, uriselector.selector.to_string ().down ()));
@@ -925,11 +965,7 @@ namespace Gabut {
                     || bt_listenport.value != double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
                     || dht_listenport.value != double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
                     || fileallocation.fileallocation.to_string ().down () != aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
-                        aria_shutdown ();
-                        do {
-                        } while (aria_get_ready ());
-                        exec_aria ();
-                        restart_process ();
+                        start_engine.begin ();
                         close ();
                     } else if (local_port.value.to_string () != get_dbsetting (DBSettings.PORTLOCAL)) {
                         set_dbsetting (DBSettings.PORTLOCAL, local_port.value.to_string ());
@@ -965,15 +1001,18 @@ namespace Gabut {
                         stack.visible_child = settings;
                         break;
                     case 2:
-                        stack.visible_child = bittorrent;
+                        stack.visible_child = hlssets;
                         break;
                     case 3:
-                        stack.visible_child = folderopt;
+                        stack.visible_child = bittorrent;
                         break;
                     case 4:
-                        stack.visible_child = moreoptions;
+                        stack.visible_child = folderopt;
                         break;
                     case 5:
+                        stack.visible_child = moreoptions;
+                        break;
+                    case 6:
                         stack.visible_child = notyscr;
                         break;
                     default:
@@ -981,6 +1020,14 @@ namespace Gabut {
                         break;
                 }
             });
+        }
+
+        public override bool close_request () {
+           return base.close_request ();
+        }
+
+        public override void close () {
+            base.close ();
         }
     }
 }

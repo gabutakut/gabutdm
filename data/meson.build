@@ -33,7 +33,6 @@ actions = [
     '.hdd.svg',
     '.date.svg',
     '.svdrv.svg',
-    '.cookie.svg',
     '.opt.svg',
     '.menu.svg',
     '.onactive.svg',
@@ -45,7 +44,15 @@ actions = [
     '.progress.svg',
     '.clearone.svg',
     '.activeall.svg',
-    '.peerchoking.svg'
+    '.peerchoking.svg',
+    '.stopfind.svg',
+    '.hls.svg',
+    '.sharing.svg',
+    '.shortcut.svg',
+    '.default.svg',
+    '.system.svg',
+    '.notify.svg',
+    '.verify.svg'
 ]
 
 foreach m : actions
@@ -55,7 +62,6 @@ foreach m : actions
     )
 endforeach
 
-# Translate and install our .desktop file so the Applications Menu will see it
 i18n.merge_file (
     input: meson.project_name () + '.desktop.in',
     output: meson.project_name () + '.desktop',
@@ -72,7 +78,6 @@ i18n.merge_file (
     install: true,
     install_dir: join_paths(get_option('sysconfdir'), 'xdg', 'autostart')
 )
-
 i18n.merge_file (
     input: meson.project_name () + '.appdata.xml.in',
     output: meson.project_name () + '.appdata.xml',

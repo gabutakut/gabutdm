@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,111 +21,126 @@
 
 namespace Gabut {
     [DBus (name = "com.canonical.dbusmenu")]
-    private class CanonicalDbusmenu : GLib.Object {
-        public signal void item_activation_requested (int id, uint timestamp);
-        public signal void items_properties_updated (DbusmenuMenuitem[] updated_props, MenuItemPropertyDescriptor[] removed_props);
-        public signal void layout_updated (uint revision, int parent);
+    public class CanonicalDbusmenu : GLib.Object {
+        public signal void item_activation_requested(int id, uint timestamp);
+        public signal void items_properties_updated(DBusMenu.DbusmenuMenuitem[] updated_props, DBusMenu.MenuItemPropertyDescriptor[] removed_props);
+        public signal void layout_updated(uint revision, int parent);
+        public signal void item_activated(int id);
 
-        internal Variant[] children;
-        internal DbusmenuMenuitem[] dbusmenumenuitem;
-        internal uint revision;
-        public string[] icon_theme_path {get;}
+        private string[] _icon_theme_path = {};
+        public string[] icon_theme_path { 
+            owned get { return _icon_theme_path; }
+        }
+
         public string status {
-            get {
-                return "normal";
-            }
+            owned get { return "normal"; }
         }
+
         public string text_direction {
-            get {
-                return "ltr";
-            }
+            owned get { return "ltr"; }
         }
+
         public uint version {
-            get {
-                return 2;
-            }
+            get { return 3; }
         }
 
-        internal GLib.ObjectPath dbus_object = new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf (get_app_id ().hash ()));
-        public CanonicalDbusmenu () {
-            register_dbus.begin ();
-        }
-        private async void register_dbus () throws Error {
-            var session_connection = yield GLib.Bus.@get (GLib.BusType.SESSION);
-            session_connection.register_object (dbus_object, this);
-        }
+        private DBusMenu.DbusmenuItem? root = null;
+        private Variant[] children = {};
+        private DBusMenu.DbusmenuMenuitem[] dbusmenumenuitem = {};
+        private uint revision = 1;
 
-        internal DbusmenuItem root;
-        internal void set_root (DbusmenuItem root) {
-            this.root = root;
-            children = {};
-            dbusmenumenuitem = {};
-            this.revision = this.revision + root.menuchildren.length ();
-            layout_updated (revision, root.id);
-            root.menuchildren.foreach ((menuitem)=> {
-                children += set_layouts (menuitem.id, menuitem.properties, {});
-                dbusmenumenuitem += set_item (menuitem.id, menuitem.properties);
+        internal void set_root(DBusMenu.DbusmenuItem? root_item) throws GLib.Error {
+            this.root = root_item;
+            this.root.children.sort((a, b)=> {
+                return a.id - b.id;
             });
-            items_properties_updated ({set_item (root.id, set_item_prop ({"children-display"}, {new Variant.string ("submenu")}))}, {});
+            update_layout();
         }
 
-        internal MenuItemLayout set_layouts (int id, GLib.HashTable<string, GLib.Variant> menu, Variant[] variant) {
-            var menuitemlayout = MenuItemLayout ();
-            menuitemlayout.id = id;
-            menuitemlayout.properties = menu;
-            menuitemlayout.children = variant;
-            return menuitemlayout;
-        }
-
-        internal DbusmenuMenuitem set_item (int id, GLib.HashTable<string, Variant> make) {
-            var dbusitem = DbusmenuMenuitem ();
-            dbusitem.id = id;
-            dbusitem.properties = make;
-            return dbusitem;
-        }
-
-        internal GLib.HashTable<string, GLib.Variant> set_item_prop (string[] prop, Variant[] variant) {
-            var properties = new GLib.HashTable<string, GLib.Variant> (str_hash, str_equal);
-            for (int i = 0; i < prop.length; i++) {
-                properties[prop[i]] = variant[i];
+        private void update_layout() throws GLib.Error {
+            if (root == null) {
+                return;
             }
-            return properties;
+            revision++;
+            var children_list = new Variant[0];
+            var items_list = new DBusMenu.DbusmenuMenuitem[0];
+
+            foreach (var child in root.children) {
+                children_list += create_layout(child.id, child.properties, {});
+                items_list += create_menuitem(child.id, child.properties);
+            }
+
+            children = children_list;
+            dbusmenumenuitem = items_list;
+
+            var updated_props = new DBusMenu.DbusmenuMenuitem[1];
+            var root_props = new GLib.HashTable<string, Variant>(GLib.str_hash, GLib.str_equal);
+            root_props["children-display"] = new Variant.string("submenu");
+            updated_props[0] = create_menuitem(root.id, root_props);
+
+            items_properties_updated(updated_props, {});
+            layout_updated(revision, root.id);
         }
 
-        public void event (int id, string event_id, Variant data, uint timestamp) throws GLib.Error {
-            if (event_id == "clicked") {
-                if (root != null) {
-                    Variant name;
-                    _get_property (id, "label", out name);
-                    root.signal_send (id, name);
-                }
+        private DBusMenu.MenuItemLayout create_layout(int id, GLib.HashTable<string, Variant> props, Variant[] child_variants) {
+            return DBusMenu.MenuItemLayout() {
+                id = id,
+                properties = props,
+                children = child_variants
+            };
+        }
+
+        private DBusMenu.DbusmenuMenuitem create_menuitem(int id, GLib.HashTable<string, Variant> props) {
+            return DBusMenu.DbusmenuMenuitem() {
+                id = id,
+                properties = props
+            };
+        }
+
+        public void Event(int id, string event_id, Variant data, uint timestamp) throws GLib.Error {
+            if (event_id == "clicked" || event_id == "activated") {
+                item_activation_requested(id, timestamp);
+                item_activated(id);
             }
         }
-        public void event_group (MenuEvent events, out int[] id_errors) throws GLib.Error {
-            event (events.id, events.eventid, events.data, events.timestamp);
+        
+        public void EventGroup(DBusMenu.MenuEvent[] events, out int[] id_errors) throws GLib.Error {
             id_errors = {};
+            foreach (var ev in events) {
+                Event(ev.id, ev.eventid, ev.data, ev.timestamp);
+            }
         }
-
-        public void _get_property (int id, string name, out Variant value) throws GLib.Error {
-            foreach (var menumenuitem in dbusmenumenuitem) {
-                if (menumenuitem.properties.contains (name) && menumenuitem.id == id) {
-                    value = menumenuitem.properties.get (name);
+        
+        public void GetProperty(int id, string name, out Variant value) throws GLib.Error {
+            foreach (var item in dbusmenumenuitem) {
+                if (item.id == id && item.properties.contains(name)) {
+                    value = item.properties.get(name);
                     return;
                 }
             }
-            value = new Variant.string ("");
+            value = new Variant.string("");
         }
-        public void get_layout (int parent_id, int recursion_depth, string[] property_names, out uint revision, out MenuItemLayout layout) throws GLib.Error {
-            revision = this.revision;
-            layout = set_layouts (root.id, root.properties, children);
+        
+        public void GetLayout(int parent_id, int recursion_depth, string[] property_names, out uint rev, out DBusMenu.MenuItemLayout layout) throws GLib.Error {
+            rev = revision;
+            
+            if (parent_id == 0 && root != null) {
+                layout = create_layout(root.id, root.properties, children);
+            } else {
+                var props = new GLib.HashTable<string, Variant>(GLib.str_hash, GLib.str_equal);
+                layout = create_layout(parent_id, props, {});
+            }
         }
-        public void get_group_properties (int[] ids, string[] property_names, out DbusmenuMenuitem[] properties) throws GLib.Error {
-            properties = dbusmenumenuitem;
+        
+        public void GetGroupProperties(int[] ids, string[] property_names, out DBusMenu.DbusmenuMenuitem[] props) throws GLib.Error {
+            props = dbusmenumenuitem;
         }
-        public void about_to_show (int id, out bool need_update) throws GLib.Error {
+        
+        public void AboutToShow(int id, out bool need_update) throws GLib.Error {
             need_update = false;
         }
-        public void about_to_show_group (int[] ids, out int[] updates_needed, out int[] id_errors) throws GLib.Error {
+        
+        public void AboutToShowGroup(int[] ids, out int[] updates_needed, out int[] id_errors) throws GLib.Error {
             updates_needed = {};
             id_errors = {};
         }

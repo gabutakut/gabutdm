@@ -16,10 +16,13 @@ Build-Depends: meson (>= 0.43),
                libcairo2-dev,
                libcurl4-gnutls-dev,
                libadwaita-1-dev,
+               libavformat-dev,
+               libavcodec-dev,
+               libaria2-0-dev,
 Standards-Version: 4.14
 
 Package: com.github.gabutakut.gabutdm
 Architecture: any
 Depends: aria2, ${misc:Depends}, ${shlibs:Depends} 
 Description: Gabut Download Manaer
-    Gabut Download manager that support torrent metalink magnet URIs url link with local webservice.
+    Gabut Download manager that support Multi-protocol downloads torrent M3U8 magnet and interface local server.

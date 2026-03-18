@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -31,6 +31,7 @@ namespace Gabut {
                 queue_draw ();
             }
         }
+
         protected override void on_snapshot (Gtk.Snapshot snapshot, double width, double height) {
             var grect = Graphene.Rect ();
             grect.init (-2, -2, (float) (width + 4), (float)(height + 4));
