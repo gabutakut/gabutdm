@@ -1587,7 +1587,7 @@ namespace Gabut {
                 if (hlslbox.status == StatusMode.COMPLETE) {
                     if (hlslbox.totalcomp >= hlslbox.segment_urls.size) {
                         try {
-                            var pathtemp = row.pathname;
+                            File.new_for_path (row.pathname).trash ();
                             row.totalsize = hlslbox.total_dl;
                             var pathname = hlslbox.mp4path;
                             if (pathname != null) {
@@ -1595,10 +1595,6 @@ namespace Gabut {
                             }
                             row.filename = hlslbox.filename;
                             update_download (row);
-                            var filep = File.new_for_path (pathtemp);
-                            if (filep.query_exists ()) {
-                                filep.delete ();
-                            }
                         } catch (Error e) {
                             GLib.warning (e.message);
                         }
