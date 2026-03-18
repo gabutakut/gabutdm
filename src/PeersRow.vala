@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,24 +21,14 @@
 
 namespace Gabut {
     public class PeersRow : Gtk.ListBoxRow {
+        public string host { get; construct;}
+        public string peerid { get; construct;}
+        public string bitfield { get; set;}
         private Gtk.Label download_rate;
-        private Gtk.Label host_label;
-        private Gtk.Label client_id;
         private Gtk.Label upload_rate;
         private Gtk.Image seeder_img;
         private Gtk.Image imgamchok;
         private Gtk.Image imgpeerchok;
-
-        private string _host;
-        public string host {
-            get {
-                return _host;
-            }
-            set {
-                _host = value;
-                host_label.label = _("%s").printf (_host);
-            }
-        }
 
         private string _peerschoking;
         public string peerschoking {
@@ -48,17 +38,6 @@ namespace Gabut {
             set {
                 _peerschoking = value;
                 imgpeerchok.icon_name = _peerschoking;
-            }
-        }
-
-        private string _peerid;
-        public string peerid {
-            get {
-                return _peerid;
-            }
-            set {
-                _peerid = value;
-                client_id.label = _("%s").printf (_peerid);
             }
         }
 
@@ -105,15 +84,11 @@ namespace Gabut {
                 imgamchok.icon_name = _amchoking;
             }
         }
-        private string _bitfield;
-        public string bitfield {
-            get {
-                return _bitfield;
-            }
-            set {
-                _bitfield = value;
-            }
+
+        public PeersRow (string host, string peerid) {
+            Object(host: host, peerid: peerid);
         }
+
         construct {
             seeder_img = new Gtk.Image () {
                 valign = Gtk.Align.CENTER,
@@ -125,10 +100,10 @@ namespace Gabut {
                 tooltip_text = _("Host")
             };
 
-            host_label = new Gtk.Label (null) {
+            var host_label = new Gtk.Label (host) {
                 xalign = 0,
                 use_markup = true,
-                width_request = 180,
+                width_request = 200,
                 valign = Gtk.Align.CENTER,
                 attributes = color_attribute (0, 30000, 50000)
             };
@@ -138,7 +113,7 @@ namespace Gabut {
                 tooltip_text = _("Client")
             };
 
-            client_id = new Gtk.Label (null) {
+            var client_id = new Gtk.Label (peerid) {
                 xalign = 0,
                 use_markup = true,
                 width_request = 150,

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,12 @@
 
 namespace Gabut {
     public class GdmMenu : Gtk.FlowBoxChild {
-        public DownloadMenu downloadmenu { get; private set; }
+        public DownloadMenu downloadmenu { get; construct; }
 
         public GdmMenu (DownloadMenu downloadmenu) {
-            this.downloadmenu = downloadmenu;
+            Object(downloadmenu: downloadmenu);
+        }
+        construct {
             var title = new Gtk.Label (downloadmenu.to_string ()) {
                 tooltip_text = downloadmenu.to_tooltip (),
                 xalign = 0,

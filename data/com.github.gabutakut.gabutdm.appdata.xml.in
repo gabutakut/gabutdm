@@ -9,19 +9,18 @@
   <description>
     <p>Download whatever you want.</p>
       <p>
-        Gabut Download Manager an application made to help download activities that support all. can be used to download torrents and so on.
+        Gabut Download Manager an application made to help download activities .
       </p>
       <p>Features:</p>
       <ul>
+        <li>Multi-protocol downloads.</li>
         <li>Torrent.</li>
-        <li>Metalink.</li>
+        <li>HLS/M3U8.</li>
         <li>Magnetlink.</li>
-        <li>URLs.</li>
         <li>File Transfer.</li>
         <li>File Sharing.</li>
         <li>Remote.</li>
         <li>Clipboard Manger.</li>
-        <li>Open link in Pc.</li>
         <li>Dbus Menu.</li>
         <li>TrayIcon.</li>
         <li>Support extention Firefox and chrome.</li>
@@ -31,6 +30,12 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="2.8.0" date="2026-03-18">
+      <description>
+        <p>HLS/M3U8</p>
+        <p>Bitfield Progress</p>
+      </description>
+    </release>
     <release version="2.7.0" date="2025-9-12">
       <description>
         <p>Keyboard key</p>
@@ -199,6 +204,12 @@
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot3.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot4.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot5.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1">

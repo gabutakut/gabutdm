@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -20,114 +20,300 @@
 */
 
 namespace Gabut {
-    public class DbusmenuItem : GLib.Object {
-        public signal void item_activated ();
+    public class DBusMenu : GLib.Object {
+        public struct DbusmenuMenuitem {
+            public int id;
+            public GLib.HashTable<string, Variant> properties;
+        }
 
-        private int _id = 0;
-        public int id {
-            get {
-                return _id;
+        public struct MenuItemLayout {
+            public int id;
+            public GLib.HashTable<string, Variant> properties;
+            public Variant[] children;
+        }
+
+        public struct MenuEvent {
+            public int id;
+            public string eventid;
+            public Variant data;
+            public uint timestamp;
+        }
+
+        public struct MenuItemPropertyDescriptor {
+            public int id;
+            public string property;
+        }
+
+        public class DbusmenuItem : GLib.Object {
+            public signal void item_activated();
+            private int _id = 0;
+            public int id {
+                get { 
+                    return _id;
+                }
+                set {
+                    _id = value;
+                }
             }
-            set {
-                _id = value;
+            public Gee.ArrayList<DbusmenuItem> children;
+            public GLib.HashTable<string, Variant> properties;
+            private static int GLOBAL_ID = 1;
+
+            public DbusmenuItem() {
+                children = new Gee.ArrayList<DbusmenuItem>();
+                properties = new GLib.HashTable<string, Variant>(GLib.str_hash, GLib.str_equal);
+                properties["label"] = new Variant.string("Label Empty");
+                properties["enabled"] = new Variant.boolean(true);
+                properties["visible"] = new Variant.boolean(true);
+                properties["type"] = new Variant.string("standard");
             }
-        }
 
-        public GLib.List<DbusmenuItem> menuchildren = null;
-        public GLib.HashTable<string, Variant> properties;
-
-        public DbusmenuItem () {
-            properties = new GLib.HashTable <string, Variant> (GLib.str_hash, GLib.str_equal);
-            properties["label"] = new Variant.string ("Label Empty");
-            properties["enabled"] = new Variant.boolean (true);
-            properties["visible"] = new Variant.boolean (true);
-        }
-
-        public string? property_get (string property) {
-            Variant variant = property_get_variant (property);
-            if (variant == null) {
-                return "";
+            public void property_set(string property, string value) {
+                properties[property] = new Variant.string(value);
             }
-            return variant.print (true);
-        }
 
-        private Variant property_get_variant (string property) {
-            return properties.lookup (property);
-        }
-
-        public void property_set (string property, string value) {
-            Variant variant = null;
-            if (value != null) {
-                variant = new GLib.Variant.string (value);
+            public void property_set_bool(string property, bool value) {
+                properties[property] = new Variant.boolean(value);
             }
-            property_set_variant (property, variant);
-        }
 
-        public void property_set_bool (string property, bool value) {
-            Variant variant = new Variant.boolean (value);
-            property_set_variant (property, variant);
-        }
+            public void property_set_int(string property, int value) {
+                properties[property] = new Variant.int32(value);
+            }
 
-        public void child_reorder (DbusmenuItem child, int position) {
-            child_delete (child);
-            child.id = position;
-            menuchildren.insert (child, position - 1);
-            menuchildren.foreach ((item)=> {
-                item.id = menuchildren.index (item) + 1;
-            });
-        }
+            private bool has_child_id(int search_id) {
+                foreach (var c in children) {
+                    if (c.id == search_id) {
+                        return true;
+                    }
+                }
+                return false;
+            }
 
-        public void property_set_variant (string property, Variant value) {
-            if (value != null) {
-                if (properties.contains (property)) {
-                    properties.replace (property.dup (), value);
-                } else {
-                    properties[property.dup ()] = value;
+            public void child_append(DbusmenuItem child) {
+                if (child == null) {
+                    return;
+                }
+                if (child.id == 0) {
+                    child.id = GLOBAL_ID++;
+                }
+                if (has_child_id(child.id)) {
+                    return;
+                }
+                children.add(child);
+                if (children.size > 0) {
+                    properties["children-display"] = new Variant.string("");
+                }
+            }
+
+            public void child_insert(DbusmenuItem child, int position) {
+                if (child == null) {
+                    return;
+                }
+                if (child.id == 0) {
+                    child.id = GLOBAL_ID++;
+                }
+                if (has_child_id(child.id)) {
+                    return;
+                }
+                if (position < 0) {
+                    position = 0;
+                }
+                if (position > children.size) {
+                    position = children.size;
+                }
+                children.insert(position, child);
+                if (children.size > 0) {
+                    properties["children-display"] = new Variant.string("");
                 }
             }
         }
 
-        public bool get_exist (DbusmenuItem children) {
-            if (menuchildren == null) {
-                return false;
+        private static GLib.HashTable<string, DBusMenu> _instances;
+        private static GLib.HashTable<string, uint> _registration_ids;
+
+        static construct {
+            _instances = new GLib.HashTable<string, DBusMenu>(GLib.str_hash, GLib.str_equal);
+            _registration_ids = new GLib.HashTable<string, uint>(GLib.str_hash, GLib.str_equal);
+        }
+
+        private GLib.DBusConnection? session_connection = null;
+        private uint registration_id = 0;
+        private CanonicalDbusmenu dbusmenu_server;
+        private GLib.ObjectPath dbus_path;
+        private DbusmenuItem root;
+        private string app_uri;
+        private bool is_started = false;
+
+        private DBusMenu(string app_uri) {
+            this.app_uri = app_uri;
+            uint app_hash = app_uri.hash();
+            dbus_path = new GLib.ObjectPath("/com/canonical/unity/launcherentry/%u".printf(app_hash));
+            root = new DbusmenuItem();
+            root.id = 0;
+            root.properties["children-display"] = new Variant.string("");
+            dbusmenu_server = new CanonicalDbusmenu();
+            dbusmenu_server.item_activated.connect(on_item_activated);
+        }
+
+        private void on_item_activated(int id) {
+            foreach (var item in root.children) {
+                if (item.id == id) {
+                    item.item_activated();
+                    break;
+                }
             }
-            for (int count = 0; count < menuchildren.length (); count++) {
-                if (menuchildren.nth_data (count) == children) {
+        }
+
+        public static async DBusMenu get_instance(string app_uri) throws GLib.Error {
+            if (_instances != null) {
+                if (_instances.contains(app_uri)) {
+                    return _instances[app_uri];
+                }
+            }
+            var instance = new DBusMenu(app_uri);
+            _instances[app_uri] = instance;
+            yield instance.start();
+            return instance;
+        }
+
+        public static async void unregister_instance(string app_uri) throws GLib.Error {
+            if (_instances.contains(app_uri)) {
+                var instance = _instances[app_uri];
+                instance.stop();
+                if (_registration_ids.contains(app_uri) && _registration_ids[app_uri] != 0) {
+                    var session_connection = yield GLib.Bus.@get(GLib.BusType.SESSION);
+                    session_connection.unregister_object(_registration_ids[app_uri]);
+                    _registration_ids[app_uri] = 0;
+                }
+                _instances.remove(app_uri);
+            }
+        }
+
+        public static async bool is_registered(string app_uri) {
+            return _registration_ids.contains(app_uri) && _registration_ids[app_uri] != 0;
+        }
+
+        public static GLib.List<DBusMenu> get_all_instances() {
+            var list = new GLib.List<DBusMenu>();
+            var keys = _instances.get_keys();
+            foreach (string key in keys) {
+                list.append(_instances[key]);
+            }
+            return list;
+        }
+
+        public async void start() throws GLib.Error {
+            if (is_started) {
+                return;
+            }
+            session_connection = yield GLib.Bus.@get(GLib.BusType.SESSION);
+            registration_id = session_connection.register_object(dbus_path, dbusmenu_server);
+            _registration_ids[app_uri] = registration_id;
+            dbusmenu_server.set_root(root);
+            is_started = true;
+        }
+
+        public void stop() throws GLib.Error {
+            if (!is_started) {
+                return;
+            }
+            if (registration_id != 0 && session_connection != null) {
+                session_connection.unregister_object(registration_id);
+                registration_id = 0;
+                if (_registration_ids.contains(app_uri)) {
+                    _registration_ids.remove(app_uri);
+                }
+            }
+            is_started = false;
+        }
+
+        public void append_dbus(DbusmenuItem item) {
+            if (item == null) {
+                return;
+            }
+            foreach (var child in root.children) {
+                if (child == item || child.id == item.id) {
+                    return;
+                }
+            }
+            root.child_append(item);
+            if (is_started) {
+                try {
+                    dbusmenu_server.set_root(root);
+                } catch (GLib.Error e) {
+                    GLib.warning("Failed to update menu on server: %s", e.message);
+                }
+            }
+        }
+
+        public bool delete_dbus (DbusmenuItem item) {
+            for (int i = 0; i < root.children.size; i++) {
+                if (root.children[i].id == item.id) {
+                    root.children.remove_at(i);
+                    if (is_started) {
+                        try {
+                            dbusmenu_server.set_root(root);
+                        } catch (GLib.Error e) {
+                            GLib.warning("Failed to update menu on server: %s", e.message);
+                        }
+                    }
                     return true;
                 }
             }
             return false;
         }
 
-        public void child_append (DbusmenuItem child) {
-            if (menuchildren == null) {
-                menuchildren = new GLib.List<DbusmenuItem> ();
-                properties["children-display"] = new Variant.string ("submenu");
+        public void insert_dbus(DbusmenuItem item, int position) {
+            if (item == null) {
+                return;
             }
-            if (!get_exist (child)) {
-                menuchildren.foreach ((item)=> {
-                    item.id = menuchildren.index (item) + 1;
-                });
-                child.id = (int) menuchildren.length () + 1;
-                menuchildren.append (child);
-            }
-        }
-
-        public void child_delete (DbusmenuItem child) {
-            if (get_exist (child)) {
-                menuchildren.delete_link (menuchildren.find (child));
-                menuchildren.foreach ((item)=> {
-                    item.id = menuchildren.index (item) + 1;
-                });
-            }
-        }
-
-        public void signal_send (int mid, Variant name) {
-            menuchildren.foreach ((item)=> {
-                if (mid == item.id && name == item.properties.@get ("label")) {
-                    item.item_activated ();
+            root.child_insert(item, position);   
+            if (is_started) {
+                try {
+                    dbusmenu_server.set_root(root);
+                } catch (GLib.Error e) {
+                    GLib.warning("Failed to update menu on server: %s", e.message);
                 }
-            });
+            }
+        }
+
+        public bool dbus_contains (DbusmenuItem item) {
+            return root.children.contains (item);
+        }
+
+        public void clear() {
+            root.children.clear();
+            if (is_started) {
+                try {
+                    dbusmenu_server.set_root(root);
+                } catch (GLib.Error e) {
+                    GLib.warning("Failed to update menu on server: %s", e.message);
+                }
+            }
+        }
+
+        public GLib.ObjectPath get_dbus_path() {
+            return dbus_path;
+        }
+        
+        public DbusmenuItem get_root() {
+            return root;
+        }
+        
+        public CanonicalDbusmenu get_server() {
+            return dbusmenu_server;
+        }
+        
+        public bool get_is_started() {
+            return is_started;
+        }
+        
+        public int get_item_count() {
+            return root.children.size;
+        }
+        
+        public string get_app_uri() {
+            return app_uri;
         }
     }
 }

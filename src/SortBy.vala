@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,12 @@
 
 namespace Gabut {
     public class SortBy : Gtk.FlowBoxChild {
-        public SortbyWindow sortbywindow { get; private set; }
+        public SortbyWindow sortbywindow { get; construct; }
 
         public SortBy (SortbyWindow sortbywindow) {
-            this.sortbywindow = sortbywindow;
+            Object(sortbywindow: sortbywindow);
+        }
+        construct {            
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (sortbywindow.to_string ()) {
                 halign = Gtk.Align.CENTER,

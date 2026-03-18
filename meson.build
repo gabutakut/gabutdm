@@ -17,21 +17,18 @@ dependencies = [
     dependency ('libqrencode'),
     dependency ('gdk-pixbuf-2.0'),
     dependency ('cairo'),
-    dependency ('libcurl'),
     dependency ('libadwaita-1'),
-
+    dependency ('libavformat'),
+    dependency ('libavcodec'),
+    dependency ('libavutil'),
+    dependency ('libaria2'),
+    meson.get_compiler ('vala').find_library ('aria2_wrapper', dirs: vapi),
+    meson.get_compiler ('vala').find_library ('ffmpeg_merger', dirs: vapi),
+    meson.get_compiler ('c').find_library ('m'),
     meson.get_compiler ('vala').find_library ('posix'),
 ]
 
 subdir ('src')
-
-executable (
-    meson.project_name (),
-    sources,
-    dependencies: dependencies,
-    install: true
-)
-
 subdir ('data')
 subdir ('po')
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,10 +21,12 @@
 
 namespace Gabut {
     public class ProxyRecently : Gtk.FlowBoxChild {
-        public MyProxy myproxy { get; private set; }
+        public MyProxy myproxy { get; construct; }
 
         public ProxyRecently (MyProxy myproxy) {
-            this.myproxy = myproxy;
+            Object(myproxy: myproxy);
+        }
+        construct {            
             var title = new Gtk.Label (myproxy.to_string ()) {
                 halign = Gtk.Align.CENTER,
                 wrap_mode = Pango.WrapMode.WORD_CHAR,

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) {2024} torikulhabib (https://github.com/gabutakut)
+* Copyright (c) {2026} torikulhabib (https://github.com/gabutakut)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -25,11 +25,12 @@ namespace Gabut {
         private Gtk.Label filesizelabel;
         private MediaEntry address;
         private MediaEntry directory;
-        public string datastr;
+        public string datastr {get; construct;}
 
+        public SuccesDialog (string datastr) {
+            Object (resizable: false, use_header_bar: 1, datastr: datastr);
+        }
         construct {
-            resizable = false;
-            use_header_bar = 1;
             icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
                 halign = Gtk.Align.END,
@@ -117,7 +118,10 @@ namespace Gabut {
             };
             ((Gtk.Label) open_file.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             open_file.clicked.connect (()=> {
-                open_fileman.begin (File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH)).get_uri ());
+                var file = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH));
+                if (file.query_exists ()) {
+                    open_fileman.begin (file.get_uri ());
+                }
                 close ();
             });
             var close_button = new Gtk.Button.with_label (_("Close")) {
@@ -160,6 +164,15 @@ namespace Gabut {
             area.halign = Gtk.Align.CENTER;
             area.append (dialogmain);
             area.append (centerbox);
+            move_window (this, dialogmain);
+        }
+
+        public override bool close_request () {
+           return base.close_request ();
+        }
+
+        public override void close () {
+            base.close ();
         }
 
         public override void show () {
