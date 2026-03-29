@@ -21,13 +21,13 @@
 
 namespace Gabut {
     public class DeleteDialog : Gtk.Dialog {
-        public signal void excuterd ();
+        public Gtk.Button move_file;
+        public Gee.ArrayList<DownloadRow> datarow;
+        public string infolabel;
+        public int totalrow;
         private Gtk.Image icon_badge;
         private Gtk.Label item_file;
-        public Gee.ArrayList<DownloadRow> datarow;
-        public int totalrow;
         private Gtk.ListBox lisbox_trash;
-        public string infolabel;
 
         private string _primmelb;
         public string primmelb {
@@ -148,14 +148,11 @@ namespace Gabut {
             header.title_widget = header_grid;
             header.decoration_layout = "none";
 
-            var move_file = new Gtk.Button.with_label (_("Trash")) {
+            move_file = new Gtk.Button.with_label (_("Trash")) {
                 width_request = 120,
                 height_request = 25
             };
             ((Gtk.Label) move_file.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
-            move_file.clicked.connect (()=> {
-                excuterd ();
-            });
             var close_button = new Gtk.Button.with_label (_("Cancel")) {
                 width_request = 120,
                 height_request = 25

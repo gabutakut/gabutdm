@@ -85,7 +85,11 @@ namespace Gabut {
                 if (active_downloaders > 0 && active_downloaders <= hlsparalell_dld) {
                     active_downloaders--;
                 }
-                update_quee ();
+                if (!processing) {
+                    status = StatusMode.ACTIVE;
+                    processing = true;
+                    update_quee ();
+                }
             });
         }
 
@@ -466,9 +470,15 @@ namespace Gabut {
                         simple_progress (_("%s").printf(GLib.format_size(info.get_size())));
                         filename = file.get_basename ();
                         status = StatusMode.COMPLETE;
-                        ffmpeg = null;
                         merged_ts = false;
-                    } catch (GLib.Error e) {}
+                    } catch (GLib.Error e) {
+                        ffmpeg = null;
+                    } finally {
+                        ffmpeg = null;
+                        if (totalcomp < segment_urls.size) {
+                            status = StatusMode.PAUSED;
+                        }
+                    }
                     return false;
                 }
                 return merged_ts; 

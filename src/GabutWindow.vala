@@ -308,7 +308,7 @@ namespace Gabut {
         }
 
         public override bool close_request () {
-            if (hide_on_close) {
+            if (bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
                 hide();
                 if (menudbus != null && dbmenu) {
                     if (!menudbus.dbus_contains (openmenu)) {
@@ -546,7 +546,7 @@ namespace Gabut {
                     infolabel = deletef? _("Delete") : _("Clear"),
                     labelrm = deletef? _("Delete") : _("Remove")
                 };
-                delete_dialog.excuterd.connect (()=> {
+                delete_dialog.move_file.clicked.connect (()=> {
                     int totaldx = hashrow.size;
                     GLib.Idle.add (() => {
                         if (hashrow.size > 0) {
@@ -1188,8 +1188,7 @@ namespace Gabut {
             return rowlist;
         }
 
-        public DownloadRow get_dm_row (string ariagid) {
-            DownloadRow rw = null;
+        public DownloadRow? get_dm_row (string ariagid) {
             var models = list_box.observe_children ();
             var maxsize = models.get_n_items ();
             for (uint x = 0; x < maxsize; x++) {
@@ -1203,11 +1202,10 @@ namespace Gabut {
                     }
                 }
             }
-            return rw;
+            return null;
         }
 
-        public DownloadRow get_hls_row (string urlu) {
-            DownloadRow rw = null;
+        public DownloadRow? get_hls_row (string urlu) {
             var models = list_box.observe_children ();
             var maxsize = models.get_n_items ();
             for (uint x = 0; x < maxsize; x++) {
@@ -1224,7 +1222,7 @@ namespace Gabut {
                     }
                 }
             }
-            return rw;
+            return null;
         }
 
         private void update_options () {
@@ -1281,32 +1279,43 @@ namespace Gabut {
             return agid;
         }
 
-        public void hls_action (string urlhash) {
+        public void lserv_action (string[] urlhash) {
             var models = list_box.observe_children ();
             var maxsize = models.get_n_items ();
             for (uint x = 0; x < maxsize; x++) {
                 var child = (Gtk.Widget) models.get_item (x);
                 if (child is Gtk.ListBoxRow) {
                     var row = (DownloadRow) child;
-                    if (row.linkmode == LinkMode.HLS) {
-                    var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
-                        if (check == urlhash) {
-                            row.start_button.clicked ();
+                    if (urlhash[1] == "url") {
+                        if (row.ariagid == urlhash[0]) {
+                            row.action_btn (StatusMode.COMPLETE);
+                        }
+                    } else if (urlhash[1] == "hls") {
+                        var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
+                        if (check == urlhash[0]) {
+                            row.start_button.clicked (); 
                         }
                     }
                 }
             }
         }
 
-        public void remove_item (string ariagid) {
+        public void remove_item (string[] ariagid) {
             var models = list_box.observe_children ();
             var maxsize = models.get_n_items ();
             for (uint x = 0; x < maxsize; x++) {
                 var child = (Gtk.Widget) models.get_item (x);
                 if (child is Gtk.ListBoxRow) {
                     var row = (DownloadRow) child;
-                    if (row.ariagid == ariagid) {
-                        row.remove_down ();
+                    if (ariagid[1] == "url") {
+                        if (row.ariagid == ariagid[0]) {
+                            row.to_trash ();
+                        }
+                    } else if (ariagid[1] == "hls") {
+                        var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
+                        if (check == ariagid[0]) {
+                            row.to_trash (); 
+                        }
                     }
                 }
             }
@@ -1466,13 +1475,12 @@ namespace Gabut {
                 if (usefolder) {
                     var pathdir = File.new_for_path (option.@get (AriaOptions.DIR.to_string ())).get_path ();
                     var fnamepath = File.new_build_filename (pathdir, row.filename.hash ().to_string ()).get_path ();
-                    hlslbox.output_dir = fnamepath;
+                    row.filepath = hlslbox.output_dir = fnamepath;
                 } else {
                     var dir_dm = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD);
                     var opt_dir = File.new_build_filename (dir_dm, row.filename.hash ().to_string ());
-                    hlslbox.output_dir = opt_dir.get_path ();
+                    row.filepath = hlslbox.output_dir = opt_dir.get_path ();
                 }
-                row.filepath = row.pathname = hlslbox.output_dir;
                 hlslbox.filename = fname;
                 if (row.filename != finame) {
                     row.filename = hlslbox.filename = finame;

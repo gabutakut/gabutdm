@@ -1604,21 +1604,35 @@ namespace Gabut {
         public int end;
     }
 
+    private struct TorrentFile {
+        public string name;
+        public int64  size;
+    }
+
+    public enum ServerType {
+        IMG,
+        VIDEO,
+        AUDIO
+    }
+
     private SourceFunc ariacll;
     private Sqlite.Database gabutdb;
     private Aria2.Engine engine;
+    private GLib.File serverdir;
     private string aria_listent;
     private bool cliboardmenu;
     private int hlsparalell_dld;
     private int hlsparallel_active;
     private int hls_timeout;
     private int hls_max_retries;
+
     private void menuglobal () {
         cliboardmenu = bool.parse (get_dbsetting (Gabut.DBSettings.CLIPBOARD));
         hlsparalell_dld = int.parse (get_dbsetting (Gabut.DBSettings.HLSPARALLELCON));
         hlsparallel_active = int.parse (get_dbsetting (Gabut.DBSettings.HLSACTIVE));
         hls_timeout = int.parse (get_dbsetting (Gabut.DBSettings.HLSTIMEOUT));
         hls_max_retries = int.parse (get_dbsetting (Gabut.DBSettings.HLSRETRIES));
+        serverdir = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
     }
 
     private void setjsonrpchost () {
@@ -1941,8 +1955,8 @@ namespace Gabut {
         return result;
     }
 
-    private Gee.HashMap<int, ServerRow> aria_servers_store (string gid) {
-        var serverstore = new Gee.HashMap<int, ServerRow> ();
+    private Gee.HashMap<int, RowServer> aria_servers_store (string gid) {
+        var serverstore = new Gee.HashMap<int, RowServer> ();
         string result = get_soupmess (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getServers\", \"params\":[\"$(gid)\"]}");
         if (!result.down ().contains ("result") || result == null) {
             return serverstore;
@@ -1954,7 +1968,7 @@ namespace Gabut {
                 int index = 0;
                 while (match_info.matches ()) {
                     var curi = match_info.fetch (1);
-                    var serverrow = new ServerRow (index) {
+                    var serverrow = new RowServer (index) {
                         uriserver = match_info.fetch (3),
                         downloadspeed = GLib.format_size (int64.parse (match_info.fetch (2))),
                         currenturi = curi != null? GLib.Markup.escape_text (curi.replace ("\\/", "/")) : curi
@@ -2335,29 +2349,12 @@ namespace Gabut {
         if (common_len < parts.length) {
             int new_len = parts.length - common_len;
             string[] outs = new string[new_len];
-
             for (int i = 0; i < new_len; i++) {
                 outs[i] = parts[common_len + i];
             }
             return outs;
         }
         return new string[] { parts[parts.length - 1] };
-    }
-
-    private string remap_mime (string mime) {
-        switch (mime) {
-            case "video/quicktime":
-            case "video/x-msvideo":
-            case "video/x-matroska":
-            case "video/x-flv":
-            case "video/3gpp":
-            case "video/mpeg":
-                return "video/mp4";
-            case "video/x-ms-wmv":
-                return "video/mp4";
-            default:
-                return mime;
-        }
     }
 
     private void move_window (Gtk.Window window, Gtk.Widget widget) {
@@ -2415,8 +2412,46 @@ namespace Gabut {
         return n_files;
     }
 
-    private async void open_file (Soup.ServerMessage msg, File file) throws Error {
-        msg.set_response (get_mime_type (file), Soup.MemoryUse.COPY, file.load_bytes ().get_data ());
+    private async void open_file (Soup.ServerMessage msg, GLib.File file) throws Error {
+        var info = file.query_info ("standard::*", FileQueryInfoFlags.NONE);
+        int64 file_size = info.get_size ();
+        string mime = info.get_content_type ();
+        string? range_header = msg.get_request_headers ().get_one ("Range");
+        int64 start = 0;
+        int64 end = file_size - 1;
+        if (range_header != null && range_header.has_prefix ("bytes=")) {
+            var range_val = range_header.substring (6);
+            var parts = range_val.split ("-");
+            if (parts.length == 2) {
+                if (parts[0] != "") {
+                    start = int64.parse (parts[0]);
+                }
+                if (parts[1] != "") {
+                    end = int64.parse (parts[1]);
+                }
+            }
+        }
+
+        int64 chunk_size = end - start + 1;
+        var input = file.read ();
+        ((GLib.Seekable) input).seek (start, GLib.SeekType.SET);
+        uint8[] buffer = new uint8[chunk_size];
+        size_t bytes_read;
+        input.read_all (buffer, out bytes_read);
+        input.close ();
+
+        var headers = msg.get_response_headers ();
+        headers.set_content_type (mime, null);
+        headers.set_content_length (chunk_size);
+        headers.append ("Accept-Ranges", "bytes");
+        headers.append ("Content-Range", "bytes %lld-%lld/%lld".printf (start, end, file_size));
+
+        if (range_header != null) {
+            msg.set_status (Soup.Status.PARTIAL_CONTENT, "Partial Content");
+        } else {
+            msg.set_status (Soup.Status.OK, "OK");
+        }
+        msg.set_response (mime, Soup.MemoryUse.COPY, buffer[0:bytes_read]);
     }
 
     private async void write_file (GLib.Bytes bytes, string filename) throws Error {
@@ -2546,6 +2581,14 @@ namespace Gabut {
 
     private string file_config (string name) {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
+    }
+
+    private async void fetch_data (string url, string filename) throws Error {
+        var session = SoupSessionPool.get_default().acquire();
+        var msg = new Soup.Message ("GET", url);
+        var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
+        write_file.begin (bytes, filename);
+        SoupSessionPool.get_default().release(session);
     }
 
     private Soup.Message full_message (string method, string url, string useragt) throws Error {
@@ -2719,14 +2762,18 @@ namespace Gabut {
         return grid;
     }
 
-    private bool is_video_mime (string mime) {
-        string[] video_mimes = { "video/mp4", "video/webm", "video/ogg", "video/x-matroska", "video/x-msvideo", "video/quicktime", "video/x-flv", "video/3gpp", "video/mpeg"};
-        foreach (string m in video_mimes) {
-            if (mime == m) {
-                return true;
-            }
-        }
-        return false;
+    private bool is_archive_mime (string mime) {
+        return mime == "application/zip" ||
+            mime == "application/x-zip-compressed" ||
+            mime == "application/x-tar" ||
+            mime == "application/x-gzip" ||
+            mime == "application/gzip" ||
+            mime == "application/x-bzip2" ||
+            mime == "application/x-xz" ||
+            mime == "application/x-7z-compressed" ||
+            mime == "application/x-rar" ||
+            mime == "application/vnd.rar" ||
+            mime == "application/x-rar-compressed";
     }
 
     private string get_mime_css (string mime) {
@@ -2736,7 +2783,7 @@ namespace Gabut {
             return "audio";
         } else if (mime.contains ("script") || mime.contains ("json") || mime.contains ("yaml") || mime.contains ("xml")) {
             return "code";
-        } else if (mime.contains ("font/") || mime.contains ("octet-stream")) {
+        } else if (mime.contains ("font/")) {
             return "font";
         } else if (mime.contains ("video/")) {
             return "video";
@@ -2748,10 +2795,208 @@ namespace Gabut {
             return "folder";
         } else if (mime.contains ("translation")) {
             return "po";
-        } else if (mime.contains ("/zip") || mime.contains ("/gzip") || mime.contains ("compressed")) {
+        } else if (is_archive_mime (mime)) {
             return "archive";
         } else {
             return "file";
+        }
+    }
+
+    private bool is_text_mime (string mime) {
+        return mime.has_prefix ("text/") || mime == "application/json" || mime == "application/xml" || mime == "application/javascript" || mime == "application/x-shellscript" || mime == "application/x-sh";
+    }
+
+    private bool mime_is_doc (string mime) {
+        if (mime == "application/msword" || mime == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            return true;
+        }
+        return false;
+    }
+
+    private bool is_text_ext (string filename) {
+        var lower = filename.down ();
+        return lower.has_suffix (".txt") ||
+        lower.has_suffix (".md") ||
+        lower.has_suffix (".log") ||
+        lower.has_suffix (".json") ||
+        lower.has_suffix (".xml") ||
+        lower.has_suffix (".yaml") ||
+        lower.has_suffix (".yml") ||
+        lower.has_suffix (".toml") ||
+        lower.has_suffix (".ini") ||
+        lower.has_suffix (".conf") ||
+        lower.has_suffix (".cfg") ||
+        lower.has_suffix (".sh") ||
+        lower.has_suffix (".bash") ||
+        lower.has_suffix (".py") ||
+        lower.has_suffix (".js") ||
+        lower.has_suffix (".css") ||
+        lower.has_suffix (".html") ||
+        lower.has_suffix (".htm") ||
+        lower.has_suffix (".c") ||
+        lower.has_suffix (".cpp") ||
+        lower.has_suffix (".h") ||
+        lower.has_suffix (".vala") ||
+        lower.has_suffix (".java") ||
+        lower.has_suffix (".kt") ||
+        lower.has_suffix (".rs") ||
+        lower.has_suffix (".go") ||
+        lower.has_suffix (".php") ||
+        lower.has_suffix (".rb") ||
+        lower.has_suffix (".swift")||
+        lower.has_suffix (".dart") ||
+        lower.has_suffix (".lua") ||
+        lower.has_suffix (".sql") ||
+        lower.has_suffix (".srt") ||
+        lower.has_suffix (".csv");
+    }
+
+    private string get_lang_from_ext (string filename) {
+        var lower = filename.down ();
+        if (lower.has_suffix (".json")) return "json";
+        if (lower.has_suffix (".xml") || lower.has_suffix (".html") || lower.has_suffix (".htm")) return "xml";
+        if (lower.has_suffix (".yaml") || lower.has_suffix (".yml")) return "yaml";
+        if (lower.has_suffix (".md")) return "markdown";
+        if (lower.has_suffix (".sh") || lower.has_suffix (".bash")) return "bash";
+        if (lower.has_suffix (".py")) return "python";
+        if (lower.has_suffix (".js")) return "javascript";
+        if (lower.has_suffix (".css")) return "css";
+        if (lower.has_suffix (".c") || lower.has_suffix (".h") || lower.has_suffix (".cpp")) return "cpp";
+        if (lower.has_suffix (".vala")) return "vala";
+        if (lower.has_suffix (".java")) return "java";
+        if (lower.has_suffix (".kt")) return "kotlin";
+        if (lower.has_suffix (".rs")) return "rust";
+        if (lower.has_suffix (".go")) return "go";
+        if (lower.has_suffix (".php")) return "php";
+        if (lower.has_suffix (".rb")) return "ruby";
+        if (lower.has_suffix (".sql")) return "sql";
+        if (lower.has_suffix (".toml") || lower.has_suffix (".ini") || lower.has_suffix (".conf") || lower.has_suffix (".cfg")) return "ini";
+        return "plaintext";
+    }
+
+    private string get_mime_css_from_name (string filename) {
+        var lower = filename.down ();
+        if (lower.has_suffix (".mp4") || lower.has_suffix (".mkv") ||
+            lower.has_suffix (".avi") || lower.has_suffix (".mov") ||
+            lower.has_suffix (".webm")) return "video";
+        if (lower.has_suffix (".mp3") || lower.has_suffix (".flac") ||
+            lower.has_suffix (".ogg") || lower.has_suffix (".wav") ||
+            lower.has_suffix (".m4a"))  return "audio";
+        if (lower.has_suffix (".jpg") || lower.has_suffix (".jpeg") ||
+            lower.has_suffix (".png") || lower.has_suffix (".gif") ||
+            lower.has_suffix (".webp") || lower.has_suffix (".svg") ||
+            lower.has_suffix (".avif")) return "image";
+        if (lower.has_suffix (".pdf"))  return "pdf";
+        if (lower.has_suffix (".js") || lower.has_suffix (".ts") ||
+            lower.has_suffix (".py") || lower.has_suffix (".vala") ||
+            lower.has_suffix (".c") || lower.has_suffix (".cpp") ||
+            lower.has_suffix (".json") || lower.has_suffix (".xml") ||
+            lower.has_suffix (".yaml") || lower.has_suffix (".html") ||
+            lower.has_suffix (".css"))  return "code";
+        if (lower.has_suffix (".txt") || lower.has_suffix (".md") ||
+            lower.has_suffix (".log"))  return "text";
+        return "file";
+    }
+
+    private bool is_excel_ext (string filename) {
+        var lower = filename.down ();
+        return lower.has_suffix (".xlsx") ||
+            lower.has_suffix (".xlsm") ||
+            lower.has_suffix (".ods") ||
+            lower.has_suffix (".xls");
+    }
+
+    private bool is_archive_ext (string filename) {
+        var lower = filename.down ();
+        return lower.has_suffix (".zip") ||
+            lower.has_suffix (".tar") ||
+            lower.has_suffix (".gz") ||
+            lower.has_suffix (".tgz") ||
+            lower.has_suffix (".bz2") ||
+            lower.has_suffix (".xz") ||
+            lower.has_suffix (".7z") ||
+            lower.has_suffix (".rar") ||
+            lower.has_suffix (".tar.gz") ||
+            lower.has_suffix (".tar.bz2") ||
+            lower.has_suffix (".tar.xz");
+    }
+
+    private bool name_is_doc (string name) {
+        if (name.has_suffix (".docx") ||
+        name.has_suffix (".doc") ||
+        name.has_suffix (".odt")) {
+            return true;
+        }
+        return false;
+    }
+
+    private bool is_audio_ext (string filename) {
+        var lower = filename.down ();
+        return lower.has_suffix (".mp3") ||
+            lower.has_suffix (".flac") ||
+            lower.has_suffix (".ogg") ||
+            lower.has_suffix (".wav") ||
+            lower.has_suffix (".m4a") ||
+            lower.has_suffix (".aac") ||
+            lower.has_suffix (".opus") ||
+            lower.has_suffix (".wma");
+    }
+
+    private bool is_video_ext (string filename) {
+        var lower = filename.down ();
+        return lower.has_suffix (".mp4") ||
+            lower.has_suffix (".mkv") ||
+            lower.has_suffix (".avi") ||
+            lower.has_suffix (".mov") ||
+            lower.has_suffix (".webm") ||
+            lower.has_suffix (".m3u8") ||
+            lower.has_suffix (".flv") ||
+            lower.has_suffix (".ts") ||
+            lower.has_suffix (".m4v");
+    }
+
+    private bool is_pptx_ext (string filename) {
+        var lower = filename.down ();
+        return lower.has_suffix (".pptx") ||
+            lower.has_suffix (".ppt")  ||
+            lower.has_suffix (".odp");
+    }
+
+    private bool nameisplay (string name) {
+        if (is_archive_ext (name) ||
+        is_excel_ext (name) ||
+        name.has_suffix (".torrent") ||
+        is_video_ext (name) ||
+        name_is_doc (name) ||
+        is_pptx_ext (name) ||
+        is_text_ext (name)) {
+            return true;
+        }
+        return false;
+    }
+
+    private bool mimeisplay (string mime) {
+        if (is_archive_mime (mime) ||
+        mime.has_prefix ("video/") ||
+        mime.has_prefix ("image/") ||
+        mime == "application/pdf" ||
+        mime.has_prefix ("audio/") ||
+        mime_is_doc (mime) || 
+        is_archive_mime (mime) ||
+        is_text_mime (mime)) {
+            return true;
+        }
+        return false;
+    }
+
+    private void server_torr_files(Gee.ArrayList<TrFileInfo> files, Gee.ArrayList<TorrentFile?> fileap) {
+        foreach (TrFileInfo file in files) {
+            if (file.is_folder) {
+                server_torr_files(file.children, fileap);
+            } else {
+                TorrentFile tf = { file.path, file.size };
+                fileap.add (tf);
+            }
         }
     }
 
