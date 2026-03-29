@@ -80,9 +80,9 @@ parts:
         - libxkbcommon-dev
         - libcanberra0
         - libqrencode4
-        - libavformat-dev,
-        - libavcodec-dev,
-        - libaria2-0-dev,
+        - libavformat-dev
+        - libavcodec-dev
+        - libaria2-0-dev
         - libhandy-1-0
   desktop-gnome-platform:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
