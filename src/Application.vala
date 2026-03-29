@@ -145,11 +145,8 @@ namespace Gabut {
                 gabutserver.get_hls_row.connect ((ariagid)=> {
                     return gabutwindow.get_hls_row (ariagid);
                 });
-                gabutserver.server_action.connect ((status)=> {
-                    gabutwindow.server_action (status);
-                });
-                gabutserver.hls_action.connect ((status)=> {
-                    gabutwindow.hls_action (status);
+                gabutserver.lserv_action.connect ((status)=> {
+                    gabutwindow.lserv_action (status);
                 });
                 gabutserver.delete_row.connect ((status)=> {
                     gabutwindow.remove_item (status);

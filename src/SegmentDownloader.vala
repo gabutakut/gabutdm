@@ -41,6 +41,7 @@ namespace Gabut {
         private int64 speedbyte = 0;
         private int num_parts = 1;
         private int max_del_retries = 0;
+        private int max_wait_retries = 0;
         private int64 last_speed_time = 0;
         private double download_speed = 0.0;
         private GLib.Cancellable cancellable;
@@ -50,6 +51,7 @@ namespace Gabut {
         private GLib.Mutex state_mutex = GLib.Mutex();
         private GLib.FileIOStream? shared_stream = null;
         private uint size_timeout_id = 0;
+        private uint retry_timeout_id = 0;
 
         public SegmentDownloader(int i, string u, string jsout, string useragent, string headerdm) {
             Object(index: i, url: u, output_path: jsout, useragent: useragent, headerdm: headerdm);
@@ -73,7 +75,13 @@ namespace Gabut {
                 try {
                     download_with_resume();
                 } catch (Error e) {
-                    handle_error();
+                    if (e is GLib.IOError.CANCELLED) {
+                        cleanup_stream ();
+                    } else if (e is GLib.IOError.CLOSED) {
+                        handle_error();
+                    } else {
+                        retry_download ();
+                    }
                 }
             });
         }
@@ -87,17 +95,27 @@ namespace Gabut {
                 GLib.Source.remove(size_timeout_id);
                 size_timeout_id = 0;
             }
+            if (retry_timeout_id > 0) {
+                GLib.Source.remove(retry_timeout_id);
+                retry_timeout_id = 0;
+            }
             status = StatusMode.PAUSED;
             status_changed(index, StatusMode.PAUSED);
         }
 
         public void on_wait () {
-            stop ();
-            retry_count = 0;
-            completed = false;
-            forcewait(index);
-            status = StatusMode.WAIT;
-            status_changed(index, StatusMode.WAIT);
+            if (max_wait_retries < hls_max_retries) {
+                stop ();
+                retry_count = 0;
+                completed = false;
+                forcewait(index);
+                status = StatusMode.WAIT;
+                status_changed(index, StatusMode.WAIT);
+            } else {
+                handle_error();
+                return;
+            }
+            max_wait_retries++;
         }
 
         private void download_with_resume() throws Error {
@@ -134,29 +152,28 @@ namespace Gabut {
                 return;
             }
             if (max_del_retries > hls_max_retries) {
-                stop();
                 retry_count = max_del_retries;
-                handle_error ();
-                return;
+                throw new GLib.IOError.CLOSED("Error");
             }
             status = StatusMode.ACTIVE;
             status_changed(index, StatusMode.ACTIVE);
             if (control_file.query_exists()) {
                 this.current_parts_array = load_control(out this.total_size);
-                download_parse.begin (file);
+                download_parse (file);
             } else {
                 var msg_get = new Soup.Message("GET", this.url);
                 var reqesthead = msg_get.get_request_headers();
-                size_timeout_id = GLib.Timeout.add(15000, () => {
+                size_timeout_id = GLib.Timeout.add(10000, () => {
                     if (this.total_size == 0) {
-                        on_wait ();
+                        if (!cancellable.is_cancelled()) {
+                            on_wait ();
+                        }
                     }
                     size_timeout_id = 0;
                     return false;
                 });
                 if (reqesthead == null) {
-                    handle_error();
-                    return;
+                    throw new GLib.IOError.CLOSED("Header Error");
                 }
                 if (headerdm != "NOTSET") {
                     msg_get.request_headers.append ("Cookie", headerdm);
@@ -186,9 +203,22 @@ namespace Gabut {
                 } else {
                     this.total_size = msg_get.response_headers.get_content_length();
                 }
-                session.abort ();
-                input.close();
-                session = null;
+                if (cancellable != null) {
+                    cancellable.cancelled.connect(()=> {
+                        try {
+                            if (session != null) {
+                                session.abort ();
+                                session = null;
+                            }
+                            input.close ();
+                        } catch (GLib.Error e) {}
+                    });
+                }
+                if (session != null) {
+                    session.abort ();
+                    session = null;
+                }
+                input.close ();
                 if (this.total_size != 0) {
                     if (size_timeout_id > 0) {
                         GLib.Source.remove(size_timeout_id);
@@ -196,22 +226,23 @@ namespace Gabut {
                     }
                 }
                 if (this.total_size < 1024) {
-                    handle_error();
-                    return;
+                    throw new GLib.IOError.CLOSED("Size 0Kb");
                 }
-                save_size_state.begin(file);
-                download_parse.begin (file);
+                save_size_state (file);
+                download_parse (file);
                 msg_get = null;
             }
         }
 
-        private async void download_parse (GLib.File file) throws Error {
+        private void download_parse (GLib.File file) throws Error {
             if (this.current_parts_array == null) {
                 if (size_timeout_id > 0) {
                     GLib.Source.remove(size_timeout_id);
                     size_timeout_id = 0;
                 }
-                on_wait ();
+                if (!cancellable.is_cancelled()) {
+                    on_wait ();
+                }
                 return;
             }
             GLib.Timeout.add(500, () => {
@@ -251,10 +282,13 @@ namespace Gabut {
                 if (!part_obj.get_boolean_member("is_finished")) {
                     var thread = new GLib.Thread<bool>("part-%d-%d".printf(index, i), () => {
                         try {
-                            download_part_sync(part_obj);
+                            if (!cancellable.is_cancelled()) {
+                                download_part_sync(part_obj);
+                            }
                             return true;
                         } catch (GLib.Error e) {
                             if (!(e is GLib.IOError.CANCELLED)) {
+                                handle_error ();
                             }
                             return false;
                         }
@@ -277,13 +311,13 @@ namespace Gabut {
                         complete_download();
                     } else {
                         file.trash();
-                        handle_error ();
                         max_del_retries++;
+                        throw new GLib.IOError.FAILED("Not Falid");
                     }
                     ffread = null;
                 }
             } else if (!all_success && !cancellable.is_cancelled()) {
-                handle_error();
+                throw new GLib.IOError.FAILED("Not Succes");
             }
         }
 
@@ -306,7 +340,7 @@ namespace Gabut {
             return download_speed;
         }
 
-        private async void save_size_state (GLib.File file) throws GLib.Error {
+        private void save_size_state (GLib.File file) throws GLib.Error {
             state_mutex.lock();
             try {
                 var parent = file.get_parent();
@@ -353,6 +387,10 @@ namespace Gabut {
                     success = true;
                 } catch (GLib.Error e) {
                     if (e is GLib.IOError.CANCELLED) {
+                        if (this.current_parts_array != null) {
+                            save_state(this.current_parts_array);
+                        }
+                        cleanup_stream ();
                         break;
                     }
                     attempts++;
@@ -403,26 +441,32 @@ namespace Gabut {
             ssize_t bytes;
             int64 part_size = end_offset - start_offset + 1;
             while ((bytes = input.read(buffer, cancellable)) > 0) {
-                if (cancellable.is_cancelled()) {
-                    session.abort ();
-                    input.close ();
-                    session = null;
-                    save_state(this.current_parts_array);
-                    throw new GLib.IOError.CANCELLED("stopped");
-                }
                 safe_write(current_pos, buffer, bytes);
                 current_pos += bytes;
+                part_obj.set_int_member("current_pos", current_pos);
                 speedbyte += bytes;
                 int64 written = current_pos - start_offset;
                 this.part_progress[id] = written > part_size ? part_size : written;
-                part_obj.set_int_member("current_pos", current_pos);
+            }
+            if (cancellable != null) {
+                cancellable.cancelled.connect(()=> {
+                    try {
+                        if (session != null) {
+                            session.abort ();
+                            session = null;
+                        }
+                        input.close ();
+                    } catch (GLib.Error e) {}
+                });
             }
             part_obj.set_boolean_member("is_finished", true);
             part_obj.set_int_member("current_pos", end_offset + 1);
             save_state(this.current_parts_array);
-            session.abort ();
-            input.close();
-            session = null;
+            if (session != null) {
+                session.abort ();
+                session = null;
+            }
+            input.close ();
             msg = null;
             buffer = null;
         }
@@ -507,6 +551,17 @@ namespace Gabut {
 
         private void handle_error() {
             processing = false;
+            if (cancellable != null) {
+                cancellable.cancel();
+            }
+            if (size_timeout_id > 0) {
+                GLib.Source.remove(size_timeout_id);
+                size_timeout_id = 0;
+            }
+            if (retry_timeout_id > 0) {
+                GLib.Source.remove(retry_timeout_id);
+                retry_timeout_id = 0;
+            }
             if (shared_stream != null) {
                 try {
                     shared_stream.close();
@@ -515,25 +570,31 @@ namespace Gabut {
                     shared_stream = null;
                 }
             }
-            if (cancellable != null) {
-                cancellable.cancel();
-            }
+            completed = true;
+            success = false;
+            retry_count = 0;
+            status = StatusMode.ERROR;
+            status_changed(index, StatusMode.ERROR);
+            finished(index, false);
+        }
+
+        private void retry_download () {
             if (retry_count < hls_max_retries) {
-                GLib.Timeout.add(hls_timeout, () => {
-                    start_download();
-                    return false;
-                });
+                if (!cancellable.is_cancelled()) {
+                    retry_timeout_id = GLib.Timeout.add(hls_timeout, () => {
+                        if (!cancellable.is_cancelled()) {
+                            start_download();
+                        }
+                        retry_timeout_id = 0;
+                        return false;
+                    });
+                }
             } else {
-                completed = true;
-                success = false;
-                retry_count = 0;
-                status = StatusMode.ERROR;
-                status_changed(index, StatusMode.ERROR);
-                finished(index, false);
+                handle_error ();
             }
         }
 
-        private void complete_download() throws Error {
+        private void complete_download () throws Error {
             completed = true;
             success = true;
             processing = false;

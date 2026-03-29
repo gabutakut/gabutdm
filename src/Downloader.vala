@@ -40,7 +40,7 @@ namespace Gabut {
         private Gtk.ListBox listboxpeers;
         private Gtk.ListBox current_folder_list;
         private Gee.ArrayList<PeersRow> listpeers;
-        private Gee.ArrayList<ServerRow> listserver;
+        private Gee.ArrayList<RowServer> listserver;
         private Gee.ArrayList<TrFileInfo> folder_history;
         private Gee.ArrayList<TrFileInfo> all_files;
         private Gtk.Button server_button;
@@ -548,7 +548,7 @@ namespace Gabut {
             );
             lisboxserver = new Gtk.ListBox ();
             lisboxserver.set_placeholder (serv_alert);
-            listserver = new Gee.ArrayList<ServerRow> ();
+            listserver = new Gee.ArrayList<RowServer> ();
 
             var servscrolled = new Gtk.ScrolledWindow () {
                 hexpand = true,
@@ -708,7 +708,7 @@ namespace Gabut {
                     arrayserv.foreach ((serverrow) => {
                         bool servext = false;
                         for (int b = 0; b < listserver.size ; b++) {
-                            var serverrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
+                            var serverrow2 = (RowServer) lisboxserver.get_row_at_index (b);
                             if (serverrow.key == serverrow2.index) {
                                 servext = true;
                                 serverrow2.currenturi = serverrow.value.currenturi;
@@ -726,7 +726,7 @@ namespace Gabut {
                         return true;
                     });
                     for (int b = 0; b < listserver.size ; b++) {
-                        var servrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
+                        var servrow2 = (RowServer) lisboxserver.get_row_at_index (b);
                         if (!arrayserv.has_key (servrow2.index)) {
                             listserver.remove (servrow2);
                             lisboxserver.remove (servrow2);
@@ -778,7 +778,7 @@ namespace Gabut {
         private bool server_exist (int index) {
             bool exist = false;
             for (int b = 0; b < listserver.size ; b++) {
-                var servrow2 = (ServerRow) lisboxserver.get_row_at_index (b);
+                var servrow2 = (RowServer) lisboxserver.get_row_at_index (b);
                 if (servrow2.index == index) {
                     exist = true;
                 }

@@ -22,26 +22,25 @@
 namespace Gabut {
     public string get_complete (DownloadRow row) {
         string mime_class = row.fileordir != null ? get_mime_css (row.fileordir) : "file";
-        string filename   = row.filename  != null ? row.filename  : "Unknown file";
-        string pathname   = row.pathname  != null ? row.pathname  : "—";
-        string filetype   = row.fileordir != null ? row.fileordir : "—";
-        string totalsize  = GLib.format_size (row.totalsize,   GLib.FormatSizeFlags.LONG_FORMAT).to_ascii ();
-        string transferred= GLib.format_size (row.transferred, GLib.FormatSizeFlags.LONG_FORMAT).to_ascii ();
+        string filename = row.filename != null ? row.filename : "Unknown file";
+        string pathname = row.pathname != null ? row.pathname : "—";
+        string filetype = row.fileordir != null ? row.fileordir : "—";
+        string totalsize = GLib.format_size (row.totalsize, GLib.FormatSizeFlags.LONG_FORMAT).to_ascii ();
+        string transferred = GLib.format_size (row.transferred, GLib.FormatSizeFlags.LONG_FORMAT).to_ascii ();
 
-        bool is_viewable = row.fileordir != null && (is_video_mime (row.fileordir) || row.fileordir.has_prefix ("image/"));
+        bool is_viewable = row.fileordir != null && (row.fileordir.has_prefix ("video/") || row.fileordir.has_prefix ("image/")) || row.fileordir.has_prefix ("audio/");
         string open_btn = "";
         if (is_viewable && row.pathname != null) {
-            string share_dir = get_dbsetting (DBSettings.SHAREDIR);
             string rel_path  = row.pathname;
-            if (rel_path.has_prefix (share_dir)) {
-                rel_path = rel_path.substring (share_dir.length);
-            }
-            string encoded = GLib.Uri.escape_string (rel_path, "", true);
+            string encoded = GLib.Uri.escape_string (rel_path, "/", true);
             string icon_svg;
             string btn_label;
-            if (is_video_mime (row.fileordir)) {
+            if (row.fileordir.has_prefix ("video/")) {
                 icon_svg  = "<svg viewBox='0 0 14 14'><rect x='1' y='2' width='9' height='10' rx='1.2'/><path d='M10 5l3-2v8l-3-2z'/></svg>";
                 btn_label = "Open Video";
+            } else if (row.fileordir.has_prefix ("audio/")){
+                icon_svg  = "<svg viewBox='0 0 14 14'><rect x='1' y='1' width='12' height='12' rx='1.2'/><path d='M6 2l6 2v3l-6-2v6a2 2 0 11-1.5-1.94V4.5z'/></svg>";
+                btn_label = "Open Audio";
             } else {
                 icon_svg  = "<svg viewBox='0 0 14 14'><rect x='1' y='1' width='12' height='12' rx='1.5'/><circle cx='4.5' cy='4.5' r='1.2'/><path d='M1 9.5l3-3 2.5 2.5 2-2 3.5 3'/></svg>";
                 btn_label = "Open Image";

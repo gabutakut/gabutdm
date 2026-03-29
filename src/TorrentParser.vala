@@ -90,7 +90,6 @@ namespace Gabut {
             }
 
             BencodeValue? info_dict = root.dict_get("info");
-
             if (info_dict == null || info_dict.value_type != BencodeValue.Type.DICT) {
                 return null;
             }
@@ -123,6 +122,21 @@ namespace Gabut {
                     file_info.index = file_counter++;
                     info.files.add(file_info);
                 }
+            }
+            BencodeValue? pieces_val = info_dict.dict_get ("pieces");
+            if (pieces_val != null) {
+                var pieces_bytes = pieces_val.get_bytes ();
+                info.num_pieces  = (int) (pieces_bytes.length / 20);
+            }
+
+            BencodeValue? piece_length_val = info_dict.dict_get ("piece length");
+            if (piece_length_val != null) {
+                info.piece_length = piece_length_val.get_int ();
+            }
+
+            BencodeValue? private_val = info_dict.dict_get ("private");
+            if (private_val != null) {
+                info.trprivate = private_val.get_int ();
             }
             return info;
         }

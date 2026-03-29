@@ -20,7 +20,7 @@
 */
 
 namespace Gabut {
-    public class ServerRow : Gtk.ListBoxRow {
+    public class RowServer : Gtk.ListBoxRow {
         public int index { get; construct;}
         public string uriserver { get; set;}
         private Gtk.Label download_rate;
@@ -48,7 +48,7 @@ namespace Gabut {
             }
         }
 
-        public ServerRow (int index) {
+        public RowServer (int index) {
             Object(index: index);
         }
 

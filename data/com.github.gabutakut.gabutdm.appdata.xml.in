@@ -30,7 +30,13 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="2.8.0" date="2026-03-18">
+    <release version="2.8.5" date="2026-03-27">
+      <description>
+        <p>Fix HLS/M3U8 Downloader</p>
+        <p>Improve Server viewer</p>
+      </description>
+    </release>
+    <release version="2.8.1" date="2026-03-18">
       <description>
         <p>HLS/M3U8</p>
         <p>Bitfield Progress</p>

@@ -28,6 +28,9 @@ namespace Gabut {
         public Gee.ArrayList<string> announce_list { get; set; }
         public string comment { get; set; default = ""; }
         public int64 creation_date { get; set; default = 0; }
+        public int num_pieces { get; set; default = 0; }
+        public int64 trprivate { get; set; default = 0; }
+        public int64 piece_length { get; set; default = 0; }
         public string created_by { get; set; default = ""; }
         public BencodeValue? bencode_data { get; set; }
         public string original_filepath { get; set; default = ""; }
