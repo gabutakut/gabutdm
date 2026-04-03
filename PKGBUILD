@@ -1,5 +1,5 @@
 # Maintainer: torikulhabib <torik.habib@gmail.com>
-pkgname=gabutdm
+pkgname=gabutdm-master
 pkgver=2.8.7
 pkgrel=1
 pkgdesc="Simple, fast, and powerful Download Manager built with GTK4"
