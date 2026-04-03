@@ -1,0 +1,33 @@
+name: Publish to AUR
+
+on:
+  release:
+    types: [published]  # otomatis jalan saat ada release baru
+
+jobs:
+  aur-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Get SHA256
+        id: sha256
+        run: |
+          URL="https://github.com/gabutakut/gabutdm/archive/refs/tags/${{ steps.version.outputs.VERSION }}.tar.gz"
+          SHA=$(curl -sL $URL | sha256sum | cut -d' ' -f1)
+          echo "SHA256=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@master
+        with:
+          pkgname: gabutdm
+          pkgbuild: ./PKGBUILD
+          commit_username: ${{ secrets.12Torikul_Habib }}
+          commit_email: ${{ secrets.torik.habib@gmail.com }}
+          ssh_private_key: ${{ secrets.ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL92G4W8QA0zaiyn6F39aSDialiCFHt9xinIBqnKf/Xh torik.habib@gmail.com }}
+          commit_message: "Update to ${{ steps.version.outputs.VERSION }}"
+          updpkgsums: true
