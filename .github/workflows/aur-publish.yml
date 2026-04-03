@@ -2,7 +2,7 @@ name: Publish to AUR
 
 on:
   release:
-    types: [published]  # otomatis jalan saat ada release baru
+    types: [published]
 
 jobs:
   aur-publish:
