@@ -153,8 +153,6 @@ namespace Gabut {
         .info-value{font-size:13px;font-weight:500;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .info-cell.full{grid-column:1/-1;}
         .info-cell.status .info-value{color:#34d399;}
-
-        /* ── Button row ── */
         .btn-row{display:flex;gap:10px;}
         .btn-back,.btn-open{
         flex:1;
@@ -183,7 +181,6 @@ namespace Gabut {
         }
         .btn-open:hover{background:rgba(96,165,250,0.2);}
         .btn-open:active{transform:scale(0.98);}
-
         @media(max-width:480px){
         .info-grid{grid-template-columns:1fr;}
         .info-cell.full{grid-column:1;}

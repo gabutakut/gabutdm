@@ -120,7 +120,7 @@ namespace Gabut {
                             }
                         } else {
                             bool foundgid = false;
-                            aria_tell_active ().foreach ((strgid)=> {
+                            foreach (var strgid in aria_tell_active ()) {
                                 if (ariagid == aria_tell_status (strgid, TellStatus.FOLLOWING)) {
                                     status = status_aria (aria_tell_status (strgid, TellStatus.STATUS));
                                     filename = aria_tell_bittorent (strgid, TellBittorrent.NAME);
@@ -148,9 +148,9 @@ namespace Gabut {
                                         add_db_download (this);
                                         set_dboptions (url, hashoption);
                                     }
+                                    break;
                                 }
-                                return true;
-                            });
+                            }
                             if (foundgid) {
                                 break;
                             }

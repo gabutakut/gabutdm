@@ -22,11 +22,11 @@
 namespace Gabut {
     public class BitfieldWidget : Gtk.DrawingArea {
         public int status;
-        public string filename { get; set; default = "";}
-        public string errorcode { get; set; default = "...";}
-        public string connectionsdl { get; set; default = "0";}
-        public string labeltransfer { get; set; default = "-";}
-        private string bitfield { get; set; default = "";}
+        public string? filename { get; set; default = "";}
+        public string? errorcode { get; set; default = "...";}
+        public string? connectionsdl { get; set; default = "0";}
+        public string? labeltransfer { get; set; default = "-";}
+        private string? bitfield { get; set; default = "";}
         private int max_rows;
         private int piece_size;
         private int total_pieces;

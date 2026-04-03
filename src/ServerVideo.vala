@@ -35,7 +35,7 @@ namespace Gabut {
         <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>%s</title>
+        <title id="title-download">%s</title>
         <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{background:#0a0a0a;color:#fff;font-family:Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
@@ -171,7 +171,19 @@ namespace Gabut {
         .eq-band{display:flex;flex-direction:column;align-items:center;gap:4px;}
         .eq-band-label{font-size:9px;color:rgba(255,255,255,0.3);text-align:center;}
         .eq-band-val{font-size:9px;font-weight:600;color:#a78bfa;min-width:28px;text-align:center;}
-        input[type=range].vert{-webkit-appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:24px;height:80px;background:rgba(255,255,255,0.1);border-radius:999px;cursor:pointer;outline:none;}
+        /* AFTER */
+        input[type=range].vert{
+        -webkit-appearance: none;
+        appearance: none;
+        writing-mode: vertical-lr;
+        direction: rtl;
+        width: 24px;
+        height: 80px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 999px;
+        cursor: pointer;
+        outline: none;
+        }
         input[type=range].vert::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:linear-gradient(135deg,#a78bfa,#60a5fa);border-radius:50%;cursor:pointer;}
         .big-sliders{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
         .big-band{display:flex;flex-direction:column;gap:6px;}
@@ -389,7 +401,11 @@ namespace Gabut {
                 </div>
             </div>
             <button class="btn speed-btn" id="speedbtn">1&#xD7;</button>
-            <button class="btn adj-btn" id="adj-open-btn" title="Adjustment">⬛ Adj</button>
+            <button class="btn adj-btn" id="adj-open-btn" title="Adjustment">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M19.14,12.94a7.49,7.49,0,0,0,.05-.94,7.49,7.49,0,0,0-.05-.94l2.03-1.58a.5.5,0,0,0,.12-.64l-1.92-3.32a.5.5,0,0,0-.6-.22l-2.39.96a7.28,7.28,0,0,0-1.63-.94l-.36-2.54A.5.5,0,0,0,13.9,2H10.1a.5.5,0,0,0-.49.41L9.25,4.95a7.28,7.28,0,0,0-1.63.94l-2.39-.96a.5.5,0,0,0-.6.22L2.71,8.47a.5.5,0,0,0,.12.64L4.86,10.7a7.49,7.49,0,0,0-.05.94,7.49,7.49,0,0,0,.05.94L2.83,14.16a.5.5,0,0,0-.12.64l1.92,3.32a.5.5,0,0,0,.6.22l2.39-.96a7.28,7.28,0,0,0,1.63.94l.36,2.54a.5.5,0,0,0,.49.41h3.8a.5.5,0,0,0,.49-.41l.36-2.54a7.28,7.28,0,0,0,1.63-.94l2.39.96a.5.5,0,0,0,.6-.22l1.92-3.32a.5.5,0,0,0-.12-.64ZM12,15.5A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/>
+                </svg>
+            </button>
             <button class="btn" id="fsbtn">
                 <svg id="ico-fs" viewBox="0 0 18 18"><path d="M9.57 3.62A1 1 0 008.65 3H4c-.55 0-1 .45-1 1v4.65A1 1 0 004.71 9.7l4.65-4.65a1 1 0 00.22-1.43zm4.81 4.81a1 1 0 00-1.09.22L8.64 13.3a1 1 0 00.71 1.7H14c.55 0 1-.45 1-1V9.35a1 1 0 00-.62-.92z"/></svg>
                 <svg id="ico-exfs" viewBox="0 0 18 18" style="display:none"><path d="M7.88 1.93a.99.99 0 00-1.09.22L2.15 6.79A1 1 0 002.85 8.5H7.5c.55 0 1-.45 1-1V2.85a1 1 0 00-.62-.92zm7.26 7.57H10.5c-.55 0-1 .45-1 1v4.65a1 1 0 001.71.71l4.65-4.65a1 1 0 00-.72-1.71z"/></svg>
@@ -397,7 +413,6 @@ namespace Gabut {
             </div>
         </div>
         </div>
-
         <script>
         const SRC      = "%s";
         const MIME     = "%s";
@@ -412,14 +427,10 @@ namespace Gabut {
         const errOv    = document.getElementById('errOverlay');
         const errMsg   = document.getElementById('errMsg');
         const subEl    = document.getElementById('subtitle-text');
-
-        let hls = null;
         let mpegPlayer = null;
         let jsmpegPlayer = null;
         let canvasEl = null;
         let urlvid = SRC;
-
-        // ── Playlist ──
         let playlist = [], curIdx = -1;
         (async()=>{
         try {
@@ -433,36 +444,28 @@ namespace Gabut {
             updateNavBtns();
         } catch(e){ console.log('DirListVideo err',e); }
         })();
-
         function updateNavBtns(){
         document.getElementById('big-prev').style.opacity = curIdx<=0?'0.3':'1';
         document.getElementById('big-next').style.opacity = curIdx>=playlist.length-1?'0.3':'1';
         }
         function playIdx(idx){
         if(idx<0||idx>=playlist.length) return;
-
         resetPlayer();
         curIdx=idx;
         const f=playlist[idx];
         updateDownload(f);
-
         urlvid = '/Rawori?path=' + (f.path);
         startPlayer ();
-
         history.replaceState(null,'','/Player?path='+f.path);
         updateNavBtns();
-        // Load subtitle baru
+        updateMediaSession();
         const srtUrl='/Rawori?path='+f.path.replace(/%2F|[^%]/gi,c=>c).replace(/\.[^.]*$/,'')+'.srt';
         loadSRT('/Rawori?path='+decodeURIComponent(f.path).replace(/\.[^.]*$/,'')+'.srt');
-        // Update title
         document.querySelector('header span').textContent=f.name;
         }
-
-        // ── Codec fallback ──
         function loadScript(url,cb,errcb){const s=document.createElement('script');s.src=url;s.onload=cb;s.onerror=()=>{if(errcb)errcb();else showError('Gagal load: '+url);};document.head.appendChild(s);}
         function setBadge(l,c){badge.textContent=l;badge.style.color=c||'rgba(255,255,255,0.6)';}
         function showError(msg){errMsg.textContent=msg;errOv.classList.add('show');}
-
         function tryMpeg1(){
         setBadge('MPEG-1 · jsmpeg','#a78bfa');vid.style.display='none';
         canvasEl=document.createElement('canvas');canvasEl.style.cssText='max-width:100%%;max-height:100%%;display:block;margin:auto;background:#000;';
@@ -474,110 +477,71 @@ namespace Gabut {
         }
         function tryMpegts(){
         loadScript('/Mpegjs',()=>{
-            if(!mpegts.isSupported()){tryHls();return;}
+            if(!mpegts.isSupported()){tryMpeg1();return;}
             setBadge('mpegts.js','#fb923c');
             mpegPlayer=mpegts.createPlayer({type:'mpegts',url:urlvid,isLive:false});
             mpegPlayer.attachMediaElement(vid);mpegPlayer.load();mpegPlayer.play();
-            mpegPlayer.on(mpegts.Events.ERROR,()=>tryHls());
-        },()=>tryHls());
-        }
-        function tryHls(){
-        loadScript('/Hlsjs',()=>{
-            if(!Hls.isSupported()){tryMpeg1();return;}
-            setBadge('HLS · hls.js','#60a5fa');
-            hls=new Hls();hls.loadSource(urlvid);hls.attachMedia(vid);
-            hls.on(Hls.Events.MANIFEST_PARSED,()=>vid.play());
-            hls.on(Hls.Events.ERROR,(_,d)=>{if(d.fatal){hls.destroy();tryMpeg1();}});
+            mpegPlayer.on(mpegts.Events.ERROR,()=>tryMpeg1());
         },()=>tryMpeg1());
         }
         function startPlayer(){
         setBadge('Native','rgba(255,255,255,0.5)');vid.src=urlvid;
         vid.addEventListener('error',()=>{vid.removeAttribute('src');vid.load();tryMpegts();},{once:true});
         vid.play().catch(()=>{});
+        updateMediaSession();
         }
         startPlayer();
-
         function resetPlayer() {
-        // destroy hls
-        if (hls) {
-            hls.destroy();
-            hls = null;
-        }
-
-        // destroy mpegts
         if (mpegPlayer) {
             mpegPlayer.destroy();
             mpegPlayer = null;
         }
-
-        // destroy jsmpeg
         if (jsmpegPlayer) {
             jsmpegPlayer.destroy && jsmpegPlayer.destroy();
             jsmpegPlayer = null;
         }
-
-        // remove canvas
         if (canvasEl) {
             canvasEl.remove();
             canvasEl = null;
         }
-
-        // reset video
         vid.pause();
         vid.removeAttribute('src');
         vid.load();
         vid.style.display = 'block';
         }
-
-        // ── dobletap seeker ──
         let lastTapTime = 0;
         let tapTimeout = null;
-
         player.addEventListener('touchend', function(e) {
         if (e.target.closest('.controls') || e.target.closest('.adj-overlay')) return;
-
         const now = Date.now();
         const tapDelay = now - lastTapTime;
-
         const rect = player.getBoundingClientRect();
         const x = e.changedTouches[0].clientX - rect.left;
         const width = rect.width;
-
-        // double tap
         if (tapDelay < 300 && tapDelay > 0) {
             clearTimeout(tapTimeout);
-
             if (x < width * 0.4) {
-            // kiri
             vid.currentTime = Math.max(0, vid.currentTime - 10);
             showSeekIndicator('left');
             } 
             else if (x > width * 0.6) {
-            // kanan
             vid.currentTime = Math.min(vid.duration, vid.currentTime + 10);
             showSeekIndicator('right');
             }
-
         } else {
-            // single tap → do nothing
             tapTimeout = setTimeout(() => {}, 300);
         }
-
         lastTapTime = now;
         });
         function showSeekIndicator(dir){
         const el = document.getElementById('seek-indicator');
         if(!el) return;
-
         el.className = 'seek-indicator ' + dir + ' show';
         el.textContent = dir === 'left' ? '10s' : '10s';
-
         setTimeout(()=>{
             el.classList.remove('show');
         }, 300);
         }
-
-        // ── Subtitle SRT parser ──
         let srtCues = [];
         async function loadSRT(url){
         srtCues=[];
@@ -600,87 +564,57 @@ namespace Gabut {
         }catch(e){console.log('SRT err',e);}
         }
         loadSRT(SRT_URL);
-
         function syncSubtitle(t){
         const cue=srtCues.find(c=>t>=c.start&&t<=c.end);
         if(cue){subEl.textContent=cue.text;subEl.classList.add('show');}
         else{subEl.classList.remove('show');}
         }
-        
         let holdSpeed = false;
         let holdTimer = null;
         let prevSpeed = 1;
         let holding = false;
-
-        // deteksi area kiri / kanan
         function isSideHold(e) {
         const rect = player.getBoundingClientRect();
         const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
         return (x < rect.width * 0.3 || x > rect.width * 0.7);
         }
-
-        // START HOLD
         function startHold(e) {
-        // ❌ blok kalau klik UI
         if (e.target.closest('.controls') || e.target.closest('.adj-overlay')) return;
-
-        // ❌ hanya area kiri kanan
         if (!isSideHold(e)) return;
-
         holding = true;
-
-        // 🔥 cegah klik / context menu
         e.preventDefault();
-
         holdTimer = setTimeout(() => {
             if (!holding) return;
-
             holdSpeed = true;
             prevSpeed = vid.playbackRate;
-
             vid.playbackRate = 2.0;
             player.classList.add('holding-speed');
         }, 200);
         }
-
-        // END HOLD
         function endHold() {
         holding = false;
-
         if (holdTimer) {
             clearTimeout(holdTimer);
             holdTimer = null;
         }
-
         if (holdSpeed) {
             vid.playbackRate = prevSpeed;
             holdSpeed = false;
         }
-
-        // 🔥 paksa hilang
         player.classList.remove('holding-speed');
         }
-
-        // mouse
         player.addEventListener('mousedown', startHold);
         document.addEventListener('mouseup', endHold);
         document.addEventListener('mouseleave', endHold);
-
-        // touch (HP)
         player.addEventListener('touchstart', startHold, { passive:false });
         document.addEventListener('touchend', endHold);
         document.addEventListener('touchcancel', endHold);
-
-        // 🔥 cegah context menu (INI YANG BIKIN POPUP DOWNLOAD)
         player.addEventListener('contextmenu', e => e.preventDefault());
-
-        // ── Video Adjustment ──
         const adjState={subsize: 18,brightness:1,contrast:1,saturate:1,hue:0,gamma:1,blur:0};
         function applyAdj(){
         subEl.style.fontSize = adjState.subsize + 'px';
         vid.style.filter=`brightness(${adjState.brightness}) contrast(${adjState.contrast}) saturate(${adjState.saturate}) hue-rotate(${adjState.hue}deg) blur(${adjState.blur}px) brightness(${1/Math.max(adjState.gamma,0.1)})`;
         }
-
         const adjSliders={
         'subsize': { unit:'px', dec:0 },
         'brightness':{unit:'',dec:2},
@@ -701,7 +635,6 @@ namespace Gabut {
             applyAdj();
         });
         });
-
         function resetAdj(){
         const defaults={subsize: 18,brightness:1,contrast:1,saturate:1,hue:0,gamma:1,blur:0};
         Object.keys(defaults).forEach(k=>{
@@ -712,12 +645,10 @@ namespace Gabut {
         });
         applyAdj();
         }
-        
         function adjOpen(){
         document.getElementById('adj-overlay').classList.add('open');
         player.classList.add('lock-click');
         }
-
         function adjClose(){
         document.getElementById('adj-overlay').classList.remove('open');
         player.classList.remove('lock-click');
@@ -725,28 +656,17 @@ namespace Gabut {
         function adjBg(e){if(e.target===document.getElementById('adj-overlay'))adjClose();}
         document.getElementById('adj-open-btn').addEventListener('click',adjOpen);
         let hideTimer = null;
-
         function showControls() {
         player.classList.remove('hide-ui');
-
-        // reset timer
         if (hideTimer) clearTimeout(hideTimer);
-
         hideTimer = setTimeout(() => {
             player.classList.add('hide-ui');
-        }, 5000); // 5 detik
+        }, 5000);
         }
-
-        // trigger saat mouse gerak
         player.addEventListener('mousemove', showControls);
         player.addEventListener('click', showControls);
-
-        // saat fullscreen juga aktif
         document.addEventListener('fullscreenchange', showControls);
-
-        // start pertama
         showControls();
-        // ── Player controls ──
         const playbtn=document.getElementById('playbtn');
         const icoPlay=document.getElementById('ico-play');
         const icoPause=document.getElementById('ico-pause');
@@ -766,11 +686,15 @@ namespace Gabut {
         const fsbtn=document.getElementById('fsbtn');
         const icoFs=document.getElementById('ico-fs');
         const icoExfs=document.getElementById('ico-exfs');
-
         const speeds=[0.5,0.75,1,1.25,1.5,2];let speedIdx=2;
         function fmt(s){
-        s=Math.floor(s||0);
-        return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+        s = Math.floor(s || 0);
+        const h   = Math.floor(s / 3600);
+        const m   = Math.floor((s % 3600) / 60);
+        const sec = s % 60;
+        return h > 0
+            ? h + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0')
+            : m + ':' + String(sec).padStart(2,'0');
         }
         function updatePlay(){
         const p=vid.paused;
@@ -781,49 +705,92 @@ namespace Gabut {
         function updateMute(){icoVol.style.display=vid.muted?'none':'';icoMute.style.display=vid.muted?'':'none';}
         document.querySelectorAll('.adj-card, .adj-card *').forEach(el=>{
         el.addEventListener('click', e => {
-        // hanya blok kalau bukan preset
         if (!e.target.closest('.preset-btn')) {
             e.stopPropagation();
         }
         });
         el.addEventListener('mousedown', e => e.stopPropagation());
         });
+        function updateMediaSession() {
+        if (!('mediaSession' in navigator)) return;
+        const f      = playlist[curIdx];
+        const title  = f ? f.name.replace(/\.[^.]+$/, '') : document.getElementById('title-download').textContent;
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title,
+            artist : '',
+            album  : '',
+            artwork: [
+            { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>', sizes: '1x1' }
+            ]
+        });
+        navigator.mediaSession.setActionHandler('play',  () => vid.play());
+        navigator.mediaSession.setActionHandler('pause', () => vid.pause());
+        navigator.mediaSession.setActionHandler('stop',  () => { vid.pause(); vid.currentTime = 0; });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            if (curIdx > 0) playIdx(curIdx - 1);
+            else vid.currentTime = 0;
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            if (curIdx < playlist.length - 1) playIdx(curIdx + 1);
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', (d) => {
+            vid.currentTime = Math.max(0, vid.currentTime - (d.seekOffset ?? 10));
+        });
+        navigator.mediaSession.setActionHandler('seekforward', (d) => {
+            vid.currentTime = Math.min(vid.duration, vid.currentTime + (d.seekOffset ?? 10));
+        });
+        navigator.mediaSession.setActionHandler('seekto', (d) => {
+            if (d.seekTime != null) vid.currentTime = d.seekTime;
+        });
+        }
+        function updatePositionState() {
+        if (!('mediaSession' in navigator)) return;
+        if (!vid.duration || !isFinite(vid.duration)) return;
+        try {
+            navigator.mediaSession.setPositionState({
+            duration    : vid.duration,
+            playbackRate: vid.playbackRate,
+            position    : vid.currentTime,
+            });
+        } catch(_) {}
+        }
         vid.addEventListener('timeupdate',()=>{
         if (!vid.duration) return;
-
         const pct = (vid.currentTime / vid.duration) * 100;
-
         fill.style.width = pct + '%';
         thumb.style.left = pct + '%';
         cur.textContent = fmt(vid.currentTime);
-
         syncSubtitle(vid.currentTime);
+        updatePositionState ();
         });
         vid.addEventListener('durationchange',()=>{dur.textContent=fmt(vid.duration);});
         vid.addEventListener('progress',()=>{if(vid.buffered.length)buf.style.width=(vid.buffered.end(vid.buffered.length-1)/vid.duration*100)+'%';});
-        vid.addEventListener('play',updatePlay);vid.addEventListener('pause',updatePlay);
+        vid.addEventListener('play', () => {
+        updatePlay();
+        if ('mediaSession' in navigator)
+            navigator.mediaSession.playbackState = 'playing';
+        });
+        vid.addEventListener('pause', () => {
+        updatePlay();
+        if ('mediaSession' in navigator)
+            navigator.mediaSession.playbackState = 'paused';
+        });
         vid.addEventListener('ended',()=>{
         updatePlay();
         if(curIdx>=0&&curIdx<playlist.length-1) playIdx(curIdx+1);
         });
-
-        // Big play button
         document.getElementById('big-play').addEventListener('click',e=>{e.stopPropagation();vid.paused?vid.play():vid.pause();});
         document.getElementById('big-prev').addEventListener('click',e=>{e.stopPropagation();if(curIdx>0)playIdx(curIdx-1);});
         document.getElementById('big-next').addEventListener('click',e=>{e.stopPropagation();if(curIdx<playlist.length-1)playIdx(curIdx+1);});
-
         document.getElementById('controls').addEventListener('click',e=>e.stopPropagation());
-
         playbtn.addEventListener('click',()=>{vid.paused?vid.play():vid.pause();});
         document.getElementById('seekback').addEventListener('click',()=>{vid.currentTime=Math.max(0,vid.currentTime-10);});
         document.getElementById('seekfwd').addEventListener('click',()=>{vid.currentTime=Math.min(vid.duration,vid.currentTime+10);});
-
         prog.addEventListener('click',e=>{const r=prog.getBoundingClientRect();vid.currentTime=((e.clientX-r.left)/r.width)*vid.duration;});
         let dragging=false;
         prog.addEventListener('mousedown',()=>{dragging=true;});
         document.addEventListener('mousemove',e=>{if(!dragging)return;const r=prog.getBoundingClientRect();vid.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*vid.duration;});
         document.addEventListener('mouseup',()=>{dragging=false;});
-
         vol.addEventListener('input',()=>{vid.volume=vol.value;vid.muted=vol.value==0;updateMute();});
         mutebtn.addEventListener('click',()=>{vid.muted=!vid.muted;if(vid.muted)vol.value=0;else{if(vol.value==0)vol.value=1;vid.volume=vol.value;}updateMute();});
         speedbtn.addEventListener('click',()=>{speedIdx=(speedIdx+1)%speeds.length;vid.playbackRate=speeds[speedIdx];speedbtn.textContent=speeds[speedIdx]+'\u00D7';});
@@ -844,16 +811,13 @@ namespace Gabut {
         });
         const btnDownload = document.getElementById('btn-download');
         const ttlDownload = document.getElementById('title-download');
-
         function updateDownload(f) {
         if (!f) return;
-
         const url = '/Rawori?path=' + (f.path);
         btnDownload.href = url;
         btnDownload.download = f.name;
         ttlDownload.innerText = f.name;
         }
-        // ── Tab switch ──
         function switchTab(tab) {
         document.getElementById('panel-video').style.display = tab==='video' ? '' : 'none';
         document.getElementById('panel-audio').style.display = tab==='audio' ? '' : 'none';
@@ -861,22 +825,18 @@ namespace Gabut {
         document.getElementById('tab-audio').classList.toggle('active', tab==='audio');
         if (tab==='audio') initAudio();
         }
-
-        // ── Web Audio EQ ──
         let audioCtx, analyser, vidSource, gainNode;
         let eqFilters = [];
         let bassFilter, midFilter, trebleFilter;
         let dolbyConvolver, dolbyGain, dolbyEnabled=false, dolbyConnected=false;
         let audioConnected = false;
-
-        const BANDS       = [60,170,350,1000,3500,10000,16000];
+        const BANDS = [60,170,350,1000,3500,10000,16000];
         const BAND_LABELS = ['60','170','350','1k','3.5k','10k','16k'];
         const PRESETS = {
         flat:[0,0,0,0,0,0,0], bass:[8,6,4,0,0,0,0], treble:[0,0,0,0,4,6,8],
         vocal:[-2,-2,4,6,4,-2,-2], rock:[6,4,2,0,2,4,6], pop:[-2,2,4,4,2,-2,-4],
         jazz:[4,2,0,2,4,4,2], classical:[4,4,2,0,0,2,4],
         };
-
         async function initAudio() {
         if (audioConnected) {
             if (audioCtx && audioCtx.state === 'suspended') {
@@ -884,22 +844,16 @@ namespace Gabut {
             }
             return;
         }
-
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
         if (audioCtx.state === 'suspended') {
             await audioCtx.resume();
         }
-
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 128;
         analyser.smoothingTimeConstant = 0.8;
-
         gainNode = audioCtx.createGain();
         gainNode.gain.value = 0.85;
-
         vidSource = audioCtx.createMediaElementSource(vid);
-
         eqFilters = BANDS.map((freq, i) => {
             const f = audioCtx.createBiquadFilter();
             f.type = i === 0 ? 'lowshelf' : i === BANDS.length - 1 ? 'highshelf' : 'peaking';
@@ -908,31 +862,24 @@ namespace Gabut {
             f.gain.value = 0;
             return f;
         });
-
         bassFilter = audioCtx.createBiquadFilter();
         bassFilter.type = 'lowshelf';
         bassFilter.frequency.value = 200;
-
         midFilter = audioCtx.createBiquadFilter();
         midFilter.type = 'peaking';
         midFilter.frequency.value = 1000;
         midFilter.Q.value = 0.8;
-
         trebleFilter = audioCtx.createBiquadFilter();
         trebleFilter.type = 'highshelf';
         trebleFilter.frequency.value = 4000;
-
         let prev = vidSource;
-
         [...eqFilters, bassFilter, midFilter, trebleFilter].forEach(f => {
             prev.connect(f);
             prev = f;
         });
-
         prev.connect(gainNode);
         gainNode.connect(analyser);
         analyser.connect(audioCtx.destination);
-
         audioConnected = true;
         buildSliders();
         }
@@ -949,7 +896,6 @@ namespace Gabut {
         }
         dolbyConvolver.buffer=ir;
         }
-
         function connectDolbyChain() {
         if(dolbyConnected) return;
         const sp=audioCtx.createChannelSplitter(2),mg=audioCtx.createChannelMerger(2);
@@ -963,13 +909,11 @@ namespace Gabut {
         dolbyGain.connect(audioCtx.destination);
         dolbyConnected=true;
         }
-
         function toggleDolby() {
         dolbyEnabled=!dolbyEnabled;
         document.getElementById('dolby-toggle').classList.toggle('on',dolbyEnabled);
         if(audioConnected){connectDolbyChain();dolbyGain.gain.setTargetAtTime(dolbyEnabled?0.6:0,audioCtx.currentTime,0.08);}
         }
-
         function buildSliders() {
         const wrap=document.getElementById('eq-sliders'); wrap.innerHTML='';
         BANDS.forEach((freq,i)=>{
@@ -986,7 +930,6 @@ namespace Gabut {
             div.appendChild(val);div.appendChild(sl);div.appendChild(lbl);wrap.appendChild(div);
         });
         }
-
         document.getElementById('sl-bass').addEventListener('input',function(){
         document.getElementById('val-bass').textContent=(this.value>0?'+':'')+this.value+' dB';
         if(audioConnected)bassFilter.gain.value=parseFloat(this.value);clearPresetActive();
@@ -999,38 +942,27 @@ namespace Gabut {
         document.getElementById('val-treble').textContent=(this.value>0?'+':'')+this.value+' dB';
         if(audioConnected)trebleFilter.gain.value=parseFloat(this.value);clearPresetActive();
         });
-
         document.querySelectorAll('.preset-btn').forEach(btn=>{
             btn.addEventListener('click', async (e)=>{
-            e.stopPropagation(); // optional
-
+            e.stopPropagation();
             await initAudio();
-
             const key = btn.dataset.preset?.trim();
             const vals = PRESETS[key];
-
-            console.log('preset:', key);
-            console.log('vals:', vals);
-
             if (!vals) return;
-
             vals.forEach((v,i)=>{
             const sl=document.getElementById('eqs'+i);
             const vl=document.getElementById('eqv'+i);
-
             if(sl){
                 sl.value = v;
                 vl.textContent = (v>0?'+':'')+v;
                 eqFilters[i].gain.setValueAtTime(v, audioCtx.currentTime);
             }
             });
-
             document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
             btn.classList.add('active');
         });
         });
         function clearPresetActive(){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));}
-
         function resetEQ(){
         BANDS.forEach((_,i)=>{
             const sl=document.getElementById('eqs'+i),vl=document.getElementById('eqv'+i);

@@ -122,7 +122,7 @@ namespace Gabut {
             filebtn.clicked.connect (()=> {
                 revtrash.reveal_child = !revtrash.reveal_child;
                 lisbox_trash.remove_all ();
-                datarow.foreach ((dlrw)=> {
+                foreach (var dlrw in datarow) {
                     var dlrws = new DeleteRow () {
                         fileordir = dlrw.fileordir,
                         filebasename = dlrw.filename,
@@ -130,8 +130,7 @@ namespace Gabut {
                         iconrmdl = icimg
                     };
                     lisbox_trash.append (dlrws);
-                    return  true;
-                });
+                }
             });
 
             var header_grid = new Gtk.Grid () {
@@ -198,7 +197,6 @@ namespace Gabut {
         }
 
         public override void show () {
-            base.show ();
             if (datarow.size < 2) {
                 item_file.label = GLib.Markup.escape_text(datarow.get (0).filename);
                 var fileordir = datarow.get (0).fileordir;
@@ -210,6 +208,7 @@ namespace Gabut {
             } else {
                 item_file.label = _("%s %i of %i item").printf (infolabel,datarow.size, totalrow);
             }
+            base.show ();
         }
     }
 }

@@ -21,7 +21,7 @@
 
 namespace Gabut {
     public class AddUrl : Gtk.Dialog {
-        public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
+        public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode, bool server = false);
         public signal void update_agid (string ariagid, string newgid);
         public Gtk.Button save_button;
         private Gtk.Image status_image;
@@ -324,12 +324,12 @@ namespace Gabut {
             foreach (var method in ProxyMethods.get_all ()) {
                 method_flow.append (new ProxyMethod (method));
             }
-            method_flow.show ();
+            method_flow.set_visible (true);
             method_flow.child_activated.connect ((method)=> {
                 ((Gtk.Label)((ProxyMethod) proxymethod).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 proxymethod = method as ProxyMethod;
                 ((Gtk.Label)proxymethod.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                method_popover.hide ();
+                method_popover.set_visible (false);
             });
             proxymethod = method_flow.get_child_at_index (0) as ProxyMethod;
             ((Gtk.Label)proxymethod.get_last_child ()).attributes = color_attribute (0, 60000, 0);
@@ -347,7 +347,7 @@ namespace Gabut {
             savedproxy = new Gtk.MenuButton () {
                 popover = saved_popover
             };
-            save_flow.show ();
+            save_flow.set_visible (true);
             myrcproxy = save_flow.get_child_at_index (0) as ProxyRecently;
             ((Gtk.Label)myrcproxy.get_last_child ()).attributes = color_attribute (0, 60000, 0);
 
@@ -363,12 +363,12 @@ namespace Gabut {
             foreach (var typepr in ProxyTypes.get_all ()) {
                 type_flow.append (new ProxyType (typepr));
             }
-            type_flow.show ();
+            type_flow.set_visible (true);
             type_flow.child_activated.connect ((typepr)=> {
                 ((Gtk.Label)((ProxyType) proxytype).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 proxytype = typepr as ProxyType;
                 ((Gtk.Label)proxytype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                type_popover.hide ();
+                type_popover.set_visible (false);
             });
             proxytype = type_flow.get_child_at_index (0) as ProxyType;
             ((Gtk.Label)proxytype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
@@ -412,7 +412,7 @@ namespace Gabut {
                 port_entry.value = int.parse (mprxy.port);
                 user_entry.text = mprxy.user;
                 pass_entry.text = mprxy.passwd;
-                saved_popover.hide ();
+                saved_popover.set_visible (false);
             });
 
             saved_popover.show.connect (() => {
@@ -448,13 +448,13 @@ namespace Gabut {
             foreach (var logn in LoginUsers.get_all ()) {
                 login_flow.append (new LoginUser (logn));
             }
-            login_flow.show ();
+            login_flow.set_visible (true);
 
             login_flow.child_activated.connect ((logn)=> {
                 ((Gtk.Label)((LoginUser) loginuser).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 loginuser = logn as LoginUser;
                 ((Gtk.Label)loginuser.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                login_popover.hide ();
+                login_popover.set_visible (false);
             });
             loginuser = login_flow.get_child_at_index (0) as LoginUser;
             ((Gtk.Label)loginuser.get_last_child ()).attributes = color_attribute (0, 60000, 0);
@@ -522,7 +522,7 @@ namespace Gabut {
             foreach (var checksum in AriaChecksumTypes.get_all ()) {
                 checksums_flow.append (new GdmChecksumType (checksum));
             }
-            checksums_flow.show ();
+            checksums_flow.set_visible (true);
 
             checksum_entry = new MediaEntry ("com.github.gabutakut.gabutdm.hash", "edit-paste") {
                 width_request = 350,
@@ -533,7 +533,7 @@ namespace Gabut {
                 checksumtype = checksum as GdmChecksumType;
                 ((Gtk.Label)checksumtype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
                 checksum_entry.sensitive = checksumtype.checksums != AriaChecksumTypes.NONE? true : false;
-                checksums_popover.hide ();
+                checksums_popover.set_visible (false);
             });
             checksumtype = checksums_flow.get_child_at_index (0) as GdmChecksumType;
             ((Gtk.Label)checksumtype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
@@ -562,7 +562,7 @@ namespace Gabut {
             stack.add_named (moregrid, "moregrid");
             stack.add_named (checksumgrid, "checksumgrid");
             stack.visible_child = alllink;
-            stack.show ();
+            stack.set_visible (true);
 
             var close_button = new Gtk.Button.with_label (_("Cancel")) {
                 width_request = 120,
@@ -799,7 +799,6 @@ namespace Gabut {
         }
 
         public override void show () {
-            base.show ();
             if (row != null) {
                 headerc = aria_get_option (row.ariagid, AriaOptions.HEADER);
                 link_entry.text = row.url;
@@ -889,6 +888,7 @@ namespace Gabut {
                 }
                 save_meta = bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA)) | bool.parse (aria_get_option (row.ariagid, AriaOptions.RPC_SAVE_UPLOAD_METADATA));
             }
+            base.show ();
         }
     }
 }

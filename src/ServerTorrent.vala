@@ -105,8 +105,6 @@ namespace Gabut {
         .hd-title{color:#fff;font-size:14px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .trk-badge{font-size:10px;font-weight:600;background:rgba(52,211,153,0.15);color:#34d399;border-radius:999px;padding:2px 10px;flex-shrink:0;}
         .main{flex:1;padding:16px 20px;max-width:960px;width:100%;margin:0 auto;position:relative;z-index:1;display:flex;flex-direction:column;gap:16px;}
-
-        /* Info card */
         .info-card{
         background:rgba(255,255,255,0.03);border:0.5px solid rgba(255,255,255,0.08);
         border-radius:18px;overflow:hidden;
@@ -151,8 +149,6 @@ namespace Gabut {
         .info-value.green{color:#34d399;}
         .info-value.red{color:#f87171;}
         .info-cell.full{grid-column:1/-1;border-right:none;}
-
-        /* Section */
         .section-title{
         font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);
         text-transform:uppercase;letter-spacing:0.07em;
@@ -162,8 +158,6 @@ namespace Gabut {
         background:rgba(255,255,255,0.08);border-radius:999px;
         padding:1px 8px;font-size:11px;color:rgba(255,255,255,0.4);
         }
-
-        /* File list */
         .arc-list{background:rgba(255,255,255,0.02);border:0.5px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;}
         .arc-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:0.5px solid rgba(255,255,255,0.04);transition:background 0.1s;}
         .arc-row:last-child{border-bottom:none;}
@@ -191,7 +185,6 @@ namespace Gabut {
         .arc-basename{font-size:13px;color:#fff;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .arc-dir{font-size:11px;color:rgba(255,255,255,0.3);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .arc-fsize{font-size:11px;color:rgba(255,255,255,0.3);flex-shrink:0;font-variant-numeric:tabular-nums;}
-        /* Ganti kedua .trk-list jadi satu ini saja */
         .trk-list{
         background:rgba(255,255,255,0.02);
         border:0.5px solid rgba(255,255,255,0.07);
@@ -220,7 +213,6 @@ namespace Gabut {
         .arc-list::-webkit-scrollbar-track{background:transparent;}
         .arc-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:999px;}
         .arc-list::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.22);}
-        /* Search */
         .search-wrap{position:relative;margin-bottom:8px;}
         .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:rgba(255,255,255,0.3);fill:none;stroke-width:1.7;stroke-linecap:round;pointer-events:none;}
         #search{width:100%;padding:8px 12px 8px 34px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:13px;font-family:inherit;transition:border-color 0.15s;}
@@ -298,7 +290,6 @@ namespace Gabut {
             """
             </div>
         </div>
-
         <!-- File list -->
         <div>
             <div class="section-title">Files <span>""" + files.size.to_string () + """</span></div>
@@ -311,7 +302,6 @@ namespace Gabut {
             </div>
             <div class="no-result" id="no-result">No files match</div>
         </div>
-
         <!-- Trackers -->
         <div>
             <div class="section-title">Trackers <span>""" + seen.size.to_string () + """</span></div>
@@ -322,13 +312,10 @@ namespace Gabut {
         </div>
         <script>
         if (window.self !== window.top) {
-        // Sembunyikan back link
         const backLink = document.querySelector('header a');
         if (backLink) backLink.style.display = 'none';
-        // Sembunyikan title
         const title = document.querySelector('.hd-title');
         if (title) title.style.display = 'none';
-        // Sembunyikan tombol Add
         const actions = document.querySelector('.banner-actions');
         if (actions) actions.style.display = 'none';
         }

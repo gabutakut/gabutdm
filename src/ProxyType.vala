@@ -26,6 +26,7 @@ namespace Gabut {
         public ProxyType (ProxyTypes proxytype) {
             Object(proxytype: proxytype);
         }
+
         construct {            
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (proxytype.to_string ()) {
@@ -39,7 +40,7 @@ namespace Gabut {
                 width_request = 100
             };
             child = title;
-            show ();
+            set_visible (true);
         }
     }
 }

@@ -20,7 +20,32 @@
 */
 
 namespace Gabut {
-    public string get_home () {
+    public string get_home (string? username, bool registed) {
+        string auth_button;
+        if (registed) {
+            auth_button = """
+            <a class="drop-item" href="/logout">
+                <svg viewBox="0 0 22 22">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16,17 21,12 16,7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Log Out
+            </a>
+            """;
+        } else {
+            username = _("Guest");
+            auth_button = """
+            <a class="drop-item" href="/login">
+                <svg viewBox="0 0 22 22">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10,17 15,12 10,7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+                Login
+            </a>
+            """;
+        }
         return """<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -35,10 +60,7 @@ namespace Gabut {
         min-height:100vh;display:flex;flex-direction:column;
         overflow-x:hidden;
         }
-        /* ── Background glow ── */
-        .bg-glow{
-        position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
-        }
+        .bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
         .bg-glow::before{
         content:'';position:absolute;
         width:700px;height:700px;border-radius:50%;
@@ -61,11 +83,8 @@ namespace Gabut {
         from{transform:translate(0,0) scale(1);}
         to  {transform:translate(-60px,-70px) scale(1.15);}
         }
-
-        /* ── Header ── */
         header{
-        position:sticky;top:0;z-index:100;
-        width:100%;
+        position:sticky;top:0;z-index:100;width:100%;
         background:rgba(10,10,10,0.85);
         backdrop-filter:blur(24px) saturate(1.8);
         -webkit-backdrop-filter:blur(24px) saturate(1.8);
@@ -84,14 +103,90 @@ namespace Gabut {
         background-clip:text;
         }
         .spacer{flex:1;}
-
-        /* ── Hero ── */
+        .user-wrap{position:relative;}
+        .user-btn{
+        display:flex;align-items:center;gap:8px;
+        background:rgba(255,255,255,0.06);
+        border:0.5px solid rgba(255,255,255,0.12);
+        border-radius:999px;padding:5px 12px 5px 6px;
+        cursor:pointer;color:#fff;
+        font-size:13px;font-weight:500;
+        transition:background 0.15s;
+        user-select:none;
+        }
+        .user-btn:hover{background:rgba(255,255,255,0.10);}
+        .user-avatar{
+        width:28px;height:28px;border-radius:50%;
+        background:rgba(96,165,250,0.18);
+        border:0.5px solid rgba(96,165,250,0.3);
+        display:flex;align-items:center;justify-content:center;
+        flex-shrink:0;
+        }
+        .user-avatar svg{
+        width:15px;height:15px;fill:none;stroke:#60a5fa;
+        stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+        }
+        .user-name{
+        max-width:120px;overflow:hidden;
+        text-overflow:ellipsis;white-space:nowrap;
+        color:rgba(255,255,255,0.8);
+        }
+        .chevron{
+        width:12px;height:12px;fill:none;stroke:rgba(255,255,255,0.4);
+        stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+        transition:transform 0.2s;
+        }
+        .dropdown{
+        display:none;
+        position:absolute;top:calc(100% + 8px);right:0;
+        background:rgba(18,18,18,0.95);
+        border:0.5px solid rgba(255,255,255,0.10);
+        border-radius:14px;padding:6px;
+        min-width:180px;
+        backdrop-filter:blur(20px);
+        -webkit-backdrop-filter:blur(20px);
+        box-shadow:0 16px 40px rgba(0,0,0,0.5);
+        animation:dropIn 0.15s cubic-bezier(0.25,0.46,0.45,0.94) both;
+        }
+        @keyframes dropIn{
+        from{opacity:0;transform:translateY(-6px);}
+        to  {opacity:1;transform:translateY(0);}
+        }
+        .dropdown.open{display:block;}
+        .drop-info{
+        padding:8px 12px 10px;
+        border-bottom:0.5px solid rgba(255,255,255,0.07);
+        margin-bottom:4px;
+        }
+        .drop-info-label{
+        font-size:11px;color:rgba(255,255,255,0.3);
+        letter-spacing:0.04em;margin-bottom:2px;
+        }
+        .drop-info-name{
+        font-size:13px;font-weight:600;color:#fff;
+        }
+        .drop-item{
+        display:flex;align-items:center;gap:10px;
+        padding:9px 12px;border-radius:9px;
+        color:rgba(255,255,255,0.65);font-size:13px;
+        text-decoration:none;
+        transition:background 0.12s,color 0.12s;
+        cursor:pointer;
+        }
+        .drop-item:hover{
+        background:rgba(239,68,68,0.12);color:#fca5a5;
+        }
+        .drop-item svg{
+        width:14px;height:14px;fill:none;
+        stroke:currentColor;stroke-width:1.8;
+        stroke-linecap:round;stroke-linejoin:round;
+        flex-shrink:0;
+        }
         .hero{
         flex:1;display:flex;flex-direction:column;
         align-items:center;justify-content:center;
         padding:60px 24px 80px;
-        position:relative;z-index:1;
-        gap:16px;
+        position:relative;z-index:1;gap:16px;
         }
         .hero-badge{
         display:inline-flex;align-items:center;gap:6px;
@@ -104,9 +199,7 @@ namespace Gabut {
         }
         .hero-badge span{
         width:6px;height:6px;border-radius:50%;
-        background:#4ade80;
-        box-shadow:0 0 6px #4ade80;
-        flex-shrink:0;
+        background:#4ade80;box-shadow:0 0 6px #4ade80;flex-shrink:0;
         }
         .hero-title{
         font-size:clamp(36px,7vw,72px);
@@ -125,14 +218,10 @@ namespace Gabut {
         text-align:center;max-width:420px;line-height:1.7;
         animation:fadeUp 0.5s 0.18s cubic-bezier(0.25,0.46,0.45,0.94) both;
         }
-
-        /* ── Cards ── */
         .cards{
         display:grid;
         grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-        gap:16px;
-        width:100%;max-width:860px;
-        margin-top:16px;
+        gap:16px;width:100%;max-width:860px;margin-top:16px;
         animation:fadeUp 0.5s 0.26s cubic-bezier(0.25,0.46,0.45,0.94) both;
         }
         .card{
@@ -141,8 +230,7 @@ namespace Gabut {
         border-radius:20px;padding:24px;
         display:flex;flex-direction:column;gap:12px;
         backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-        transition:background 0.2s,border-color 0.2s,transform 0.2s;
-        cursor:default;
+        transition:background 0.2s,border-color 0.2s,transform 0.2s;cursor:default;
         }
         .card:hover{
         background:rgba(255,255,255,0.07);
@@ -151,8 +239,7 @@ namespace Gabut {
         }
         .card-icon{
         width:44px;height:44px;border-radius:14px;
-        display:flex;align-items:center;justify-content:center;
-        flex-shrink:0;
+        display:flex;align-items:center;justify-content:center;flex-shrink:0;
         }
         .card-icon svg{
         width:22px;height:22px;fill:none;
@@ -173,8 +260,7 @@ namespace Gabut {
         border-radius:999px;padding:8px 18px;
         color:#fff;font-size:13px;font-weight:500;
         text-decoration:none;align-self:flex-start;
-        transition:background 0.15s,transform 0.1s;
-        margin-top:4px;
+        transition:background 0.15s,transform 0.1s;margin-top:4px;
         }
         .card-btn:hover{background:rgba(255,255,255,0.16);}
         .card-btn:active{transform:scale(0.97);}
@@ -182,9 +268,6 @@ namespace Gabut {
         width:13px;height:13px;stroke:#fff;fill:none;
         stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
         }
-        .card-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-
-        /* ── Animations ── */
         @keyframes fadeUp{
         from{opacity:0;transform:translateY(18px);}
         to  {opacity:1;transform:translateY(0);}
@@ -196,15 +279,34 @@ namespace Gabut {
         <header>
         <a class="logo" href="/"><em>G</em>ABUT</a>
         <div class="spacer"></div>
+        <!-- User menu -->
+        <div class="user-wrap" id="userWrap">
+            <div class="user-btn" id="userBtn">
+            <div class="user-avatar">
+                <svg viewBox="0 0 22 22">
+                <circle cx="11" cy="8" r="4"/>
+                <path d="M3 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+            </div>
+            <span class="user-name" id="userName">""" + username + """</span>
+            <svg class="chevron" id="chevron" viewBox="0 0 12 12">
+                <polyline points="2,4 6,8 10,4"/>
+            </svg>
+            </div>
+            <div class="dropdown" id="dropdown">
+                <div class="drop-info">
+                    <div class="drop-info-label">Account</div>
+                    <div class="drop-info-name">""" + username + """</div>
+                </div>
+                """ + auth_button + """
+            </div>
+        </div>
         </header>
-
         <div class="hero">
         <div class="hero-badge"><span></span> Running</div>
         <h1 class="hero-title"><em>Gabut</em> Akut</h1>
         <p class="hero-sub">Gabut Download manager &amp; file transfer solution with a simple and modern interface.</p>
-
         <div class="cards">
-            <!-- Download Manager -->
             <div class="card">
             <div class="card-icon blue">
                 <svg viewBox="0 0 22 22">
@@ -221,8 +323,6 @@ namespace Gabut {
                 <svg viewBox="0 0 13 13"><polyline points="4,2 10,6.5 4,11"/></svg>
             </a>
             </div>
-
-            <!-- File Transfer -->
             <div class="card">
             <div class="card-icon green">
                 <svg viewBox="0 0 22 22">
@@ -239,8 +339,6 @@ namespace Gabut {
                 <svg viewBox="0 0 13 13"><polyline points="4,2 10,6.5 4,11"/></svg>
             </a>
             </div>
-
-            <!-- File Sharing -->
             <div class="card">
             <div class="card-icon purple">
                 <svg viewBox="0 0 22 22">
@@ -257,6 +355,20 @@ namespace Gabut {
             </div>
         </div>
         </div>
+        <script>
+        var btn = document.getElementById('userBtn');
+        var dd  = document.getElementById('dropdown');
+        var chv = document.getElementById('chevron');
+        btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var open = dd.classList.toggle('open');
+        chv.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+        document.addEventListener('click', function(){
+        dd.classList.remove('open');
+        chv.style.transform = 'rotate(0deg)';
+        });
+        </script>
         </body>
         </html>""";
     }

@@ -104,12 +104,13 @@ namespace Gabut {
                     gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
                 });
                 gabutwindow.update_agid.connect ((ariagid, newgid)=> {
-                    downloaders.foreach ((downloader)=> {
-                        if (downloader.ariagid == ariagid) {
-                            downloader.ariagid = newgid;
-                            downloader.get_active_status ();
+                    foreach (var download in downloaders) {
+                        if (download.ariagid == ariagid) {
+                            download.ariagid = newgid;
+                            download.get_active_status ();
+                            break;
                         }
-                    });
+                    }
                 });
                 gabutserver.address_url.connect (gabutwindow.add_url_box);
                 downloaders = new GLib.List<Downloader> ();
@@ -167,40 +168,35 @@ namespace Gabut {
         }
 
         private void open_now () {
-            MainContext.default ().invoke (() => {
-                if (startingup) {
-                    gabutwindow.show ();
-                    startingup = false;
-                } else {
-                    if (!gabutwindow.is_visible()) {
-                        gabutwindow.show();
-                    } else {
-                        gabutwindow.present();
-                    }
-                }
-                return false;
-            });
+            if (startingup) {
+                startingup = false;
+            }
+            if (!gabutwindow.is_visible ()) {
+                gabutwindow.set_visible (!startingup);
+            }
         }
 
         private void destroy_active (string ariagid) {
-            downloaders.foreach ((downloader)=> {
+            foreach (var downloader in downloaders) {
                 if (downloader.ariagid == ariagid) {
                     downloaders.delete_link (downloaders.find (downloader));
                     remove_window (downloader);
                     downloader.close ();
                     downloader = null;
+                    break;
                 }
-            });
+            }
         }
 
         private bool succes_active (string datastr) {
             bool active = false;
-            succesdls.foreach ((succesdl)=> {
+                foreach (var succesdl in succesdls) {
                 if (succesdl.datastr == datastr) {
                     succesdl.present ();
                     active = true;
+                    break;
                 }
-            });
+            }
             return active;
         }
 
@@ -210,16 +206,17 @@ namespace Gabut {
             };
             succesdls.append (succesdl);
             succesdl.close_request.connect (()=> {
-                succesdls.foreach ((succes)=> {
+                foreach (var succes in succesdls) {
                     if (succes == succesdl) {
                         succesdls.delete_link (succesdls.find (succes));
                         remove_window (succes);
                         succesdl = null;
+                        break;
                     }
-                });
+                }
                 return false;
             });
-            succesdl.show ();
+            succesdl.set_visible (true);
         }
 
         public void dialog_server (MatchInfo match_info) {
@@ -236,7 +233,7 @@ namespace Gabut {
                     addhls = null;
                     return false;
                 });
-                addhls.show ();
+                addhls.set_visible (true);
                 return;
             }
             var addurl = new AddUrl () {
@@ -246,16 +243,17 @@ namespace Gabut {
             addurls.append (addurl);
             addurl.downloadfile.connect (gabutwindow.add_url_box);
             addurl.close_request.connect (()=> {
-                addurls.foreach ((addur)=> {
+                foreach (var addur in addurls) {
                     if (addur == addurl) {
                         addurls.delete_link (addurls.find (addur));
                         remove_window (addur);
                         addurl = null;
+                        break;
                     }
-                });
+                }
                 return false;
             });
-            addurl.show ();
+            addurl.set_visible (true);
         }
 
         public bool dialog_url (string link) {
@@ -266,7 +264,7 @@ namespace Gabut {
                         url_link = link.strip ()
                     };
                     addhls.downloadfile.connect (gabutwindow.add_url_box);
-                    addhls.show ();
+                    addhls.set_visible (true);
                 } else {
                     if (link.has_prefix ("magnet:?")) {
                         link.replace ("tr.N=", "tr=");
@@ -279,16 +277,17 @@ namespace Gabut {
                     addurls.append (addurl);
                     addurl.downloadfile.connect (gabutwindow.add_url_box);
                     addurl.close_request.connect (()=> {
-                        addurls.foreach ((addur)=> {
+                        foreach (var addur in addurls) {
                             if (addur == addurl) {
                                 addurls.delete_link (addurls.find (addur));
                                 remove_window (addur);
                                 addurl = null;
+                                break;
                             }
-                        });
+                        }
                         return false;
                     });
-                    addurl.show ();
+                    addurl.set_visible (true);
                 }
                 return false;
             } else if (link.has_suffix (".torrent") || link.has_suffix (".metalink")) {
@@ -302,7 +301,7 @@ namespace Gabut {
                         addtrr = null;
                         return false;
                     });
-                    addtrr.show ();
+                    addtrr.set_visible (true);
                 }
                 return false;
             }
@@ -311,22 +310,24 @@ namespace Gabut {
 
         private bool url_active (string url) {
             bool active = false;
-            addurls.foreach ((urls)=> {
+            foreach (var urls in addurls) {
                 if (urls.url_link == url) {
                     active = true;
+                    break;
                 }
-            });
+            }
             return active;
         }
 
         private bool download_active (string ariagid) {
             bool active = false;
-            downloaders.foreach ((downloader)=> {
+                foreach (var downloader in downloaders) {
                 if (downloader.ariagid == ariagid) {
                     downloader.get_active_status ();
                     active = true;
+                    break;
                 }
-            });
+            }
             return active;
         }
 
@@ -340,13 +341,14 @@ namespace Gabut {
                 gabutwindow.remove_row (downloader.ariagid);
             });
             downloader.close_request.connect (()=> {
-                downloaders.foreach ((download)=> {
+                foreach (var download in downloaders) {
                     if (download == downloader) {
                         gabutwindow.append_row (downloader.ariagid);
                         downloaders.delete_link (downloaders.find (download));
                         downloader = null;
+                        break;
                     }
-                });
+                }
                 return false;
             });
             downloader.sendselected.connect ((ariagid, selected)=> {
@@ -355,7 +357,7 @@ namespace Gabut {
             downloader.actions_button.connect ((ariagid, status)=> {
                 return gabutwindow.server_action (ariagid, status);
             });
-            downloader.show ();
+            downloader.set_visible (true);
         }
 
         private bool on_clipboard () {

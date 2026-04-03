@@ -96,7 +96,6 @@ namespace Gabut {
         display:none;flex-direction:column;align-items:center;justify-content:center;
         gap:12px;min-height:60vh;color:rgba(255,255,255,0.3);font-size:13px;text-align:center;
         }
-        /* Controls */
         .controls{
         position:fixed;
         bottom:max(16px,env(safe-area-inset-bottom,16px));
@@ -173,8 +172,6 @@ namespace Gabut {
         <script>
         (async () => {
         const DOC_URL = '""" + raw_src + """';
-
-        // ── Load mammoth.js dari local cache ──
         await new Promise((res, rej) => {
             const s = document.createElement('script');
             s.src = '/MammothJs';
@@ -182,33 +179,23 @@ namespace Gabut {
             s.onerror = rej;
             document.head.appendChild(s);
         });
-
         const viewer  = document.getElementById('viewer');
         const loading = document.getElementById('loading');
         const errDiv  = document.getElementById('err');
-
         try {
-            // Fetch .docx sebagai ArrayBuffer
             const resp = await fetch(DOC_URL);
             const buf  = await resp.arrayBuffer();
-
-            // Convert docx → HTML
             const result = await mammoth.convertToHtml({ arrayBuffer: buf });
-
             loading.remove();
-
             const doc = document.createElement('div');
             doc.className = 'doc-body';
             doc.innerHTML = result.value;
             viewer.appendChild(doc);
-
         } catch (e) {
             loading.remove();
             errDiv.style.display = 'flex';
             console.error(e);
         }
-
-        // ── Zoom ──
         let zoom = 1.0;
         function applyZoom() {
             const doc = document.querySelector('.doc-body');
@@ -219,8 +206,6 @@ namespace Gabut {
         }
         document.getElementById('btn-zi').addEventListener('click', () => { zoom = Math.min(2, zoom + 0.1); applyZoom(); });
         document.getElementById('btn-zo').addEventListener('click', () => { zoom = Math.max(0.5, zoom - 0.1); applyZoom(); });
-
-        // ── Fullscreen ──
         const btnFs = document.getElementById('btn-fs');
         btnFs.addEventListener('click', () => {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -231,7 +216,6 @@ namespace Gabut {
             document.getElementById('ico-fs').style.display = fs ? 'none' : '';
             document.getElementById('ico-ex').style.display = fs ? '' : 'none';
         });
-
         document.addEventListener('keydown', e => {
             if (e.key === '+' || e.key === '=') document.getElementById('btn-zi').click();
             if (e.key === '-')                  document.getElementById('btn-zo').click();

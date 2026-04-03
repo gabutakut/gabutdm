@@ -26,15 +26,9 @@ namespace Gabut {
         private GLib.HashTable<string, GLib.Variant> _properties;
         private string _app_uri;
         private string _desktop_file;
-        private static GLib.HashTable<string, GdmUnityLauncherEntry> _instances;
-        private static GLib.HashTable<string, uint> _registration_ids;
+        private uint _registration_id = 0;
 
-        static construct {
-            _instances = new GLib.HashTable<string, GdmUnityLauncherEntry>(GLib.str_hash, GLib.str_equal);
-            _registration_ids = new GLib.HashTable<string, uint>(GLib.str_hash, GLib.str_equal);
-        }
-
-        private GdmUnityLauncherEntry(string desktop_file) {
+        public GdmUnityLauncherEntry(string desktop_file) {
             this._desktop_file = desktop_file;
             this._app_uri = "application://%s.desktop".printf(desktop_file);
             _properties = new GLib.HashTable<string, GLib.Variant>(GLib.str_hash, GLib.str_equal);
@@ -46,42 +40,31 @@ namespace Gabut {
             _properties["quicklist"] = new GLib.Variant.string("");
         }
 
-        public static async GdmUnityLauncherEntry get_instance(string desktop_file) throws GLib.Error {
-            string app_uri = "application://%s.desktop".printf(desktop_file);
-            if (_instances != null) {
-                if (_instances.contains(app_uri)) {
-                    return _instances[app_uri];
-                }
+        [DBus (visible = false)]
+        public async bool register() throws GLib.Error {
+            if (_registration_id != 0) {
+                return true;
             }
-            var instance = new GdmUnityLauncherEntry(desktop_file);
-            _instances[app_uri] = instance;
             var session_connection = yield GLib.Bus.@get(GLib.BusType.SESSION);
-            uint app_hash = app_uri.hash();
+            uint app_hash = _app_uri.hash();
             string object_path = "/com/canonical/unity/launcherentry/%u".printf(app_hash);
-            if (_registration_ids.contains(app_uri) && _registration_ids[app_uri] != 0) {
-                session_connection.unregister_object(_registration_ids[app_uri]);
-                _registration_ids[app_uri] = 0;
-            }
-            uint registration_id = session_connection.register_object(object_path, instance);
-            _registration_ids[app_uri] = registration_id;
-            return instance;
+            _registration_id = session_connection.register_object(object_path, this);
+            return _registration_id != 0;
         }
 
-        public static async void unregister_instance(string desktop_file) throws GLib.Error {
-            string app_uri = "application://%s.desktop".printf(desktop_file);
-            if (_instances.contains(app_uri)) {
-                if (_registration_ids.contains(app_uri) && _registration_ids[app_uri] != 0) {
-                    var session_connection = yield GLib.Bus.@get(GLib.BusType.SESSION);
-                    session_connection.unregister_object(_registration_ids[app_uri]);
-                    _registration_ids[app_uri] = 0;
-                }
-                _instances.remove(app_uri);
+        [DBus (visible = false)]
+        public async void unregister() throws GLib.Error {
+            if (_registration_id == 0) {
+                return;
             }
+            var session_connection = yield GLib.Bus.@get(GLib.BusType.SESSION);
+            session_connection.unregister_object(_registration_id);
+            _registration_id = 0;
         }
 
-        public static async bool is_registered(string desktop_file) {
-            string app_uri = "application://%s.desktop".printf(desktop_file);
-            return _registration_ids.contains(app_uri) && _registration_ids[app_uri] != 0;
+        [DBus (visible = false)]
+        public bool is_registered() throws Error{
+            return _registration_id != 0;
         }
 
         public void Update(string desktop_file, GLib.HashTable<string, GLib.Variant> properties) throws GLib.Error {

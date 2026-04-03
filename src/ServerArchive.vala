@@ -92,23 +92,18 @@ namespace Gabut {
                     };
                     list.appendChild(back);
                 }
-
                 let items = allEntries.filter(e => e.dir === currentPath);
-
                 items.sort((a,b)=>{
                     if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
                     return a.name.localeCompare(b.name);
                 });
-
                 if (!items.length){
                     list.innerHTML += '<div class="loading">Folder kosong</div>';
                     return;
                 }
-
                 items.forEach(item=>{
                     const row = document.createElement('div');
                     row.className = 'arc-row';
-
                     row.innerHTML = `
                         <div style="margin-right:10px;">
                             ${item.isDir ? '📁' : '📄'}
@@ -118,7 +113,6 @@ namespace Gabut {
                             ${item.isDir ? 'DIR' : item.size}
                         </div>
                     `;
-
                     if (item.isDir){
                         row.style.cursor = 'pointer';
                         row.onclick = ()=>{
@@ -126,14 +120,11 @@ namespace Gabut {
                             render(allEntries);
                         };
                     }
-
                     list.appendChild(row);
                 });
             }
-
             try {
                 statusText.textContent = 'Loading...';
-
                 const wRes = await fetch('/WorkerarchiveJs');
                 let wCode = await wRes.text();
                 const origin = location.origin;
@@ -153,15 +144,11 @@ namespace Gabut {
                 rawEntries.forEach(entry=>{
                     const fileObj = entry.file;
                     if (!fileObj || !fileObj._path) return;
-
                     const fullPath = fileObj._path.replace(/\/+$/,'');
                     const parts = fullPath.split('/');
-
-                    // 🔥 generate folder
                     for (let i=0;i<parts.length-1;i++){
                         const folderPath = parts.slice(0,i+1).join('/');
                         const parent = parts.slice(0,i).join('/');
-
                         if (!map.has(folderPath)){
                             map.set(folderPath,{
                                 name: parts[i],
@@ -172,10 +159,8 @@ namespace Gabut {
                             });
                         }
                     }
-
                     const name = parts[parts.length-1];
                     const dir  = parts.slice(0,-1).join('/');
-
                     map.set(fullPath,{
                         name,
                         path: fullPath,
@@ -184,12 +169,9 @@ namespace Gabut {
                         isDir:false
                     });
                 });
-
                 const allEntries = Array.from(map.values());
-
                 stat.textContent = rawEntries.length + ' file';
                 statusText.textContent = 'Selesai';
-
                 render(allEntries);
             } catch(e){
                 console.error(e);

@@ -46,9 +46,9 @@ namespace Gabut {
             set {
                 if (value != null && value != "") {
                     image.set_from_icon_name (value);
-                    image.show ();
+                    image.set_visible (true);
                 } else {
-                    image.hide ();
+                    image.set_visible (false);
                 }
             }
         }

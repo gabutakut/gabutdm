@@ -26,6 +26,7 @@ namespace Gabut {
         public OpenMenu (OpenMenus openmn) {
             Object(openmn: openmn);
         }
+
         construct {
             var title = new Gtk.Label (openmn.to_string ()) {
                 xalign = 0,
@@ -46,7 +47,7 @@ namespace Gabut {
             box.append (imgstatus);
             box.append (title);
             child = box;
-            show ();
+            set_visible (true);
         }
     }
 }

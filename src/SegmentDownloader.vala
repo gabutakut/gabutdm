@@ -28,16 +28,16 @@ namespace Gabut {
         public int retry_count { get; set; default = 0; }
         public int status = StatusMode.WAIT;
         public int index { get; construct; }
-        public string url { get; construct; }
-        public string output_path { get; construct; }
-        public string useragent { get; construct; }
-        public string headerdm { get; construct; }
+        public string? url { get; construct; }
+        public string? output_path { get; construct; }
+        public string? useragent { get; construct; }
+        public string? headerdm { get; construct; }
         public double progress_percent { get; set; default = 0.0; }
         public bool completed { get; set; default = false; }
         public bool success { get; set; default = false; }
         public bool processing { get; set; default = false; }
         public int64 total_size = 0;
-        private string control_path;
+        private string? control_path;
         private int64 speedbyte = 0;
         private int num_parts = 1;
         private int max_del_retries = 0;
@@ -116,6 +116,16 @@ namespace Gabut {
                 return;
             }
             max_wait_retries++;
+        }
+
+        public void idle_dl () {
+            if (cancellable != null) {
+                cancellable.cancel();
+            }
+            retry_count = 0;
+            completed = false;
+            status = StatusMode.WAIT;
+            status_changed(index, StatusMode.WAIT);
         }
 
         private void download_with_resume() throws Error {
@@ -422,7 +432,7 @@ namespace Gabut {
             msg.request_headers.append("Accept-Encoding", "identity");
             msg.request_headers.append("Connection", "keep-alive");
             if (current_pos > 0) {
-                string range = "bytes=%lld-%lld".printf(current_pos, end_offset);
+                string range = "bytes=%lld-%lld".printf((long)current_pos,(long) end_offset);
                 msg.request_headers.append("Range", range);
             }
             var uri = GLib.Uri.parse(url, GLib.UriFlags.NONE);

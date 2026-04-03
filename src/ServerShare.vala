@@ -39,8 +39,6 @@ namespace Gabut {
         font-size:14px;line-height:1.5;
         overflow-x:hidden;
         }
-
-        /* ── Background glow (sama seperti not found) ── */
         .bg-glow{
         position:fixed;inset:0;z-index:0;
         pointer-events:none;overflow:hidden;
@@ -67,8 +65,6 @@ namespace Gabut {
         from{transform:translate(0,0) scale(1);}
         to  {transform:translate(-50px,-60px) scale(1.2);}
         }
-
-        /* ── Header ── */
         header{
         position:sticky;top:0;z-index:100;
         width:100%;
@@ -100,11 +96,7 @@ namespace Gabut {
         .icon-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2);}
         .icon-btn:active{transform:scale(0.92);}
         .icon-btn svg{width:16px;height:16px;stroke:#bbb;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-
-        /* ── Main ── */
         .main{flex:1;padding:0 20px 20px;max-width:1280px;width:100%;margin:0 auto;position:relative;z-index:1;}
-
-        /* ── Column header ── */
         .col-header{
         display:grid;
         grid-template-columns:40px 1fr 110px 100px 170px;
@@ -124,8 +116,6 @@ namespace Gabut {
         .col-header .ch-type,
         .col-header .ch-size,
         .col-header .ch-date{text-align:right;}
-
-        /* ── Breadcrumb ── */
         .append > header{
         display:flex;align-items:center;flex-wrap:wrap;
         gap:2px;padding:14px 0 10px;
@@ -154,8 +144,6 @@ namespace Gabut {
         mask-size:contain;mask-repeat:no-repeat;mask-position:center;
         -webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;-webkit-mask-position:center;
         }
-
-        /* ── Item rows ── */
         .append{
         background:rgba(255,255,255,0.02);
         border:0.5px solid rgba(255,255,255,0.08);
@@ -172,8 +160,6 @@ namespace Gabut {
         .item:last-child{border-bottom:none;}
         .item:hover{background:rgba(255,255,255,0.05);}
         .item:active{background:rgba(255,255,255,0.08);}
-
-        /* ── Icons ── */
         a.icon{
         display:flex;align-items:center;justify-content:center;
         width:28px;height:28px;border-radius:7px;
@@ -207,22 +193,16 @@ namespace Gabut {
         a.icon.po{background:rgba(255,255,255,0.06);}
         a.icon.po::before,a.icon.file::before{background:rgba(255,255,255,0.35);mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 1.5A1.5 1.5 0 015.5 0h5.086a1.5 1.5 0 011.06.44l2.915 2.914A1.5 1.5 0 0115 4.414V14.5A1.5 1.5 0 0113.5 16h-8A1.5 1.5 0 014 14.5zM10.5 1v3a.5.5 0 00.5.5h3z'/%3E%3C/svg%3E");-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 1.5A1.5 1.5 0 015.5 0h5.086a1.5 1.5 0 011.06.44l2.915 2.914A1.5 1.5 0 0115 4.414V14.5A1.5 1.5 0 0113.5 16h-8A1.5 1.5 0 014 14.5zM10.5 1v3a.5.5 0 00.5.5h3z'/%3E%3C/svg%3E");}
         a.icon.file{background:rgba(255,255,255,0.06);}
-
-        /* ── Columns ── */
         .col-name{font-size:13px;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 8px;}
         .col-name a{color:#fff;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color 0.15s;}
         .col-name a:hover{color:#60a5fa;}
         .col-type{font-size:11px;font-weight:500;color:rgba(255,255,255,0.3);text-align:right;text-transform:uppercase;letter-spacing:0.04em;padding-right:8px;}
         .col-size{font-size:12px;color:rgba(255,255,255,0.4);text-align:right;font-variant-numeric:tabular-nums;padding-right:8px;}
         .col-date{font-size:11px;color:rgba(255,255,255,0.3);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
-
-        /* ── Animations ── */
         @keyframes fadeInRight{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
         @keyframes fadeInLeft {from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
         .fadeInRight{animation:fadeInRight 0.24s cubic-bezier(0.25,0.46,0.45,0.94) both;}
         .fadeInLeft {animation:fadeInLeft  0.24s cubic-bezier(0.25,0.46,0.45,0.94) both;}
-
-        /* ── Overlay ── */
         .overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);align-items:flex-start;justify-content:center;padding-top:72px;}
         .overlay.open{display:flex;}
         .ov-card{background:#161616;border:0.5px solid rgba(255,255,255,0.12);border-radius:18px;width:92%;max-width:320px;box-shadow:0 32px 64px rgba(0,0,0,0.6);animation:ovIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;overflow:hidden;}
@@ -243,7 +223,6 @@ namespace Gabut {
         .btn-apply{width:100%;padding:10px;background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:background 0.15s,transform 0.1s;}
         .btn-apply:hover{background:rgba(255,255,255,0.17);}
         .btn-apply:active{transform:scale(0.97);}
-
         @media(max-width:600px){
         .item,.col-header{grid-template-columns:36px 1fr 80px 0 0;}
         .col-type,.col-date{display:none;}
@@ -272,10 +251,8 @@ namespace Gabut {
             <span class="ch-date">Date Modified</span>
         </div>
         <div class=""";
-
             string mid = """">
             """;
-
             string overlay_form = """
         </div>
         </div>
