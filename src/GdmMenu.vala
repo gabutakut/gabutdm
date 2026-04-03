@@ -26,6 +26,7 @@ namespace Gabut {
         public GdmMenu (DownloadMenu downloadmenu) {
             Object(downloadmenu: downloadmenu);
         }
+
         construct {
             var title = new Gtk.Label (downloadmenu.to_string ()) {
                 tooltip_text = downloadmenu.to_tooltip (),
@@ -47,7 +48,7 @@ namespace Gabut {
             box.append (imgstatus);
             box.append (title);
             child = box;
-            show ();
+            set_visible (true);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Gabut {
 
         public Type value_type { get; set; }
         public int64 int_value { get; set; }
-        public string str_value { get; set; default = ""; }
+        public string? str_value { get; set; default = ""; }
         public uint8[] bytes_value;
         public Gee.ArrayList<BencodeValue> list_value { get; set; }
         public GLib.HashTable<string, BencodeValue> dict_value { get; set; }

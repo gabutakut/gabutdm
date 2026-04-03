@@ -49,8 +49,6 @@ namespace Gabut {
         header a:hover{color:#fff;}
         .hd-title{color:#fff;font-size:14px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .xl-badge{font-size:10px;font-weight:600;background:rgba(52,211,153,0.15);color:#34d399;border-radius:999px;padding:2px 10px;flex-shrink:0;}
-
-        /* Sheet tabs */
         .sheet-tabs{
         display:flex;align-items:center;gap:0;
         background:#111;border-bottom:0.5px solid rgba(255,255,255,0.08);
@@ -67,8 +65,6 @@ namespace Gabut {
         }
         .sheet-tab:hover{color:rgba(255,255,255,0.7);}
         .sheet-tab.active{color:#34d399;border-bottom-color:#34d399;}
-
-        /* Table viewer */
         .viewer{
         flex:1;overflow:auto;min-height:0;
         background:#0d0d0d;
@@ -117,8 +113,6 @@ namespace Gabut {
         }
         tbody tr:hover td{background:rgba(255,255,255,0.03);}
         tbody tr:hover td.row-num{background:#151515;}
-
-        /* Loading */
         .loading{
         display:flex;flex-direction:column;align-items:center;justify-content:center;
         gap:14px;flex:1;color:rgba(255,255,255,0.3);font-size:13px;
@@ -130,14 +124,10 @@ namespace Gabut {
         animation:spin 0.8s linear infinite;
         }
         @keyframes spin{to{transform:rotate(360deg);}}
-
-        /* Empty */
         .empty{
         padding:40px;text-align:center;
         color:rgba(255,255,255,0.2);font-size:13px;
         }
-
-        /* Controls */
         .controls{
         position:fixed;
         bottom:max(16px,env(safe-area-inset-bottom,16px));
@@ -160,15 +150,11 @@ namespace Gabut {
         .btn:active{transform:scale(0.88);}
         .btn svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
         .sep{width:1px;height:18px;background:rgba(255,255,255,0.12);margin:0 2px;}
-
-        /* Info bar */
         .info-bar{
         background:#111;border-top:0.5px solid rgba(255,255,255,0.06);
         padding:4px 16px;font-size:11px;color:rgba(255,255,255,0.25);
         display:flex;gap:16px;flex-shrink:0;
         }
-
-        /* Print */
         @media print {
         body{background:#fff !important;height:auto !important;}
         header,.controls,.sheet-tabs,.info-bar{display:none !important;}
@@ -209,8 +195,6 @@ namespace Gabut {
         const loading   = document.getElementById('loading');
         const tabsEl    = document.getElementById('sheet-tabs');
         const infoBar   = document.getElementById('info-bar');
-
-        // ── Load SheetJS ──
         await new Promise((res, rej) => {
             const s = document.createElement('script');
             s.src = '/SheetJs';
@@ -218,10 +202,8 @@ namespace Gabut {
             s.onerror = rej;
             document.head.appendChild(s);
         });
-
         let workbook = null;
         let currentSheet = 0;
-
         try {
             const resp = await fetch(FILE_URL);
             const buf  = await resp.arrayBuffer();
@@ -233,8 +215,6 @@ namespace Gabut {
             loading.innerHTML = '<div style="color:#f87171;font-size:13px;">Failed to load file</div>';
             console.error(e);
         }
-
-        // ── Render sheet tabs ──
         function renderTabs() {
             tabsEl.innerHTML = '';
             workbook.SheetNames.forEach((name, i) => {
@@ -249,29 +229,23 @@ namespace Gabut {
             tabsEl.appendChild(tab);
             });
         }
-
-        // ── Render sheet ──
         function renderSheet(idx) {
             currentSheet = idx;
             const sheetName = workbook.SheetNames[idx];
-            const sheet     = workbook.Sheets[sheetName];
-            const range     = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
-            const rows      = XLSX.utils.sheet_to_json(sheet, {
+            const sheet = workbook.Sheets[sheetName];
+            const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+            const rows = XLSX.utils.sheet_to_json(sheet, {
             header: 1,
             raw: false,
             defval: ''
             });
-
             if (rows.length === 0) {
             viewer.innerHTML = '<div class="empty">This sheet is empty</div>';
             infoBar.textContent = sheetName + ' — 0 rows';
             return;
             }
-
             const maxCols = rows.reduce((m, r) => Math.max(m, r.length), 0);
             const dataRows = rows.length;
-
-            // Build column headers A, B, C...
             const colHeaders = Array.from({ length: maxCols }, (_, i) => {
             let col = '';
             let n   = i;
@@ -281,17 +255,11 @@ namespace Gabut {
             } while (n >= 0);
             return col;
             });
-
-            // Build HTML table
             const sb = ['<div class="tbl-wrap"><table>'];
-
-            // Header row
             sb.push('<thead><tr>');
             sb.push('<th class="row-num">#</th>');
             colHeaders.forEach(h => sb.push('<th>' + h + '</th>'));
             sb.push('</tr></thead>');
-
-            // Data rows
             sb.push('<tbody>');
             rows.forEach((row, ri) => {
             sb.push('<tr>');
@@ -307,17 +275,12 @@ namespace Gabut {
             sb.push('</tr>');
             });
             sb.push('</tbody></table></div>');
-
             viewer.innerHTML = sb.join('');
             infoBar.textContent = sheetName + ' — ' + dataRows + ' rows × ' + maxCols + ' cols';
         }
-
-        // ── Print ──
         document.getElementById('btn-print').addEventListener('click', () => {
             window.print();
         });
-
-        // ── Keyboard ──
         document.addEventListener('keydown', e => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
             e.preventDefault();

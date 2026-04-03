@@ -21,7 +21,7 @@
 
 namespace Gabut {
     public class AddHls : Gtk.Dialog {
-        public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
+        public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode, bool server = false);
         public Gtk.Button save_button;
         public Gtk.Button start_button;
         public Gtk.Button later_button;
@@ -38,7 +38,7 @@ namespace Gabut {
         private Gtk.Button fetch_btn;
         private Gtk.DropDown res_dropdown;
         private Gtk.StringList res_model;
-        private Cancellable cancel = new Cancellable ();
+        private Cancellable cancellable = new Cancellable ();
         private bool resolution;
         private string [] urlhls = null;
 
@@ -201,7 +201,7 @@ namespace Gabut {
             stack.add_named (alllink, "alllink");
             stack.add_named (moregrid, "moregrid");
             stack.visible_child = alllink;
-            stack.show ();
+            stack.set_visible (true);
 
             var close_button = new Gtk.Button.with_label (_("Cancel")) {
                 width_request = 120,
@@ -288,7 +288,9 @@ namespace Gabut {
         }
 
         public override void close () {
-            cancel.cancel ();
+            if (cancellable != null) {
+                cancellable.cancel ();
+            }
             base.close ();
         }
 
@@ -299,18 +301,16 @@ namespace Gabut {
             }
             fetch_btn.sensitive = false;
             new Thread<void> ("%s".printf (get_monotonic_time ().to_string ()), () => {
-                while (!cancel.is_cancelled ()) {
-                    try {
-                        var session = SoupSessionPool.get_default().acquire();
-                        var mess = full_message ("GET", url, useragent_entry.text);
-                        var stream = session.send(mess);
+                Soup.Session session = new Soup.Session ();
+                try {
+                    var mess = full_message ("GET", url, useragent_entry.text);
+                    var stream = session.send(mess, cancellable);
                         var dis = new GLib.DataInputStream(stream);
                         var sb = new GLib.StringBuilder();
                         string line;
                         while ((line = dis.read_line()) != null) {
                             sb.append(line).append("gabuthls");
                         }
-                        SoupSessionPool.get_default().release(session);
                         stream.close ();
                         dis.close ();
                         mess = null;
@@ -320,16 +320,22 @@ namespace Gabut {
                             fetch_btn.sensitive = save_button.sensitive = start_button.sensitive = later_button.sensitive = true;
                             return false;
                         });
-                        break;
                     } catch (GLib.Error e) {
+                        if (session != null) {
+                            session.abort ();
+                            session = null;
+                        }
                         fetch_btn.sensitive = true;
-                        break;
+                    } finally {
+                        if (session != null) {
+                            session.abort ();
+                            session = null;
+                        }
                     }
-                }
             });
         }
 
-        private void parse_master_content(string base_url, string txt) throws Error {
+        private void parse_master_content(string base_url, string txt) throws Error{
             options_list.clear();
             string[] lines = txt.split("gabuthls");
             string current_res = "Unknown";
@@ -340,9 +346,11 @@ namespace Gabut {
                     if (line.has_prefix("#EXT-X-STREAM-INF:")) {
                         current_res = extract_res_string(line);
                     } else if (line.length > 0 && !line.has_prefix("#")) {
-                        string full_url = GLib.Uri.resolve_relative(base_url, line, GLib.UriFlags.NONE);
-                        options_list.add(new HlsOption(current_res, full_url));
-                        current_res = "Unknown";
+                        try {
+                            string full_url = GLib.Uri.resolve_relative(base_url, line, GLib.UriFlags.NONE);
+                            options_list.add(new HlsOption(current_res, full_url));
+                            current_res = "Unknown";
+                        } catch (GLib.Error e) {}
                     }
                 }
             } else {
@@ -364,16 +372,27 @@ namespace Gabut {
                     urlhls += line;
                 }
                 var ffmpeg = new Ffmpeg.Reader();
-                var session = SoupSessionPool.get_default().acquire();
-                GLib.Bytes stream = session.send_and_read(full_message ("GET", rescheck[0], useragent_entry.text));
-                ffmpeg.open_buffer(stream.get_data());
-                current_res = @"$(ffmpeg.get_width())x$(ffmpeg.get_height())";
-                options_list.add(new HlsOption(current_res, base_url));
-                SoupSessionPool.get_default().release(session);
-                stream = null;
-                ffmpeg = null;
-                rescheck = null;
-                lines = null;
+                Soup.Session session = new Soup.Session ();
+                try {
+                    GLib.Bytes stream = session.send_and_read(full_message ("GET", rescheck[0], useragent_entry.text), cancellable);
+                    ffmpeg.open_buffer(stream.get_data());
+                    current_res = @"$(ffmpeg.get_width())x$(ffmpeg.get_height())";
+                    options_list.add(new HlsOption(current_res, base_url));
+                    stream = null;
+                    ffmpeg = null;
+                    rescheck = null;
+                    lines = null;
+                } catch (GLib.Error e) {
+                    if (session != null) {
+                        session.abort ();
+                        session = null;
+                    }
+                } finally {
+                    if (session != null) {
+                        session.abort ();
+                        session = null;
+                    }
+                }
             }
         }
 
@@ -387,17 +406,16 @@ namespace Gabut {
                 }
                 start_button.sensitive = later_button.sensitive = false;
                 new Thread<void> ("%s".printf (get_monotonic_time ().to_string ()), () => {
+                    Soup.Session session = new Soup.Session ();
                     try {
                         var selected = options_list.get((int)idx);
-                        var session = SoupSessionPool.get_default().acquire();
                         var mess = full_message ("GET", selected.url, useragent_entry.text);
-                        var stream = session.send(mess);
+                        var stream = session.send(mess, cancellable);
                         var dis = new GLib.DataInputStream(stream);
                         string line;
                         while ((line = dis.read_line()) != null) {
                             sb.append(line).append("gabuthls");
                         }
-                        SoupSessionPool.get_default().release(session);
                         stream.close ();
                         dis.close ();
                         mess = null;
@@ -407,11 +425,20 @@ namespace Gabut {
                             return GLib.Source.REMOVE;
                         });
                     } catch (GLib.Error e) {
+                        if (session != null) {
+                            session.abort ();
+                            session = null;
+                        }
                         start_button.sensitive = later_button.sensitive = true;
-                        show ();
+                        set_visible (true);
+                    } finally {
+                        if (session != null) {
+                            session.abort ();
+                            session = null;
+                        }
                     }
                 });
-                hide ();
+                set_visible (false);
             } else {
                 foreach (var line in urlhls) {
                     sb.append(line).append("gabuthls");
@@ -483,22 +510,31 @@ namespace Gabut {
                 if (idx == Gtk.INVALID_LIST_POSITION || (int)idx >= options_list.size) {
                     return;
                 }
+                Soup.Session session = new Soup.Session ();
                 try {
                     var selected = options_list.get((int)idx);
-                    var session = SoupSessionPool.get_default().acquire();
                     var mess = full_message ("GET", selected.url, useragent_entry.text);
-                    var stream = session.send(mess);
+                    var stream = session.send(mess, cancellable);
                     var dis = new GLib.DataInputStream(stream);
                     string line;
                     while ((line = dis.read_line()) != null) {
                         sb.append(line).append("gabuthls");
                     }
                     row.update_url (hashoptions, name_entry.text, sb.str);
-                    SoupSessionPool.get_default().release(session);
                     stream.close ();
                     dis.close ();
                     mess = null;
-                } catch (GLib.Error e) {}
+                } catch (GLib.Error e) {
+                    if (session != null) {
+                        session.abort ();
+                        session = null;
+                    }
+                } finally {
+                    if (session != null) {
+                        session.abort ();
+                        session = null;
+                    }
+                }
             } else {
                 foreach (var line in urlhls) {
                     sb.append(line).append("gabuthls");
@@ -514,7 +550,6 @@ namespace Gabut {
         }
 
         public override void show () {
-            base.show ();
             if (row != null) {
                 name_entry.text = row.filename;
                 link_entry.text = row.url.split ("gabuthls")[0];
@@ -525,6 +560,7 @@ namespace Gabut {
                     selectfd = File.new_for_path (hashoptions.@get (AriaOptions.DIR.to_string ()));
                 }
             }
+            base.show ();
         }
     }
 }

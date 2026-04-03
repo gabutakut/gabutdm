@@ -54,8 +54,6 @@ namespace Gabut {
         padding:40px 20px;gap:32px;
         position:relative;
         }
-
-        /* ── 404 number ── */
         .err-number{
         display:flex;align-items:center;justify-content:center;
         gap:8px;line-height:1;
@@ -88,8 +86,6 @@ namespace Gabut {
         animation:shadowsdancing 4s infinite;
         }
         .circle::before{transform:rotate(45deg);}
-
-        /* ── Message ── */
         .err-msg{
         display:flex;flex-direction:column;align-items:center;gap:10px;
         text-align:center;max-width:420px;
@@ -100,8 +96,6 @@ namespace Gabut {
         .err-sub{
         font-size:14px;color:rgba(255,255,255,0.4);line-height:1.6;
         }
-
-        /* ── Back button ── */
         .btn-back{
         display:inline-flex;align-items:center;gap:8px;
         background:rgba(255,255,255,0.08);
@@ -118,8 +112,6 @@ namespace Gabut {
         width:14px;height:14px;stroke:#fff;fill:none;
         stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
         }
-
-        /* ── Background glow ── */
         .glow{
         position:absolute;
         border-radius:50%;
@@ -139,8 +131,6 @@ namespace Gabut {
         bottom:-80px;right:-80px;
         animation-delay:2s;
         }
-
-        /* ── Animations ── */
         @keyframes colorA{
         0%  {color:#D1F2A5;}
         25% {color:#F56991;}
@@ -187,20 +177,17 @@ namespace Gabut {
         <!-- background glow -->
         <div class="glow glow-a"></div>
         <div class="glow glow-b"></div>
-
         <!-- 404 -->
         <div class="err-number">
             <span class="n4-left">4</span>
             <div class="circle"></div>
             <span class="n4-right">4</span>
         </div>
-
         <!-- message -->
         <div class="err-msg">
             <div class="err-title">Page not found</div>
             <div class="err-sub">The page you are looking for doesn't exist or sharing is currently disabled.</div>
         </div>
-
         <!-- back button -->
         <a href="/" class="btn-back">
             <svg viewBox="0 0 14 14"><polyline points="9,2 4,7 9,12"/></svg>

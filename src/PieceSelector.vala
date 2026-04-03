@@ -26,6 +26,7 @@ namespace Gabut {
         public PieceSelector (PieceSelectors selector) {
             Object(selector: selector);
         }
+
         construct {
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (selector.to_string ()) {
@@ -40,7 +41,7 @@ namespace Gabut {
                 width_request = 100
             };
             child = title;
-            show ();
+            set_visible (true);
         }
     }
 }

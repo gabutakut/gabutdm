@@ -34,7 +34,7 @@ namespace Gabut {
         <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>%s</title>
+        <title id="title-download">%s</title>
         <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{
@@ -117,8 +117,6 @@ namespace Gabut {
         .btn svg{width:14px;height:14px;}
         .sep{margin:0 1px;}
         }
-
-        /* ── Source dialog ── */
         .src-overlay{
         display:none;position:fixed;inset:0;z-index:300;
         background:rgba(0,0,0,0.7);
@@ -175,7 +173,6 @@ namespace Gabut {
         transition:background 0.15s;
         }
         .src-cancel:hover{background:rgba(255,255,255,0.06);}
-        /* mode badge di header */
         .mode-badge{
         font-size:10px;font-weight:600;
         padding:2px 8px;border-radius:999px;
@@ -244,7 +241,6 @@ namespace Gabut {
             </button>
         </div>
         </div>
-
         <!-- Source dialog -->
         <div class="src-overlay" id="src-overlay" onclick="srcBg(event)">
         <div class="src-card">
@@ -269,7 +265,6 @@ namespace Gabut {
             </div>
         </div>
         </div>
-
         <script>
         const player=document.getElementById('player');
         const wrap  =document.getElementById('img-wrap');
@@ -277,13 +272,10 @@ namespace Gabut {
         const zlbl  =document.getElementById('zlbl');
         const ctrl  =document.getElementById('controls');
         const badge =document.getElementById('mode-badge');
-
         let scale=1,rot=0,flipH=1,flipV=1,tx=0,ty=0;
-
         let URL_ORI_CUR = '%s';
         let URL_PIX_CUR = '%s';
         let currentSrc  = 'ori';
-
         function setSource(mode) {
         currentSrc = mode;
         const newSrc = mode === 'ori' ? URL_ORI_CUR : URL_PIX_CUR;
@@ -295,11 +287,7 @@ namespace Gabut {
         document.getElementById('src-pix').classList.toggle('active', mode === 'pix');
         srcClose();
         }
-
-        // Init active state
         document.getElementById('src-ori').classList.add('active');
-
-        // ── Source dialog ──
         function srcOpen(){
         document.getElementById('src-overlay').classList.add('open');
         document.body.style.overflow='hidden';
@@ -312,8 +300,6 @@ namespace Gabut {
         if(e.target===document.getElementById('src-overlay')) srcClose();
         }
         document.getElementById('btn-src').addEventListener('click', srcOpen);
-
-        // ── Controls show/hide ──
         const isTouch=window.matchMedia('(hover:none)').matches;
         let hideTimer=null;
         function showCtrl(){
@@ -327,7 +313,6 @@ namespace Gabut {
         ctrl.addEventListener('mouseenter',()=>{ clearTimeout(hideTimer);ctrl.classList.remove('hidden'); });
         ctrl.addEventListener('mouseleave',showCtrl);
         }
-
         function applyT(animate){
         wrap.style.transition=animate?'transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)':'none';
         wrap.style.transform=
@@ -344,10 +329,8 @@ namespace Gabut {
             1);
         }
         function fitImage(animate){ scale=calcFit();tx=0;ty=0;applyT(animate); }
-
         img.addEventListener('load',()=>fitImage(false));
         if(img.complete&&img.naturalWidth) fitImage(false);
-
         function zoomAt(factor,cx,cy){
         const ns=Math.min(10,Math.max(0.05,scale*factor));
         const r=ns/scale;
@@ -355,7 +338,6 @@ namespace Gabut {
         scale=ns;applyT(false);
         }
         function centerZoom(f){ zoomAt(f,0,0); }
-
         document.getElementById('btn-zi').addEventListener('click',  ()=>centerZoom(1.15));
         document.getElementById('btn-zo').addEventListener('click',  ()=>centerZoom(0.85));
         document.getElementById('btn-fit').addEventListener('click', ()=>fitImage(true));
@@ -365,7 +347,6 @@ namespace Gabut {
         document.getElementById('btn-fh').addEventListener('click',  ()=>{ flipH*=-1;applyT(true); });
         document.getElementById('btn-fv').addEventListener('click',  ()=>{ flipV*=-1;applyT(true); });
         document.getElementById('btn-res').addEventListener('click', ()=>{ rot=0;flipH=1;flipV=1;fitImage(true); });
-
         player.addEventListener('wheel',(e)=>{
         e.preventDefault();
         const r=player.getBoundingClientRect();
@@ -374,7 +355,6 @@ namespace Gabut {
             e.clientY-r.top-r.height/2);
         showCtrl();
         },{passive:false});
-
         let panning=false,panX=0,panY=0;
         player.addEventListener('mousedown',(e)=>{
         if(e.button!==0||e.target.closest('#controls'))return;
@@ -386,7 +366,6 @@ namespace Gabut {
         tx=e.clientX-panX;ty=e.clientY-panY;applyT(false);
         });
         document.addEventListener('mouseup',()=>{ panning=false;player.classList.remove('grabbing'); });
-
         let t1x=0,t1y=0,tPanning=false,lastDist=0;
         player.addEventListener('touchstart',(e)=>{
         if(e.touches.length===1&&!e.target.closest('#controls')){
@@ -410,7 +389,6 @@ namespace Gabut {
         }
         },{passive:false});
         player.addEventListener('touchend',()=>{ tPanning=false; });
-
         const btnFs=document.getElementById('btn-fs');
         const icoFs=document.getElementById('ico-fs');
         const icoEx=document.getElementById('ico-exfs');
@@ -424,7 +402,6 @@ namespace Gabut {
         icoEx.style.display=fs?'':'none';
         setTimeout(()=>fitImage(true),50);
         });
-
         document.addEventListener('keydown',(e)=>{
         if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;
         if(e.key==='Escape') srcClose();
@@ -443,13 +420,10 @@ namespace Gabut {
         if(e.key==='ArrowUp')        { ty-=40;applyT(false); }
         if(e.key==='ArrowDown')      { ty+=40;applyT(false); }
         });
-
         window.addEventListener('resize',()=>fitImage(false));
-        // ── Playlist ──
         const DIR_PATH = '%s';
         const CUR_FILE = '%s';
         let playlist = [], curIdx = -1;
-
         (async () => {
         try {
             const resp = await fetch('/DirListImage?path=' + encodeURIComponent(DIR_PATH));
@@ -459,7 +433,6 @@ namespace Gabut {
             updateNavBtns();
         } catch(e) { console.log('DirListImage err', e); }
         })();
-
         function updateNavBtns() {
         const prevBtn = document.getElementById('btn-prev');
         const nextBtn = document.getElementById('btn-next');
@@ -471,17 +444,10 @@ namespace Gabut {
         if (idx < 0 || idx >= playlist.length) return;
         curIdx = idx;
         const f = playlist[idx];
-
-        // Update kedua URL sesuai file baru
         URL_ORI_CUR = '/Rawori?path=' + f.path;
         URL_PIX_CUR = '/Rawpix?path=' + f.path;
-
-        // Reset transform
         scale=1;rot=0;flipH=1;flipV=1;tx=0;ty=0;
-
-        // Load sesuai mode yang sedang aktif
         img.src = currentSrc === 'ori' ? URL_ORI_CUR : URL_PIX_CUR;
-
         document.querySelector('.hd-title').textContent = f.name;
         const url = '/Rawori?path=' + (f.path);
         btnDownload.href = url;
@@ -497,14 +463,10 @@ namespace Gabut {
         document.getElementById('btn-next').addEventListener('click', () => {
         if (curIdx < playlist.length - 1) loadImage(curIdx + 1);
         });
-
-        // Keyboard prev/next
-        // Tambah di keydown yang sudah ada
         document.addEventListener('keydown', (e) => {
         if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
         if (e.key === 'ArrowLeft'  && e.ctrlKey) { e.preventDefault(); if(curIdx>0) loadImage(curIdx-1); }
         if (e.key === 'ArrowRight' && e.ctrlKey) { e.preventDefault(); if(curIdx<playlist.length-1) loadImage(curIdx+1); }
-        // Swipe touch next/prev
         });
         </script>
         </body>

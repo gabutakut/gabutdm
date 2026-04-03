@@ -40,7 +40,7 @@ namespace Gabut {
                 width_request = 100
             };
             child = title;
-            show ();
+            set_visible (true);
         }
     }
 }

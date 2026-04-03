@@ -229,12 +229,12 @@ namespace Gabut {
             foreach (var piecesel in PieceSelectors.get_all ()) {
                 stream_flow.append (new PieceSelector (piecesel));
             }
-            stream_flow.show ();
+            stream_flow.set_visible (true);
             stream_flow.child_activated.connect ((piecesel)=> {
                 ((Gtk.Label)((PieceSelector) pieceselector).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 pieceselector = piecesel as PieceSelector;
                 ((Gtk.Label)pieceselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                stream_popover.hide ();
+                stream_popover.set_visible (false);
             });
             foreach (var a in PieceSelectors.get_all ()) {
                 var piecesel = stream_flow.get_child_at_index (a);
@@ -259,12 +259,12 @@ namespace Gabut {
             foreach (var urisel in UriSelectors.get_all ()) {
                 urisel_flow.append (new UriSelector (urisel));
             }
-            urisel_flow.show ();
+            urisel_flow.set_visible (true);
             urisel_flow.child_activated.connect ((urisel)=> {
                 ((Gtk.Label)((UriSelector) uriselector).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 uriselector = urisel as UriSelector;
                 ((Gtk.Label)uriselector.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                urisel_popover.hide ();
+                urisel_popover.set_visible (false);
             });
             foreach (var a in UriSelectors.get_all ()) {
                 var urisel = urisel_flow.get_child_at_index (a);
@@ -327,7 +327,7 @@ namespace Gabut {
                 value = double.parse (get_dbsetting (DBSettings.HLSTIMEOUT))
             };
 
-            var hlsretry = new Gtk.SpinButton.with_range (0, 5, 1) {
+            var hlsretry = new Gtk.SpinButton.with_range (0, 10, 1) {
                 width_request = 300,
                 hexpand = true,
                 tooltip_text = _("The seconds to wait between retries"),
@@ -578,10 +578,10 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             int rowpos = 0;
-            get_users ().foreach ((user)=> {
+            foreach (var user in get_users ()) {
                 rowpos++;
                 set_account (usergrid, user, rowpos);
-            });
+            }
 
             add_auth.clicked.connect (()=> {
                 rowpos++;
@@ -680,12 +680,12 @@ namespace Gabut {
             foreach (var allocate in FileAllocations.get_all ()) {
                 allocate_flow.append (new FileAllocation (allocate));
             }
-            allocate_flow.show ();
+            allocate_flow.set_visible (true);
             allocate_flow.child_activated.connect ((allocate)=> {
                 ((Gtk.Label)((FileAllocation) fileallocation).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 fileallocation = allocate as FileAllocation;
                 ((Gtk.Label)fileallocation.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                allocate_popover.hide ();
+                allocate_popover.set_visible (false);
             });
             foreach (var a in FileAllocations.get_all ()) {
                 var allocate = allocate_flow.get_child_at_index (a);
@@ -888,7 +888,7 @@ namespace Gabut {
             stack.add_child (moreoptions);
             stack.add_child (notyscr);
             stack.visible_child = scrolshort;
-            stack.show ();
+            stack.set_visible (true);
 
             var close_button = new Gtk.Button.with_label (_("Close"));
             ((Gtk.Label) close_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);

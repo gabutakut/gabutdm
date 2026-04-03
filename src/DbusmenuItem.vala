@@ -48,12 +48,8 @@ namespace Gabut {
             public signal void item_activated();
             private int _id = 0;
             public int id {
-                get { 
-                    return _id;
-                }
-                set {
-                    _id = value;
-                }
+                get { return _id; }
+                set { _id = value; }
             }
             public Gee.ArrayList<DbusmenuItem> children;
             public GLib.HashTable<string, Variant> properties;
@@ -128,14 +124,6 @@ namespace Gabut {
             }
         }
 
-        private static GLib.HashTable<string, DBusMenu> _instances;
-        private static GLib.HashTable<string, uint> _registration_ids;
-
-        static construct {
-            _instances = new GLib.HashTable<string, DBusMenu>(GLib.str_hash, GLib.str_equal);
-            _registration_ids = new GLib.HashTable<string, uint>(GLib.str_hash, GLib.str_equal);
-        }
-
         private GLib.DBusConnection? session_connection = null;
         private uint registration_id = 0;
         private CanonicalDbusmenu dbusmenu_server;
@@ -144,8 +132,8 @@ namespace Gabut {
         private string app_uri;
         private bool is_started = false;
 
-        private DBusMenu(string app_uri) {
-            this.app_uri = app_uri;
+        public DBusMenu(string desktop_file) {
+            this.app_uri = "application://%s.desktop".printf(desktop_file);
             uint app_hash = app_uri.hash();
             dbus_path = new GLib.ObjectPath("/com/canonical/unity/launcherentry/%u".printf(app_hash));
             root = new DbusmenuItem();
@@ -164,65 +152,23 @@ namespace Gabut {
             }
         }
 
-        public static async DBusMenu get_instance(string app_uri) throws GLib.Error {
-            if (_instances != null) {
-                if (_instances.contains(app_uri)) {
-                    return _instances[app_uri];
-                }
-            }
-            var instance = new DBusMenu(app_uri);
-            _instances[app_uri] = instance;
-            yield instance.start();
-            return instance;
-        }
-
-        public static async void unregister_instance(string app_uri) throws GLib.Error {
-            if (_instances.contains(app_uri)) {
-                var instance = _instances[app_uri];
-                instance.stop();
-                if (_registration_ids.contains(app_uri) && _registration_ids[app_uri] != 0) {
-                    var session_connection = yield GLib.Bus.@get(GLib.BusType.SESSION);
-                    session_connection.unregister_object(_registration_ids[app_uri]);
-                    _registration_ids[app_uri] = 0;
-                }
-                _instances.remove(app_uri);
-            }
-        }
-
-        public static async bool is_registered(string app_uri) {
-            return _registration_ids.contains(app_uri) && _registration_ids[app_uri] != 0;
-        }
-
-        public static GLib.List<DBusMenu> get_all_instances() {
-            var list = new GLib.List<DBusMenu>();
-            var keys = _instances.get_keys();
-            foreach (string key in keys) {
-                list.append(_instances[key]);
-            }
-            return list;
-        }
-
         public async void start() throws GLib.Error {
             if (is_started) {
                 return;
             }
             session_connection = yield GLib.Bus.@get(GLib.BusType.SESSION);
             registration_id = session_connection.register_object(dbus_path, dbusmenu_server);
-            _registration_ids[app_uri] = registration_id;
             dbusmenu_server.set_root(root);
             is_started = true;
         }
 
-        public void stop() throws GLib.Error {
+        public async void stop() throws GLib.Error {
             if (!is_started) {
                 return;
             }
             if (registration_id != 0 && session_connection != null) {
                 session_connection.unregister_object(registration_id);
                 registration_id = 0;
-                if (_registration_ids.contains(app_uri)) {
-                    _registration_ids.remove(app_uri);
-                }
             }
             is_started = false;
         }
@@ -232,9 +178,7 @@ namespace Gabut {
                 return;
             }
             foreach (var child in root.children) {
-                if (child == item || child.id == item.id) {
-                    return;
-                }
+                if (child == item || child.id == item.id) return;
             }
             root.child_append(item);
             if (is_started) {
@@ -246,7 +190,7 @@ namespace Gabut {
             }
         }
 
-        public bool delete_dbus (DbusmenuItem item) {
+        public bool delete_dbus(DbusmenuItem item) {
             for (int i = 0; i < root.children.size; i++) {
                 if (root.children[i].id == item.id) {
                     root.children.remove_at(i);
@@ -267,7 +211,7 @@ namespace Gabut {
             if (item == null) {
                 return;
             }
-            root.child_insert(item, position);   
+            root.child_insert(item, position);
             if (is_started) {
                 try {
                     dbusmenu_server.set_root(root);
@@ -277,8 +221,8 @@ namespace Gabut {
             }
         }
 
-        public bool dbus_contains (DbusmenuItem item) {
-            return root.children.contains (item);
+        public bool dbus_contains(DbusmenuItem item) {
+            return root.children.contains(item);
         }
 
         public void clear() {
@@ -295,23 +239,23 @@ namespace Gabut {
         public GLib.ObjectPath get_dbus_path() {
             return dbus_path;
         }
-        
+
         public DbusmenuItem get_root() {
             return root;
         }
-        
+
         public CanonicalDbusmenu get_server() {
             return dbusmenu_server;
         }
-        
+
         public bool get_is_started() {
             return is_started;
         }
-        
+
         public int get_item_count() {
             return root.children.size;
         }
-        
+
         public string get_app_uri() {
             return app_uri;
         }

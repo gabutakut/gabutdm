@@ -26,6 +26,7 @@ namespace Gabut {
         public ProxyRecently (MyProxy myproxy) {
             Object(myproxy: myproxy);
         }
+
         construct {            
             var title = new Gtk.Label (myproxy.to_string ()) {
                 halign = Gtk.Align.CENTER,
@@ -38,7 +39,7 @@ namespace Gabut {
                 width_request = 100
             };
             child = title;
-            show ();
+            set_visible (true);
         }
     }
 }

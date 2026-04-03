@@ -103,7 +103,7 @@ namespace Gabut {
             });
             item_map[index] = item;
             append (item);
-            item.show ();
+            item.set_visible (true);
             return index;
         }
 

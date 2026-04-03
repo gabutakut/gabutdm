@@ -1651,38 +1651,54 @@ namespace Gabut {
     }
 
     private string get_soupmess (string datas) {
+        Soup.Session session = new Soup.Session ();
         try {
-            var session = SoupSessionPool.get_default().acquire();
             var message = new Soup.Message ("POST", aria_listent);
             message.set_request_body_from_bytes (Soup.FORM_MIME_TYPE_MULTIPART, new GLib.Bytes (datas.data));
             GLib.Bytes bytes = session.send_and_read (message);
-            SoupSessionPool.get_default().release(session);
             return (string) bytes.get_data ();
         } catch (Error e) {
             GLib.warning (e.message);
+            if (session != null) {
+                session.abort ();
+                session = null;
+            }
+        } finally {
+            if (session != null) {
+                session.abort ();
+                session = null;
+            }
         }
         return "";
     }
 
     public string[]? get_content_type (string url, string cookie) {
         string[]content = {};
+        Soup.Session session = new Soup.Session ();
         try {
             var message = new Soup.Message ("HEAD", url);
             if (cookie != null && cookie != "") {
                 message.request_headers.append ("Cookie", cookie);
             }
-            var session = SoupSessionPool.get_default().acquire();
             var sesc = session.send (message);
             content += message.response_headers.get_content_type (null);
             string sizef = message.response_headers.get_one ("Content-Length");
             content += sizef != null? sizef : "0";
             sesc.close ();
-            SoupSessionPool.get_default().release(session);
             message = null;
             return content;
         } catch (Error e) {
             GLib.warning (@"Error: $(e.message)");
+            if (session != null) {
+                session.abort ();
+                session = null;
+            }
             return content;
+        } finally {
+            if (session != null) {
+                session.abort ();
+                session = null;
+            }
         }
     }
 
@@ -1690,7 +1706,7 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addUri\", \"params\":[[\"$(url)\"], {");
         uint hasempty = stringbuild.str.hash ();
-        options.foreach ((value) => {
+        foreach (var value in options) {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
             }
@@ -1699,8 +1715,7 @@ namespace Gabut {
             } else {
                 stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
             }
-            return true;
-        });
+        }
         stringbuild.append (@"}, $(arpos)]}");
         string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
@@ -1713,13 +1728,12 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"asdf\", \"method\":\"aria2.addTorrent\", \"params\":[\"$(torr)\", [\"uris\"], {");
         uint hasempty = stringbuild.str.hash ();
-        options.foreach ((value) => {
+        foreach (var value in options) {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
             }
             stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
-            return true;
-        });
+        }
         stringbuild.append (@"}, $(arpos)]}");
         string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
@@ -1732,13 +1746,12 @@ namespace Gabut {
         var stringbuild = new StringBuilder ();
         stringbuild.append (@"{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.addMetalink\", \"params\":[[\"$(metal)\"], {");
         uint hasempty = stringbuild.str.hash ();
-        options.foreach ((value) => {
+        foreach (var value in options) {
             if (hasempty != stringbuild.str.hash ()) {
                 stringbuild.append (", ");
             }
             stringbuild.append (@"\"$(value.key)\" : \"$(value.value)\"");
-            return true;
-        });
+        }
         stringbuild.append (@"}, $(arpos)]}");
         string result = get_soupmess (stringbuild.str);
         if (!result.down ().contains ("result") || result == null) {
@@ -1763,7 +1776,7 @@ namespace Gabut {
         return result_ret (result);
     }
 
-    private string aria_pause_all (string portrpc = "") {
+    private string aria_pause_all ( ) {
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.pauseAll\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
@@ -1919,7 +1932,7 @@ namespace Gabut {
         return "";
     }
 
-    private Gee.ArrayList<string> aria_tell_active (string portrpc = "") {
+    private Gee.ArrayList<string> aria_tell_active () {
         var listgid = new Gee.ArrayList<string> ();
         string json_text = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellActive\"}");
         if (!json_text.down ().contains ("result") || json_text == null) {
@@ -1945,6 +1958,33 @@ namespace Gabut {
             }
         }
         return listgid;
+    }
+
+    private int aria_tell_wait () {
+        int real_waiting = 0;
+        string json_text = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.tellWaiting\", \"params\":[0, 1000]}");
+        if (!json_text.down ().contains ("result") || json_text == null) {
+            return real_waiting;
+        }
+        var parser = new Json.Parser();
+        try {
+            parser.load_from_data(json_text);
+        } catch (Error e) {
+            return real_waiting;
+        }
+        var root = parser.get_root().get_object();
+        if (!root.has_member("result")) {
+            return real_waiting;
+        }
+        var result = root.get_array_member("result");
+        for (uint i = 0; i < result.get_length(); i++) {
+            var item = result.get_object_element(i);
+            string status = item.get_string_member("status");
+            if (status == "waiting") {
+                real_waiting++;
+            }
+        }
+        return real_waiting;
     }
 
     private string aria_files_store (string ariagid) {
@@ -2029,7 +2069,7 @@ namespace Gabut {
         return "";
     }
 
-    private string aria_v2_globalops (string portrpc = "") {
+    private string aria_v2_globalops () {
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalOption\"}");
         if (!result.down ().contains ("result") || result == null) {
             return "";
@@ -2053,12 +2093,13 @@ namespace Gabut {
         return result_ret (result);
     }
 
-    private string[] aria_globalstat (string portrpc = "") {
+    private string[] aria_globalstat ( ) {
         string[] stats = null;
         string result = get_soupmess ("{\"jsonrpc\":\"2.0\", \"id\":\"qwer\", \"method\":\"aria2.getGlobalStat\"}");
         if (!result.down ().contains ("result") || result == null) {
             return stats;
         }
+        int waiting = aria_tell_wait ();
         try {
             var parser = new Json.Parser ();
             parser.load_from_data (result);
@@ -2066,7 +2107,7 @@ namespace Gabut {
             stats += objres.get_string_member("downloadSpeed");
             stats += objres.get_string_member("uploadSpeed");
             stats += objres.get_string_member("numActive");
-            stats += objres.get_string_member("numWaiting");
+            stats += waiting.to_string ();
             stats += objres.get_string_member("numStopped");
             stats += objres.get_string_member("numStoppedTotal");
             return stats;
@@ -2084,10 +2125,6 @@ namespace Gabut {
 
     private async void open_fileman (string fileuri) throws Error {
         yield AppInfo.launch_default_for_uri_async (fileuri, null);
-    }
-
-    private string get_app_id () {
-        return @"application://$(Environment.get_application_name ()).desktop";
     }
 
     private async void start_engine () throws Error {
@@ -2255,8 +2292,7 @@ namespace Gabut {
             }
         }
         string cleaned = sb.str.strip ();
-        while (cleaned.length > 0 &&
-            (cleaned.has_suffix (" ") || cleaned.has_suffix ("."))) {
+        while (cleaned.length > 0 && (cleaned.has_suffix (" ") || cleaned.has_suffix ("."))) {
             cleaned = cleaned.substring (0, cleaned.length - 1);
         }
         if (cleaned == "") {
@@ -2398,7 +2434,7 @@ namespace Gabut {
     private int get_container (File file) {
         int n_files = 0;
         try {
-            FileEnumerator enumerator = file.enumerate_children ("*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            FileEnumerator enumerator = file.enumerate_children ("standard::name,standard::type,standard::is-hidden", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             FileInfo info;
             while (enumerator.iterate (out info, null) && info != null) {
                 if (info.get_is_hidden ()) {
@@ -2413,40 +2449,65 @@ namespace Gabut {
     }
 
     private async void open_file (Soup.ServerMessage msg, GLib.File file) throws Error {
-        var info = file.query_info ("standard::*", FileQueryInfoFlags.NONE);
+        var info = file.query_info ("standard::content-type,standard::size", FileQueryInfoFlags.NONE);
         int64 file_size = info.get_size ();
         string mime = info.get_content_type ();
+        var headers = msg.get_response_headers ();
         string? range_header = msg.get_request_headers ().get_one ("Range");
         int64 start = 0;
         int64 end = file_size - 1;
+        bool is_partial = false;
         if (range_header != null && range_header.has_prefix ("bytes=")) {
+            is_partial = true;
             var range_val = range_header.substring (6);
-            var parts = range_val.split ("-");
+            var parts = range_val.split ("-", 2);
             if (parts.length == 2) {
                 if (parts[0] != "") {
                     start = int64.parse (parts[0]);
                 }
                 if (parts[1] != "") {
                     end = int64.parse (parts[1]);
+                } else {
+                    end = file_size - 1;
                 }
             }
+            if (start < 0) {
+                start = 0;
+            }
+            if (end >= file_size) {
+                end = file_size - 1;
+            }
+            if (start > end) {
+                start = 0;
+            }
         }
-
+        if (is_partial) {
+            const int64 MAX_CHUNK = 2 * 1024 * 1024;
+            if ((end - start + 1) > MAX_CHUNK) {
+                end = start + MAX_CHUNK - 1;
+            }
+            if (end >= file_size) {
+                end = file_size - 1;
+            }
+            if (start > end) {
+                start = 0;
+            }
+        }
         int64 chunk_size = end - start + 1;
         var input = file.read ();
         ((GLib.Seekable) input).seek (start, GLib.SeekType.SET);
         uint8[] buffer = new uint8[chunk_size];
-        size_t bytes_read;
+        size_t bytes_read = 0;
         input.read_all (buffer, out bytes_read);
         input.close ();
-
-        var headers = msg.get_response_headers ();
-        headers.set_content_type (mime, null);
-        headers.set_content_length (chunk_size);
-        headers.append ("Accept-Ranges", "bytes");
-        headers.append ("Content-Range", "bytes %lld-%lld/%lld".printf (start, end, file_size));
-
-        if (range_header != null) {
+        var sparams = new HashTable<string, string> (str_hash, str_equal);
+        sparams.insert ("charset", "utf-8");
+        headers.set_content_type (mime, sparams);
+        headers.set_content_length ((int64) bytes_read);
+        headers.replace ("Accept-Ranges", "bytes");
+        headers.replace ("Cache-Control", "no-store");
+        if (is_partial) {
+            headers.set_content_range (start, start + (int64) bytes_read - 1, file_size);
             msg.set_status (Soup.Status.PARTIAL_CONTENT, "Partial Content");
         } else {
             msg.set_status (Soup.Status.OK, "OK");
@@ -2559,7 +2620,7 @@ namespace Gabut {
             return "";
         }
         try {
-            FileInfo infos = fileinput.query_info ("standard::*", GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            FileInfo infos = fileinput.query_info (GLib.FileAttribute.STANDARD_CONTENT_TYPE, GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             return infos.get_content_type ();
         } catch (Error e) {
             GLib.warning (e.message);
@@ -2584,11 +2645,23 @@ namespace Gabut {
     }
 
     private async void fetch_data (string url, string filename) throws Error {
-        var session = SoupSessionPool.get_default().acquire();
-        var msg = new Soup.Message ("GET", url);
-        var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
-        write_file.begin (bytes, filename);
-        SoupSessionPool.get_default().release(session);
+        Soup.Session session = new Soup.Session ();
+        try {
+            var msg = new Soup.Message ("GET", url);
+            var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
+            write_file.begin (bytes, filename);
+        } catch (Error e) {
+            if (session != null) {
+                session.abort ();
+                session = null;
+            }
+            warning (e.message);
+        } finally {
+            if (session != null) {
+                session.abort ();
+                session = null;
+            }
+        }
     }
 
     private Soup.Message full_message (string method, string url, string useragt) throws Error {
@@ -3393,13 +3466,13 @@ namespace Gabut {
     }
 
     private void set_download (GLib.List<DownloadRow> downloads) {
-        downloads.foreach ((download)=> {
+        foreach (var download in downloads) {
             if (db_download_exist (download.url)) {
                 update_download (download);
-                return;
+            } else {
+                add_db_download (download);
             }
-            add_db_download (download);
-        });
+        }
     }
 
     private void add_db_download (DownloadRow download) {

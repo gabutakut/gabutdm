@@ -213,8 +213,6 @@ namespace Gabut {
         const wrapBtn = document.getElementById('btn-wrap');
         const searchEl= document.getElementById('search-input');
         const searchCt= document.getElementById('search-count');
-
-        /* ── Render ── */
         (function(){
         const frag = document.createDocumentFragment();
         rawLines.forEach((line, i) => {
@@ -228,18 +226,13 @@ namespace Gabut {
         });
         tbody.appendChild(frag);
         })();
-
-        /* ── Wrap ── */
         let wrapOn = false;
         wrapBtn.addEventListener('click', () => {
         wrapOn = !wrapOn;
         document.querySelector('.code-table').classList.toggle('wrap-mode', wrapOn);
         wrapBtn.classList.toggle('active', wrapOn);
         });
-
-        /* ── Search ── */
         let matches=[], cur=-1;
-
         function clearHL(){
         document.querySelectorAll('.hl').forEach(el=>{
             const t=document.createTextNode(el.textContent);
@@ -248,7 +241,6 @@ namespace Gabut {
         tbody.querySelectorAll('td.lc').forEach(td=>td.normalize());
         matches=[]; cur=-1; searchCt.textContent='';
         }
-
         function doSearch(q){
         clearHL();
         if(!q) return;
@@ -264,7 +256,6 @@ namespace Gabut {
         if(matches.length){ cur=0; matches[0].classList.add('cur'); matches[0].scrollIntoView({block:'center',behavior:'smooth'}); }
         searchCt.textContent=matches.length?(cur+1)+'/'+matches.length:'0';
         }
-
         function moveCur(dir){
         if(!matches.length) return;
         matches[cur].classList.remove('cur');
@@ -273,7 +264,6 @@ namespace Gabut {
         matches[cur].scrollIntoView({block:'center',behavior:'smooth'});
         searchCt.textContent=(cur+1)+'/'+matches.length;
         }
-
         let st;
         searchEl.addEventListener('input',()=>{ clearTimeout(st); st=setTimeout(()=>doSearch(searchEl.value),200); });
         searchEl.addEventListener('keydown',e=>{
@@ -282,7 +272,6 @@ namespace Gabut {
         });
         document.getElementById('btn-next').addEventListener('click',()=>moveCur(1));
         document.getElementById('btn-prev').addEventListener('click',()=>moveCur(-1));
-
         document.addEventListener('keydown',e=>{
         if(document.activeElement===searchEl) return;
         if((e.ctrlKey||e.metaKey)&&e.key==='f'){ e.preventDefault(); searchEl.focus(); searchEl.select(); }

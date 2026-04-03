@@ -150,12 +150,10 @@ namespace Gabut {
         </div>
 
         <script>
-        // ── Load PDF.js dari fetch lalu buat worker blob ──
         (async () => {
         const PDFJS_URL = '/PdfjsLib';
         const WORKER_URL= '/PdfjsWorker';
         const PDF_SRC   = '""" + raw_src + """';
-
         const viewer   = document.getElementById('viewer');
         const loading  = document.getElementById('loading');
         const errDiv   = document.getElementById('err');
@@ -164,8 +162,6 @@ namespace Gabut {
         const hdInfo   = document.getElementById('hd-info');
         const btnPrev  = document.getElementById('btn-prev');
         const btnNext  = document.getElementById('btn-next');
-
-        // ── Load PDF.js script ──
         await new Promise((res, rej) => {
             const s = document.createElement('script');
             s.src = PDFJS_URL;
@@ -173,22 +169,16 @@ namespace Gabut {
             s.onerror = rej;
             document.head.appendChild(s);
         });
-
-        // ── Worker pakai blob dari fetch — tidak perlu CDN worker ──
         try {
             const wResp = await fetch(WORKER_URL);
             const wText = await wResp.text();
             const wBlob = new Blob([wText], { type: 'application/javascript' });
             pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(wBlob);
         } catch {
-            // Fallback langsung pakai CDN worker
             pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_URL;
         }
-
         let pdfDoc = null, scale = 1.0, fitScale = 1.0;
         const canvases = [];
-
-        // ── Fit width ──
         async function fitWidth() {
             if (!pdfDoc) return;
             const page = await pdfDoc.getPage(1);
@@ -198,8 +188,6 @@ namespace Gabut {
             zoomLbl.textContent = Math.round(scale * 100) + '%';
             await rerender();
         }
-
-        // ── Render semua halaman ──
         async function renderAll() {
             canvases.length = 0;
             Array.from(viewer.children).forEach(c => {
@@ -218,7 +206,6 @@ namespace Gabut {
             }
             updateLabel();
         }
-
         async function rerender() {
             for (let i = 1; i <= pdfDoc.numPages; i++) {
             const page = await pdfDoc.getPage(i);
@@ -230,56 +217,44 @@ namespace Gabut {
             }
             zoomLbl.textContent = Math.round(scale * 100) + '%';
         }
-
         function currentPage() {
             const mid = viewer.scrollTop + viewer.clientHeight / 2;
             for (const cv of canvases)
             if (cv.offsetTop + cv.offsetHeight >= mid) return +cv.dataset.page;
             return pdfDoc ? pdfDoc.numPages : 1;
         }
-
         function updateLabel() {
             const cur = currentPage();
             pageLbl.textContent = cur + ' / ' + pdfDoc.numPages;
             btnPrev.disabled = cur <= 1;
             btnNext.disabled = cur >= pdfDoc.numPages;
         }
-
         function scrollTo(n) {
             const cv = canvases[n - 1];
             if (cv) viewer.scrollTo({ top: cv.offsetTop - 16, behavior: 'smooth' });
         }
-
         viewer.addEventListener('scroll', updateLabel);
-
-        // ── Load PDF ──
         try {
             const resp = await fetch(PDF_SRC);
             const buf  = await resp.arrayBuffer();
             pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
-
             hdInfo.textContent = pdfDoc.numPages + ' page' + (pdfDoc.numPages > 1 ? 's' : '');
             loading.remove();
-
             const firstPage = await pdfDoc.getPage(1);
             const vp0 = firstPage.getViewport({ scale: 1 });
             fitScale = (viewer.clientWidth - 24) / vp0.width;
             scale    = fitScale;
             zoomLbl.textContent = Math.round(scale * 100) + '%';
-
             await renderAll();
             btnPrev.disabled = false;
             btnNext.disabled = pdfDoc.numPages <= 1;
-
         } catch (e) {
             loading.remove();
             errDiv.style.display = 'flex';
             console.error(e);
         }
-
         btnPrev.addEventListener('click', () => scrollTo(currentPage() - 1));
         btnNext.addEventListener('click', () => scrollTo(currentPage() + 1));
-
         document.getElementById('btn-zi').addEventListener('click', async () => {
             scale = Math.min(4, scale + 0.25);
             await rerender();
@@ -289,7 +264,6 @@ namespace Gabut {
             await rerender();
         });
         document.getElementById('btn-fit').addEventListener('click', fitWidth);
-
         const btnFs = document.getElementById('btn-fs');
         btnFs.addEventListener('click', () => {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -301,7 +275,6 @@ namespace Gabut {
             document.getElementById('ico-ex').style.display = fs ? '' : 'none';
             setTimeout(fitWidth, 100);
         });
-
         document.addEventListener('keydown', e => {
             if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); btnPrev.click(); }
             if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  { e.preventDefault(); btnNext.click(); }
@@ -310,7 +283,6 @@ namespace Gabut {
             if (e.key === '0')                  fitWidth();
             if (e.key === 'f')                  btnFs.click();
         });
-
         window.addEventListener('resize', fitWidth);
         })();
         </script>

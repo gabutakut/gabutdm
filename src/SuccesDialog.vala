@@ -30,6 +30,7 @@ namespace Gabut {
         public SuccesDialog (string datastr) {
             Object (resizable: false, use_header_bar: 1, datastr: datastr);
         }
+
         construct {
             icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
@@ -176,11 +177,11 @@ namespace Gabut {
         }
 
         public override void show () {
-            base.show ();
             address.text = info_succes (datastr, InfoSucces.ADDRESS);
             directory.text = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH)).get_path ();
             filesizelabel.label = _("Downloaded %s").printf (format_size (int64.parse (info_succes (datastr, InfoSucces.FILESIZE)), GLib.FormatSizeFlags.LONG_FORMAT));
             icon_image.gicon = GLib.ContentType.get_icon (info_succes (datastr, InfoSucces.ICONNAME));
+            base.show ();
         }
     }
 }

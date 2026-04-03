@@ -487,7 +487,7 @@ namespace Gabut {
             stack.add_named (torrscrolled, "torrscrolled");
             stack.add_named (limitergrid, "limitergrid");
             stack.visible_child = downstatusgrid;
-            stack.show ();
+            stack.set_visible (true);
 
             var boxstatus = new Gtk.Grid () {
                 halign = Gtk.Align.CENTER,
@@ -580,12 +580,12 @@ namespace Gabut {
 
             notify["switch-rev"].connect (()=> {
                 if (switch_rev) {
-                    lisboxserver.show ();
-                    listboxpeers.show ();
+                    lisboxserver.set_visible (true);
+                    listboxpeers.set_visible (true);
                     revcon.reveal_child = true;
                 } else {
-                    lisboxserver.hide ();
-                    listboxpeers.hide ();
+                    lisboxserver.set_visible (false);
+                    listboxpeers.set_visible (false);
                     revcon.reveal_child = false;
                 }
             });
@@ -705,7 +705,7 @@ namespace Gabut {
             if (switch_rev) {
                 if (connpeers.get_visible_child_name () == "serverconn") {
                     var arrayserv = aria_servers_store (ariagid);
-                    arrayserv.foreach ((serverrow) => {
+                    foreach (var serverrow in arrayserv) {
                         bool servext = false;
                         for (int b = 0; b < listserver.size ; b++) {
                             var serverrow2 = (RowServer) lisboxserver.get_row_at_index (b);
@@ -720,11 +720,10 @@ namespace Gabut {
                             if (!server_exist (serverrow.key)) {
                                 lisboxserver.append (serverrow.value);
                                 listserver.add (serverrow.value);
-                                serverrow.value.show ();
+                                serverrow.value.set_visible (true);
                             }
                         }
-                        return true;
-                    });
+                    }
                     for (int b = 0; b < listserver.size ; b++) {
                         var servrow2 = (RowServer) lisboxserver.get_row_at_index (b);
                         if (!arrayserv.has_key (servrow2.index)) {
@@ -735,7 +734,7 @@ namespace Gabut {
                     arrayserv.clear ();
                 } else {
                     var arraypeers = aria_get_peers (ariagid);
-                    arraypeers.foreach ((peersrow) => {
+                    foreach (var peersrow in arraypeers) {
                         bool peerext = false;
                         for (int b = 0; b < listpeers.size ; b++) {
                             var peersrow2 = (PeersRow) listboxpeers.get_row_at_index (b);
@@ -753,11 +752,10 @@ namespace Gabut {
                             if (!peer_exist (peersrow.key)) {
                                 listboxpeers.append (peersrow.value);
                                 listpeers.add (peersrow.value);
-                                peersrow.value.show ();
+                                peersrow.value.set_visible (true);
                             }
                         }
-                        return true;
-                    });
+                    }
                     for (int b = 0; b < listpeers.size ; b++) {
                         var peersrow2 = (PeersRow) listboxpeers.get_row_at_index (b);
                         if (!arraypeers.has_key (peersrow2.host)) {
@@ -1739,7 +1737,6 @@ namespace Gabut {
                     for (int j = 0; j < path_parts.length - 1; j++) {
                         string folder_name = path_parts[j];
                         TrFileInfo? existing_folder = null;
-
                         foreach (TrFileInfo item in current_level) {
                             if (item.is_folder && item.path == folder_name) {
                                 existing_folder = item;
@@ -1789,7 +1786,6 @@ namespace Gabut {
                             for (int j = 0; j < clean_parts.length - 1; j++) {
                                 string folder_name = clean_parts[j];
                                 TrFileInfo? existing_folder = null;
-                                
                                 foreach (TrFileInfo item in current_level) {
                                     if (item.is_folder && item.path == folder_name) {
                                         existing_folder = item;

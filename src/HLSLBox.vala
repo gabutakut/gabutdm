@@ -64,7 +64,7 @@ namespace Gabut {
                     hls_list_box.select_row (row);
                 }
             });
-            hls_list_box.show ();
+            hls_list_box.set_visible (true);
             notify["selected"].connect (filter_view);
         }
 
@@ -72,16 +72,17 @@ namespace Gabut {
             hls_list_box.append(row);
             files.add(GLib.Path.build_filename(output_dir, row.filename));
             row.start_button.clicked.connect(()=> {
-                downloaders.foreach((dld)=> {
+                foreach (var dld in downloaders) {
                     if (dld.index == row.index) {
                         if (row.status == StatusMode.ACTIVE || row.status == StatusMode.WAIT) {
                             dld.stop();
+                        } else if (row.status == StatusMode.ERROR) {
+                            dld.on_wait ();
                         } else {
                             dld.start_download();
                         }
                     }
-                    return true;
-                });
+                }
                 if (active_downloaders > 0 && active_downloaders <= hlsparalell_dld) {
                     active_downloaders--;
                 }
@@ -160,8 +161,12 @@ namespace Gabut {
             }
             active_downloaders = 0;
             status = StatusMode.ACTIVE;
+            foreach (var downloader in downloaders) {
+                if (downloader.status != StatusMode.COMPLETE) {
+                    downloader.idle_dl ();
+                }
+            }
             processing = true;
-            load_downloader ();
             update_quee ();
         }
 
@@ -378,6 +383,7 @@ namespace Gabut {
                 GLib.Source.remove(queue_timeout_id);
                 queue_timeout_id = 0;
             }
+            active_downloaders = 0;
         }
 
         private void finish_processing() {
@@ -456,7 +462,7 @@ namespace Gabut {
                         merged_ts = false;
                     }
                     return false; 
-                });
+                }); 
             });
             GLib.Timeout.add(100, () => {
                 progressmerg = (double) ffmpeg.get_last_progress();

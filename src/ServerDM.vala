@@ -57,68 +57,46 @@ namespace Gabut {
         mask-size:contain;mask-repeat:no-repeat;mask-position:center;
         -webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;-webkit-mask-position:center;
         }
-
-        /* video */
         .dm-icon.video{background:rgba(251,146,60,0.12);}
         .dm-icon.video::before{background:#fb923c;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='3' width='10' height='10' rx='1.5'/%3E%3Cpath d='M11 6l4-2v8l-4-2z'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='3' width='10' height='10' rx='1.5'/%3E%3Cpath d='M11 6l4-2v8l-4-2z'/%3E%3C/svg%3E");}
-
-        /* audio */
         .dm-icon.audio{background:rgba(167,139,250,0.12);}
         .dm-icon.audio::before{background:#a78bfa;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 2l6 2v3l-6-2v6a2 2 0 11-1.5-1.94V4.5z'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 2l6 2v3l-6-2v6a2 2 0 11-1.5-1.94V4.5z'/%3E%3C/svg%3E");}
-
-        /* image */
         .dm-icon.image{background:rgba(52,211,153,0.12);}
         .dm-icon.image::before{background:#34d399;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='14' rx='2' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3Ccircle cx='5.5' cy='5.5' r='1.5'/%3E%3Cpath d='M1 11l4-4 3 3 2-2 4 4'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='14' rx='2' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3Ccircle cx='5.5' cy='5.5' r='1.5'/%3E%3Cpath d='M1 11l4-4 3 3 2-2 4 4'/%3E%3C/svg%3E");}
-
-        /* pdf */
         .dm-icon.pdf{background:rgba(248,113,113,0.12);}
         .dm-icon.pdf::before{background:#f87171;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 0h5.5L13 3.5V14a2 2 0 01-2 2H4a2 2 0 01-2-2V2a2 2 0 012-2z'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 0h5.5L13 3.5V14a2 2 0 01-2 2H4a2 2 0 01-2-2V2a2 2 0 012-2z'/%3E%3C/svg%3E");}
-
-        /* code */
         .dm-icon.code{background:rgba(251,191,36,0.12);}
         .dm-icon.code::before{background:#fbbf24;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M5 4L1 8l4 4M11 4l4 4-4 4M9 2l-2 12' stroke='%23000' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M5 4L1 8l4 4M11 4l4 4-4 4M9 2l-2 12' stroke='%23000' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");}
-
-        /* text */
         .dm-icon.text{background:rgba(148,163,184,0.1);}
         .dm-icon.text::before{background:rgba(148,163,184,0.7);
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M2 4h12M2 7h12M2 10h8' stroke='%23000' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M2 4h12M2 7h12M2 10h8' stroke='%23000' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");}
-
-        /* archive */
         .dm-icon.archive{background:rgba(251,146,60,0.12);}
         .dm-icon.archive::before{background:#fb923c;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='4' rx='1'/%3E%3Crect x='1' y='6' width='14' height='9' rx='1'/%3E%3Cline x1='6' y1='9.5' x2='10' y2='9.5' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='4' rx='1'/%3E%3Crect x='1' y='6' width='14' height='9' rx='1'/%3E%3Cline x1='6' y1='9.5' x2='10' y2='9.5' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E");}
-
-        /* folder */
         .dm-icon.folder{background:rgba(96,165,250,0.12);}
         .dm-icon.folder::before{background:#60a5fa;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3.5A1.5 1.5 0 012.5 2h3.086a1.5 1.5 0 011.06.44l.915.914A1.5 1.5 0 008.62 4H13.5A1.5 1.5 0 0115 5.5v7A1.5 1.5 0 0113.5 14h-11A1.5 1.5 0 011 12.5z'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 3.5A1.5 1.5 0 012.5 2h3.086a1.5 1.5 0 011.06.44l.915.914A1.5 1.5 0 008.62 4H13.5A1.5 1.5 0 0115 5.5v7A1.5 1.5 0 0113.5 14h-11A1.5 1.5 0 011 12.5z'/%3E%3C/svg%3E");}
-
-        /* font */
         .dm-icon.font{background:rgba(232,121,249,0.12);}
         .dm-icon.font::before{background:#e879f9;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3 13L6.5 3l3.5 10M4.5 9.5h4' stroke='%23000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M10.5 7c0-1.1.9-2 2-2s2 .9 2 2v4' stroke='%23000' stroke-width='1.4' stroke-linecap='round'/%3E%3Ccircle cx='12.5' cy='11' r='2' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3 13L6.5 3l3.5 10M4.5 9.5h4' stroke='%23000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M10.5 7c0-1.1.9-2 2-2s2 .9 2 2v4' stroke='%23000' stroke-width='1.4' stroke-linecap='round'/%3E%3Ccircle cx='12.5' cy='11' r='2' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E");}
-
-        /* po (translation) */
         .dm-icon.po{background:rgba(34,211,238,0.12);}
         .dm-icon.po::before{background:#22d3ee;
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Crect x='1' y='1' width='14' height='14' rx='2' stroke='%23000' stroke-width='1.2'/%3E%3Cpath d='M4 5h8M4 8h5' stroke='%23000' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M8 11l1.5 2.5L11 11' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Crect x='1' y='1' width='14' height='14' rx='2' stroke='%23000' stroke-width='1.2'/%3E%3Cpath d='M4 5h8M4 8h5' stroke='%23000' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M8 11l1.5 2.5L11 11' stroke='%23000' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");}
-
-        /* file (default) */
         .dm-icon.file{background:rgba(255,255,255,0.06);}
         .dm-icon.file::before{background:rgba(255,255,255,0.35);
         mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 1.5A1.5 1.5 0 015.5 0h5.086a1.5 1.5 0 011.06.44l2.915 2.914A1.5 1.5 0 0115 4.414V14.5A1.5 1.5 0 0113.5 16h-8A1.5 1.5 0 014 14.5z'/%3E%3C/svg%3E");
@@ -185,11 +163,9 @@ namespace Gabut {
         const overlay = document.getElementById('cdialog');
         const subEl   = document.getElementById('cdialog-sub');
         const confirm = document.getElementById('cdialog-confirm');
-
-        let pendingForm    = null;
+        let pendingForm = null;
         let pendingBtnName = '';
-        let pendingBtnVal  = '';
-
+        let pendingBtnVal = '';
         window.cdialogClose = function() {
             overlay.classList.remove('open');
             document.body.style.overflow = '';
@@ -200,7 +176,6 @@ namespace Gabut {
         window.cdialogBg = function(e) {
             if (e.target === overlay) cdialogClose();
         };
-
         confirm.addEventListener('click', () => {
             if (pendingForm) {
             if (pendingBtnName) {
@@ -214,20 +189,17 @@ namespace Gabut {
             }
             cdialogClose();
         });
-
         document.addEventListener('keydown', e => {
             if (!overlay.classList.contains('open')) return;
             if (e.key === 'Escape') cdialogClose();
             if (e.key === 'Enter') confirm.click();
         });
-
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('form').forEach(form => {
             const btn = form.querySelector('button[type=submit],input[type=submit]');
             if (!btn) return;
             const val = (btn.value || btn.textContent || '').toLowerCase();
             if (!val.includes('delete')) return;
-
             form.addEventListener('submit', e => {
                 e.preventDefault();
                 pendingForm    = form;
@@ -280,8 +252,6 @@ namespace Gabut {
         }
         @keyframes glowdrift1{from{transform:translate(0,0) scale(1);}to{transform:translate(60px,50px) scale(1.2);}}
         @keyframes glowdrift2{from{transform:translate(0,0) scale(1);}to{transform:translate(-50px,-60px) scale(1.15);}}
-
-        /* ── Top header ── */
         .topbar{
         position:sticky;top:0;z-index:100;
         width:100%;
@@ -310,8 +280,6 @@ namespace Gabut {
         .icon-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.2);}
         .icon-btn:active{transform:scale(0.92);}
         .icon-btn svg{width:16px;height:16px;stroke:#bbb;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-
-        /* ── Tab bar ── */
        .tabbar{
         position:sticky;top:52px;z-index:90;
         background:rgba(10,10,10,0.85);
@@ -352,8 +320,6 @@ namespace Gabut {
         flex-shrink:0;display:none;
         }
         .tab-btn.active .tab-dot{display:block;opacity:1;}
-
-        /* ── Main content ── */
         .main{
         flex:1;padding:20px;
         max-width:1280px;width:100%;
@@ -361,8 +327,6 @@ namespace Gabut {
         }
         .tabcontent{display:none;}
         .tabcontent.active{display:block;}
-
-        /* ── Empty state ── */
         .empty-state{
         display:flex;flex-direction:column;align-items:center;justify-content:center;
         gap:16px;padding:80px 20px;
@@ -408,8 +372,6 @@ namespace Gabut {
         -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M12 8v4M12 16h.01' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
         }
         .empty-title{font-size:14px;color:rgba(255,255,255,0.3);font-weight:500;}
-
-        /* ── Overlay ── */
         .overlay{
         display:none;position:fixed;inset:0;z-index:200;
         background:rgba(0,0,0,0.65);
@@ -498,7 +460,6 @@ namespace Gabut {
         .btn-submit:hover{background:rgba(255,255,255,0.17);}
         .btn-submit:active{transform:scale(0.97);}
         .ov-divider{height:0.5px;background:rgba(255,255,255,0.07);}
-        /* ── DM Item row ── */
         .append{
         background:rgba(255,255,255,0.02);
         border:0.5px solid rgba(255,255,255,0.08);
@@ -515,8 +476,6 @@ namespace Gabut {
         }
         .dm-item:last-child{border-bottom:none;}
         .dm-item:hover{background:rgba(255,255,255,0.04);}
-
-        /* Icon */
         .dm-icon{
         width:36px;height:36px;border-radius:10px;
         flex-shrink:0;
@@ -544,16 +503,12 @@ namespace Gabut {
         .dm-icon.code{background:rgba(251,191,36,0.12);}
         .dm-icon.code::before{background:#fbbf24;}
         .dm-icon.file{background:rgba(255,255,255,0.06);}
-
-        /* Info */
         .dm-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
         .dm-name{
         font-size:13px;font-weight:500;color:#fff;
         overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
         }
         .dm-loading{color:rgba(255,255,255,0.3);font-style:italic;}
-
-        /* Progress */
         .dm-progress{width:100%;}
         .dm-progress-track{
         width:100%;height:3px;
@@ -579,8 +534,6 @@ namespace Gabut {
         font-size:11px;color:rgba(255,255,255,0.35);
         font-variant-numeric:tabular-nums;
         }
-
-        /* Action buttons */
         .dm-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
         .dm-btn{
         width:32px;height:32px;border-radius:9px;border:none;
@@ -622,7 +575,6 @@ namespace Gabut {
             </svg>
         </button>
         </div>
-
         <div class="tabbar">
         <button class="tab-btn" id="tab-Downloading" onclick="openTab('Downloading',this)">
             <div class="tab-dot"></div>Downloading
@@ -640,10 +592,8 @@ namespace Gabut {
             <div class="tab-dot"></div>Error
         </button>
         </div>
-
         <div class="main">
         <div id="Downloading" class="tabcontent">""";
-
         string mid1 = """</div>
         <div id="Paused" class="tabcontent">""";
         string mid2 = """</div>
@@ -654,7 +604,6 @@ namespace Gabut {
         <div id="Error" class="tabcontent">""";
         string overlay_form = """</div>
         </div>
-
         <!-- Overlay -->
         <div class="overlay" id="myOverlay" onclick="overlayBg(event)">
         <div class="ov-card">
@@ -706,34 +655,22 @@ namespace Gabut {
         (function(){
         const uploader = document.getElementById('uploader');
         if (!uploader) return;
-
         uploader.closest('form').addEventListener('submit', async function(e) {
             const file = uploader.files[0];
             if (!file) return;
-
-            // Hanya intercept .torrent untuk preview
             if (!file.name.toLowerCase().endsWith('.torrent')) return;
-
             e.preventDefault();
-
-            // Buat overlay loading
             const ov = document.createElement('div');
             ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
             ov.innerHTML = '<div style="width:32px;height:32px;border-radius:50%;border:2.5px solid rgba(255,255,255,0.1);border-top-color:#34d399;animation:spin 0.8s linear infinite;"></div><div style="color:rgba(255,255,255,0.5);font-size:13px;">Loading torrent info…</div>';
             document.body.appendChild(ov);
-
             try {
-            // POST file ke /TorrentPreview
             const fd = new FormData();
             fd.append('file[]', file);
             const resp = await fetch('/TorrentPreview', { method: 'POST', body: fd });
             const html  = await resp.text();
-
-            // Inject hasil HTML ke overlay sebagai full iframe
             ov.innerHTML = '';
             ov.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;';
-
-            // Top bar — confirm / cancel
             const bar = document.createElement('div');
             bar.style.cssText = 'background:#111;border-bottom:0.5px solid rgba(255,255,255,0.1);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0;';
             bar.innerHTML = `
@@ -742,23 +679,16 @@ namespace Gabut {
                 <button id="trk-confirm" style="background:rgba(52,211,153,0.15);border:0.5px solid rgba(52,211,153,0.3);border-radius:999px;padding:8px 18px;color:#34d399;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Add to Download</button>
             `;
             ov.appendChild(bar);
-
-            // iframe konten viewer
             const iframe = document.createElement('iframe');
             iframe.style.cssText = 'flex:1;border:none;width:100%;';
             iframe.srcdoc = html;
             ov.appendChild(iframe);
-
-            // Cancel
             bar.querySelector('#trk-cancel').addEventListener('click', () => {
                 document.body.removeChild(ov);
                 uploader.value = '';
             });
-
-            // Confirm — submit form asli ke DM
             bar.querySelector('#trk-confirm').addEventListener('click', () => {
                 document.body.removeChild(ov);
-                // Submit form original
                 const form = uploader.closest('form');
                 const hidden = document.createElement('input');
                 hidden.type = 'hidden';
@@ -767,16 +697,12 @@ namespace Gabut {
                 form.appendChild(hidden);
                 form.submit();
             });
-
             } catch (err) {
             document.body.removeChild(ov);
             console.error('Torrent preview error:', err);
-            // Fallback — submit langsung
             uploader.closest('form').submit();
             }
         });
-
-        // Tambah CSS spinner
         if (!document.getElementById('trk-spin-css')) {
             const s = document.createElement('style');
             s.id = 'trk-spin-css';

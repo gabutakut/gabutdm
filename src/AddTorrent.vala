@@ -21,7 +21,7 @@
 
 namespace Gabut {
     public class AddTorrent : Gtk.Dialog {
-        public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode);
+        public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode, bool server = false);
         public signal void update_agid (string ariagid, string newgid);
         private Gtk.Label name_label;
         private Gtk.Label selected_count_label;
@@ -365,13 +365,13 @@ namespace Gabut {
             foreach (var encrp in BTEncrypts.get_all ()) {
                 encrypt_flow.append (new BTEncrypt (encrp));
             }
-            encrypt_flow.show ();
+            encrypt_flow.set_visible (true);
 
             encrypt_flow.child_activated.connect ((encrp)=> {
                 ((Gtk.Label)((BTEncrypt) btencrypt).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 btencrypt = encrp as BTEncrypt;
                 ((Gtk.Label)btencrypt.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                encrypt_popover.hide ();
+                encrypt_popover.set_visible (false);
             });
             btencrypt = encrypt_flow.get_child_at_index (0) as BTEncrypt;
             ((Gtk.Label)btencrypt.get_last_child ()).attributes = color_attribute (0, 60000, 0);
@@ -412,7 +412,7 @@ namespace Gabut {
             savedproxy = new Gtk.MenuButton () {
                 popover = saved_popover
             };
-            save_flow.show ();
+            save_flow.set_visible (true);
             myrcproxy = save_flow.get_child_at_index (0) as ProxyRecently;
             ((Gtk.Label)myrcproxy.get_last_child ()).attributes = color_attribute (0, 60000, 0);
 
@@ -428,12 +428,12 @@ namespace Gabut {
             foreach (var typepr in ProxyTypes.get_all ()) {
                 type_flow.append (new ProxyType (typepr));
             }
-            type_flow.show ();
+            type_flow.set_visible (true);
             type_flow.child_activated.connect ((typepr)=> {
                 ((Gtk.Label)((ProxyType) proxytype).get_last_child ()).attributes = set_attribute (Pango.Weight.BOLD);
                 proxytype = typepr as ProxyType;
                 ((Gtk.Label)proxytype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
-                type_popover.hide ();
+                type_popover.set_visible (false);
             });
             proxytype = type_flow.get_child_at_index (0) as ProxyType;
             ((Gtk.Label)proxytype.get_last_child ()).attributes = color_attribute (0, 60000, 0);
@@ -477,7 +477,7 @@ namespace Gabut {
                 port_entry.value = int.parse (mprxy.port);
                 user_entry.text = mprxy.user;
                 pass_entry.text = mprxy.passwd;
-                saved_popover.hide ();
+                saved_popover.set_visible (false);
             });
 
             saved_popover.show.connect (() => {
@@ -513,7 +513,7 @@ namespace Gabut {
             stack.add_named (moregrid, "moregrid");
             stack.add_named (encryptgrid, "encryptgrid");
             stack.visible_child = info_box;
-            stack.show ();
+            stack.set_visible (true);
 
             var close_button = new Gtk.Button.with_label (_("Cancel")) {
                 width_request = 120,
@@ -1208,7 +1208,6 @@ namespace Gabut {
         }
 
         public override void show () {
-            base.show ();
             if (row != null) {
                 this.hashoptions = row.hashoption;
                 var encod = GLib.Base64.decode(row.url);
@@ -1276,6 +1275,7 @@ namespace Gabut {
                     }
                 }
             }
+            base.show ();
         }
     }
 }
