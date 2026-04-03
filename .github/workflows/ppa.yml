@@ -1,0 +1,34 @@
+name: Build & Upload to PPA
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install -y devscripts debhelper dh-make meson ninja-build valac \
+          libgtk-4-dev libadwaita-1-dev libsoup-3.0-dev \
+          libgee-0.8-dev libjson-glib-dev libqrencode-dev \
+          libsqlite3-dev libcanberra-dev libgdk-pixbuf-2.0-dev \
+          libcairo2-dev libavformat-dev libavcodec-dev libavutil-dev libaria2-dev \
+          dput gnupg
+
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
+
+      - name: Build package
+        run: |
+          debuild -S -sa
+
+      - name: Upload to PPA
+        run: |
+          dput ppa:torikhabib/gabutdm ../*.changes
