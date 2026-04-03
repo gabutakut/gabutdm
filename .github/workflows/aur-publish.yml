@@ -7,8 +7,16 @@ on:
 jobs:
   aur-publish:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug version
+        run: |
+          echo "REF: $GITHUB_REF"
+          echo "NAME: $GITHUB_REF_NAME"
 
       - name: Get version
         id: version
@@ -17,8 +25,14 @@ jobs:
       - name: Get SHA256
         id: sha256
         run: |
-          URL="https://github.com/gabutakut/gabutdm/archive/refs/tags/${{ steps.version.outputs.VERSION }}.tar.gz"
-          SHA=$(curl -sL $URL | sha256sum | cut -d' ' -f1)
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          URL="https://github.com/gabutakut/gabutdm/archive/refs/tags/v${VERSION}.tar.gz"
+
+          echo "Downloading: $URL"
+
+          curl -fL "$URL" -o source.tar.gz
+          SHA=$(sha256sum source.tar.gz | cut -d' ' -f1)
+
           echo "SHA256=$SHA" >> $GITHUB_OUTPUT
 
       - name: Publish to AUR
