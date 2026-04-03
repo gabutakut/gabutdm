@@ -1,7 +1,7 @@
 name: gabutdm
 version: "2.8.5"
 grade: stable
-base: core22
+base: core24
 summary: Simple and Faster Download Manager
 description: |
     Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
