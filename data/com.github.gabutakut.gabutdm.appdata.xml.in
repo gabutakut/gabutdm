@@ -34,6 +34,7 @@
       <description>
         <p>Fix Not Responding HLS/M3U8 Downloader</p>
         <p>Improve Server viewer</p>
+        <p>Login Server style viewer</p>
       </description>
     </release>
     <release version="2.8.5" date="2026-03-27">
