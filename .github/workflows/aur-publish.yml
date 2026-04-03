@@ -26,7 +26,7 @@ jobs:
         id: sha256
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          URL="https://github.com/gabutakut/gabutdm/archive/refs/tags/v${VERSION}.tar.gz"
+          URL="https://github.com/gabutakut/gabutdm/archive/refs/tags/${VERSION}.tar.gz"
 
           echo "Downloading: $URL"
 
