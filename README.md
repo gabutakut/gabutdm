@@ -13,20 +13,28 @@
 
 <h2 align="center">📦 Available On</h2>
 
-<p align="center">
+<div align="center" style="background-color:#f5f5f5; padding:20px; border-radius:12px;">
     <a href="https://snapcraft.io/gabutdm">
-        <img alt="Snap Store" src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg">
+        <img alt="Snap Store" 
+             src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg"
+             style="height:50px; margin:6px;">
     </a>
     <a href="https://appcenter.elementary.io/com.github.gabutakut.gabutdm">
-        <img src="https://appcenter.elementary.io/badge.svg" alt="elementary AppCenter">
+        <img src="https://appcenter.elementary.io/badge.svg" 
+             alt="elementary AppCenter"
+             style="height:50px; margin:6px;">
     </a>
     <a href="https://flathub.org/apps/details/com.github.gabutakut.gabutdm">
-        <img src="https://flathub.org/assets/badges/flathub-badge-en.svg" width="160" alt="Flathub">
+        <img src="https://flathub.org/assets/badges/flathub-badge-en.svg" 
+             alt="Flathub"
+             style="height:50px; margin:6px;">
     </a>
     <a href="https://launchpad.net/~torik-habib/+archive/ubuntu/gabutdownloadmanager">
-        <img src="https://launchpad.net/@@/launchpad-logo-and-name.png" alt="Launchpad PPA">
+        <img src="https://launchpad.net/@@/launchpad-logo-and-name.png" 
+             alt="Launchpad PPA"
+             style="height:50px; margin:6px;">
     </a>
-</p>
+</div>
 
 ---
 
@@ -35,25 +43,13 @@
     Integrate GabutDM directly with your browser
 </p>
 
-<p align="center" style="background-color:#f5f5f5;padding:10px;border-radius:8px;">
+<div align="center" style="background-color:#f5f5f5; padding:16px; border-radius:10px;">
     <a href="https://addons.mozilla.org/en-US/firefox/addon/gabut-extentions/">
-        <img src="https://addons.mozilla.org/static-frontend/c6276b7c0dc392e3ce8668f12e68b83c.svg"
-             alt="Firefox Add-ons">
+        <img src="https://addons.mozilla.org/static-frontend/459ebe418a9783cd0b80bdd8b98e5faa.svg"
+             alt="Firefox Add-ons"
+             style="height:60px;">
     </a>
-</p>
-
----
-
-<h2 align="center">📊 Project Stats</h2>
-
-<p align="center">
-    <a href="https://flatstat.mijorus.it/app/com.github.gabutakut.gabutdm">
-        <img width="150"
-             src="https://img.shields.io/endpoint?url=https://flathub-stats-backend.vercel.app/badges/com.github.gabutakut.gabutdm/shields.io.json">
-    </a>
-</p>
-
----
+</div>
 
 <h2 align="center">✨ Features</h2>
 
@@ -73,32 +69,32 @@
 
 <h3 align="center">🏠 Home</h3>
 <p align="center">
-    <img src="Screenshot0.png" alt="Home">
+    <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot0.png" alt="Home">
 </p>
 
 <h3 align="center">🚅 Download Progress</h3>
 <p align="center">
-    <img src="Screenshot1.png" alt="Progress">
+    <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot1.png" alt="Progress">
 </p>
 
 <h3 align="center">🧩 Torrent File Selection</h3>
 <p align="center">
-    <img src="Screenshot2.png" alt="Select File">
+    <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot2.png" alt="Select File">
 </p>
 
 <h3 align="center">🧩 HLS Fetch Mode</h3>
 <p align="center">
-    <img src="Screenshot3.png" alt="Sharing">
+    <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot3.png" alt="Fetch">
 </p>
 
 <h3 align="center">🚅 HLS Download Progress</h3>
 <p align="center">
-    <img src="Screenshot4.png" alt="Sharing">
+    <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot4.png" alt="HLSp">
 </p>
 
 <h3 align="center">📤 Sharing</h3>
 <p align="center">
-    <img src="Screenshot5.png" alt="Sharing">
+    <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot5.png" alt="Sharing">
 </p>
 
 ---
