@@ -70,4 +70,4 @@ jobs:
       - name: Upload to PPA
         run: |
           cd ..
-          dput ppa:torikhabib/gabutdm *.changes
+          dput ppa:torik-habib/gabutdm *.changes
