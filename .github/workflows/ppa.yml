@@ -45,10 +45,17 @@ jobs:
         env:
           DEBEMAIL: torik.habib@gmail.com
           DEBFULLNAME: torikulhabib
+          GNUPGHOME: /home/runner/.gnupg
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           cd ../gabutdm-${VERSION}
-          yes | debuild -S -sa -d -k${{ secrets.GPG_KEY_ID }}
+          dpkg-buildpackage -S -sa -d \
+            --sign-key=${{ secrets.GPG_KEY_ID }} \
+            --no-sign || true
+          debsign --no-re-sign \
+            -k${{ secrets.GPG_KEY_ID }} \
+            -p"gpg --batch --yes --pinentry-mode loopback" \
+            ../com.github.gabutakut.gabutdm_${VERSION}-1ubuntu4_source.changes
 
       - name: Upload to PPA
         run: |

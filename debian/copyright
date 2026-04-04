@@ -22,3 +22,7 @@ License: GPL-3.0+
  .
  On Debian systems, the complete text of the GNU General
  Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
+
+Files: *
+Copyright: 2026 Torikul Habib <torik.habib@gmail.com>
+License: LGPL-2.1
