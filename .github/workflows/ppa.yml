@@ -49,13 +49,13 @@ jobs:
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           cd ../gabutdm-${VERSION}
-          dpkg-buildpackage -S -sa -d \
-            --sign-key=${{ secrets.GPG_KEY_ID }} \
-            --no-sign || true
-          debsign --no-re-sign \
+          chmod 644 debian/changelog debian/control debian/copyright
+          dpkg-buildpackage -S -sa -d --no-sign
+          # pakai wildcard biar ga hardcode nama file
+          debsign \
             -k${{ secrets.GPG_KEY_ID }} \
             -p"gpg --batch --yes --pinentry-mode loopback" \
-            ../com.github.gabutakut.gabutdm_${VERSION}-1ubuntu4_source.changes
+            ../*.changes
 
       - name: Upload to PPA
         run: |
