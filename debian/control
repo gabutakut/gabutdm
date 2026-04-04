@@ -19,7 +19,7 @@ Build-Depends: meson (>= 0.43),
                libavformat-dev,
                libavcodec-dev,
                libaria2-0-dev,
-Standards-Version: 4.14
+Standards-Version: 4.6.2
 
 Package: com.github.gabutakut.gabutdm
 Architecture: any
