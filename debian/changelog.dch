@@ -1,0 +1,29 @@
+com.github.gabutakut.gabutdm (2.8.7) noble; urgency=medium
+
+  * 
+
+ -- torikhabib <torik.habib@gmail.com>  Sat, 04 Apr 2026 01:24:23 +0700
+
+com.github.gabutakut.gabutdm (2.8.7-1ubuntu3) noble; urgency=medium
+
+  [ torikhabib ]
+  * 
+
+ -- torikhabib <torik.habib@gmail.com>  Fri, 04 Apr 2026 05:32:23 +0700
+
+com.github.gabutakut.gabutdm (2.1.6-1ubuntu1) Jammy; urgency=medium
+
+  * 
+
+ --Torik Habib Asus <torik.habib@gmail.com>  Tue, 11 Jul 2023 14:21:47 +0700
+
+com.github.gabutakut.gabutdm (2.1.6-1ubuntu0) jammy; urgency=medium
+
+  [ torikhabib ]
+  * Relaease
+
+  [ torik ]
+  * jammy
+  * GTK4
+
+ -- torikhabib <torik.habib@gmail.com>  Thu, 11 Jul May 2023 07:38:13 +0700
