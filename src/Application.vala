@@ -75,7 +75,9 @@ namespace Gabut {
                     play_sound ("dialog-error");
                 }
                 settings_table ();
-                if (!bool.parse (get_dbsetting (DBSettings.STARTUP)) && startingup) {
+                var dbstartup = bool.parse (get_dbsetting (DBSettings.STARTUP));
+                request_autostart.begin (dbstartup);
+                if (!dbstartup && startingup) {
                     return;
                 }
                 start_engine.begin ();
