@@ -927,6 +927,7 @@ namespace Gabut {
                 if (label_mode.id != int.parse (get_dbsetting (DBSettings.LABELMODE))) {
                     set_dbsetting (DBSettings.LABELMODE, label_mode.id.to_string ());
                 }
+                request_autostart.begin (appstartup.active);
                 if (engine.is_running ()) {
                     aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
                     aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, set_dbsetting (DBSettings.CONNSERVER, numbconn.value.to_string ()));
