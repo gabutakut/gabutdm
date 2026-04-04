@@ -12,9 +12,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ========================
-      # Install dependencies
-      # ========================
       - name: Install deps
         run: |
           sudo apt update
@@ -25,9 +22,6 @@ jobs:
           libcairo2-dev libavformat-dev libavcodec-dev libavutil-dev libaria2-0-dev \
           dput gnupg
 
-      # ========================
-      # Setup GPG (CI fix)
-      # ========================
       - name: Setup GPG
         run: |
           mkdir -p ~/.gnupg
@@ -39,31 +33,23 @@ jobs:
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --pinentry-mode loopback --import
 
-      # ========================
-      # Prepare Debian source (.orig.tar.gz)
-      # ========================
       - name: Prepare source tarball
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           cd ..
           cp -r gabutdm gabutdm-${VERSION}
-          tar -czf gabutdm_${VERSION}.orig.tar.gz gabutdm-${VERSION}
+          # nama harus sesuai dengan Package di debian/changelog
+          tar -czf com.github.gabutakut.gabutdm_${VERSION}.orig.tar.gz gabutdm-${VERSION}
 
-      # ========================
-      # Build source package
-      # ========================
       - name: Build package
         env:
           DEBEMAIL: torik.habib@gmail.com
           DEBFULLNAME: torikulhabib
         run: |
-          cd ..
-          cd gabutdm-${GITHUB_REF_NAME#v}
-          debuild -S -sa -k${{ secrets.GPG_KEY_ID }}
+          VERSION=${GITHUB_REF_NAME#v}
+          cd ../gabutdm-${VERSION}
+          yes | debuild -S -sa -d -k${{ secrets.GPG_KEY_ID }} --no-lintian
 
-      # ========================
-      # Upload to Launchpad PPA
-      # ========================
       - name: Upload to PPA
         run: |
           cd ..
