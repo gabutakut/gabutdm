@@ -29,7 +29,7 @@
              alt="Flathub"
              style="height:50px; margin:6px;">
     </a>
-    <a href="https://launchpad.net/~torik-habib/+archive/ubuntu/gabutdownloadmanager">
+    <a href="https://launchpad.net/~torik-habib/+archive/ubuntu/gabutdm">
         <img src="https://launchpad.net/@@/launchpad-logo-and-name.png" 
              alt="Launchpad PPA"
              style="height:50px; margin:6px;">
