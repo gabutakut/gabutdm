@@ -34,6 +34,16 @@
              alt="Launchpad PPA"
              style="height:50px; margin:6px;">
     </a>
+    <a href="https://aur.archlinux.org/packages/gabutdm-master">
+        <img src="https://aur.archlinux.org/static/css/archnavbar/archlogo.png" 
+             alt="AUR"
+             style="height:50px; margin:6px;">
+    </a>
+    <a href="https://build.opensuse.org/package/show/home%3Atorik.habib12/gabutdm">
+        <img src="https://software.opensuse.org/assets/chameleon/logo/favicon-366406cad3c51bad7ea9c1c20f1e6585e46018a5356778caea19e756fb799221.svg" 
+             alt="Opensuse"
+             style="height:50px; margin:6px;">
+    </a>
 </div>
 
 ---
