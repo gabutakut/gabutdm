@@ -54,7 +54,8 @@ namespace Gabut {
             var dict = command.get_options_dict ();
             if (dict.contains ("startingup")) {
                 var dbstartup = bool.parse (get_dbsetting (DBSettings.STARTUP));
-                request_autostart.begin (dbstartup);
+                flatpack_autostart.begin (dbstartup);
+                default_autostart.begin (dbstartup);
                 if (!dbstartup) {
                     return Posix.EXIT_SUCCESS;
                 }

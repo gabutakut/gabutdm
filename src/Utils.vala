@@ -2922,26 +2922,23 @@ namespace Gabut {
         return grid;
     }
 
-    private async bool is_flatpak () {
-        try {
-            var connection = yield GLib.Bus.get (GLib.BusType.SESSION);
-            var result = yield connection.call ("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "GetNameOwner", new GLib.Variant ("(s)", "org.freedesktop.Flatpak"), new GLib.VariantType ("(s)"), GLib.DBusCallFlags.NONE, -1, null);
-            return result != null;
-        } catch (Error e) {
-            return false;
-        }
-    }
-
-    private async void request_autostart (bool enabled) throws Error {
+    private async void flatpack_autostart (bool enabled) throws Error {
         var connection = yield GLib.Bus.get (GLib.BusType.SESSION);
         var builder = new GLib.VariantBuilder (GLib.VariantType.VARDICT);
-        builder.add ("{sv}", "reason", new GLib.Variant.string ("Auto start GabutDM"));
+        builder.add ("{sv}", "reason", new GLib.Variant.string ("Auto start GabutDM Flatpak"));
         builder.add ("{sv}", "autostart", new GLib.Variant.boolean (enabled));
-        if (yield is_flatpak ()) {
-            builder.add ("{sv}", "commandline", new GLib.Variant.strv ({"flatpak", "run", "com.github.gabutakut.gabutdm", "-s"}));
-        } else {
-            builder.add ("{sv}", "commandline", new GLib.Variant.strv ({"com.github.gabutakut.gabutdm", "-s"}));
-        }
+        builder.add ("{sv}", "commandline", new GLib.Variant.strv ({"flatpak", "run", "com.github.gabutakut.gabutdm", "-s"}));
+        builder.add ("{sv}", "dbus-activatable", new GLib.Variant.boolean (false));
+        var params = new GLib.Variant.tuple ({new GLib.Variant.string (""), builder.end ()});
+        yield connection.call ("org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Background", "RequestBackground", params, null, GLib.DBusCallFlags.NONE, -1, null);
+    }
+
+    private async void default_autostart (bool enabled) throws Error {
+        var connection = yield GLib.Bus.get (GLib.BusType.SESSION);
+        var builder = new GLib.VariantBuilder (GLib.VariantType.VARDICT);
+        builder.add ("{sv}", "reason", new GLib.Variant.string ("Auto start GabutDM Default"));
+        builder.add ("{sv}", "autostart", new GLib.Variant.boolean (enabled));
+        builder.add ("{sv}", "commandline", new GLib.Variant.strv ({"com.github.gabutakut.gabutdm", "-s"}));
         builder.add ("{sv}", "dbus-activatable", new GLib.Variant.boolean (false));
         var params = new GLib.Variant.tuple ({new GLib.Variant.string (""), builder.end ()});
         yield connection.call ("org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Background", "RequestBackground", params, null, GLib.DBusCallFlags.NONE, -1, null);
