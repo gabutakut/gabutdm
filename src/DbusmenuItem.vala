@@ -46,11 +46,7 @@ namespace Gabut {
 
         public class DbusmenuItem : GLib.Object {
             public signal void item_activated();
-            private int _id = 0;
-            public int id {
-                get { return _id; }
-                set { _id = value; }
-            }
+            public int id { get; set; }
             public Gee.ArrayList<DbusmenuItem> children;
             public GLib.HashTable<string, Variant> properties;
             private static int GLOBAL_ID = 1;
@@ -178,7 +174,9 @@ namespace Gabut {
                 return;
             }
             foreach (var child in root.children) {
-                if (child == item || child.id == item.id) return;
+                if (child == item || child.id == item.id) {
+                    return;
+                }
             }
             root.child_append(item);
             if (is_started) {

@@ -21,9 +21,9 @@
 
 namespace Gabut {
     public class TrFileInfo : GLib.Object {
-        public string full_path { get; set; default = ""; }
-        public string path { get; set; default = ""; }
-        public string status { get; set; default = ""; }
+        public string full_path  = "";
+        public string path = "";
+        public string status = "";
         public int64 size { get; set; default = 0; }
         public bool selected { get; set; default = true; }
         public string[] bencode_path_parts { get; set; default = {}; }

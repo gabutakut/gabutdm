@@ -52,7 +52,8 @@ actions = [
     '.default.svg',
     '.system.svg',
     '.notify.svg',
-    '.verify.svg'
+    '.verify.svg',
+    '.notfound.svg'
 ]
 
 foreach m : actions

@@ -21,8 +21,25 @@
 
 namespace Gabut {
     public class HlsOption : GLib.Object {
-        public string resolution { get; construct; }
-        public string url { get; construct; }
+        private string _resolution;
+        public string resolution {
+            get {
+                return _resolution;
+            }
+            construct {
+                _resolution = value;
+            }
+        }
+
+        private string _url;
+        public string url {
+            get {
+                return _url;
+            }
+            construct {
+                _url = value;
+            }
+        }
 
         public HlsOption(string res, string u) {
             GLib.Object(resolution: res, url: u);

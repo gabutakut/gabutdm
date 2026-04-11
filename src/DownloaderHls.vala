@@ -23,10 +23,18 @@ namespace Gabut {
     public class DownloaderHls : Gtk.Dialog {
         public HLSLBox hlslbox {get; construct;}
         public Gtk.ScrolledWindow scrolled {get; construct;}
-        public Gtk.Box boxarea {get; construct;}
+        public unowned Gtk.Box boxarea {get; construct;}
         public Gtk.Button start_btn;
         public int status { get; set; default = StatusMode.WAIT;} 
-        public string filename {get; construct;}
+        private string _filename;
+        public string filename {
+            get {
+                return _filename;
+            }
+            construct {
+                _filename = value;
+            }
+        }
         private BitfieldWidget bitfield_widget;
 
         public DownloaderHls (HLSLBox hlslbox, Gtk.ScrolledWindow scrolled, string filename) {
@@ -50,7 +58,7 @@ namespace Gabut {
             });
             view_mode.selected = 0;
 
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.title_widget = view_mode;
             header.decoration_layout = "none";
             bitfield_widget = new BitfieldWidget (true, 1) {
@@ -136,7 +144,7 @@ namespace Gabut {
                 end_widget = box_action
             };
 
-            boxarea = get_content_area ();
+            boxarea = this.get_content_area ();
             boxarea.margin_start = 10;
             boxarea.margin_end = 10;
             boxarea.append (scrolled);

@@ -26,6 +26,7 @@ namespace Gabut {
         public UriSelector (UriSelectors selector) {
             Object(selector: selector);
         }
+
         construct {            
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (selector.to_string ()) {

@@ -26,6 +26,7 @@ namespace Gabut {
         public GdmChecksumType (AriaChecksumTypes checksums) {
             Object(checksums: checksums);
         }
+
         construct {
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (checksums.to_string ().up ().replace ("=", "").replace ("-", "")) {

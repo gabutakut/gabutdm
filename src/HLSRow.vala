@@ -22,11 +22,28 @@
 namespace Gabut {
     public class HLSRow : Gtk.ListBoxRow {
         public int index { get; construct; }
-        public string output_file { get; construct; }
-        public string filename { get; construct; }
+        private string _output_file;
+        public string output_file {
+            get {
+                return _output_file;
+            }
+            construct {
+                _output_file = value;
+            }
+        }
+        private string _filename;
+        public string filename {
+            get {
+                return _filename;
+            }
+            construct {
+                _filename = value;
+            }
+        }
         public Gtk.Button start_button;
         private Gtk.Label filename_label { get; set; }
         private Gtk.Label progress_label { get; set; }
+        private Gtk.Label name_label { get; set; }
         private Gtk.Label size_label { get; set; }
         private ProgressPaintable progrespaint { get; set; }
 
@@ -76,22 +93,26 @@ namespace Gabut {
             };
             box.append(icon);
 
-            Gtk.Label name_label = new Gtk.Label(filename) {
+            var tabs = new Pango.TabArray (1, true);
+            tabs.set_tab(0, Pango.TabAlign.RIGHT, 450);
+
+            name_label = new Gtk.Label(filename) {
                 halign = Gtk.Align.START,
                 hexpand = true,
                 xalign = 0,
                 valign = Gtk.Align.CENTER,
+                tabs = tabs,
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
             box.append(name_label);
-            
+
             size_label = new Gtk.Label(null) {
                 halign = Gtk.Align.END,
                 valign = Gtk.Align.CENTER,
                 attributes = color_attribute (0, 60000, 0)
             };
             box.append(size_label);
-            
+
             progress_label = new Gtk.Label("") {
                 halign = Gtk.Align.END,
                 width_chars = 8,
@@ -130,10 +151,11 @@ namespace Gabut {
             child = box;
         }
 
-        public void update_status(int status, int64 filesize, double progress = 0) {
+        public void update_status(int status, int64 filesize, string info, double progress = 0) {
             if (this.status != StatusMode.COMPLETE) {
                 this.status = status;
                 progress_label.label = _("%d%s").printf((int)(progress * 100),"%");
+                name_label.label = _("%s\t%s").printf(filename, info);
                 progrespaint.progress = progress;
                 size_label.label = GLib.format_size(filesize);
             }

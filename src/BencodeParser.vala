@@ -95,7 +95,6 @@ namespace Gabut {
             while (pos < data.length && data[pos] != 'e') {
                 BencodeValue? key_val = parse_string();
                 BencodeValue? value = parse();
-
                 if (key_val != null && value != null) {
                     string key = key_val.get_string();
                     if (key != null) {
@@ -115,24 +114,24 @@ namespace Gabut {
 
         private static void encode_value(BencodeValue value, GLib.ByteArray buffer) {
             switch (value.value_type) {
-                case BencodeValue.Type.INTEGER:
+                case BTType.INTEGER:
                     string int_str = "i" + value.int_value.to_string() + "e";
                     buffer.append((uchar[])int_str.data);
                     break;
-                case BencodeValue.Type.STRING:
+                case BTType.STRING:
                     size_t byte_len = value.bytes_value.length;
                     string len_str = "%zu:".printf(byte_len);
                     buffer.append((uchar[])len_str.data);
                     buffer.append(value.bytes_value);
                     break;
-                case BencodeValue.Type.LIST:
+                case BTType.LIST:
                     buffer.append({(uint8)'l'});
                     foreach (var item in value.list_value) {
                         encode_value(item, buffer);
                     }
                     buffer.append({(uint8)'e'});
                     break;
-                case BencodeValue.Type.DICT:
+                case BTType.DICT:
                     buffer.append({(uint8)'d'});
                     var keys = new Gee.ArrayList<string>();
                     var iter = GLib.HashTableIter<string, BencodeValue>(value.dict_value);

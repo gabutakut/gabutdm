@@ -23,7 +23,7 @@ namespace Gabut {
     public class AddTorrent : Gtk.Dialog {
         public signal void downloadfile (string url, Gee.HashMap<string, string> options, bool later, int linkmode, bool server = false);
         public signal void update_agid (string ariagid, string newgid);
-        private Gtk.Label name_label;
+        private Gtk.Label glname_label;
         private Gtk.Label selected_count_label;
         private Gtk.ListView file_list_view;
         private GLib.ListStore file_store;
@@ -134,7 +134,7 @@ namespace Gabut {
             view_mode.append_text (_("Option"));
             view_mode.append_text (_("Torrent"));
             view_mode.selected = 0;
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.title_widget = view_mode;
             header.decoration_layout = "none";
             Gtk.Box main_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 10) {
@@ -143,10 +143,9 @@ namespace Gabut {
                 margin_top = 10,
                 margin_bottom = 10
             };
-
             Gtk.Box info_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 5);
 
-            name_label = new Gtk.Label("") {
+            glname_label = new Gtk.Label("") {
                 max_width_chars = 50,
                 halign = Gtk.Align.START,
                 wrap = true,
@@ -154,7 +153,7 @@ namespace Gabut {
                 xalign = 0,
                 attributes = set_attribute (Pango.Weight.SEMIBOLD)
             };
-            info_box.append(name_label);
+            info_box.append(glname_label);
 
             file_stack = new Gtk.Stack() {
                 transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT
@@ -349,12 +348,10 @@ namespace Gabut {
                 width_request = 350,
                 margin_bottom = 5
             };
-
             unverified = new Gtk.CheckButton.with_label (_("BT Seed Unverified")) {
                 tooltip_text = _("Seed previously downloaded files without verifying piece hashes"),
                 width_request = 350
             };
-
             encrypt_flow = new Gtk.FlowBox ();
             var encrypt_popover = new Gtk.Popover () {
                 child = encrypt_flow
@@ -535,7 +532,7 @@ namespace Gabut {
                     MainContext.default ().invoke (() => {
                         trset_options ();
                         downloadfile (encodetr, hashoptions, false, LinkMode.TORRENT);
-                        return false;
+                        return GLib.Source.REMOVE;
                     });
                 });
                 close ();
@@ -552,7 +549,7 @@ namespace Gabut {
                     MainContext.default ().invoke (() => {
                         trset_options ();
                         downloadfile (encodetr, hashoptions, true, LinkMode.TORRENT);
-                        return false;
+                        return GLib.Source.REMOVE;
                     });
                 });
                 close ();
@@ -587,7 +584,7 @@ namespace Gabut {
                     box_action.set_end_widget (close_button);
                     break;
             }
-            var boxarea = get_content_area ();
+            unowned Gtk.Box boxarea = this.get_content_area ();
             boxarea.margin_start = 10;
             boxarea.margin_end = 10;
             boxarea.append (stack);
@@ -795,7 +792,6 @@ namespace Gabut {
             if (add_to_history && current_folder != null) {
                 folder_history.add(current_folder);
             }
-            
             current_folder = folder;
             update_navigation_buttons();
             show_folder_contents(folder);
@@ -828,11 +824,9 @@ namespace Gabut {
             if (child != null) {
                 folder_scroll.child = null;
             }
-
             current_folder_list = new Gtk.ListBox() {
                 selection_mode = Gtk.SelectionMode.BROWSE
             };
-
             Gtk.GestureClick gesture = new Gtk.GestureClick() {
                 button = Gdk.BUTTON_PRIMARY
             };
@@ -867,7 +861,6 @@ namespace Gabut {
                 }
             });
             current_folder_list.add_controller(gesture);
-
             if (folder.children.size > 0) {
                 foreach (TrFileInfo item in folder.children) {
                     if (item.is_folder) {
@@ -875,7 +868,6 @@ namespace Gabut {
                     }
                 }
             }
-
             if (folder.children.size > 0) {
                 bool has_files = false;
                 foreach (TrFileInfo item in folder.children) {
@@ -884,7 +876,6 @@ namespace Gabut {
                         break;
                     }
                 }
-
                 if (has_files) {
                     foreach (TrFileInfo item in folder.children) {
                         if (!item.is_folder) {
@@ -893,7 +884,6 @@ namespace Gabut {
                     }
                 }
             }
-
             folder_scroll.child = current_folder_list;
             update_navigation_buttons();
         }
@@ -967,7 +957,7 @@ namespace Gabut {
             row.append(size_label);
             return row;
         }
-        
+
         private Gtk.Widget create_file_row(TrFileInfo file) {
             Gtk.Box row = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 5) {
                 margin_start = 2,
@@ -986,7 +976,6 @@ namespace Gabut {
                 pixel_size = 16
             };
             row.append(icon);
-            
             Gtk.Label name_label = new Gtk.Label(file.path) {
                 halign = Gtk.Align.START,
                 hexpand = true,
@@ -1024,7 +1013,7 @@ namespace Gabut {
                     TorrentParser.apply_selection_to_files(current_torrent.files, selected_indices);
                 }
             }
-            name_label.label = info.name;
+            glname_label.label = sanitize_utf8 (info.name).make_valid ();
             tfile_size = GLib.format_size(info.total_size);
             createdbylb.label = _("Created by: %s").printf (info.created_by);
             timecreation.label = _("Time Creation: %s").printf (info.creation_date != 0? new GLib.DateTime.from_unix_local (info.creation_date).format ("%a, %I:%M %p %x") : "");
@@ -1033,7 +1022,6 @@ namespace Gabut {
             folder_history.clear();
             current_folder = null;
             update_navigation_buttons();
-
             update_selected_count();
 
             infotorrent.buffer.text = "";
@@ -1047,7 +1035,7 @@ namespace Gabut {
                 commenttext.buffer.text = _("Nothing comment");
             }
         }
-        
+
         private void refresh_file_list() {
             if (current_torrent == null) {
                 return;
@@ -1059,7 +1047,7 @@ namespace Gabut {
             }
             file_store.sort(folder_first_compare);
         }
-        
+
         private void update_selected_count() {
             if (current_torrent == null) {
                 selected_count_label.label = _("Selected: 0 of 0 Size: 0 of %s").printf (tfile_size);
@@ -1159,7 +1147,6 @@ namespace Gabut {
                     set_myproxy (DBMyproxy.PASSWD, pass_entry.text.strip ());
                 }
             }
-
             if (usefolder.active) {
                 hashoptions[AriaOptions.DIR.to_string ()] = selectfd.get_path ().replace ("/", "\\/");
             } else {

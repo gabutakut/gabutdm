@@ -31,18 +31,17 @@ namespace Gabut {
         public Gtk.ListBox hls_list_box;
         public bool merged_ts { get; set; default = false;}
         public bool processing { get; set; default = false;}
-        public string output_dir { get; set; default = "";}
-        public string fileordir { get; set; }
-        public string filename { get; set; }
-        public string mp4path { get; set; }
+        public string output_dir = "";
+        public string fileordir;
+        public string filename;
+        public string mp4path;
         public double progressmerg { get; set; }
         public int totalcomp { get; set; }
         public int selected { get; set; default = 0;}
         public int status { get; set; default = StatusMode.WAIT;}
         public int64 timeadded { get; set; }
         public int64 total_dl { get; set; }
-        public string useragent { get; set; }
-        public string headerdm { get; set; }
+        public string useragent;
         private int active_downloaders = 0;
         private int idle_time = 0;
         private int view_time = 0;
@@ -99,33 +98,33 @@ namespace Gabut {
             for (int i = 0; i < segment_urls.size; i++) {
                 string url = segment_urls[i];
                 var output_file = GLib.Path.build_filename(output_dir, "segment_%05d.ts".printf(i));
-                var downloader = new SegmentDownloader(i, url, output_file, useragent, headerdm);
-                downloader.status_changed.connect((idx, status)=> {
+                var downloader = new SegmentDownloader(i, url, output_file, useragent);
+                downloader.status_changed.connect((idx, status, info)=> {
                     MainContext.get_thread_default ().invoke (()=> {
-                        update_file_status(idx, downloader.status, downloader.total_size, downloader.progress_percent);
+                        update_file_status(idx, downloader.status, downloader.total_size, downloader.progress_percent, info);
                         return false;
                     });
                 });
-                downloader.finished.connect((idx, success)=> {
+                downloader.finished.connect((idx, success, info)=> {
                     MainContext.get_thread_default ().invoke (() => {
                         if (active_downloaders > 0 && active_downloaders <= hlsparalell_dld) {
                             active_downloaders--;
                         }
                         if (success) {
-                            update_file_status(idx, StatusMode.COMPLETE, downloader.total_size, 1.0);
+                            update_file_status(idx, StatusMode.COMPLETE, downloader.total_size, 1.0, info);
                         } else {
-                            update_file_status(idx, StatusMode.ERROR, downloader.total_size, 0);
+                            update_file_status(idx, StatusMode.ERROR, downloader.total_size, 0, info);
                         }
                         active_downloaders = find_active ();
                         return false;
                     });
                 });
-                downloader.forcewait.connect((idx)=> {
+                downloader.forcewait.connect((idx, info)=> {
                     MainContext.get_thread_default ().invoke (() => {
                         if (active_downloaders > 0 && active_downloaders <= hlsparalell_dld) {
                             active_downloaders--;
                         }
-                        update_file_status(idx, StatusMode.WAIT, downloader.total_size, downloader.progress_percent);
+                        update_file_status(idx, StatusMode.WAIT, downloader.total_size, downloader.progress_percent, info);
                         active_downloaders = find_active ();
                         downloaders.sort((a, b)=> {
                             return a.index - b.index;
@@ -133,9 +132,9 @@ namespace Gabut {
                         return false;
                     });
                 });
-                downloader.progress.connect((idx, current, total) => {
+                downloader.progress.connect((idx, current, total, info) => {
                     MainContext.get_thread_default ().invoke (()=> {
-                        update_file_status(idx, downloader.status, downloader.total_size, downloader.progress_percent);
+                        update_file_status(idx, downloader.status, downloader.total_size, downloader.progress_percent, info);
                         return false;
                     });
                 });
@@ -143,7 +142,7 @@ namespace Gabut {
                 downloaders.sort((a, b)=> {
                     return a.index - b.index;
                 });
-                update_file_status(i, StatusMode.WAIT, downloader.total_size, 0);
+                update_file_status(i, StatusMode.WAIT, downloader.total_size, 0, "IDLE");
             }
         }
 
@@ -230,7 +229,7 @@ namespace Gabut {
             }
         }
 
-        private int64 estimate_total_size() {
+        public int64 estimate_total_size() {
             int64 completed_segments = 0;
             int64 completed_tsize = 0;
             foreach (var downloader in downloaders) {
@@ -403,7 +402,7 @@ namespace Gabut {
         public void on_stop_download() {
             remove_quee ();
             foreach (var downloader in downloaders) {
-                downloader.stop();
+                downloader.stop ();
             }
             verify_download = false;
             status = StatusMode.PAUSED;
@@ -428,7 +427,7 @@ namespace Gabut {
             });
         }
 
-        private void update_file_status(int index, int status, int64 filesize, double progress) {
+        private void update_file_status(int index, int status, int64 filesize, double progress, string info) {
             var row = hls_list_box.get_row_at_index(index);
             if (row == null) {
                 return;
@@ -437,7 +436,7 @@ namespace Gabut {
             if (row_widget == null) {
                 return;
             }
-            row_widget.update_status(status, filesize, progress);
+            row_widget.update_status(status, filesize, info, progress);
         }
 
         public void merge_files () {
@@ -445,7 +444,7 @@ namespace Gabut {
             if (file_list.length == 0) {
                 return;
             }
-            if (merged_ts || processing) {
+            if (merged_ts || processing || totalcomp <= 2) {
                 return;
             }
             merged_ts = true;
@@ -461,8 +460,8 @@ namespace Gabut {
                         status = StatusMode.ERROR;
                         merged_ts = false;
                     }
-                    return false; 
-                }); 
+                    return false;
+                });
             });
             GLib.Timeout.add(100, () => {
                 progressmerg = (double) ffmpeg.get_last_progress();
@@ -474,7 +473,9 @@ namespace Gabut {
                         GLib.File file = GLib.File.new_for_path(mp4path);
                         var info = file.query_info(GLib.FileAttribute.STANDARD_SIZE, GLib.FileQueryInfoFlags.NONE);
                         simple_progress (_("%s").printf(GLib.format_size(info.get_size())));
-                        filename = file.get_basename ();
+                        if (totalcomp >= segment_urls.size) {
+                            filename = file.get_basename ();
+                        }
                         status = StatusMode.COMPLETE;
                         merged_ts = false;
                     } catch (GLib.Error e) {

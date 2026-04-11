@@ -165,7 +165,7 @@ namespace Gabut {
             set {
                 headerc = value.fetch (PostServer.HEADER);
                 link_entry.text = value.fetch (PostServer.URL);
-                name_entry.text = value.fetch (PostServer.FILENAME);
+                name_entry.text = sanitize_utf8 (value.fetch (PostServer.FILENAME)).make_valid ();
                 refer_entry.text = value.fetch (PostServer.REFERRER);
                 status_image.gicon = GLib.ContentType.get_icon (value.fetch (PostServer.MIME));
                 filesize = GLib.format_size (int64.parse (value.fetch (PostServer.FILESIZE)));
@@ -196,7 +196,7 @@ namespace Gabut {
             view_mode.append_text (_("Checksum"));
             view_mode.selected = 0;
 
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.title_widget = view_mode;
             header.decoration_layout = "none";
 
@@ -625,7 +625,7 @@ namespace Gabut {
                     box_action.set_end_widget (close_button);
                     break;
             }
-            var boxarea = get_content_area ();
+            unowned Gtk.Box boxarea = this.get_content_area ();
             boxarea.margin_start = 10;
             boxarea.margin_end = 10;
             boxarea.append (stack);
@@ -803,7 +803,7 @@ namespace Gabut {
                 headerc = aria_get_option (row.ariagid, AriaOptions.HEADER);
                 link_entry.text = row.url;
                 this.hashoptions = row.hashoption;
-                status_image.gicon = row.imagefile.gicon;
+                status_image.gicon = GLib.ContentType.get_icon (row.fileordir);
                 sizelabel.label = GLib.format_size (row.totalsize);
                 string myproxy = aria_get_option (row.ariagid, AriaOptions.PROXY);
                 string ftpproxy = aria_get_option (row.ariagid, AriaOptions.FTP_PROXY);

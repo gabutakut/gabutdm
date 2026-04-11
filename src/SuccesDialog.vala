@@ -25,7 +25,15 @@ namespace Gabut {
         private Gtk.Label filesizelabel;
         private MediaEntry address;
         private MediaEntry directory;
-        public string datastr {get; construct;}
+        private string _datastr;
+        public string datastr {
+            get {
+                return _datastr;
+            }
+            construct {
+                _datastr = value;
+            }
+        }
 
         public SuccesDialog (string datastr) {
             Object (resizable: false, use_header_bar: 1, datastr: datastr);
@@ -79,7 +87,7 @@ namespace Gabut {
             header_grid.attach (primarylabel, 1, 0, 1, 1);
             header_grid.attach (filesizelabel, 1, 1, 1, 1);
 
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.title_widget = header_grid;
             header.decoration_layout = "none";
 
@@ -159,7 +167,7 @@ namespace Gabut {
             };
             centerbox.set_start_widget (box_action);
             centerbox.set_end_widget (close_button);
-            var area = get_content_area ();
+            unowned Gtk.Box area = this.get_content_area ();
             area.margin_start = 10;
             area.margin_end = 10;
             area.halign = Gtk.Align.CENTER;

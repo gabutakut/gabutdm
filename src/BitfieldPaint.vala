@@ -22,11 +22,11 @@
 namespace Gabut {
     public class BitfieldWidget : Gtk.DrawingArea {
         public int status;
-        public string? filename { get; set; default = "";}
-        public string? errorcode { get; set; default = "...";}
-        public string? connectionsdl { get; set; default = "0";}
-        public string? labeltransfer { get; set; default = "-";}
-        private string? bitfield { get; set; default = "";}
+        public string filename = "";
+        public string errorcode = "...";
+        public string connectionsdl = "0";
+        public string labeltransfer = "-";
+        private string bitfield = "";
         private int max_rows;
         private int piece_size;
         private int total_pieces;
@@ -156,72 +156,6 @@ namespace Gabut {
             return this.max_rows;
         }
 
-        private string sanitize_utf8(string? text) {
-            if (text == null || text.length == 0) {
-                return "";
-            }
-
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < text.length; i++) {
-                uint8 c1 = (uint8)text[i];
-                if (c1 < 0x80) {
-                    if ((c1 >= 32 && c1 <= 126) || c1 == '\n' || c1 == '\t' || c1 == '\r') {
-                        builder.append_c((char)c1);
-                    } else {
-                        builder.append_c('?');
-                    }
-                } else if ((c1 & 0xE0) == 0xC0) {
-                    if (i + 1 < text.length) {
-                        uint8 c2 = (uint8)text[i + 1];
-                        if ((c2 & 0xC0) == 0x80) {
-                            builder.append_c((char)c1);
-                            builder.append_c((char)c2);
-                            i++;
-                        } else {
-                            builder.append_c('?');
-                        }
-                    } else {
-                        builder.append_c('?');
-                    }
-                } else if ((c1 & 0xF0) == 0xE0) {
-                    if (i + 2 < text.length) {
-                        uint8 c2 = (uint8)text[i + 1];
-                        uint8 c3 = (uint8)text[i + 2];
-                        if ((c2 & 0xC0) == 0x80 && (c3 & 0xC0) == 0x80) {
-                            builder.append_c((char)c1);
-                            builder.append_c((char)c2);
-                            builder.append_c((char)c3);
-                            i += 2;
-                        } else {
-                            builder.append_c('?');
-                        }
-                    } else {
-                        builder.append_c('?');
-                    }
-                } else if ((c1 & 0xF8) == 0xF0) {
-                    if (i + 3 < text.length) {
-                        uint8 c2 = (uint8)text[i + 1];
-                        uint8 c3 = (uint8)text[i + 2];
-                        uint8 c4 = (uint8)text[i + 3];
-                        if ((c2 & 0xC0) == 0x80 && (c3 & 0xC0) == 0x80 && (c4 & 0xC0) == 0x80) {
-                            builder.append_c((char)c1);
-                            builder.append_c((char)c2);
-                            builder.append_c((char)c3);
-                            builder.append_c((char)c4);
-                            i += 3;
-                        } else {
-                            builder.append_c('?');
-                        }
-                    } else {
-                        builder.append_c('?');
-                    }
-                } else {
-                    builder.append_c('?');
-                }
-            }
-            return builder.str;
-        }
-
         private string truncate_text_with_ellipsis(Pango.Layout layout, string text, double max_width) {
             string clean_text = sanitize_utf8(text);
             if (clean_text.length == 0) {
@@ -247,7 +181,6 @@ namespace Gabut {
                 layout.set_markup(GLib.Markup.escape_text (test_text + "...").make_valid (), -1);
                 layout.get_extents(out ink_rect, out logical_rect);
                 double test_width = logical_rect.width / Pango.SCALE;
-
                 if (test_width <= max_width) {
                     best_length = mid;
                     best_text = test_text;
@@ -256,7 +189,6 @@ namespace Gabut {
                     high = mid - 1;
                 }
             }
-
             if (best_length >= 3) {
                 return best_text + "...";
             } else if (clean_text.length >= 3) {
@@ -271,12 +203,10 @@ namespace Gabut {
                 r = 1.0; g = 0.0; b = 0.0;
                 return;
             }
-
             if (ratio >= 1.0) {
                 r = 0.0; g = 0.6; b = 0.0;
                 return;
             }
-
             if (ratio < 0.2) {
                 double t = ratio / 0.2;
                 r = 1.0;
@@ -303,12 +233,11 @@ namespace Gabut {
                 g = 0.8 - (0.2 * t);
                 b = 0.0;
             }
-
             r = r.clamp(0.0, 1.0);
             g = g.clamp(0.0, 1.0);
             b = b.clamp(0.0, 1.0);
         }
-        
+
         private void calculate_grid_dimensions(int width, int height, 
             out double available_width, out double available_height, 
             out double start_x, out double start_y, 
@@ -330,7 +259,7 @@ namespace Gabut {
                     available_height = 0;
                 }
             }
-            
+
             double total_cell_width = BOX_SIZE + BOX_MARGIN;
             double total_cell_height = BOX_SIZE + BOX_MARGIN;
 
@@ -389,7 +318,9 @@ namespace Gabut {
                     start_y += (available_height - needed_height) / 2;
                 } else if (start_y + needed_height > max_y) {
                     rows_needed = (int)((max_y - start_y) / total_cell_height);
-                    if (rows_needed < 1) rows_needed = 1;
+                    if (rows_needed < 1) {
+                        rows_needed = 1;
+                    }
                     total_visual_boxes = boxes_per_row * rows_needed;
                 }
             } else {
@@ -486,16 +417,15 @@ namespace Gabut {
             } else {
                 if (status == StatusMode.ERROR) {
                     cr.set_source_rgb(0.8, 0.2, 0.2);
+                } else {
+                    cr.set_source_rgb(0.0, 0.7, 0.0);
                 }
-                else cr.set_source_rgb(0.0, 0.7, 0.0);
                 cr.rectangle(0, 0, width, height);
                 cr.fill();
             }
         }
 
-        private void draw_bitfield_boxes(Cairo.Context cr, double start_x, double start_y, 
-            int boxes_per_row, int rows_needed, int total_visual_boxes) {
-
+        private void draw_bitfield_boxes(Cairo.Context cr, double start_x, double start_y, int boxes_per_row, int rows_needed, int total_visual_boxes) {
             double total_cell_width = BOX_SIZE + BOX_MARGIN;
             double pieces_per_box_exact = (double)total_pieces / total_visual_boxes;
 
@@ -522,7 +452,6 @@ namespace Gabut {
                     }
                     double x = start_x + col * total_cell_width;
                     double y = start_y + row * (BOX_SIZE + BOX_MARGIN);
-
                     double box_start = accumulated;
                     double box_end = box_start + pieces_per_box_exact;
                     if (box_end > total_pieces) {
@@ -532,7 +461,6 @@ namespace Gabut {
                     double downloaded_weight = 0.0;
                     int start_piece = (int)box_start;
                     int end_piece = (int)box_end;
-
                     if (start_piece < total_pieces) {
                         double first_piece_fraction = 1.0 - (box_start - start_piece);
                         total_weight += first_piece_fraction;
@@ -546,7 +474,6 @@ namespace Gabut {
                             }
                         }
                     }
-
                     for (int p = start_piece + 1; p < end_piece && p < total_pieces; p++) {
                         total_weight += 1.0;
                         int hex_index = p / 4;
@@ -559,7 +486,6 @@ namespace Gabut {
                             }
                         }
                     }
-
                     if (end_piece < total_pieces && end_piece > start_piece) {
                         double last_piece_fraction = box_end - end_piece;
                         total_weight += last_piece_fraction;
@@ -573,7 +499,6 @@ namespace Gabut {
                             }
                         }
                     }
-
                     double download_ratio = total_weight > 0.0001 ? downloaded_weight / total_weight : 0.0;
                     double box_r, box_g, box_b;
                     double border_r, border_g, border_b;
@@ -587,7 +512,6 @@ namespace Gabut {
                         border_g = box_g * 0.8;
                         border_b = box_b * 0.8;
                     }
-
                     cr.set_source_rgb(box_r, box_g, box_b);
                     cr.rectangle(x, y, BOX_SIZE, BOX_SIZE);
                     cr.fill();
@@ -605,12 +529,10 @@ namespace Gabut {
             cr.set_source_rgb(0.95, 0.95, 0.95);
             cr.rectangle(0, 0, width, height);
             cr.fill();
-
             if (bitfield.length == 0 || total_pieces == 0) {
                 draw_empty_state(cr, width, height);
                 return;
             }
-
             if (show_labels) {
                 draw_labels(cr, width, height);
             }

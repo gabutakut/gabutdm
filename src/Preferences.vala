@@ -105,7 +105,7 @@ namespace Gabut {
             view_mode.append_icon ("com.github.gabutakut.gabutdm.notify", 32);
             view_mode.selected = 0;
 
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.decoration_layout = "none";
             header.title_widget = view_mode;
 
@@ -990,7 +990,7 @@ namespace Gabut {
             box_action.attach (save_button, 0, 0);
             box_action.attach (close_button, 1, 0);
 
-            var boxarea = get_content_area ();
+            unowned Gtk.Box boxarea = this.get_content_area ();
             boxarea.margin_start = 10;
             boxarea.margin_end = 10;
             boxarea.halign = Gtk.Align.CENTER;

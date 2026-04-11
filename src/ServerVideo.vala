@@ -347,10 +347,7 @@ namespace Gabut {
         </div>
         </div>
         </div>
-
             <div class="scrim"></div>
-
-            <!-- Big center controls -->
             <div class="bigplay" id="bigplay">
             <div class="big-btn" id="big-prev" title="Previous">
                 <svg viewBox="0 0 20 20"><polygon points="16,4 6,10 16,16"/><rect x="3" y="4" width="2.5" height="12" rx="1"/></svg>
@@ -363,12 +360,10 @@ namespace Gabut {
                 <svg viewBox="0 0 20 20"><polygon points="4,4 14,10 4,16"/><rect x="14.5" y="4" width="2.5" height="12" rx="1"/></svg>
             </div>
             </div>
-
             <div class="err-overlay" id="errOverlay">
             <div class="err-icon"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
             <div class="err-msg" id="errMsg">Format tidak didukung</div>
             </div>
-
             <div class="controls" id="controls">
             <button class="btn" id="playbtn">
                 <svg id="ico-play" viewBox="0 0 18 18"><path d="M14 10.7L6 15.7a2 2 0 01-3-1.7V4A2 2 0 016 2.3L14 7.3a2 2 0 010 3.4z"/></svg>
@@ -414,19 +409,19 @@ namespace Gabut {
         </div>
         </div>
         <script>
-        const SRC      = "%s";
-        const MIME     = "%s";
-        const SRT_URL  = "%s";
+        const SRC = "%s";
+        const MIME = "%s";
+        const SRT_URL = "%s";
         const DIR_PATH = "%s";
         const CUR_FILE = "%s";
         """.printf (filename, encoded_path, mime, srt_src, dir_path, GLib.Path.get_basename (file_path));
         var seconstr = """
-        const vid      = document.getElementById('vid');
-        const player   = document.getElementById('player');
-        const badge    = document.getElementById('codecBadge');
-        const errOv    = document.getElementById('errOverlay');
-        const errMsg   = document.getElementById('errMsg');
-        const subEl    = document.getElementById('subtitle-text');
+        const vid = document.getElementById('vid');
+        const player = document.getElementById('player');
+        const badge = document.getElementById('codecBadge');
+        const errOv = document.getElementById('errOverlay');
+        const errMsg = document.getElementById('errMsg');
+        const subEl = document.getElementById('subtitle-text');
         let mpegPlayer = null;
         let jsmpegPlayer = null;
         let canvasEl = null;
@@ -436,8 +431,8 @@ namespace Gabut {
         try {
             const resp = await fetch('/DirListVideo?path=' + encodeURIComponent(DIR_PATH));
             const list = await resp.json();
-            playlist   = list;
-            curIdx     = list.findIndex(f => f.name === CUR_FILE);
+            playlist = list;
+            curIdx = list.findIndex(f => f.name === CUR_FILE);
             if (curIdx >= 0) {
             updateDownload(playlist[curIdx]);
             }
@@ -618,11 +613,11 @@ namespace Gabut {
         const adjSliders={
         'subsize': { unit:'px', dec:0 },
         'brightness':{unit:'',dec:2},
-        'contrast':  {unit:'',dec:2},
-        'saturate':  {unit:'',dec:2},
-        'hue':       {unit:'°',dec:0},
-        'gamma':     {unit:'',dec:2},
-        'blur':      {unit:'',dec:1},
+        'contrast': {unit:'',dec:2},
+        'saturate': {unit:'',dec:2},
+        'hue': {unit:'°',dec:0},
+        'gamma': {unit:'',dec:2},
+        'blur': {unit:'',dec:1},
         };
         Object.keys(adjSliders).forEach(k=>{
         const sl=document.getElementById('sl-'+k);
@@ -787,7 +782,7 @@ namespace Gabut {
         document.getElementById('seekback').addEventListener('click',()=>{vid.currentTime=Math.max(0,vid.currentTime-10);});
         document.getElementById('seekfwd').addEventListener('click',()=>{vid.currentTime=Math.min(vid.duration,vid.currentTime+10);});
         prog.addEventListener('click',e=>{const r=prog.getBoundingClientRect();vid.currentTime=((e.clientX-r.left)/r.width)*vid.duration;});
-        let dragging=false;
+        let dragging = false;
         prog.addEventListener('mousedown',()=>{dragging=true;});
         document.addEventListener('mousemove',e=>{if(!dragging)return;const r=prog.getBoundingClientRect();vid.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*vid.duration;});
         document.addEventListener('mouseup',()=>{dragging=false;});
