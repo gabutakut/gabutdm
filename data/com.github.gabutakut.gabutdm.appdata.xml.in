@@ -30,7 +30,7 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
-    <release version="2.8.7" date="2026-04-04">
+    <release version="2.8.7" date="2026-04-11">
       <description>
         <p>Fix Not Responding HLS/M3U8 Downloader</p>
         <p>Improve Server viewer</p>
@@ -256,7 +256,7 @@
     <content_attribute id="money-gambling">none</content_attribute>
   </content_rating>
   <developer_name>Gabut Akut</developer_name>
-  <url type="homepage">https://gabutakut.github.io/gabutdm/</url>
+  <url type="homepage">https://gabutakut.github.io/gabutdm</url>
   <url type="bugtracker">http://github.com/gabutakut/gabutdm/issues</url>
   <url type="help">http://github.com/gabutakut/gabutdm/issues</url>
   <custom>
