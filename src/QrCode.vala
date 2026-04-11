@@ -31,6 +31,7 @@ namespace Gabut {
         public QrCode () {
             Object (resizable: false, use_header_bar: 1);
         }
+
         construct {
             var icon_image = new Gtk.Image () {
                 valign = Gtk.Align.START,
@@ -78,7 +79,7 @@ namespace Gabut {
             header_grid.attach (primary, 1, 0, 1, 1);
             header_grid.attach (secondary, 1, 1, 1, 1);
 
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.title_widget = header_grid;
             header.decoration_layout = "none";
             qrpaint = new QrcodePaint () {
@@ -130,9 +131,10 @@ namespace Gabut {
             box_action.attach (host_button, 0, 0);
             box_action.attach (close_button, 1, 0);
 
-            get_content_area ().append (imageqr);
-            get_content_area ().append (link_box);
-            get_content_area ().append (box_action);
+            unowned Gtk.Box boxarea = this.get_content_area ();
+            boxarea.append (imageqr);
+            boxarea.append (link_box);
+            boxarea.append (box_action);
             move_window (this, imageqr);
         }
 

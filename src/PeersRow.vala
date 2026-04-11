@@ -21,9 +21,25 @@
 
 namespace Gabut {
     public class PeersRow : Gtk.ListBoxRow {
-        public string host { get; construct;}
-        public string peerid { get; construct;}
-        public string bitfield { get; set;}
+        private string _host;
+        public string host {
+            get {
+                return _host;
+            }
+            construct {
+                _host = value;
+            }
+        }
+        private string _peerid;
+        public string peerid {
+            get {
+                return _peerid;
+            }
+            construct {
+                _peerid = value;
+            }
+        }
+        public string bitfield;
         private Gtk.Label download_rate;
         private Gtk.Label upload_rate;
         private Gtk.Image seeder_img;

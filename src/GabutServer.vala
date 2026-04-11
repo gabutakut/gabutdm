@@ -200,7 +200,7 @@ namespace Gabut {
                     var row = get_dm_row (result);
                     if (row != null) {
                         if (row.status == StatusMode.ACTIVE) {
-                            var respond = @"{\"fraction\": $((double) row.transferred / (double) row.totalsize),\"label\": \"$(row.labeltransfer)\"}";
+                            var respond = @"{\"fraction\": $(row.fraction),\"label\": \"$(row.labeltransfer)\"}";
                             msg.set_response ("application/json; charset=utf-8", Soup.MemoryUse.COPY, respond.data);
                             msg.set_status (Soup.Status.OK, "OK");
                         } else {
@@ -220,7 +220,7 @@ namespace Gabut {
                     var row = get_hls_row (result);
                     if (row != null) {
                         if (row.status == StatusMode.ACTIVE) {
-                            var hrespond = @"{\"fraction\": $((double)row.fraction),\"label\": \"$(row.labeltransfer)\"}";
+                            var hrespond = @"{\"fraction\": $(row.fraction),\"label\": \"$(row.labeltransfer)\"}";
                             msg.set_response ("application/json; charset=utf-8", Soup.MemoryUse.COPY, hrespond.data);
                             msg.set_status (Soup.Status.OK, "OK");
                         } else {
@@ -277,14 +277,14 @@ namespace Gabut {
                         }
                     }
                     string html = get_upload ();
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY,  html.data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, html.data);
                     msg.set_status (Soup.Status.OK, "OK");
                 } else {
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                 }
             } else if (msg.get_method () == "GET") {
                 string html = get_upload ();
-                msg.set_response ("text/html", Soup.MemoryUse.COPY,  html.data);
+                msg.set_response ("text/html", Soup.MemoryUse.COPY, html.data);
                 msg.set_status (Soup.Status.OK, "OK");
             }
         }
@@ -316,7 +316,7 @@ namespace Gabut {
                     }
                 } else {
                     string html = get_not_found ();
-                    msg.set_response ("text/html", Soup.MemoryUse.COPY,  html.data);
+                    msg.set_response ("text/html", Soup.MemoryUse.COPY, html.data);
                     msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                 }
             }
@@ -1066,40 +1066,40 @@ namespace Gabut {
         }
 
         private void pdfjs_lib_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".pdf.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".pdf.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "application/javascript");
         }
         private void pdfjs_worker_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".pdf.worker.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".pdf.worker.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js", "application/javascript");
         }
         private void mammoth_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".mammoth.browser.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".mammoth.browser.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js", "application/javascript");
         }
         private void sheetjs_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".xlsx.full.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".xlsx.full.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", "application/javascript");
         }
         private void libarchive_js_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".libarchive.js"), "https://unpkg.com/libarchive.js/dist/libarchive.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".libarchive.js"), "https://unpkg.com/libarchive.js/dist/libarchive.js", "application/javascript");
         }
         private void worker_archive_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".worker-bundle.js"), "https://unpkg.com/libarchive.js/dist/worker-bundle.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".worker-bundle.js"), "https://unpkg.com/libarchive.js/dist/worker-bundle.js", "application/javascript");
         }
         private void play_mpeg_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".mpegts.min.js"), "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".mpegts.min.js"), "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js", "application/javascript");
         }
         private void play_mpg_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".mpeg.play.js"), "https://cdn.jsdelivr.net/npm/jsmpeg@1.0.0/jsmpg.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".mpeg.play.js"), "https://cdn.jsdelivr.net/npm/jsmpeg@1.0.0/jsmpg.min.js", "application/javascript");
         }
         private void jsmediatags_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".jsmediatags.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".jsmediatags.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js", "application/javascript");
         }
         private void jsjzip_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".jszip.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js", "application/javascript");
+            external_jslibs.begin (msg, file_config (".jszip.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js", "application/javascript");
         }
         private void wasm_archive_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            serve_pdfjs_file.begin (msg, file_config (".libarchive.wasm"), "https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/dist/libarchive.wasm", "application/wasm");
+            external_jslibs.begin (msg, file_config (".libarchive.wasm"), "https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/dist/libarchive.wasm", "application/wasm");
         }
 
-        private async void serve_pdfjs_file (Soup.ServerMessage msg, string file_path, string fallback_url, string content_type) throws Error {
+        private async void external_jslibs (Soup.ServerMessage msg, string file_path, string fallback_url, string content_type) throws Error {
             var file = File.new_for_path (file_path);
             if (file.query_exists ()) {
                 uint8[] data;

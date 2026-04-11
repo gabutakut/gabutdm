@@ -143,7 +143,7 @@ namespace Gabut {
             header_grid.attach (primarylabel, 1, 0, 1, 1);
             header_grid.attach (filebtn, 1, 1, 1, 1);
 
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.title_widget = header_grid;
             header.decoration_layout = "none";
 
@@ -179,7 +179,7 @@ namespace Gabut {
                 margin_bottom = 10
             };
             centerbox.set_end_widget (box_action);
-            var area = get_content_area ();
+            unowned Gtk.Box area = this.get_content_area ();
             area.margin_start = 10;
             area.margin_end = 10;
             area.halign = Gtk.Align.CENTER;

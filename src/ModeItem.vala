@@ -22,6 +22,7 @@
 namespace Gabut {
     private class ModeItem : Gtk.CheckButton {
         public int index { get; construct; }
+
         public ModeItem (int index) {
         	Object (index: index);
         }

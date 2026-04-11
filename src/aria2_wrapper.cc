@@ -123,7 +123,6 @@ ARIA2_EXPORT void aria2_engine_add_option(Aria2Engine* e, const char* k, const c
     e->options_map[key] = value;
 }
 
-
 ARIA2_EXPORT int aria2_engine_start(Aria2Engine* e) {
     if (!e || e->running.load()) {
         return -1;

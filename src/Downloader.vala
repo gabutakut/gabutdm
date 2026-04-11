@@ -254,7 +254,7 @@ namespace Gabut {
                         break;
                 }
             });
-            var header = get_header_bar ();
+            unowned Gtk.HeaderBar header = this.get_header_bar ();
             header.decoration_layout = "none";
             header.title_widget = view_mode;
 
@@ -571,7 +571,7 @@ namespace Gabut {
                 transition_type = Gtk.RevealerTransitionType.SWING_DOWN,
                 child = connpeers
             };
-            var boxarea = get_content_area ();
+            unowned Gtk.Box boxarea = this.get_content_area ();
             boxarea.margin_start = 10;
             boxarea.margin_end = 10;
             boxarea.append (boxstatus);
@@ -857,7 +857,6 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             row.append(imgstatus);
-
             item.child = row;
         }
         
@@ -1077,7 +1076,7 @@ namespace Gabut {
                 for (int i = 0; i < selected_indexes.size; i++) {
                     index_array[i] = selected_indexes.get(i).to_string();
                 }
-                selectedtr = string.joinv(",", index_array);
+                selectedtr = string.joinv (",", index_array);
                 var statusdl = status;
                 string aria_gid = sendselected (ariagid, selectedtr);
                 this.ariagid = aria_gid;
@@ -1088,17 +1087,17 @@ namespace Gabut {
             }
         }
 
-        private void navigate_to_folder(TrFileInfo folder, bool add_to_history = true) {
+        private void navigate_to_folder (TrFileInfo folder, bool add_to_history = true) {
             if (add_to_history && current_folder != null) {
-                folder_history.add(current_folder);
+                folder_history.add (current_folder);
             }
             current_folder = folder;
-            update_navigation_buttons();
-            show_folder_contents(folder);
-            file_stack.set_visible_child_name("folder");
+            update_navigation_buttons ();
+            show_folder_contents (folder);
+            file_stack.set_visible_child_name ("folder");
         }
 
-        private void update_navigation_buttons() {
+        private void update_navigation_buttons () {
             back_button.sensitive = (folder_history.size > 0);
             up_button.sensitive = (current_folder != null && current_folder.parent != null);
             if (current_folder != null) {
@@ -1110,7 +1109,7 @@ namespace Gabut {
                 }
                 string[] path_array = new string[path_parts.size];
                 for (int i = 0; i < path_parts.size; i++) {
-                    path_array[i] = path_parts.get(i);
+                    path_array[i] = path_parts.get (i);
                 }
                 string path_str = string.joinv(" / ", path_array);
                 current_path_label.label = path_str;
@@ -1119,12 +1118,12 @@ namespace Gabut {
             }
         }
 
-        private void show_folder_contents(TrFileInfo folder) {
+        private void show_folder_contents (TrFileInfo folder) {
             Gtk.Widget? child = folder_scroll.child;
             if (child != null) {
                 folder_scroll.child = null;
             }
-            current_folder_list = new Gtk.ListBox() {
+            current_folder_list = new Gtk.ListBox () {
                 selection_mode = Gtk.SelectionMode.BROWSE
             };
             current_folder_list.set_header_func(folder_header_func);

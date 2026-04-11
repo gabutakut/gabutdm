@@ -26,6 +26,7 @@ namespace Gabut {
         public LoginUser (LoginUsers loginuser) {
             Object(loginuser: loginuser);
         }
+
         construct {
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (loginuser.to_string ()) {

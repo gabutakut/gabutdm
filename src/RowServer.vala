@@ -22,7 +22,7 @@
 namespace Gabut {
     public class RowServer : Gtk.ListBoxRow {
         public int index { get; construct;}
-        public string uriserver { get; set;}
+        public string uriserver;
         private Gtk.Label download_rate;
         private Gtk.Label currenturi_label;
 

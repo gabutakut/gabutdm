@@ -32,9 +32,9 @@ namespace Gabut {
         private QrCode qrcode;
         private ModeButton view_mode;
         private DBusMenu? menudbus = null;
-        private DBusMenu.DbusmenuItem openmenu = null;
+        private DBusMenu.DbusmenuItem? openmenu = null;
         private GdmUnityLauncherEntry? launcher_entry = null;
-        private AlertView nodown_alert;
+        private AlertView alertview;
         private DbusIndicator dbusindicator = null;
         private DeleteDialog delete_dialog;
         private HlsManBox hlsmanbox;
@@ -187,12 +187,12 @@ namespace Gabut {
             setup_dbusmenu.begin ();
             regunreg_idmenu.begin ();
             hlsmanbox = new HlsManBox ();
-            nodown_alert = new AlertView (
+            alertview = new AlertView (
                 _("No File Download"),
                 _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
                 "com.github.gabutakut.gabutdm"
             );
-            nodown_alert.set_visible (true);
+            alertview.set_visible (true);
             list_box = new Gtk.ListBox () {
                 activate_on_single_click = false,
                 selection_mode = Gtk.SelectionMode.MULTIPLE
@@ -205,7 +205,7 @@ namespace Gabut {
                 }
             });
             list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
-            list_box.set_placeholder (nodown_alert);
+            list_box.set_placeholder (alertview);
 
             var scrolled = new Gtk.ScrolledWindow () {
                 height_request = 400,
@@ -486,9 +486,6 @@ namespace Gabut {
         }
 
         private void remove_delete (bool deletef = true) {
-            if (headerstack.visible_child_name == "search") {
-                return;
-            }
             if (starting || stoping || removing) {
                 return;
             }
@@ -1297,13 +1294,8 @@ namespace Gabut {
                         } else {
                             useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
                         }
-                        string head = "NOTSET";
-                        var header = row.hashoption.has_key (AriaOptions.HEADER.to_string ());
-                        if (header) {
-                            head = row.hashoption.@get (AriaOptions.HEADER.to_string ());
-                        }
                         row.pathname = row.filepath;
-                        append_hls (row, row.url, row.filename, row.filepath, head, useragent);
+                        append_hls (row, row.url, row.filename, row.filepath, useragent);
                     }
                 }
             }
@@ -1343,12 +1335,7 @@ namespace Gabut {
                 } else {
                     useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
                 }
-                string head = "NOTSET";
-                var header = options.has_key (AriaOptions.HEADER.to_string ());
-                if (header) {
-                    head = options.@get (AriaOptions.HEADER.to_string ());
-                }
-                append_hls (row, url, dm_fname, opt_dir.get_path (), useragent, head, later);
+                append_hls (row, url, dm_fname, opt_dir.get_path (), useragent, later);
                 row.filepath = row.pathname = opt_dir.get_path ();
             } else {
                 var row = new DownloadRow.Url (url, options, linkmode) {
@@ -1380,7 +1367,7 @@ namespace Gabut {
             save_all_download ();
         }
 
-        private void append_hls (DownloadRow row, string url, string fname, string directory, string useragent, string header, bool later = true) {
+        private void append_hls (DownloadRow row, string url, string fname, string directory, string useragent, bool later = true) {
             row.filename = fname;
             string homeurl = "";
             string[] hlslink = null;
@@ -1397,8 +1384,7 @@ namespace Gabut {
                 timeadded = row.timeadded,
                 fileordir = row.fileordir,
                 output_dir = directory,
-                useragent = useragent,
-                headerdm = header
+                useragent = useragent
             };
             var added = hlslbox.segment_urls.size;
 
@@ -1471,6 +1457,8 @@ namespace Gabut {
             hlslbox.simple_progress.connect ((progres)=> {
                 row.labeltransfer = progres;
                 row.fraction = hlslbox.progressmerg;
+                row.totalsize = hlslbox.estimate_total_size ();
+                row.transferred = hlslbox.find_totaldl ();
             });
             hlslbox.update_conn.connect ((act)=> {
                 row.connectionsdl = act;
@@ -1569,13 +1557,14 @@ namespace Gabut {
                         }
                     } else {
                         row.status = hlslbox.status = StatusMode.PAUSED;
+                        update_download (row);
                     }
                 }
             });
             hlsmanbox.append_hlsbox (hlslbox);
             on_append (row);
             if (!later) {
-                hlsmanbox.hlsdlboxs.sort ((GLib.CompareDataFunc)sort_hls);
+                hlsmanbox.hlsdlboxs.sort (sort_hls);
                 if (!hlsmanbox.processing) {
                     row.downloader_hls ();
                     hlslbox.on_start_download ();
@@ -2055,13 +2044,9 @@ namespace Gabut {
                         index_rowdm = 0;
                         return false;
                     });
-                    var search_alert = new AlertView (
-                        _("Find File"),
-                        _("Mode Search Based on Filename."),
-                        "com.github.gabutakut.gabutdm.find"
-                    );
-                    search_alert.set_visible (true);
-                    list_box.set_placeholder (search_alert);
+                    alertview.title = _("Find File");
+                    alertview.description = _("Based on Filename.");
+                    alertview.icon_name = "com.github.gabutakut.gabutdm.find";
                     return;
                 }
                 bool item_visible = false;
@@ -2072,122 +2057,79 @@ namespace Gabut {
                     if (((DownloadRow) item).filename == null) {
                         return false;
                     }
-                    if (((DownloadRow) item).filename.casefold ().contains (search_entry.text.casefold ())) {
+                    bool foundname = ((DownloadRow) item).filename.casefold ().contains (search_entry.text.casefold ());
+                    if (foundname) {
                         index_rowdm++;
                     }
                     labelview.label = index_rowdm.to_string ();
-                    return ((DownloadRow) item).filename.casefold ().contains (search_entry.text.casefold ());
+                    return foundname;
                 });
                 if (!item_visible) {
-                    var empty_alert = new AlertView (
-                        _("No Search Found"),
-                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "com.github.gabutakut.gabutdm.find"
-                    );
-                    empty_alert.set_visible (true);
-                    list_box.set_placeholder (empty_alert);
+                    alertview.title =_("No Found");
+                    alertview.description = _("Drag and Drop URL, Torrent, Metalink, Magnet URIs.");
+                    alertview.icon_name = "com.github.gabutakut.gabutdm.notfound";
                 }
                 return;
             }
-            switch (view_mode.selected) {
-                case 1:
-                    list_box.set_filter_func ((item) => {
-                        if (((DownloadRow)item).status == StatusMode.ACTIVE) {
+            list_box.set_filter_func ((item) => {
+                alertview.description = _("Drag and Drop URL, Torrent, Metalink, Magnet URIs.");
+                switch (view_mode.selected) {
+                    case 1:
+                        bool actived = ((DownloadRow)item).status == StatusMode.ACTIVE;
+                        if (actived) {
                             index_rowdm++;
                         }
-                        return ((DownloadRow) item).status == StatusMode.ACTIVE;
-                    });
-                    if (index_rowdm < allactive) {
-                        next_download ();
-                    }
-                    var active_alert = new AlertView (
-                        _("No Active Download"),
-                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "com.github.gabutakut.gabutdm.active"
-                    );
-                    active_alert.set_visible (true);
-                    list_box.set_placeholder (active_alert);
-                    break;
-                case 2:
-                    list_box.set_filter_func ((item) => {
-                        if (((DownloadRow)item).status == StatusMode.PAUSED) {
+                        if (index_rowdm < allactive) {
+                            next_download ();
+                        }
+                        alertview.title =_("No Active Download");
+                        alertview.icon_name = "com.github.gabutakut.gabutdm.active";
+                        return actived;
+                    case 2:
+                        bool pausedd = ((DownloadRow)item).status == StatusMode.PAUSED;
+                        if (pausedd) {
                             index_rowdm++;
                         }
-                        return ((DownloadRow) item).status == StatusMode.PAUSED;
-                    });
-                    var nopause_alert = new AlertView (
-                        _("No Paused Download"),
-                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "com.github.gabutakut.gabutdm.pause"
-                    );
-                    nopause_alert.set_visible (true);
-                    list_box.set_placeholder (nopause_alert);
-                    break;
-                case 3:
-                    list_box.set_filter_func ((item) => {
-                        if (((DownloadRow)item).status == StatusMode.COMPLETE) {
+                        alertview.title =_("No Download Paused");
+                        alertview.icon_name = "com.github.gabutakut.gabutdm.pause";
+                        return pausedd;
+                    case 3:
+                        bool completedd = ((DownloadRow)item).status == StatusMode.COMPLETE;
+                        if (completedd) {
                             index_rowdm++;
                         }
-                        return ((DownloadRow) item).status == StatusMode.COMPLETE;
-                    });
-                    var nocomp_alerst = new AlertView (
-                        _("No Complete Download"),
-                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "com.github.gabutakut.gabutdm.complete"
-                    );
-                    nocomp_alerst.set_visible (true);
-                    list_box.set_placeholder (nocomp_alerst);
-                    break;
-                case 4:
-                    list_box.set_filter_func ((item) => {
-                        if (((DownloadRow)item).status == StatusMode.WAIT) {
+                        alertview.title = _("No Download Completed");
+                        alertview.icon_name = "com.github.gabutakut.gabutdm.complete";
+                        return completedd;
+                    case 4:
+                        bool waitd = ((DownloadRow)item).status == StatusMode.WAIT;
+                        if (waitd) {
                             index_rowdm++;
                         }
-                        return ((DownloadRow) item).status == StatusMode.WAIT;
-                    });
-                    var nowait_alert = new AlertView (
-                        _("No Waiting Download"),
-                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "com.github.gabutakut.gabutdm.waiting"
-                    );
-                    nowait_alert.set_visible (true);
-                    list_box.set_placeholder (nowait_alert);
-                    break;
-                case 5:
-                    list_box.set_filter_func ((item) => {
-                        if (((DownloadRow)item).status == StatusMode.ERROR) {
+                        alertview.title = _("No Download Waiting");
+                        alertview.icon_name = "com.github.gabutakut.gabutdm.waiting";
+                        return waitd;
+                    case 5:
+                        bool errord = ((DownloadRow)item).status == StatusMode.ERROR;
+                        if (errord) {
                             index_rowdm++;
                         }
-                        return ((DownloadRow) item).status == StatusMode.ERROR;
-                    });
-                    var noerr_alert = new AlertView (
-                        _("No Error Download"),
-                        _("Drag and Drop URL, Torrent, Metalink, Magnet URIs."),
-                        "com.github.gabutakut.gabutdm.error"
-                    );
-                    noerr_alert.set_visible (true);
-                    list_box.set_placeholder (noerr_alert);
-                    break;
-                default:
-                    bool hide_alert = false;
-                    list_box.set_filter_func ((item)=> {
+                        alertview.title =_("No Download Error");
+                        alertview.icon_name = "com.github.gabutakut.gabutdm.error";
+                        return errord;
+                    default:
                         index_rowdm++;
-                        if (item.get_child_visible ()) {
-                            hide_alert = true;
-                        }
+                        alertview.title =_("No Download Files");
+                        alertview.icon_name = "com.github.gabutakut.gabutdm.error";
                         return true;
-                    });
-                    if (!hide_alert) {
-                        list_box.set_placeholder (nodown_alert);
-                    }
-                    break;
-            }
+                }
+            });
             modeview.icon_name = view_mode.get_icon_name (view_mode.selected);
             labelview.label = index_rowdm.to_string ();
             list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
         }
 
-        int count_rows_only () {
+        private int count_rows_only () {
             int count = 0;
             var models = list_box.observe_children ();
             for (uint x = 0; x < models.get_n_items (); x++) {

@@ -26,6 +26,7 @@ namespace Gabut {
         public FileAllocation (FileAllocations fileallocation) {
             Object(fileallocation: fileallocation);
         }
+
         construct{
             halign = Gtk.Align.CENTER;
             var title = new Gtk.Label (fileallocation.to_string ()) {

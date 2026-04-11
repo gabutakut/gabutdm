@@ -37,13 +37,11 @@ namespace Gabut {
         public static TorrentInfo? parsetorrent (uint8[] contents) {
             BencodeParser parser = new BencodeParser(contents);
             BencodeValue? root = parser.parse();
-
-            if (root == null || root.value_type != BencodeValue.Type.DICT) {
+            if (root == null || root.value_type != BTType.DICT) {
                 return null;
             }
             TorrentInfo info = new TorrentInfo();
             info.bencode_data = root.copy();
-
             BencodeValue? announce_val = root.dict_get("announce");
             if (announce_val != null) {
                 string? announce_str = announce_val.get_string();
@@ -51,13 +49,12 @@ namespace Gabut {
                     info.announce_list.add(announce_str);
                 }
             }
-
             BencodeValue? announce_list_val = root.dict_get("announce-list");
-            if (announce_list_val != null && announce_list_val.value_type == BencodeValue.Type.LIST) {
+            if (announce_list_val != null && announce_list_val.value_type == BTType.LIST) {
                 foreach (BencodeValue tier in announce_list_val.list_value) {
-                    if (tier.value_type == BencodeValue.Type.LIST) {
+                    if (tier.value_type == BTType.LIST) {
                         foreach (BencodeValue url in tier.list_value) {
-                            if (url.value_type == BencodeValue.Type.STRING) {
+                            if (url.value_type == BTType.STRING) {
                                 string? url_str = url.get_string();
                                 if (url_str != null && !info.announce_list.contains(url_str)) {
                                     info.announce_list.add(url_str);
@@ -90,7 +87,7 @@ namespace Gabut {
             }
 
             BencodeValue? info_dict = root.dict_get("info");
-            if (info_dict == null || info_dict.value_type != BencodeValue.Type.DICT) {
+            if (info_dict == null || info_dict.value_type != BTType.DICT) {
                 return null;
             }
 
@@ -105,7 +102,7 @@ namespace Gabut {
             BencodeValue? files_val = info_dict.dict_get("files");
 
             file_counter = 0;
-            if (files_val != null && files_val.value_type == BencodeValue.Type.LIST) {
+            if (files_val != null && files_val.value_type == BTType.LIST) {
                 build_file_tree_with_parents(files_val, info);
                 info.file_count = count_files(info.files);
                 info.total_size = calculate_total_size(info.files);
@@ -144,25 +141,23 @@ namespace Gabut {
         private static void build_file_tree_with_parents(BencodeValue files_val, TorrentInfo info) {
             Gee.ArrayList<TrFileInfo> root_files = new Gee.ArrayList<TrFileInfo>();
             foreach (BencodeValue file_val in files_val.list_value) {
-                if (file_val.value_type != BencodeValue.Type.DICT) {
+                if (file_val.value_type != BTType.DICT) {
                     continue;
                 }
                 BencodeValue? length_val = file_val.dict_get("length");
                 BencodeValue? path_val = file_val.dict_get("path");
-                
-                if (path_val == null || path_val.value_type != BencodeValue.Type.LIST) {
+                if (path_val == null || path_val.value_type != BTType.LIST) {
                     continue;
                 }
                 string[] path_parts = {};
                 foreach (BencodeValue part in path_val.list_value) {
-                    if (part.value_type == BencodeValue.Type.STRING) {
+                    if (part.value_type == BTType.STRING) {
                         string? part_str = part.get_string();
                         if (part_str != null) {
                             path_parts += part_str;
                         }
                     }
                 }
-                
                 if (path_parts.length == 0) {
                     continue;
                 }
@@ -176,14 +171,11 @@ namespace Gabut {
                 file_info.bencode_file_data = file_val.copy();
                 file_info.bencode_path_parts = path_parts;
                 file_info.index = file_counter++;
-                
                 Gee.ArrayList<TrFileInfo> current_level = root_files;
                 TrFileInfo? current_parent = null;
-                
                 for (int i = 0; i < path_parts.length - 1; i++) {
                     string folder_name = path_parts[i];
                     TrFileInfo? existing_folder = null;
-                    
                     foreach (TrFileInfo item in current_level) {
                         if (item.is_folder && item.path == folder_name) {
                             existing_folder = item;
@@ -276,12 +268,12 @@ namespace Gabut {
             }
             BencodeValue modified_data = info.bencode_data.copy();
                 BencodeValue? info_dict = modified_data.dict_get("info");
-            if (info_dict == null || info_dict.value_type != BencodeValue.Type.DICT) {
+            if (info_dict == null || info_dict.value_type != BTType.DICT) {
                 return new uint8[0];
             }
 
             BencodeValue? files_val = info_dict.dict_get("files");    
-            if (files_val != null && files_val.value_type == BencodeValue.Type.LIST) {
+            if (files_val != null && files_val.value_type == BTType.LIST) {
                 var new_files_list = new BencodeValue.list();
                 var selected_file_data = collect_selected_file_data(info.files);
                 foreach (BencodeValue file_data in selected_file_data) {

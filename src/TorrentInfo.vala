@@ -21,19 +21,19 @@
 
 namespace Gabut {
     public class TorrentInfo : GLib.Object {
-        public string name { get; set; default = ""; }
+        public string name = "";
         public int64 total_size { get; set; default = 0; }
         public int file_count { get; set; default = 0; }
         public Gee.ArrayList<TrFileInfo> files { get; set; }
         public Gee.ArrayList<string> announce_list { get; set; }
-        public string comment { get; set; default = ""; }
+        public string comment = "";
         public int64 creation_date { get; set; default = 0; }
         public int num_pieces { get; set; default = 0; }
         public int64 trprivate { get; set; default = 0; }
         public int64 piece_length { get; set; default = 0; }
-        public string created_by { get; set; default = ""; }
+        public string created_by = "";
         public BencodeValue? bencode_data { get; set; }
-        public string original_filepath { get; set; default = ""; }
+        public string original_filepath = "";
 
         construct {
             files = new Gee.ArrayList<TrFileInfo>();

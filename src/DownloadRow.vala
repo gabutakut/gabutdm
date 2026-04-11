@@ -26,11 +26,11 @@ namespace Gabut {
         public signal void downloader_hls ();
         public Gtk.Button start_button;
         public Gtk.Button openimage;
-        public Gtk.Image imagefile;
-        public Gtk.Image badge_img;
-        private BitfieldWidget bitfield_widget;
         public DBusMenu.DbusmenuItem rowbus;
         public Gee.HashMap<string, string> hashoption = new Gee.HashMap<string, string> ();
+        private ProgressPaintable prpaint;
+        private ProgressPaintable actpaint;
+        private BitfieldWidget bitfield_widget;
         private bool stoptimer;
         private uint timeout_id = 0;
 
@@ -41,17 +41,17 @@ namespace Gabut {
             }
             set {
                 _linkmode = value;
-                imagefile.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.progress");
+                prpaint.icon_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.progress", 48);
                 if (linkmode == LinkMode.METALINK) {
-                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.metalink");
+                    prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.metalink", 48);
                 } else if (linkmode == LinkMode.MAGNETLINK) {
-                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.magnet");
+                    prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.magnet", 48);
                 } else if (linkmode == LinkMode.TORRENT) {
-                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.torrent");
+                    prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.torrent", 48);
                 } else if (linkmode == LinkMode.HLS) {
-                    badge_img.gicon = new ThemedIcon ("applications-multimedia");
+                    prpaint.badge_paintable = load_icon_paintable ("applications-multimedia", 48);
                 } else {
-                    badge_img.gicon = new ThemedIcon ("com.github.gabutakut.gabutdm.insertlink");
+                    prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.insertlink", 48);
                 }
             }
         }
@@ -64,7 +64,7 @@ namespace Gabut {
             set {
                 _fileordir = value;
                 if (value != null && value != "") {
-                    imagefile.gicon = GLib.ContentType.get_icon (value);
+                    prpaint.icon_paintable = load_icon_paintable (GLib.ContentType.get_generic_icon_name (value), 48);
                     var genricico = GLib.ContentType.get_generic_icon_name (value);
                     if (genricico != null) {
                         rowbus.property_set (MenuItem.ICON_NAME.to_string (), genricico);
@@ -90,9 +90,9 @@ namespace Gabut {
             }
             set {
                 _status = value;
-                switch (value) {
+                switch (_status) {
                     case StatusMode.PAUSED:
-                        start_button.icon_name = "com.github.gabutakut.gabutdm.pause";
+                        actpaint.icon_paintable = load_icon_paintable ( "com.github.gabutakut.gabutdm.pause", 24);
                         start_button.tooltip_text = _("Paused\nCTRL + V");
                         if (linkmode != LinkMode.HLS) {
                             remove_timeout ();
@@ -104,13 +104,13 @@ namespace Gabut {
                         break;
                     case StatusMode.COMPLETE:
                         if (ariagid != null || linkmode == LinkMode.HLS) {
-                            start_button.icon_name = "com.github.gabutakut.gabutdm.complete";
+                            actpaint.icon_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.complete", 24);
                             start_button.tooltip_text = _("Complete\nCTRL + V");
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
                             if (filename != null) {
                                 GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
-                                notify_app (_("Download Complete"), filename, imagefile.gicon);
+                                notify_app (_("Download Complete"), filename, GLib.ContentType.get_icon (fileordir));
                                 play_sound ("complete");
                                 if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                     if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
@@ -161,7 +161,7 @@ namespace Gabut {
                         }
                         break;
                     case StatusMode.WAIT:
-                        start_button.icon_name = "com.github.gabutakut.gabutdm.waiting";
+                        actpaint.icon_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.waiting", 24);
                         start_button.tooltip_text = _("Waiting\nCTRL + V");
                         if (linkmode != LinkMode.HLS) {
                             remove_timeout ();
@@ -172,14 +172,14 @@ namespace Gabut {
                         }
                         break;
                     case StatusMode.ERROR:
-                        start_button.icon_name = "com.github.gabutakut.gabutdm.error";
+                        actpaint.icon_paintable = load_icon_paintable ( "com.github.gabutakut.gabutdm.error", 24);
                         start_button.tooltip_text = _("Error\nCTRL + V");
                         if (linkmode != LinkMode.HLS) {
                             if (ariagid != null && url != null) {
                                 errorcode = get_aria_error (int.parse (aria_tell_status (ariagid, TellStatus.ERRORCODE)));
                                 labeltransfer = _("-");
                                 if (filename != null) {
-                                    notify_app (_("Download Error"), filename, imagefile.gicon);
+                                    notify_app (_("Download Error"), filename, GLib.ContentType.get_icon (fileordir));
                                     play_sound ("dialog-error");
                                 }
                                 aria_remove (ariagid);
@@ -191,22 +191,22 @@ namespace Gabut {
                         }
                         break;
                     case StatusMode.SEED:
-                        start_button.icon_name = "com.github.gabutakut.gabutdm.seed";
+                        actpaint.icon_paintable = load_icon_paintable ( "com.github.gabutakut.gabutdm.seed", 24);
                         start_button.tooltip_text = _("Seeding\nCTRL + V");
                         if (linkmode != LinkMode.HLS) {
                             add_timeout ();
                         }
                         break;
                     case StatusMode.VERIFY:
-                        start_button.icon_name = "com.github.gabutakut.gabutdm.verify";
+                        actpaint.icon_paintable = load_icon_paintable ( "com.github.gabutakut.gabutdm.verify", 24);
                         start_button.tooltip_text = _("Verify");
                         break;
                     case StatusMode.MERGE:
-                        start_button.icon_name = "applications-multimedia";
+                        actpaint.icon_paintable = load_icon_paintable ( "applications-multimedia", 24);
                         start_button.tooltip_text = _("Merge\nCTRL + V");
                         break;
                     default:
-                        start_button.icon_name = "com.github.gabutakut.gabutdm.active";
+                        actpaint.icon_paintable = load_icon_paintable ( "com.github.gabutakut.gabutdm.active", 24);
                         start_button.tooltip_text = _("Downloading\nCTRL + V");
                         if (linkmode != LinkMode.HLS) {
                             add_timeout ();
@@ -412,7 +412,9 @@ namespace Gabut {
                 return _fraction;
             }
             set {
-                _fraction = value;       
+                _fraction = value;
+                prpaint.progress = _fraction;
+                actpaint.progress = _fraction;
             }
         }
 
@@ -452,6 +454,9 @@ namespace Gabut {
             if (linkmode != LinkMode.HLS) {
                 if_not_exist (ariagid, linkmode, status);
             }
+            if (totalsize > 0 && totalsize > 0) {
+                fraction = (double) transferred / (double) totalsize;
+            }
         }
 
         public DownloadRow.Url (string url, Gee.HashMap<string, string> options, int linkmode) {
@@ -474,49 +479,58 @@ namespace Gabut {
         }
 
         construct {
-            bitfield_widget = new BitfieldWidget(true, 3) {
+            bitfield_widget = new BitfieldWidget (true, 3) {
                 valign = Gtk.Align.CENTER
             };
             rowbus = new DBusMenu.DbusmenuItem ();
             rowbus.item_activated.connect (download);
-            imagefile = new Gtk.Image () {
-                pixel_size = 38
-            };
 
-            badge_img = new Gtk.Image () {
-                halign = Gtk.Align.END,
-                valign = Gtk.Align.END,
-                pixel_size = 18
+            prpaint = new ProgressPaintable () {
+                icon_ratio = 0.75,
+                square_mode = true,
+                badge_show_bg = true,
+                line_width_ratio = 9.5,
+                badge_ratio = 0.35,
+                badge_position = BadgePosition.BOTTOM_RIGHT
             };
-
-            var overlay = new Gtk.Overlay () {
-                child = imagefile
+            var imagefile = new Gtk.Image () {
+                pixel_size = 48,
+                paintable = prpaint
             };
-            overlay.add_overlay (badge_img);
+            prpaint.queue_draw.connect (imagefile.queue_draw);
 
             openimage = new Gtk.Button () {
                 valign = Gtk.Align.CENTER,
                 focus_on_click = false,
                 has_frame = false,
-                child = overlay,
+                child = imagefile,
                 height_request = 60,
                 tooltip_text = _("Progress\nCTRL + W")
             };
             openimage.clicked.connect (download);
-
-            start_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.pause") {
+            actpaint = new ProgressPaintable () {
+                icon_ratio = 0.95,
+                line_width_ratio = 0.5,
+                square_mode = true,
+                badge_show_bg = false
+            };
+            var actimage = new Gtk.Image () {
+                pixel_size = 24,
+                paintable = actpaint
+            };
+            actpaint.queue_draw.connect (actimage.queue_draw);
+            start_button = new Gtk.Button () {
                 valign = Gtk.Align.CENTER,
                 has_frame = false,
+                child = actimage,
                 height_request = 60
             };
-            ((Gtk.Image) start_button.get_first_child ()).pixel_size = 18;
             start_button.clicked.connect (()=> {
                 action_btn ();
             });
             var grid = new Gtk.Grid () {
                 hexpand = true,
-                valign = Gtk.Align.CENTER,
-                margin_end = 2
+                valign = Gtk.Align.CENTER
             };
             grid.attach (openimage, 0, 0, 1, 4);
             grid.attach (bitfield_widget, 1, 0, 1, 1);
@@ -671,6 +685,7 @@ namespace Gabut {
             string downrate = transferrate > 0? @"- D: $(GLib.format_size ((uint64) transferrate))" : "";
             string timedownload = "";
             if (totalsize > 0 && transferrate > 0) {
+                fraction = (double) transferred / (double) totalsize;
                 uint64 remaining_time = (totalsize - transferred) / transferrate;
                 timedownload = @"- $(format_time ((int) remaining_time))";
             } else {

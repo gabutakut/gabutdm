@@ -14,7 +14,7 @@ depends=(
   'libsoup3'
   'libgee'
   'json-glib'
-  'libqrencode'
+  'qrencode'
   'gdk-pixbuf2'
   'cairo'
   'libadwaita'
