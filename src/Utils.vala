@@ -2830,12 +2830,14 @@ namespace Gabut {
         if (!bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))) {
             return;
         }
-        try {
-            var ctx = new GSound.Context();
-            ctx.init();
-            ctx.play_simple(null, GSound.Attribute.EVENT_ID, canbera, GSound.Attribute.CANBERRA_CACHE_CONTROL, "permanent", GSound.Attribute.MEDIA_ROLE, "event", null);
-        } catch (Error e) {
-        }
+        Canberra.Context context;
+        Canberra.Proplist props;
+        Canberra.Context.create (out context);
+        Canberra.Proplist.create (out props);
+        props.sets (Canberra.PROP_EVENT_ID, canbera);
+        props.sets (Canberra.PROP_CANBERRA_CACHE_CONTROL, "permanent");
+        props.sets (Canberra.PROP_MEDIA_ROLE, "event");
+        context.play_full (0, props);
     }
 
     private async GLib.File[]? run_open_file (Gtk.Window window, OpenFiles location) throws Error {
