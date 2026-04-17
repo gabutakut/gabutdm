@@ -10,7 +10,7 @@ dependencies = [
     dependency ('glib-2.0'),
     dependency ('gtk4'),
     dependency ('sqlite3'),
-    dependency ('gsound'),
+    dependency ('libcanberra'),
     dependency ('libsoup-3.0'),
     dependency ('gee-0.8'),
     dependency ('json-glib-1.0'),
