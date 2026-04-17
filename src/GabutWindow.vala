@@ -21,13 +21,14 @@
 
 namespace Gabut {
     public class GabutWindow : Gtk.Window {
-        public signal bool send_file (string url);
+        public signal void send_file (string url);
         public signal void stop_server ();
         public signal void restart_server ();
         public signal void open_show ();
         public signal bool active_downloader (string ariagid);
         public signal void update_agid (string ariagid, string newgid);
         public signal string get_host ();
+        public Gtk.ListBox list_box;
         private Preferences preferences;
         private QrCode qrcode;
         private ModeButton view_mode;
@@ -38,10 +39,11 @@ namespace Gabut {
         private DbusIndicator dbusindicator = null;
         private DeleteDialog delete_dialog;
         private HlsManBox hlsmanbox;
+        private GabutScreen gbt_screen;
+        private KeyAnimOverlay key_anim;
         private Gee.ArrayList<AddUrl> linkproperty;
         private Gee.ArrayList<AddTorrent> torrproperty;
         private Gee.ArrayList<AddHls> hlsproperty;
-        private Gtk.ListBox list_box;
         private Gtk.Stack headerstack;
         private Gtk.SearchEntry search_entry;
         private Gtk.CheckButton showtime;
@@ -56,6 +58,7 @@ namespace Gabut {
         private int index_rowdm = 0;
         private int allactive = 0;
         private int limitcount = 0;
+        private uint keyvals = 0;
         private int64 totalfiles = 0;
         private int64 totalrecv = 0;
         private bool removing = false;
@@ -148,8 +151,18 @@ namespace Gabut {
                 run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
                     try {
                         GLib.File[] files = run_open_file.end (res);
+                        string paths = "";
                         foreach (var file in files) {
-                            send_file (file.get_path ());
+                            if (paths == "") {
+                                paths += file.get_path ();
+                            } else {
+                                paths += file.get_path () + "\n";
+                            }
+                        }
+                        if (paths != "") {
+                            gbt_screen.on_drop (paths, (uris)=> {
+                                open_list (uris);
+                            });
                         }
                     } catch (GLib.Error e) {
                         critical (e.message);
@@ -346,22 +359,72 @@ namespace Gabut {
             mainwindow.attach (ceninfo, 0, 0);
             mainwindow.attach (scrolled, 0, 1);
             mainwindow.attach (bottom_action (), 0, 2);
-            child = mainwindow;
+            var overlay = new Gtk.Overlay () {
+                child = mainwindow
+            };
+            key_anim = new KeyAnimOverlay () {
+                can_target = false,
+                focusable = false
+            };
+            gbt_screen = new GabutScreen () {
+                can_target = false,
+                focusable = false
+            };
+            overlay.add_overlay (gbt_screen);
+            overlay.add_overlay (key_anim);
+            var drop_target = new Gtk.DropTarget (Type.STRING, Gdk.DragAction.COPY);
+            drop_target.enter.connect ((x, y) => {
+                gbt_screen.on_drag_enter ();
+                return Gdk.DragAction.COPY;
+            });
+            drop_target.leave.connect (() => {
+                gbt_screen.on_drag_leave ();
+            });
+            drop_target.drop.connect ((val, x, y) => {
+                var urlist = val.get_string ().strip ();
+                gbt_screen.on_drop (urlist, (urlists)=> {
+                    open_list (urlists);
+                });
+                return Gdk.EVENT_PROPAGATE;
+            });
+            child = overlay;
+            child.add_controller (drop_target);
 
             set_titlebar (build_headerbar ());
             menulabel = int.parse (get_dbsetting (DBSettings.LABELMODE));
+            traverse_widget (this);
+        }
 
-            var spress = new Gtk.EventControllerKey ();
-            search_entry.add_controller (spress);
-            spress.key_pressed.connect (keyvalwd);
+        private void open_list (string urlist) {
+            if (urlist.contains ("\n")) {
+                var uris = urlist.split ("\n");
+                int xs = 0;
+                var lent = uris.length;
+                GLib.Timeout.add (300, () => {
+                    var uri = uris[xs];
+                    xs++;
+                    send_file (uri);
+                    return xs < lent;
+                });
+            } else {
+                send_file (urlist);
+            }
+        }
 
-            var keypress = new Gtk.EventControllerKey ();
-            mainwindow.add_controller (keypress);
-            keypress.key_pressed.connect (keyvalwd);
-
-            var titpress = new Gtk.EventControllerKey ();
-            titlebar.add_controller (titpress);
-            titpress.key_pressed.connect (keyvalwd);
+        private void traverse_widget (Gtk.Widget widget) {
+            if (widget != null) {
+                if (widget.get_data<Gtk.EventControllerKey> ("key-controller") == null) {
+                    var keypress = new Gtk.EventControllerKey ();
+                    widget.add_controller (keypress);
+                    keypress.key_pressed.connect (keyvalwd);
+                    widget.set_data ("key-controller", keypress);
+                }
+            }
+            Gtk.Widget? child = widget.get_first_child ();
+            while (child != null) {
+                traverse_widget (child);
+                child = child.get_next_sibling ();
+            }
         }
 
         public override bool close_request () {
@@ -374,8 +437,6 @@ namespace Gabut {
                         menudbus.insert_dbus (openmenu, 0);
                     }
                 }
-            } else {
-                save_all_download ();
             }
             return base.close_request ();
         }
@@ -405,7 +466,14 @@ namespace Gabut {
         }
 
         private bool keyvalwd (uint keyval, uint keycode, Gdk.ModifierType state) {
+            if (keyval == keyvals) {
+                return false;
+            }
+            keyvals = keyval;
             bool ctrl_pressed = (state & Gdk.ModifierType.CONTROL_MASK) != 0;
+            if (ctrl_pressed) {
+                key_anim.trigger (keyval, state);
+            }
             if (ctrl_pressed && match_keycode (Gdk.Key.f, keycode)) {
                 if (maximized) {
                     unmaximize ();
@@ -413,73 +481,161 @@ namespace Gabut {
                     maximize ();
                 }
             } else if (ctrl_pressed && match_keycode (Gdk.Key.q, keycode)) {
-                close ();
-            } else if (ctrl_pressed && match_keycode (Gdk.Key.d, keycode)) {
-                view_status ();
+                gbt_screen.processing_dl (_("Quit…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        close ();
+                    });
+                });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.p, keycode)) {
-                menuprefernces ();
+                gbt_screen.processing_dl (_("Preferences…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        menuprefernces ();
+                    });
+                });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.h, keycode)) {
-                qrmenuopen ();
+                gbt_screen.processing_dl (_("Qr Address…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        qrmenuopen ();
+                    });
+                });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.s, keycode)) {
                 if (headerstack.visible_child_name != "search") {
-                    searchf ();
+                    gbt_screen.processing_dl (_("Search…") ,()=>{
+                        gbt_screen.sts_finish (()=> {
+                            searchf ();
+                        });
+                    });
                 }
             } else if (ctrl_pressed && match_keycode (Gdk.Key.m, keycode)) {
-                foreach (var row in list_box.get_selected_rows ()) {
-                    var rws = (DownloadRow) row;
-                    if (rws.linkmode == LinkMode.URL || rws.linkmode == LinkMode.MAGNETLINK) {
-                        urlprop (rws);
-                    } else if (rws.linkmode == LinkMode.HLS){
-                        hlsprop (rws);
-                    } else {
-                        torrprop (rws);
-                    }
+                var rows = list_box.get_selected_rows ();
+                if (rows.length () < 1) {
+                    return false;
                 }
+                gbt_screen.processing_dl (_("Properties…"), ()=> {
+                    gbt_screen.sts_finish (()=> {
+                        foreach (var row in list_box.get_selected_rows ()) {
+                            var rws = (DownloadRow) row;
+                            if (rws.linkmode == LinkMode.URL || rws.linkmode == LinkMode.MAGNETLINK) {
+                                urlprop (rws);
+                            } else if (rws.linkmode == LinkMode.HLS){
+                                hlsprop (rws);
+                            } else {
+                                torrprop (rws);
+                            }
+                        }
+                    });
+                });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.z, keycode)) {
                 start_all ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.x, keycode)) {
                 stop_all ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.y, keycode)) {
-                add_hls ();
+                gbt_screen.processing_dl (_("Add HLS/M3U8…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        add_hls ();
+                    });
+                });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.a, keycode)) {
                 list_box.select_all ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.u, keycode)) {
-                add_url ("com.github.gabutakut.gabutdm.insertlink");
+                gbt_screen.processing_dl (_("Insert Link…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        add_url ("com.github.gabutakut.gabutdm.insertlink");
+                    });
+                });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.w, keycode)) {
-                foreach (var row in list_box.get_selected_rows ()) {
-                    ((DownloadRow) row).download ();
+                var rows = list_box.get_selected_rows ();
+                if (rows.length () < 1) {
+                    return false;
                 }
-            } else if (ctrl_pressed && match_keycode (Gdk.Key.v, keycode)) {
-                foreach (var row in list_box.get_selected_rows ()) {
-                    ((DownloadRow) row).action_btn ();
-                }
-            } else if (ctrl_pressed && match_keycode (Gdk.Key.o, keycode)) {
-                foreach (var row in list_box.get_selected_rows ()) {
-                    ((DownloadRow) row).open_filesr ();
-                }
-            } else if (ctrl_pressed && match_keycode (Gdk.Key.r, keycode)) {
-                remove_delete (false);
-            } else if (ctrl_pressed && match_keycode (Gdk.Key.i, keycode)) {
-                run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
-                    try {
-                        GLib.File[] files = run_open_file.end (res);
-                        foreach (var file in files) {
-                            send_file (file.get_path ());
+                gbt_screen.processing_dl (_("Open Progress…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        foreach (var row in list_box.get_selected_rows ()) {
+                            ((DownloadRow) row).download ();
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    });
+                });
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.v, keycode)) {
+                var rows = list_box.get_selected_rows ();
+                if (rows.length () < 1) {
+                    return false;
+                }
+                gbt_screen.processing_dl (_("Start / Stop…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        foreach (var row in list_box.get_selected_rows ()) {
+                            ((DownloadRow) row).start_button.clicked ();
+                        }
+                    });
+                });
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.o, keycode)) {
+                var rows = list_box.get_selected_rows ();
+                if (rows.length () < 1) {
+                    return false;
+                }
+                gbt_screen.processing_dl (_("Open Location…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        foreach (var row in list_box.get_selected_rows ()) {
+                            ((DownloadRow) row).open_filesr ();
+                        }
+                    });
+                });
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.r, keycode)) {
+                var rows = list_box.get_selected_rows ();
+                if (rows.length () < 1) {
+                    return false;
+                }
+                gbt_screen.processing_dl (_("Delete…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        remove_delete (false);
+                    });
+                });
+            } else if (ctrl_pressed && match_keycode (Gdk.Key.i, keycode)) {
+                gbt_screen.processing_dl (_("Open Torrent…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
+                            try {
+                                GLib.File[] files = run_open_file.end (res);
+                                string paths = "";
+                                foreach (var file in files) {
+                                    if (paths == "") {
+                                        paths += file.get_path ();
+                                    } else {
+                                        paths += file.get_path () + "\n";
+                                    }
+                                }
+                                if (paths != "") {
+                                    gbt_screen.on_drop (paths, (uris)=> {
+                                        open_list (uris);
+                                    });
+                                }
+                            } catch (GLib.Error e) {
+                                critical (e.message);
+                            }
+                        });
+                    });
                 });
             }
             switch (keyval) {
                 case Gdk.Key.Escape:
                     list_box.unselect_all ();
                     if (headerstack.visible_child_name == "search") {
-                        searchf ();
+                        gbt_screen.processing_dl (_("Back to Home…") ,()=>{
+                            gbt_screen.sts_finish (()=> {
+                                searchf ();
+                            });
+                        });
                     }
                     break;
                 case Gdk.Key.Delete:
-                    remove_delete ();
+                    var rows = list_box.get_selected_rows ();
+                    if (rows.length () < 1) {
+                        return false;
+                    }
+                    gbt_screen.processing_dl (_("Remove…") ,()=>{
+                        gbt_screen.sts_finish (()=> {
+                            remove_delete ();
+                        });
+                    });
                     break;
             }
             return false;
@@ -490,7 +646,7 @@ namespace Gabut {
                 return;
             }
             var hashrow = new Gee.ArrayList<DownloadRow> ();
-                foreach (var row in list_box.get_selected_rows ()) {
+            foreach (var row in list_box.get_selected_rows ()) {
                 hashrow.add ((DownloadRow) row);
             }
             if (hashrow.size < 1) {
@@ -507,37 +663,48 @@ namespace Gabut {
                     infolabel = deletef? _("Delete") : _("Clear"),
                     labelrm = deletef? _("Delete") : _("Remove")
                 };
+                var removed = false;
                 delete_dialog.move_file.clicked.connect (()=> {
-                    int totaldx = hashrow.size;
-                    GLib.Idle.add (() => {
-                        if (hashrow.size > 0) {
-                            removing = true;
-                            for (int b = 0; b < totalrow; b++) {
-                                var row = (DownloadRow) list_box.get_row_at_index (b);
-                                if (hashrow.contains (row)) {
-                                    labelview.label = _("%s (%i of %i)").printf (deletef? "Deleting…" : "Removing…", ((totaldx + 1) - hashrow.size), totaldx);
-                                    indicatorstatus ();
-                                    hashrow.remove (row);
-                                    MainContext.default ().invoke (() => {
-                                        if (deletef) {
-                                            row.to_trash ();
-                                        } else {
-                                            row.remove_down ();
-                                        }
-                                        return false;
-                                    });
-                                }
-                            }
-                        } else {
-                            removing = false;
-                            update_info ();
-                            view_status ();
-                        }
-                        return removing;
-                    }, GLib.Priority.HIGH_IDLE);
+                    removed = true;
                     delete_dialog.close ();
                 });
                 delete_dialog.close_request.connect (()=> {
+                    if (removed) {
+                        gbt_screen.processing_dl (("Processing…"), ()=>{
+                            removing = true;
+                            int totaldx = hashrow.size;
+                            int xs = 0;
+                            GLib.Idle.add (() => {
+                                var row = hashrow.@get(xs);
+                                xs++;
+                                list_box.unselect_all ();
+                                MainContext.default ().invoke (() => {
+                                    list_box.select_row (row);
+                                    var fraction = (double) xs / (double) totaldx;
+                                    labelview.label = _("%s (%i of %i)").printf (deletef? "Deleting…" : "Removing…", xs, totaldx);
+                                    gbt_screen.update_progress (fraction, _("%s %d/%d %s").printf (deletef? "Deleting…" : "Removing…", xs, totaldx, sanitize_utf8 (row.filename).make_valid ()));
+                                    indicatorstatus ();
+                                    var selr = ((DownloadRow) list_box.get_selected_row ());
+                                    if (selr != null) {
+                                        if (deletef) {
+                                            selr.to_trash ();
+                                        } else {
+                                            selr.remove_down ();
+                                        }
+                                    }
+                                    return false;
+                                });
+                                if (xs >= totaldx) {
+                                    removing = false;
+                                    update_info ();
+                                    view_status ();
+                                    gbt_screen.status_dm ("Completed!");
+                                    hashrow.clear ();
+                                }
+                                return removing;
+                            });
+                        });
+                    }
                     delete_dialog = null;
                     return GLib.Source.REMOVE;
                 });
@@ -555,14 +722,26 @@ namespace Gabut {
                 tooltip_text = _("Settings\nCTRL + P")
             };
             headerbar.pack_end (menu_button);
-            menu_button.clicked.connect (menuprefernces);
+            menu_button.clicked.connect (()=> {
+                gbt_screen.processing_dl (_("Preferences…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        menuprefernces ();
+                    });
+                });
+            });
 
             var search_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.find") {
                 has_frame = false,
                 tooltip_text = _("Search\nCTRL + S")
             };
             headerbar.pack_end (search_button);
-            search_button.clicked.connect (searchf);
+            search_button.clicked.connect (()=> {
+                gbt_screen.processing_dl (_("Back to Home…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        searchf ();
+                    });
+                });    
+            });
             headerstack.notify["visible-child"].connect (()=> {
                 view_status ();
                 search_entry.text = "";
@@ -579,7 +758,13 @@ namespace Gabut {
                 tooltip_text = _("Remote\nCTRL + H")
             };
             headerbar.pack_end (host_button);
-            host_button.clicked.connect (qrmenuopen);
+            host_button.clicked.connect (()=> {
+                gbt_screen.processing_dl (_("Qr Address…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        qrmenuopen ();
+                    });
+                });
+            });
             var add_open = new Gtk.MenuButton () {
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.insertlink"),
                 direction = Gtk.ArrowType.UP,
@@ -625,7 +810,15 @@ namespace Gabut {
             };
             headerbar.pack_start (removeall_button);
             removeall_button.clicked.connect (()=> {
-                remove_delete (false);
+                var rows = list_box.get_selected_rows ();
+                if (rows.length () < 1) {
+                    return;
+                }
+                gbt_screen.processing_dl (_("Delete…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        remove_delete (false);
+                    });
+                });
             });
             return headerbar;
         }
@@ -655,25 +848,51 @@ namespace Gabut {
                 var add_open = openmn as OpenMenu;
                 switch (add_open.openmn) {
                     case OpenMenus.ADDHLS:
-                        add_hls ();
+                        gbt_screen.processing_dl (_("Add HLS/M3U8…") ,()=>{
+                            gbt_screen.sts_finish (()=> {
+                                add_hls ();
+                            });
+                        });
                         break;
                     case OpenMenus.OPENMN:
-                        run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
-                            try {
-                                GLib.File[] files = run_open_file.end (res);
-                                foreach (var file in files) {
-                                    send_file (file.get_path ());
-                                }
-                            } catch (GLib.Error e) {
-                                critical (e.message);
-                            }
+                        gbt_screen.processing_dl (_("Open Torrent…") ,()=>{
+                            gbt_screen.sts_finish (()=> {
+                                run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
+                                    try {
+                                        GLib.File[] files = run_open_file.end (res);
+                                        string paths = "";
+                                        foreach (var file in files) {
+                                            if (paths == "") {
+                                                paths += file.get_path ();
+                                            } else {
+                                                paths += file.get_path () + "\n";
+                                            }
+                                        }
+                                        if (paths != "") {
+                                            gbt_screen.on_drop (paths, (path)=> {
+                                                open_list (path);
+                                            });
+                                        }
+                                    } catch (GLib.Error e) {
+                                        critical (e.message);
+                                    }
+                                });
+                            });
                         });
                         break;
                     case OpenMenus.ADDMAGNET:
-                        add_url ("com.github.gabutakut.gabutdm.magnet");
+                        gbt_screen.processing_dl (_("Insert Link…") ,()=>{
+                            gbt_screen.sts_finish (()=> {
+                                add_url ("com.github.gabutakut.gabutdm.magnet");
+                            });
+                        });
                         break;
                     default:
-                        add_url ("list-add");
+                        gbt_screen.processing_dl (_("Insert Link…") ,()=>{
+                            gbt_screen.sts_finish (()=> {
+                                add_url ("list-add");
+                            });
+                        });
                         break;
                 }
             });
@@ -826,24 +1045,36 @@ namespace Gabut {
                 var gdmmenu = dmmenu as GdmMenu;
                 switch (gdmmenu.downloadmenu) {
                     case DownloadMenu.OPENFOLDER:
-                        foreach (var row in list_box.get_selected_rows ()) {
-                            ((DownloadRow) row).open_filesr ();
-                        }
+                        gbt_screen.processing_dl (_("Open Location…") ,()=>{
+                            gbt_screen.sts_finish (()=> {
+                                foreach (var row in list_box.get_selected_rows ()) {
+                                    ((DownloadRow) row).open_filesr ();
+                                }
+                            });
+                        });
                         break;
                     case DownloadMenu.MOVETOTRASH:
-                        remove_delete ();
+                        gbt_screen.processing_dl (_("Remove…") ,()=>{
+                            gbt_screen.sts_finish (()=> {
+                                remove_delete ();
+                            });
+                        });
                         break;
                     case DownloadMenu.PROPERTIES:
-                        foreach (var row in list_box.get_selected_rows ()) {
-                            var rws = (DownloadRow) row;
-                            if (rws.linkmode == LinkMode.URL || rws.linkmode == LinkMode.MAGNETLINK) {
-                                urlprop (rws);
-                            } else if (rws.linkmode == LinkMode.HLS){
-                                hlsprop (rws);
-                            } else {
-                                torrprop (rws);
-                            }
-                        }
+                        gbt_screen.processing_dl (_("Properties…"), ()=>{
+                            gbt_screen.sts_finish (()=> {
+                                foreach (var row in list_box.get_selected_rows ()) {
+                                    var rws = (DownloadRow) row;
+                                    if (rws.linkmode == LinkMode.URL || rws.linkmode == LinkMode.MAGNETLINK) {
+                                        urlprop (rws);
+                                    } else if (rws.linkmode == LinkMode.HLS){
+                                        hlsprop (rws);
+                                    } else {
+                                        torrprop (rws);
+                                    }
+                                }
+                            });
+                        });
                         break;
                     default:
                         list_box.select_all ();
@@ -1107,28 +1338,6 @@ namespace Gabut {
             }
         }
 
-        public void save_all_download () {
-            var downloads = new GLib.List<DownloadRow> ();
-            var models = list_box.observe_children ();
-            var maxsize = models.get_n_items ();
-            for (uint x = 0; x < maxsize; x++) {
-                var child = (Gtk.Widget) models.get_item (x);
-                if (child is Gtk.ListBoxRow) {
-                    var row = (DownloadRow) child;
-                    if (row.url == "") {
-                        return;
-                    }
-                    if (!db_option_exist (row.url)) {
-                        set_dboptions (row.url, row.hashoption);
-                    } else {
-                        update_optionts (row.url, row.hashoption);
-                    }
-                    downloads.append (row);
-                }
-            }
-            set_download (downloads);
-        }
-
         public Gee.ArrayList<DownloadRow> get_dl_row (int status) {
             var rowlist = new Gee.ArrayList<DownloadRow> ();
             var models = list_box.observe_children ();
@@ -1280,27 +1489,6 @@ namespace Gabut {
             }
         }
 
-        public void load_dowanload () {
-            foreach (var row in get_download ()) {
-                if (!get_exist (row.url)) {
-                    if (row.linkmode != LinkMode.HLS) {
-                        on_append (row);
-                        row.notify_property ("status");
-                    } else {
-                        string useragent = "";
-                        var useuseragt = row.hashoption.has_key (AriaOptions.USER_AGENT.to_string ());
-                        if (useuseragt) {
-                            useragent = row.hashoption.@get (AriaOptions.USER_AGENT.to_string ());
-                        } else {
-                            useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
-                        }
-                        row.pathname = row.filepath;
-                        append_hls (row, row.url, row.filename, row.filepath, useragent);
-                    }
-                }
-            }
-        }
-
         public void add_url_box (string url, Gee.HashMap<string, string> options, bool later, int linkmode, bool server) {
             if (get_exist (url)) {
                 return;
@@ -1317,7 +1505,7 @@ namespace Gabut {
                 if (options.has_key (AriaOptions.DIR.to_string ())) {
                     dir_dm = options.@get (AriaOptions.DIR.to_string ());
                 } else {
-                    dir_dm = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD);
+                    dir_dm = get_dbsetting (DBSettings.DIR);
                 }
                 var opt_dir = File.new_build_filename (dir_dm, dm_fname.hash ().to_string ());
                 if (!opt_dir.query_exists ()) {
@@ -1328,15 +1516,15 @@ namespace Gabut {
                     }
                 }
                 options[AriaOptions.DIR.to_string ()] = row.filepath = row.pathname = opt_dir.get_path ();
-                string useragent = "";
+                string useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
                 var useuseragt = options.has_key (AriaOptions.USER_AGENT.to_string ());
                 if (useuseragt) {
                     useragent = options.@get (AriaOptions.USER_AGENT.to_string ());
-                } else {
-                    useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
                 }
                 append_hls (row, url, dm_fname, opt_dir.get_path (), useragent, later);
                 row.filepath = row.pathname = opt_dir.get_path ();
+                play_sound ("device-added");
+                add_db_download (row);
             } else {
                 var row = new DownloadRow.Url (url, options, linkmode) {
                     timeadded = new GLib.DateTime.now_local ().to_unix ()
@@ -1363,11 +1551,12 @@ namespace Gabut {
                     return GLib.Source.REMOVE;
                 });
                 on_append (row);
+                add_db_download (row);
             }
-            save_all_download ();
+            set_dboptions (url, options);
         }
 
-        private void append_hls (DownloadRow row, string url, string fname, string directory, string useragent, bool later = true) {
+        public void append_hls (DownloadRow row, string url, string fname, string directory, string useragent, bool later = true) {
             row.filename = fname;
             string homeurl = "";
             string[] hlslink = null;
@@ -1427,7 +1616,7 @@ namespace Gabut {
                     var fnamepath = File.new_build_filename (pathdir, row.filename.hash ().to_string ()).get_path ();
                     row.filepath = hlslbox.output_dir = fnamepath;
                 } else {
-                    var dir_dm = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD);
+                    var dir_dm = get_dbsetting (DBSettings.DIR);
                     var opt_dir = File.new_build_filename (dir_dm, row.filename.hash ().to_string ());
                     row.filepath = hlslbox.output_dir = opt_dir.get_path ();
                 }
@@ -1593,7 +1782,7 @@ namespace Gabut {
             });
         }
 
-        private void on_append (DownloadRow row) {
+        public void on_append (DownloadRow row) {
             list_box.append (row);
             row.set_visible (true);
             row.notify["status"].connect (()=> {
@@ -1627,6 +1816,20 @@ namespace Gabut {
                 menudbus.delete_dbus (row.rowbus);
                 stop_launcher ();
                 view_status ();
+            });
+            row.openimage.clicked.connect (()=> {
+                gbt_screen.processing_dl (_("Open Progress…"), ()=> {
+                    gbt_screen.sts_finish (()=> {
+                        row.download ();
+                    });
+                });
+            });
+            row.start_button.clicked.connect (()=> {
+                gbt_screen.processing_dl (row.start_button.tooltip_text.replace ("\n", " "), ()=> {
+                    gbt_screen.sts_finish (()=> {
+                        row.action_btn ();
+                    });
+                });
             });
             row.update_agid.connect ((ariagid, newgid)=> update_agid (ariagid, newgid));
             if (list_box.get_selected_row () == null) {
@@ -1740,7 +1943,7 @@ namespace Gabut {
             dbusindicator.new_icon ();
         }
 
-        private bool get_exist (string url) {
+        public bool get_exist (string url) {
             bool linkexist = false;
             var models = list_box.observe_children ();
             var maxsize = models.get_n_items ();
@@ -1776,43 +1979,62 @@ namespace Gabut {
             if (starting || stoping || removing) {
                 return;
             }
-            hlsmanbox.hlsdlboxs.sort ((GLib.CompareDataFunc)sort_hls);
-            hlsmanbox.on_start_download ();
-            int index = actwaiting ();
-            int onstr = beforest ();
-            int count = 0;
-            int startdl = 0;
-            int totalrow = count_rows_only ();
-            GLib.Idle.add (() => {
-                if (totalrow > 0) {
-                    starting = true;
-                    var row = (DownloadRow) list_box.get_row_at_index (count);
-                    if (row.linkmode != LinkMode.HLS) {
-                        if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                            if (row.status == StatusMode.PAUSED) {
-                                aria_position (row.ariagid, index);
-                                index++;
-                                startdl++;
-                                labelview.label = _("Starting… (%i of %i)").printf (startdl, onstr);
-                                indicatorstatus ();
-                                new Thread<void> ("startdl%d".printf (startdl), () => {
-                                    aria_unpause (row.ariagid);
-                                    MainContext.default ().invoke (() => {
-                                        row.update_sts ();
-                                        return GLib.Source.REMOVE;
-                                    });
-                                });
-                            }
-                        }
+            gbt_screen.processing_dl (_("Processing…"), ()=> {
+                hlsmanbox.hlsdlboxs.sort ((GLib.CompareDataFunc)sort_hls);
+                hlsmanbox.on_start_download (()=> {
+                    if (hls_rows_only () < 1) {
+                        gbt_screen.status_dm ("Completed!");
+                        starting = false;
+                        update_info ();
+                        view_status ();
+                        return;
                     }
-                    count++;
-                } 
-                if (totalrow == count) {
-                    starting = false;
-                    update_info ();
-                    view_status ();
-                }
-                return starting;
+                    int index = actwaiting ();
+                    int onstr = beforest ();
+                    int count = 0;
+                    int startdl = 0;
+                    int totalrow = count_rows_only ();
+                    GLib.Idle.add (() => {
+                        if (totalrow > 0) {
+                            starting = true;
+                            var row = (DownloadRow) list_box.get_row_at_index (count);
+                            if (row.linkmode != LinkMode.HLS) {
+                                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                                    if (row.status == StatusMode.PAUSED) {
+                                        new Thread<void> ("startdl%d".printf (startdl), () => {
+                                            aria_position (row.ariagid, index);
+                                            aria_unpause (row.ariagid);
+                                            MainContext.default ().invoke (()=> {
+                                                row.update_sts ();
+                                                return GLib.Source.REMOVE;
+                                            });
+                                        });
+                                        index++;
+                                        startdl++;
+                                        labelview.label = _("Starting… (%i of %i)").printf (startdl, onstr);
+                                        var fraction = (double) startdl / (double) onstr;
+                                        gbt_screen.update_progress (fraction, _("%s %d/%d %s").printf ("Starting…", startdl, onstr, sanitize_utf8 (row.filename).make_valid ()));
+                                        indicatorstatus ();
+                                    }
+                                }
+                            }
+                            count++;
+                        }
+                        if (count >= totalrow) {
+                            starting = false;
+                            update_info ();
+                            view_status ();
+                            gbt_screen.status_dm ("Completed!");
+                        }
+                        return starting;
+                    });
+                }, (xs, total, filename)=> {
+                    starting = true;
+                    var fraction = (double) xs / (double) total;
+                    labelview.label = _("Starting… (%i of %i)").printf (xs, total);
+                    indicatorstatus ();
+                    gbt_screen.update_progress (fraction, filename);
+                });
             });
         }
 
@@ -1820,40 +2042,60 @@ namespace Gabut {
             if (starting || stoping || removing) {
                 return;
             }
-            hlsmanbox.on_stop_download ();
-            int index = 0;
-            int count = 0;
-            int acti = actwaiting ();
-            int totalrow = count_rows_only ();
-            GLib.Idle.add (() => {
-                if (totalrow > 0) {
-                    stoping = true;
-                    var row = (DownloadRow) list_box.get_row_at_index (index);
-                    if (row.linkmode != LinkMode.HLS) {
-                        if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                            count++;
-                            labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
-                            indicatorstatus ();
-                            new Thread<void> ("stopdl%d".printf (count), () => {
-                                aria_pause (row.ariagid);
-                                if (row.status == StatusMode.WAIT) {
-                                    MainContext.default ().invoke (() => {
-                                        row.update_sts ();
-                                        return GLib.Source.REMOVE;
+            gbt_screen.processing_dl (_("Processing…"), ()=> {
+                hlsmanbox.on_stop_download (()=> {
+                    int index = 0;
+                    int count = 0;
+                    int acti = actwaiting ();
+                    if (acti < 1) {
+                        stoping = false;
+                        update_info ();
+                        aria_pause_all ();
+                        view_status ();
+                        gbt_screen.status_dm ("Completed!");
+                        return;
+                    }
+                    int totalrow = count_rows_only ();
+                    GLib.Idle.add (() => {
+                        if (totalrow > 0) {
+                            stoping = true;
+                            var row = (DownloadRow) list_box.get_row_at_index (index);
+                            if (row.linkmode != LinkMode.HLS) {
+                                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                                    count++;
+                                    labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
+                                    var fraction = (double) count / (double) acti;
+                                    gbt_screen.update_progress (fraction, _("%s %d/%d %s").printf ("Stoping…", count, acti, sanitize_utf8 (row.filename).make_valid ()));
+                                    indicatorstatus ();
+                                    new Thread<void> ("stopdl%d".printf (count), () => {
+                                        aria_pause (row.ariagid);
+                                        if (row.status == StatusMode.WAIT) {
+                                            MainContext.default ().invoke (() => {
+                                                row.update_sts ();
+                                                return GLib.Source.REMOVE;
+                                            });
+                                        }
                                     });
                                 }
-                            });
+                            }
+                            index++;
                         }
-                    }
-                    index++;
-                }
-                if (totalrow == index) {
-                    stoping = false;
-                    update_info ();
-                    aria_pause_all ();
-                    view_status ();
-                }
-                return stoping;
+                        if (index >= totalrow) {
+                            stoping = false;
+                            update_info ();
+                            aria_pause_all ();
+                            view_status ();
+                            gbt_screen.status_dm ("Completed!");
+                        }
+                        return stoping;
+                    });
+                }, (xs, tota, filename)=> {
+                    stoping = true;
+                    labelview.label = _("Stoping… (%i of %i)").printf (xs, tota);
+                    indicatorstatus ();
+                    var fraction = (double) xs / (double) tota;
+                    gbt_screen.update_progress (fraction, filename);
+                });
             });
         }
 
@@ -2129,13 +2371,28 @@ namespace Gabut {
             list_box.set_sort_func ((Gtk.ListBoxSortFunc) sort_dm);
         }
 
-        private int count_rows_only () {
+        public int count_rows_only () {
             int count = 0;
             var models = list_box.observe_children ();
             for (uint x = 0; x < models.get_n_items (); x++) {
                 var child = (Gtk.Widget) models.get_item (x);
                 if (child is Gtk.ListBoxRow) {
                     count++;
+                }
+            }
+            return count;
+        }
+
+        private int hls_rows_only () {
+            int count = 0;
+            var models = list_box.observe_children ();
+            for (uint x = 0; x < models.get_n_items (); x++) {
+                var child = (Gtk.Widget) models.get_item (x);
+                if (child is Gtk.ListBoxRow) {
+                    var row = (DownloadRow) child;
+                    if (row.linkmode != LinkMode.HLS) {
+                        count++;
+                    }
                 }
             }
             return count;

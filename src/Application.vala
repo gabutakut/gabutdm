@@ -22,6 +22,7 @@
 namespace Gabut {
     public class GabutApp : Gtk.Application {
         public GabutWindow? gabutwindow = null;
+        private SplashScreen? spalshsc = null;
         private Gdk.Clipboard clipboard;
         public GLib.List<Downloader> downloaders;
         public GLib.List<SuccesDialog> succesdls;
@@ -42,32 +43,32 @@ namespace Gabut {
         }
 
         public override int command_line (GLib.ApplicationCommandLine command) {
+            if (spalshsc == null && gabutwindow == null) {
+                spalshsc = new SplashScreen (this);
+                spalshsc.set_visible (true);
+            }
             if (gabutdb == null) {
                 if (open_database (out gabutdb) != Sqlite.OK) {
-                    notify_app (_("Database Error"),
-                    _("Can't open database: %s\n").printf (gabutdb.errmsg ()), new ThemedIcon ("office-database"));
-                    play_sound ("dialog-error");
-                    return Posix.EXIT_SUCCESS;
+                    spalshsc.preparing.connect (()=> {
+                        spalshsc.status_dm (_("Database Error…"));
+                        play_sound ("dialog-warning");
+                    });
+                    return base.command_line (command);
                 }
                 settings_table ();
             }
             var dict = command.get_options_dict ();
+            bool cremaint = dict.contains (GLib.OPTION_REMAINING);
             if (dict.contains ("startingup")) {
                 var dbstartup = bool.parse (get_dbsetting (DBSettings.STARTUP));
                 flatpack_autostart.begin (dbstartup);
                 default_autostart.begin (dbstartup);
                 if (!dbstartup) {
-                    return Posix.EXIT_SUCCESS;
-                }
-            } else if (dict.contains (GLib.OPTION_REMAINING)) {
-                foreach (string arg_file in dict.lookup_value (GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY).get_strv ()) {
-                    if (GLib.FileUtils.test (arg_file, GLib.FileTest.EXISTS)) {
-                        dialog_url (File.new_for_path (arg_file).get_path ());
-                    } else {
-                        if (dialog_url (arg_file)) {
-                            return Posix.EXIT_SUCCESS;
-                        }
-                    }
+                    spalshsc.preparing.connect (()=> {
+                        spalshsc.status_dm (_("Starting on startup disabled…"));
+                        play_sound ("dialog-warning");
+                    });
+                    return base.command_line (command);
                 }
             }
             if (gabutwindow == null) {
@@ -77,9 +78,6 @@ namespace Gabut {
                 gabutserver.send_post_data.connect (dialog_server);
                 gabutwindow = new GabutWindow ();
                 add_window (gabutwindow);
-                var droptarget = new Gtk.DropTarget (Type.STRING, Gdk.DragAction.COPY);
-                gabutwindow.child.add_controller (droptarget);
-                droptarget.drop.connect (on_drag_data_received);
 
                 gabutwindow.send_file.connect (dialog_url);
                 gabutwindow.open_show.connect (open_now);
@@ -146,22 +144,86 @@ namespace Gabut {
                     gabutwindow.remove_item (status);
                 });
                 gdm_theme ();
-                gabutwindow.load_dowanload ();
                 download_table ();
-                if (!dict.contains ("startingup") && !dict.contains (GLib.OPTION_REMAINING)) {
-                    open_now ();
-                }
+                spalshsc.preparing.connect (()=> {
+                    spalshsc.simulate_loading (gabutwindow);
+                });
+                spalshsc.close_request.connect (()=> {
+                    play_sound ("device-added");
+                    if (!dict.contains ("startingup") && !cremaint) {
+                        open_now ();
+                    }
+                    spalshsc = null;
+                    if (cremaint) {
+                        open_dict (string.joinv ("\n", dict.lookup_value (GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY).get_strv ()), _("Try to Open"));
+                    }
+                    return GLib.Source.REMOVE;
+                });
                 menuglobal ();
                 lastclipboard = get_dbsetting (Gabut.DBSettings.LASTCLIPBOARD);
-                clipboard = gabutwindow.get_clipboard ();
-                Timeout.add_seconds (1, on_clipboard, GLib.Priority.HIGH);
+                clipboard = gabutwindow.titlebar.get_clipboard ();
+                Timeout.add_seconds (1, on_clipboard);
+                gabutwindow.close_request.connect (()=> {
+                    if (!bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
+                        if (spalshsc == null && gabutwindow != null) {
+                            spalshsc = new SplashScreen (this);
+                            spalshsc.status_text = "Preparing…";
+                            spalshsc.set_visible (true);
+                            spalshsc.preparing.connect (()=> {
+                                spalshsc.save_all_download (gabutwindow);
+                            });
+                            spalshsc.close_request.connect (()=> {
+                                play_sound ("device-removed");
+                                return GLib.Source.REMOVE;
+                            });
+                        }
+                    }
+                    return GLib.Source.REMOVE;
+                });
             } else {
-                if (dict.contains ("startingup") || dict.contains (GLib.OPTION_REMAINING)) {
-                    return Posix.EXIT_SUCCESS;
+                if (dict.contains ("startingup") || cremaint) {
+                    if (cremaint) {
+                        open_dict (string.joinv ("\n", dict.lookup_value (GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY).get_strv ()), _("Try to Open"));
+                    }
+                    return base.command_line (command);
                 }
                 open_now ();
             }
-            return Posix.EXIT_SUCCESS;
+            return base.command_line (command);
+        }
+
+        private void open_dict (string dict, string title) {
+            if (spalshsc == null) {
+                spalshsc = new SplashScreen (this) {
+                    is_processing = true,
+                    title_text = title
+                };
+                spalshsc.status_text = "Opening…";
+                spalshsc.set_visible (true);
+                spalshsc.preparing.connect (()=> {
+                    spalshsc.prosessing_files (dict);
+                });
+                spalshsc.open_files.connect ((urlist)=> {
+                    if (urlist.contains ("\n")) {
+                        var uris = urlist.split ("\n");
+                        int x = 0;
+                        var lent = uris.length;
+                        GLib.Timeout.add (250, () => {
+                            var uri = uris[x].strip ();
+                            dialog_url (uri);
+                            x++;
+                            return x < lent;
+                        });
+                    } else {
+                        dialog_url (urlist);
+                    }
+                });
+                spalshsc.close_request.connect (()=> {
+                    play_sound ("device-removed");
+                    spalshsc = null;
+                    return GLib.Source.REMOVE;
+                });
+            }
         }
 
         private void open_now () {
@@ -218,7 +280,7 @@ namespace Gabut {
             if (url_active (urls)) {
                 return;
             }
-            if (urls.contains (".m3u8") || urls.has_suffix (".m3u8") || urls.has_suffix (".urlset") || urls.has_suffix (".txt")) {
+            if (is_hls (urls)) {
                 var addhls = new AddHls () {
                     transient_for = gabutwindow,
                     portserver = match_info
@@ -251,9 +313,9 @@ namespace Gabut {
             addurl.set_visible (true);
         }
 
-        public bool dialog_url (string link) {
-            if (link.has_prefix ("magnet:?") || link.has_prefix ("http://") || link.has_prefix ("https://") || link.has_prefix ("ftp://") || link.has_prefix ("sftp://")) {
-                if (link.has_suffix (".m3u8") || link.has_suffix (".urlset") || link.has_suffix (".txt") || link.contains (".m3u8")) {
+        public void dialog_url (string link) {
+            if (is_url (link)) {
+                if (is_hls (link)) {
                     var addhls = new AddHls () {
                         transient_for = gabutwindow,
                         url_link = link.strip ()
@@ -284,7 +346,6 @@ namespace Gabut {
                     });
                     addurl.set_visible (true);
                 }
-                return GLib.Source.REMOVE;
             } else if (link.has_suffix (".torrent") || link.has_suffix (".metalink")) {
                 if (GLib.FileUtils.test (link, GLib.FileTest.EXISTS)) {
                     var addtrr = new AddTorrent () {
@@ -298,9 +359,7 @@ namespace Gabut {
                     });
                     addtrr.set_visible (true);
                 }
-                return GLib.Source.REMOVE;
             }
-            return Gdk.EVENT_PROPAGATE;
         }
 
         private bool url_active (string url) {
@@ -316,7 +375,7 @@ namespace Gabut {
 
         private bool download_active (string ariagid) {
             bool active = false;
-                foreach (var downloader in downloaders) {
+            foreach (var downloader in downloaders) {
                 if (downloader.ariagid == ariagid) {
                     downloader.get_active_status ();
                     active = true;
@@ -360,11 +419,12 @@ namespace Gabut {
                 if (clipboard.formats.contain_gtype (GLib.Type.STRING)) {
                     clipboard.read_text_async.begin (null, (obj, res)=> {
                         try {
-                            string? textclip = clipboard.read_text_async.end (res).strip ();
+                            string? textclip = clipboard.read_text_async.end (res);
                             if (textclip != null && textclip != lastclipboard) {
                                 if (!url_active (textclip)) {
-                                    if (!dialog_url (textclip)) {
+                                    if (is_url (textclip) || textclip.has_suffix (".torrent") || textclip.has_suffix (".metalink")) {
                                         lastclipboard = set_dbsetting (Gabut.DBSettings.LASTCLIPBOARD, textclip);
+                                        open_dict (textclip, _("Clipboard Processing"));
                                     }
                                 }
                             }
@@ -374,23 +434,7 @@ namespace Gabut {
                     });
                 }
             }
-            return Gdk.EVENT_PROPAGATE;
-        }
-
-        private bool on_drag_data_received (GLib.Value? value, double x, double y) {
-            string? strclip = value.get_string ().strip ();
-            if (strclip.contains ("\n")) {
-                foreach (string url in strclip.split ("\n")) {
-                    if (!url_active (url)) {
-                        dialog_url (url);
-                    }
-                }
-            } else {
-                if (!url_active (strclip)) {
-                    dialog_url (strclip);
-                }
-            }
-            return Gdk.EVENT_PROPAGATE;
+            return GLib.Source.CONTINUE;
         }
 
         public static int main (string[] args) {
