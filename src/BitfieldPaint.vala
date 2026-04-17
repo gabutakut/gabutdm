@@ -23,7 +23,7 @@ namespace Gabut {
     public class BitfieldWidget : Gtk.DrawingArea {
         public int status;
         public string filename = "";
-        public string errorcode = "...";
+        public string errorcode = "…";
         public string connectionsdl = "0";
         public string labeltransfer = "-";
         private string bitfield = "";
@@ -178,7 +178,7 @@ namespace Gabut {
             while (low <= high) {
                 int mid = (low + high) / 2;
                 string test_text = clean_text.substring(0, mid);
-                layout.set_markup(GLib.Markup.escape_text (test_text + "...").make_valid (), -1);
+                layout.set_markup(GLib.Markup.escape_text (test_text + "…").make_valid (), -1);
                 layout.get_extents(out ink_rect, out logical_rect);
                 double test_width = logical_rect.width / Pango.SCALE;
                 if (test_width <= max_width) {
@@ -190,9 +190,9 @@ namespace Gabut {
                 }
             }
             if (best_length >= 3) {
-                return best_text + "...";
+                return best_text + "…";
             } else if (clean_text.length >= 3) {
-                return clean_text.substring(0, 3) + "...";
+                return clean_text.substring(0, 3) + "…";
             } else {
                 return clean_text;
             }

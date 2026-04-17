@@ -1175,8 +1175,8 @@ namespace Gabut {
         }
 
         private void savetoaria () {
-            aria_unpause (row.ariagid);
             aria_remove (row.ariagid);
+            aria_deleteresult (row.ariagid);
             if (row.linkmode == LinkMode.TORRENT) {
                 var rowariagid = aria_torrent (row.url, hashoptions, actwaiting ());
                 update_agid (row.ariagid, rowariagid);

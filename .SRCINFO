@@ -1,7 +1,7 @@
 pkgbase = gabutdm-master
 	pkgdesc = Simple, fast, and powerful Download Manager built with GTK4
 	pkgver = 2.8.8
-	pkgrel = 1
+	pkgrel = 2
 	url = https://github.com/gabutakut/gabutdm
 	arch = x86_64
 	license = LGPL2.1
@@ -12,7 +12,7 @@ pkgbase = gabutdm-master
 	depends = glib2
 	depends = gtk4
 	depends = sqlite
-	depends = libcanberra
+	depends = gsound
 	depends = libsoup3
 	depends = libgee
 	depends = json-glib

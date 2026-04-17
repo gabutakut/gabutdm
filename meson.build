@@ -10,7 +10,7 @@ dependencies = [
     dependency ('glib-2.0'),
     dependency ('gtk4'),
     dependency ('sqlite3'),
-    dependency ('libcanberra'),
+    dependency ('gsound'),
     dependency ('libsoup-3.0'),
     dependency ('gee-0.8'),
     dependency ('json-glib-1.0'),
@@ -31,5 +31,4 @@ dependencies = [
 subdir ('src')
 subdir ('data')
 subdir ('po')
-
 meson.add_install_script ('meson/post_install.py')

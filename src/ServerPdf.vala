@@ -22,7 +22,7 @@
 namespace Gabut {
     private string get_pdf_page (string file_path, string filename) {
         var raw_src = "/Rawori?path=" + GLib.Uri.escape_string (file_path, "", true);
-        return """<!DOCTYPE html>
+        string? html = """<!DOCTYPE html>
         <html lang="en">
         <head>
         <meta charset="UTF-8">
@@ -288,5 +288,6 @@ namespace Gabut {
         </script>
         </body>
         </html>""";
+        return html;
     }
 }

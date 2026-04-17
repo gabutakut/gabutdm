@@ -24,6 +24,8 @@ namespace Gabut {
         public signal void update_progress (string progrs);
         public signal void update_conn (string active);
         public signal void bitfield_update (string bitf, int piece);
+        public delegate void DownloadCallback ();
+        public delegate void ProgressCallback (int prg, int total, string fileame);
         public Gee.ArrayList<HLSLBox> hlsdlboxs;
         public bool processing { get; set; default = false;}
         public int active_hlsrow = 0;
@@ -48,20 +50,60 @@ namespace Gabut {
             hlsdlboxs.remove (hlslbox);
         }
 
-        public void on_start_download () {
-            if (processing) {
-                foreach (var hlsdlbox in hlsdlboxs) {
-                    if (hlsdlbox.status == StatusMode.PAUSED || hlsdlbox.status == StatusMode.ERROR) {
-                        hlsdlbox.on_wait_download ();
-                    }
+        public void on_start_download (DownloadCallback callback, ProgressCallback pcallback) {
+            var lent = hlsdlboxs.size;
+            int xs = 0;
+            if (lent < 1) {
+                if (callback != null) {
+                    callback ();
                 }
                 return;
             }
-            foreach (var hlsdlbox in hlsdlboxs) {
+            if (processing) {
+                GLib.Idle.add (() => {
+                    var hlsdlbox = hlsdlboxs[xs];
+                    xs++;
+                    if (hlsdlbox.status == StatusMode.PAUSED || hlsdlbox.status == StatusMode.ERROR) {
+                        hlsdlbox.on_wait_download ();
+                        if (pcallback != null) {
+                            pcallback (xs, lent, _("%s %d/%d %s").printf ("Start…", xs, lent, sanitize_utf8 (hlsdlbox.filename).make_valid ()));
+                        }
+                    } else {
+                        if (pcallback != null) {
+                            pcallback (xs, lent, _("%s %d/%d %s").printf ("Skiped…", xs, lent, sanitize_utf8 (hlsdlbox.filename).make_valid ()));
+                        }
+                    }
+                    if (xs >= lent) {
+                        if (callback != null) {
+                            callback ();
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+                return;
+            }
+            GLib.Idle.add (() => {
+                var hlsdlbox = hlsdlboxs[xs];
+                xs++;
                 if (hlsdlbox.status != StatusMode.COMPLETE) {
                     hlsdlbox.on_wait_download ();
+                    if (pcallback != null) {
+                        pcallback (xs, lent, _("%s %d/%d %s").printf ("Start…", xs, lent, sanitize_utf8 (hlsdlbox.filename).make_valid ()));
+                    }
+                } else {
+                    if (pcallback != null) {
+                        pcallback (xs, lent, _("%s %d/%d %s").printf ("Skiped…", xs, lent, sanitize_utf8 (hlsdlbox.filename).make_valid ()));
+                    }
                 }
-            }
+                if (xs >= lent) {
+                    if (callback != null) {
+                        callback ();
+                    }
+                    return false;
+                }
+                return true;
+            });
             processing = true;
             active_hlsrow = 0;
             update_quee ();
@@ -178,17 +220,41 @@ namespace Gabut {
             return (int64)total_speed_bytes;
         }
 
-        public void on_stop_download() {
+        public void on_stop_download (DownloadCallback callback, ProgressCallback pcallback) {
             processing = false;
             if (queue_timeout_id > 0) {
                 GLib.Source.remove(queue_timeout_id);
             }
             queue_timeout_id = 0;
-            foreach (var hlsdlbox in hlsdlboxs) {
-                if (hlsdlbox.status != StatusMode.COMPLETE) {
-                    hlsdlbox.on_stop_download();
+            int xs = 0;
+            var lent = hlsdlboxs.size;
+            if (lent < 1) {
+                if (callback != null) {
+                    callback ();
                 }
+                return;
             }
+            GLib.Idle.add (() => {
+                var hlsdlbox = hlsdlboxs[xs];
+                xs++;
+                if (hlsdlbox.status != StatusMode.COMPLETE && hlsdlbox.status != StatusMode.PAUSED) {
+                    hlsdlbox.on_stop_download ();
+                    if (pcallback != null) {
+                        pcallback (xs, lent, _("%s %d/%d %s").printf ("Stoped…", xs, lent, sanitize_utf8 (hlsdlbox.filename).make_valid ()));
+                    }
+                } else {
+                    if (pcallback != null) {
+                        pcallback (xs, lent, _("%s %d/%d %s").printf ("Skiped…", xs, lent, sanitize_utf8 (hlsdlbox.filename).make_valid ()));
+                    }
+                }
+                if (xs >= lent) {
+                    if (callback != null) {
+                        callback ();
+                    }
+                    return false;
+                }
+                return true;
+            });
         }
     }
 }

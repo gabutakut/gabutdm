@@ -128,7 +128,7 @@ namespace Gabut {
                                     if (hashoption.has_key (AriaOptions.DIR.to_string ())) {
                                         dir_dm = hashoption.@get (AriaOptions.DIR.to_string ());
                                     } else {
-                                        dir_dm = Environment.get_user_special_dir (GLib.UserDirectory.DOWNLOAD);
+                                        dir_dm = get_dbsetting (DBSettings.DIR);
                                     }
                                     try {
                                         uint8[] contents;
@@ -180,7 +180,7 @@ namespace Gabut {
                                 labeltransfer = _("-");
                                 if (filename != null) {
                                     notify_app (_("Download Error"), filename, GLib.ContentType.get_icon (fileordir));
-                                    play_sound ("dialog-error");
+                                    play_sound ("bell");
                                 }
                                 aria_remove (ariagid);
                             }
@@ -422,13 +422,11 @@ namespace Gabut {
             this.hashoption = options;
             this.linkmode = linkmode;
             this.url = url;
-            errorcode = _("HLS waiting data...");
-            bitfield_widget.set_bitfield_data("", 0);
+            errorcode = _("HLS waiting data…");
+            bitfield_widget.set_bitfield_data ( "",  0);
             bitfield_widget.connectionsdl= "0";
             labeltransfer = "-";
             ariagid = "";
-            add_db_download (this);
-            set_dboptions (url, hashoption);
         }
 
         public DownloadRow.Smt (Sqlite.Statement stmt) {
@@ -454,7 +452,7 @@ namespace Gabut {
             if (linkmode != LinkMode.HLS) {
                 if_not_exist (ariagid, linkmode, status);
             }
-            if (totalsize > 0 && totalsize > 0) {
+            if (transferred > 0 && totalsize > 0) {
                 fraction = (double) transferred / (double) totalsize;
             }
         }
@@ -470,12 +468,10 @@ namespace Gabut {
                 ariagid = aria_url (url, hashoption, actwaiting ());
             }
             this.url = url;
-            errorcode = _("Waiting download data...");
+            errorcode = _("Waiting download data…");
             if (options.has_key (AriaOptions.SELECT_FILE.to_string ())) {
                 selectedtr = options.@get (AriaOptions.SELECT_FILE.to_string ());
             }
-            add_db_download (this);
-            set_dboptions (url, hashoption);
         }
 
         construct {
@@ -489,7 +485,7 @@ namespace Gabut {
                 icon_ratio = 0.75,
                 square_mode = true,
                 badge_show_bg = true,
-                line_width_ratio = 9.5,
+                line_width_ratio = 0.55,
                 badge_ratio = 0.35,
                 badge_position = BadgePosition.BOTTOM_RIGHT
             };
@@ -507,10 +503,9 @@ namespace Gabut {
                 height_request = 60,
                 tooltip_text = _("Progress\nCTRL + W")
             };
-            openimage.clicked.connect (download);
             actpaint = new ProgressPaintable () {
                 icon_ratio = 0.95,
-                line_width_ratio = 0.5,
+                line_width_ratio = 0.15,
                 square_mode = true,
                 badge_show_bg = false
             };
@@ -523,11 +518,8 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER,
                 has_frame = false,
                 child = actimage,
-                height_request = 60
+                height_request = 40
             };
-            start_button.clicked.connect (()=> {
-                action_btn ();
-            });
             var grid = new Gtk.Grid () {
                 hexpand = true,
                 valign = Gtk.Align.CENTER

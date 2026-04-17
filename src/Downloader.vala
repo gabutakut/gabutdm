@@ -225,8 +225,8 @@ namespace Gabut {
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:
-                        string json_str = aria_files_store (ariagid);
-                        if (json_str == "") {
+                        string? json_str = aria_files_store (ariagid);
+                        if (json_str == null) {
                             return;
                         }
                         try {
@@ -612,7 +612,7 @@ namespace Gabut {
 
         public override bool close_request () {
             remove_timeout ();
-           return base.close_request ();
+            return base.close_request ();
         }
 
         public override void close () {

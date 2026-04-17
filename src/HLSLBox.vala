@@ -466,7 +466,7 @@ namespace Gabut {
             GLib.Timeout.add(100, () => {
                 progressmerg = (double) ffmpeg.get_last_progress();
                 string hex_bitfield = ffmpeg.hex_bitfield();
-                simple_progress ("Merging... %d%s".printf((int)(progressmerg * 100), "%"));
+                simple_progress ("Merging… %d%s".printf((int)(progressmerg * 100), "%"));
                 bitfield_update (hex_bitfield, file_list.length);
                 if (progressmerg >= 1.0) {
                     try {

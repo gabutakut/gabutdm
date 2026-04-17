@@ -1629,6 +1629,13 @@ namespace Gabut {
         DICT
     }
 
+    public enum DropState {
+        IDLE,
+        HOVERING,
+        PROCESSING,
+        DONE
+    }
+
     private SourceFunc ariacll;
     private Sqlite.Database? gabutdb;
     private Aria2.Engine? engine;
@@ -2765,12 +2772,13 @@ namespace Gabut {
                 c == '"' || c == '<' || c == '>' ||
                 c == '|' || c == '/' || c == '\\' ||
                 c == '\n' || c == '\r' || c == '\t') {
-                sb.append_c ('_');
+                sb.append_c (' ');
+                sb.str.strip ();
             } else {
                 sb.append_c (c);
             }
         }
-        string cleaned = sb.str.strip ();
+        string cleaned = sb.str.strip ().replace ("  ", "");;
         while (cleaned.length > 0 && (cleaned.has_suffix (" ") || cleaned.has_suffix ("."))) {
             cleaned = cleaned.substring (0, cleaned.length - 1);
         }
@@ -2822,14 +2830,12 @@ namespace Gabut {
         if (!bool.parse (get_dbsetting (DBSettings.NOTIFSOUND))) {
             return;
         }
-        Canberra.Context context;
-        Canberra.Proplist props;
-        Canberra.Context.create (out context);
-        Canberra.Proplist.create (out props);
-        props.sets (Canberra.PROP_EVENT_ID, canbera);
-        props.sets (Canberra.PROP_CANBERRA_CACHE_CONTROL, "permanent");
-        props.sets (Canberra.PROP_MEDIA_ROLE, "event");
-        context.play_full (0, props);
+        try {
+            var ctx = new GSound.Context();
+            ctx.init();
+            ctx.play_simple(null, GSound.Attribute.EVENT_ID, canbera, GSound.Attribute.CANBERRA_CACHE_CONTROL, "permanent", GSound.Attribute.MEDIA_ROLE, "event", null);
+        } catch (Error e) {
+        }
     }
 
     private async GLib.File[]? run_open_file (Gtk.Window window, OpenFiles location) throws Error {
@@ -3161,6 +3167,20 @@ namespace Gabut {
         mime_is_doc (mime) || 
         is_archive_mime (mime) ||
         is_text_mime (mime)) {
+            return true;
+        }
+        return false;
+    }
+
+    private bool is_url (string link) {
+        if (link.has_prefix ("magnet:?") || link.has_prefix ("http://") || link.has_prefix ("https://") || link.has_prefix ("ftp://") || link.has_prefix ("sftp://")) {
+            return true;
+        }
+        return false;
+    }
+
+    private bool is_hls (string urls) {
+        if (urls.contains (".m3u8") || urls.has_suffix (".m3u8") || urls.has_suffix (".urlset") || urls.has_suffix (".txt")) {
             return true;
         }
         return false;

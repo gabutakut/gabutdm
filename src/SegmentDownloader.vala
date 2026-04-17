@@ -131,6 +131,7 @@ namespace Gabut {
                 stop ();
                 retry_count = 0;
                 completed = false;
+                total_size = 0;
                 forcewait (index, "Waiting");
                 status = StatusMode.WAIT;
                 status_changed (index, StatusMode.WAIT, "Waiting");
@@ -146,6 +147,7 @@ namespace Gabut {
                 cancellable.cancel ();
             }
             retry_count = 0;
+            total_size = 0;
             completed = false;
             status = StatusMode.WAIT;
             status_changed (index, StatusMode.WAIT, "Waiting");
@@ -162,7 +164,7 @@ namespace Gabut {
             GLib.File control_file = GLib.File.new_for_path (this.control_path);
             if (file.query_exists () && !control_file.query_exists ()) {
                 var ffread = new Ffmpeg.Reader ();
-                if (ffread.validate_path (file.get_path()) == 0) {
+                if (ffread.validate_path (file.get_path ()) == 0) {
                     status = StatusMode.COMPLETE;
                     status_changed (index, StatusMode.COMPLETE, "Completed");
                     completed = true;
@@ -197,7 +199,7 @@ namespace Gabut {
                 var msg_get = new Soup.Message ("GET", this.url);
                 var reqesthead = msg_get.get_request_headers();
                 size_timeout_id = GLib.Timeout.add (10000, () => {
-                    if (this.total_size == 0) {
+                    if (this.total_size < 1024) {
                         if (!cancellable.is_cancelled ()) {
                             on_wait ();
                         }
@@ -250,7 +252,7 @@ namespace Gabut {
                     session = null;
                 }
                 input.close ();
-                if (this.total_size != 0) {
+                if (this.total_size >= 1024) {
                     if (size_timeout_id > 0) {
                         GLib.Source.remove(size_timeout_id);
                         size_timeout_id = 0;
@@ -293,7 +295,7 @@ namespace Gabut {
                         var info = file.query_info (GLib.FileAttribute.STANDARD_SIZE, GLib.FileQueryInfoFlags.NONE);
                         if ((int64) info.get_size() >= this.total_size) {
                             var ffread = new Ffmpeg.Reader ();
-                            if (ffread.validate_path (file.get_path()) == 0) {
+                            if (ffread.validate_path (file.get_path ()) == 0) {
                                 complete_download ();
                             } else {
                                 file.trash ();
@@ -338,7 +340,7 @@ namespace Gabut {
                 var info = file.query_info (GLib.FileAttribute.STANDARD_SIZE, GLib.FileQueryInfoFlags.NONE);
                 if ((int64) info.get_size() >= this.total_size) {
                     var ffread = new Ffmpeg.Reader ();
-                    if (ffread.validate_path (file.get_path()) == 0) {
+                    if (ffread.validate_path (file.get_path ()) == 0) {
                         complete_download ();
                     } else {
                         file.trash ();
@@ -353,7 +355,7 @@ namespace Gabut {
         }
 
         public double sample_speed () {
-            int64 now = GLib.get_monotonic_time();
+            int64 now = GLib.get_monotonic_time ();
             if (last_speed_time == 0) {
                 last_speed_time = now;
                 speedbyte = 0;
@@ -489,6 +491,8 @@ namespace Gabut {
                             session = null;
                         }
                         input.close ();
+                        msg = null;
+                        buffer = null;
                     } catch (GLib.Error e) {}
                 });
             }

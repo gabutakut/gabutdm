@@ -413,7 +413,9 @@ namespace Gabut {
                     try {
                         GLib.File file = run_open_text.end (res);
                         if (file != null) {
-                            trackertext.buffer.text = (string) file.load_bytes ().get_data ();
+                            uint8[] content;
+                            file.load_contents (null, out content, null);
+                            trackertext.buffer.text = (string) content;
                         }
                     } catch (GLib.Error e) {
                         critical (e.message);
@@ -472,7 +474,9 @@ namespace Gabut {
                     try {
                         GLib.File file = run_open_text.end (res);
                         if (file != null) {
-                            etrackertext.buffer.text = (string) file.load_bytes ().get_data ();
+                            uint8[] content;
+                            file.load_contents (null, out content, null);
+                            etrackertext.buffer.text = (string) content;
                         }
                     } catch (GLib.Error e) {
                         critical (e.message);
