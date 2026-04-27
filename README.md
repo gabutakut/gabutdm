@@ -67,6 +67,7 @@
 ✔ Multi-protocol downloads<br>
 ✔ Torrent support<br>
 ✔ HLS/M3U8 support<br>
+✔ Youtube support<br>
 ✔ File selection before download<br>
 ✔ Modern GTK4 interface<br>
 ✔ Lightweight & fast<br>
@@ -75,34 +76,34 @@
 
 ---
 
-<h2 align="center">🖥️ Screenshots</h2>
+<h2 align="center">Screenshots</h2>
 
-<h3 align="center">🏠 Home</h3>
+<h3 align="center">Home</h3>
 <p align="center">
     <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot0.png" alt="Home">
 </p>
 
-<h3 align="center">🚅 Download Progress</h3>
+<h3 align="center">Download Progress</h3>
 <p align="center">
     <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot1.png" alt="Progress">
 </p>
 
-<h3 align="center">🧩 Torrent File Selection</h3>
+<h3 align="center">Torrent File Selection</h3>
 <p align="center">
     <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot2.png" alt="Select File">
 </p>
 
-<h3 align="center">🧩 HLS Fetch Mode</h3>
+<h3 align="center">HLS Fetch Mode</h3>
 <p align="center">
     <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot3.png" alt="Fetch">
 </p>
 
-<h3 align="center">🚅 HLS Download Progress</h3>
+<h3 align="center">Youtube Selection Mode</h3>
 <p align="center">
     <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot4.png" alt="HLSp">
 </p>
 
-<h3 align="center">📤 Sharing</h3>
+<h3 align="center">Sharing</h3>
 <p align="center">
     <img src="https://raw.githubusercontent.com/gabutakut/gabutdm/master/Screenshot5.png" alt="Sharing">
 </p>
