@@ -16,6 +16,7 @@
         <li>Multi-protocol downloads.</li>
         <li>Torrent.</li>
         <li>HLS/M3U8.</li>
+        <li>Youtube.</li>
         <li>Magnetlink.</li>
         <li>File Transfer.</li>
         <li>File Sharing.</li>
@@ -30,6 +31,18 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="2.9.0" date="2026-05-03">
+      <description>
+        <p>Fix Not Responding HLS/M3U8 Downloader</p>
+        <p>Improve Server viewer</p>
+        <p>Login Server style viewer</p>
+        <p>Fix flatpack startup</p>
+        <p>Progress on icon start</p>
+        <p>Smooth Animation</p>
+        <p>Splash screen info startup</p>
+        <p>Youtube With Plugin</p>
+      </description>
+    </release>
     <release version="2.8.9" date="2026-04-18">
       <description>
         <p>Fix Not Responding HLS/M3U8 Downloader</p>

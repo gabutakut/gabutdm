@@ -21,7 +21,9 @@
 
 #ifndef FFMPEG_MERGER_H
 #define FFMPEG_MERGER_H
+
 #include <stddef.h>
+#include <stdint.h>
 
 #define FFM_EXPORT __attribute__((visibility("default")))
 #define MAX_STREAMS 32
@@ -30,6 +32,12 @@
 extern "C" {
 #endif
 
+typedef struct {
+    uint8_t* buffer;
+    int width;
+    int height;
+    int rowstride;
+} FfmThumbnail;
 
 struct FfmpegReader {
     int width;
@@ -47,12 +55,16 @@ FFM_EXPORT int ffm_reader_get_width(FfmpegReader* r);
 FFM_EXPORT int ffm_reader_get_height(FfmpegReader* r);
 FFM_EXPORT int ffm_reader_get_success(FfmpegReader* r);
 FFM_EXPORT int ffm_reader_validate_path(FfmpegReader* r, const char* path);
+FFM_EXPORT uint8_t* ffm_reader_ts_thumbnail_from_buffer(FfmpegReader* r, const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride);
+FFM_EXPORT uint8_t* ffm_reader_auto_thumbnail_from_buffer( FfmpegReader* r, const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride);
 
 typedef struct FfmpegMerger FfmpegMerger;
 FFM_EXPORT FfmpegMerger* ffm_merger_create();
 FFM_EXPORT void ffmpeg_merger_unref(FfmpegMerger* m);
 FFM_EXPORT float ffm_get_last_progress(FfmpegMerger* m);
 FFM_EXPORT const char* ffm_get_bitfield_hex(FfmpegMerger* m);
+FFM_EXPORT int ffm_combine_file(FfmpegMerger* m, const char* video_path, const char* audio_path, const char* output_path);
+FFM_EXPORT int ffm_to_audio(FfmpegMerger* m, const char* input_path, const char* output_path);
 FFM_EXPORT int ffm_merge_files(FfmpegMerger* m, const char **paths, int count, const char *output_path);
 #ifdef __cplusplus
 }

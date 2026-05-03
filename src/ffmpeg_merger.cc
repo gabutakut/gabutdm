@@ -30,6 +30,10 @@
 extern "C" {
 #endif
 
+#include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
+#include <libavutil/audio_fifo.h>
+#include <libavutil/opt.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
@@ -213,6 +217,267 @@ FFM_EXPORT int ffm_reader_validate_path(FfmpegReader* r, const char* path) {
     return 0;
 }
 
+static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride, const char* force_format) {
+    if (!data || size == 0 || !out_w || !out_h || !out_stride) {
+        return NULL;
+    }
+
+    struct BufCtx { const unsigned char* data; size_t size; size_t pos; };
+    BufCtx bc = { data, size, 0 };
+
+    auto read_fn = [](void* opaque, uint8_t* buf, int buf_size) -> int {
+        BufCtx* bc = (BufCtx*)opaque;
+        if (bc->pos >= bc->size) return AVERROR_EOF;
+        int remaining = (int)(bc->size - bc->pos);
+        int to_read   = buf_size < remaining ? buf_size : remaining;
+        memcpy(buf, bc->data + bc->pos, to_read);
+        bc->pos += (size_t)to_read;
+        return to_read;
+    };
+
+    auto seek_fn = [](void* opaque, int64_t offset, int whence) -> int64_t {
+        BufCtx* bc = (BufCtx*)opaque;
+        int64_t new_pos = 0;
+        switch (whence) {
+            case SEEK_SET: new_pos = offset; break;
+            case SEEK_CUR: new_pos = (int64_t)bc->pos + offset; break;
+            case SEEK_END: new_pos = (int64_t)bc->size + offset; break;
+            case AVSEEK_SIZE: return (int64_t)bc->size;
+            default: return -1;
+        }
+        if (new_pos < 0) return -1;
+        if (new_pos > (int64_t)bc->size) {
+            new_pos = (int64_t)bc->size;
+        }
+        bc->pos = (size_t)new_pos;
+        return new_pos;
+    };
+
+    uint8_t* avio_buf = (uint8_t*)av_malloc(8192);
+    if (!avio_buf) {
+        return NULL;
+    }
+    AVIOContext* avio_ctx = avio_alloc_context(avio_buf, 8192, 0, &bc, read_fn, NULL, seek_fn);
+    if (!avio_ctx) {
+        av_free(avio_buf);
+        return NULL;
+    }
+
+    AVFormatContext* ifmt_ctx = avformat_alloc_context();
+    if (!ifmt_ctx) {
+        av_free(avio_ctx->buffer);
+        avio_context_free(&avio_ctx);
+        return NULL;
+    }
+    ifmt_ctx->pb = avio_ctx;
+    ifmt_ctx->flags |= AVFMT_FLAG_CUSTOM_IO;
+    ifmt_ctx->flags |= AVFMT_FLAG_IGNIDX;
+
+    const AVInputFormat* ifmt = force_format? av_find_input_format(force_format) : NULL;
+    AVCodecContext* codec_ctx = NULL;
+    const AVCodec* codec = NULL;
+    AVFrame* frame = NULL;
+    AVFrame* frame_rgb = NULL;
+    AVPacket* pkt = NULL;
+    struct SwsContext* sws_ctx = NULL;
+    uint8_t* out_buffer = NULL;
+    int video_idx = -1;
+    bool frame_finished = false;
+    bool sws_ok = false;
+    bool fmt_opened = false;
+
+    pkt = av_packet_alloc();
+    if (!pkt) {
+        goto fail;
+    }
+    {
+        AVDictionary* opts = NULL;
+        av_dict_set(&opts, "fflags", "fastseek", 0);
+        if (avformat_open_input(&ifmt_ctx, NULL, ifmt, &opts) < 0) {
+            av_dict_free(&opts);
+            goto fail;
+        }
+        av_dict_free(&opts);
+    }
+    fmt_opened = true;
+
+    if (avformat_find_stream_info(ifmt_ctx, NULL) < 0) {
+        goto fail;
+    }
+    for (unsigned int i = 0; i < ifmt_ctx->nb_streams; i++) {
+        if (ifmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            video_idx = (int)i;
+            break;
+        }
+    }
+    if (video_idx == -1) {
+        goto fail;
+    }
+    codec = avcodec_find_decoder(ifmt_ctx->streams[video_idx]->codecpar->codec_id);
+    if (!codec) {
+        goto fail;
+    }
+    codec_ctx = avcodec_alloc_context3(codec);
+    if (!codec_ctx) {
+        goto fail;
+    }
+    if (avcodec_parameters_to_context(codec_ctx, ifmt_ctx->streams[video_idx]->codecpar) < 0) {
+        goto fail;
+    }
+    codec_ctx->thread_count = 1;
+    codec_ctx->thread_type = 0;
+    codec_ctx->err_recognition = AV_EF_IGNORE_ERR | AV_EF_CAREFUL;
+    codec_ctx->flags2 |= AV_CODEC_FLAG2_FAST;
+
+    if (avcodec_open2(codec_ctx, codec, NULL) < 0) {
+        goto fail;
+    }
+    frame = av_frame_alloc();
+    frame_rgb = av_frame_alloc();
+    if (!frame || !frame_rgb) {
+        goto fail;
+    }
+
+    {
+        int64_t seek_target = 0;
+        int64_t bitrate = ifmt_ctx->bit_rate;
+
+        if (bitrate > 0) {
+            int64_t readable_duration = ((int64_t)size * 8LL * AV_TIME_BASE) / bitrate;
+            seek_target = readable_duration / 2;
+            int64_t total_duration = ifmt_ctx->duration;
+            if (total_duration > 0 && seek_target > total_duration) {
+                seek_target = total_duration / 2;
+            }
+            if (seek_target < 1LL * AV_TIME_BASE) {
+                seek_target = 1LL * AV_TIME_BASE;
+            }
+            if (seek_target > 60LL * AV_TIME_BASE) {
+                seek_target = 60LL * AV_TIME_BASE;
+            }
+        } else {
+            seek_target = 10LL * AV_TIME_BASE;
+        }
+
+        av_seek_frame(ifmt_ctx, -1, seek_target, AVSEEK_FLAG_BACKWARD);
+        avcodec_flush_buffers(codec_ctx);
+    }
+
+    {
+        int consecutive_errors = 0;
+        while (av_read_frame(ifmt_ctx, pkt) >= 0) {
+            if (pkt->stream_index != video_idx) {
+                av_packet_unref(pkt);
+                continue;
+            }
+
+            int ret = avcodec_send_packet(codec_ctx, pkt);
+            av_packet_unref(pkt);
+
+            if (ret < 0) {
+                if (++consecutive_errors > 100) {
+                    break;
+                }
+                continue;
+            }
+
+            ret = avcodec_receive_frame(codec_ctx, frame);
+            if (ret == 0) {
+                if (frame->width  > 0 && frame->height > 0 && frame->format != AV_PIX_FMT_NONE && frame->format >= 0) {
+                    frame_finished = true;
+                    break;
+                }
+                av_frame_unref(frame);
+            }
+            consecutive_errors = 0;
+        }
+    }
+
+    if (!frame_finished) {
+        avcodec_send_packet(codec_ctx, NULL);
+        if (avcodec_receive_frame(codec_ctx, frame) == 0 && frame->width  > 0 && frame->height > 0 && frame->format != AV_PIX_FMT_NONE && frame->format >= 0) {
+            frame_finished = true;
+        }
+    }
+    if (!frame_finished) {
+        goto fail;
+    }
+
+    frame_rgb->format = AV_PIX_FMT_RGB24;
+    frame_rgb->width  = frame->width;
+    frame_rgb->height = frame->height;
+    if (av_frame_get_buffer(frame_rgb, 1) < 0) {
+        goto fail;
+    }
+    if (av_frame_make_writable(frame_rgb) < 0) {
+        goto fail;
+    }
+    sws_ctx = sws_getContext(frame->width, frame->height, (AVPixelFormat)frame->format, frame->width, frame->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
+    if (!sws_ctx) {
+        goto fail;
+    }
+    if (sws_scale(sws_ctx, (const uint8_t* const*)frame->data, frame->linesize, 0, frame->height, frame_rgb->data, frame_rgb->linesize) <= 0) {
+        goto fail;
+    }
+    *out_w = frame_rgb->width;
+    *out_h = frame_rgb->height;
+    *out_stride = frame_rgb->linesize[0];
+
+    {
+        size_t total = (size_t)(*out_stride) * (size_t)(*out_h);
+        out_buffer = (uint8_t*)malloc(total);
+        if (!out_buffer) {
+            goto fail;
+        }
+        memcpy(out_buffer, frame_rgb->data[0], total);
+    }
+    sws_ok = true;
+
+fail:
+    if (sws_ctx) {
+        sws_freeContext(sws_ctx);
+    }
+    if (frame) {
+        av_frame_free(&frame);
+    }
+    if (frame_rgb) {
+        av_frame_free(&frame_rgb);
+    }
+    if (codec_ctx) {
+        avcodec_free_context(&codec_ctx);
+    }
+    if (pkt) {
+        av_packet_free(&pkt);
+    }
+    if (fmt_opened) {
+        avformat_close_input(&ifmt_ctx);
+    } else if (ifmt_ctx) {
+        avformat_free_context(ifmt_ctx);
+        ifmt_ctx = NULL;
+    }
+    if (avio_ctx) {
+        av_free(avio_ctx->buffer);
+        avio_ctx->buffer = NULL;
+        avio_context_free(&avio_ctx);
+    }
+    if (!sws_ok && out_buffer) {
+        free(out_buffer);
+        out_buffer = NULL;
+        *out_w = *out_h = *out_stride = 0;
+    }
+    return out_buffer;
+}
+
+FFM_EXPORT uint8_t* ffm_reader_ts_thumbnail_from_buffer(FfmpegReader* r, const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride) {
+    (void)r;
+    return ffm_get_thumbnail_internal(data, size, out_w, out_h, out_stride, "mpegts");
+}
+
+FFM_EXPORT uint8_t* ffm_reader_auto_thumbnail_from_buffer(FfmpegReader* r, const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride) {
+    (void)r;
+    return ffm_get_thumbnail_internal(data, size, out_w, out_h, out_stride, "");
+}
+
 FFM_EXPORT int ffm_reader_get_width(FfmpegReader* r) {
     return r ? r->width : 0;
 }
@@ -294,6 +559,539 @@ FFM_EXPORT const char* ffm_get_bitfield_hex(FfmpegMerger* m) {
         sprintf(m->hex_output + i * 2, "%02x", v);
     }
     return m->hex_output;
+}
+
+FFM_EXPORT int ffm_combine_file(FfmpegMerger* m, const char* video_path, const char* audio_path, const char* output_path) {
+    if (!m || !video_path || !audio_path || !output_path) {
+        return -1;
+    }
+    av_log_set_level(AV_LOG_QUIET);
+
+    AVFormatContext *ifmt_ctx_v = NULL, *ifmt_ctx_a = NULL, *ofmt_ctx = NULL;
+    AVDictionary *opts = NULL;
+    AVPacket pkt;
+    int video_stream_idx = -1, audio_stream_idx = -1;
+    int out_v_idx = -1, out_a_idx = -1;
+    int ret = 0;
+    int64_t total_duration = 0;
+    int64_t last_dts[2] = { AV_NOPTS_VALUE, AV_NOPTS_VALUE };
+
+#ifdef __cplusplus
+    m->total_pieces.store(2);
+    m->progress.store(0.0f);
+#else
+    m->total_pieces = 2;
+    m->progress = 0.0f;
+#endif
+
+    if (m->bitfield) {
+        free(m->bitfield);
+    }
+    m->bitfield = (uint8_t*)calloc(2, 1);
+
+    if (avformat_open_input(&ifmt_ctx_v, video_path, NULL, NULL) < 0) {
+        return -2;
+    }
+    if (avformat_find_stream_info(ifmt_ctx_v, NULL) < 0) {
+        ret = -3;
+        goto cleanup;
+    }
+    if (avformat_open_input(&ifmt_ctx_a, audio_path, NULL, NULL) < 0) {
+        ret = -4;
+        goto cleanup;
+    }
+    if (avformat_find_stream_info(ifmt_ctx_a, NULL) < 0) {
+        ret = -5;
+        goto cleanup;
+    }
+    total_duration = ifmt_ctx_v->duration;
+    if (ifmt_ctx_a->duration > total_duration) {
+        total_duration = ifmt_ctx_a->duration;
+    }
+    avformat_alloc_output_context2(&ofmt_ctx, NULL, "mp4", output_path);
+    if (!ofmt_ctx) {
+        ret = -6;
+        goto cleanup;
+    }
+
+    for (unsigned int i = 0; i < ifmt_ctx_v->nb_streams; i++) {
+        if (ifmt_ctx_v->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            video_stream_idx = i;
+            AVStream *out_s = avformat_new_stream(ofmt_ctx, NULL);
+            avcodec_parameters_copy(out_s->codecpar, ifmt_ctx_v->streams[i]->codecpar);
+            out_s->codecpar->codec_tag = 0;
+            out_v_idx = out_s->index;
+            break;
+        }
+    }
+
+    for (unsigned int i = 0; i < ifmt_ctx_a->nb_streams; i++) {
+        if (ifmt_ctx_a->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            audio_stream_idx = i;
+            AVStream *out_s = avformat_new_stream(ofmt_ctx, NULL);
+            avcodec_parameters_copy(out_s->codecpar, ifmt_ctx_a->streams[i]->codecpar);
+            out_s->codecpar->codec_tag = 0;
+            out_a_idx = out_s->index;
+            break;
+        }
+    }
+
+    if (out_v_idx < 0) {
+        ret = -7;
+        goto cleanup;
+    }
+    if (out_a_idx < 0) {
+        av_log(NULL, AV_LOG_WARNING, "ffm_combine_file: no audio stream found in '%s', output will be video-only\n", audio_path);
+    }
+
+    if (!(ofmt_ctx->oformat->flags & AVFMT_NOFILE)) {
+        if (avio_open(&ofmt_ctx->pb, output_path, AVIO_FLAG_WRITE) < 0) {
+            ret = -8;
+            goto cleanup;
+        }
+    }
+    av_dict_set(&opts, "movflags", "faststart", 0);
+    ret = avformat_write_header(ofmt_ctx, &opts);
+    if (opts) {
+        av_dict_free(&opts);
+    }
+    if (ret < 0) {
+        goto cleanup;
+    }
+    while (av_read_frame(ifmt_ctx_v, &pkt) >= 0) {
+        if (pkt.stream_index == video_stream_idx) {
+            if (total_duration > 0 && pkt.pts != AV_NOPTS_VALUE) {
+                int64_t cur = av_rescale_q(pkt.pts, ifmt_ctx_v->streams[video_stream_idx]->time_base, AV_TIME_BASE_Q);
+                float p = ((float)cur / (float)total_duration) * 0.5f;
+#ifdef __cplusplus
+                m->progress.store(p);
+#else
+                m->progress = p;
+#endif
+            }
+            pkt.stream_index = out_v_idx;
+            av_packet_rescale_ts(&pkt, ifmt_ctx_v->streams[video_stream_idx]->time_base, ofmt_ctx->streams[out_v_idx]->time_base);
+            pkt.pos = -1;
+
+            if (last_dts[0] != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE &&
+                pkt.dts <= last_dts[0]) {
+                pkt.dts = last_dts[0] + 1;
+            }
+            if (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE &&
+                pkt.pts < pkt.dts) {
+                pkt.pts = pkt.dts;
+            }
+            if (pkt.dts != AV_NOPTS_VALUE) {
+                last_dts[0] = pkt.dts;
+            }
+            av_interleaved_write_frame(ofmt_ctx, &pkt);
+        }
+        av_packet_unref(&pkt);
+    }
+    m->bitfield[0] = 1;
+    if (out_a_idx >= 0 && audio_stream_idx >= 0) {
+        while (av_read_frame(ifmt_ctx_a, &pkt) >= 0) {
+            if (pkt.stream_index == audio_stream_idx) {
+                if (total_duration > 0 && pkt.pts != AV_NOPTS_VALUE) {
+                    int64_t cur = av_rescale_q(pkt.pts, ifmt_ctx_a->streams[audio_stream_idx]->time_base, AV_TIME_BASE_Q);
+                    float p = 0.5f + (((float)cur / (float)total_duration) * 0.5f);
+                    if (p > 0.99f) {
+                        p = 0.99f;
+                    }
+#ifdef __cplusplus
+                    m->progress.store(p);
+#else
+                    m->progress = p;
+#endif
+                }
+
+                pkt.stream_index = out_a_idx;
+                av_packet_rescale_ts(&pkt, ifmt_ctx_a->streams[audio_stream_idx]->time_base, ofmt_ctx->streams[out_a_idx]->time_base);
+                pkt.pos = -1;
+
+                if (last_dts[1] != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE &&
+                    pkt.dts <= last_dts[1]) {
+                    pkt.dts = last_dts[1] + 1;
+                }
+                if (pkt.pts != AV_NOPTS_VALUE && pkt.dts != AV_NOPTS_VALUE &&
+                    pkt.pts < pkt.dts) {
+                    pkt.pts = pkt.dts;
+                }
+                if (pkt.dts != AV_NOPTS_VALUE) {
+                    last_dts[1] = pkt.dts;
+                }
+                av_interleaved_write_frame(ofmt_ctx, &pkt);
+            }
+            av_packet_unref(&pkt);
+        }
+    }
+    m->bitfield[1] = 1;
+
+#ifdef __cplusplus
+    m->progress.store(1.0f);
+#else
+    m->progress = 1.0f;
+#endif
+    av_write_trailer(ofmt_ctx);
+
+cleanup:
+    if (ifmt_ctx_v) {
+        avformat_close_input(&ifmt_ctx_v);
+    }
+    if (ifmt_ctx_a) {
+        avformat_close_input(&ifmt_ctx_a);
+    }
+    if (ofmt_ctx) {
+        if (!(ofmt_ctx->oformat->flags & AVFMT_NOFILE)) {
+            avio_closep(&ofmt_ctx->pb);
+        }
+        avformat_free_context(ofmt_ctx);
+    }
+    return (ret < 0) ? ret : 0;
+}
+
+static int encode_from_fifo(AVAudioFifo *fifo, AVCodecContext *enc_ctx, AVFormatContext *ofmt_ctx, int out_idx, int64_t *pts_counter, bool flush) {
+    int frame_size = enc_ctx->frame_size > 0 ? enc_ctx->frame_size : 1024;
+
+    while (av_audio_fifo_size(fifo) >= frame_size || (flush && av_audio_fifo_size(fifo) > 0)) {
+        int read_size = (av_audio_fifo_size(fifo) < frame_size) ? av_audio_fifo_size(fifo) : frame_size;
+
+        AVFrame *enc_frame = av_frame_alloc();
+        enc_frame->nb_samples = read_size;
+        enc_frame->format = enc_ctx->sample_fmt;
+        enc_frame->sample_rate = enc_ctx->sample_rate;
+        av_channel_layout_copy(&enc_frame->ch_layout, &enc_ctx->ch_layout);
+        av_frame_get_buffer(enc_frame, 0);
+
+        av_audio_fifo_read(fifo, (void**)enc_frame->data, read_size);
+        enc_frame->pts = *pts_counter;
+        *pts_counter += read_size;
+
+        int ret = avcodec_send_frame(enc_ctx, enc_frame);
+        av_frame_free(&enc_frame);
+        if (ret < 0) {
+            return ret;
+        }
+        AVPacket *enc_pkt = av_packet_alloc();
+        while (avcodec_receive_packet(enc_ctx, enc_pkt) >= 0) {
+            enc_pkt->stream_index = out_idx;
+            av_packet_rescale_ts(enc_pkt, enc_ctx->time_base, ofmt_ctx->streams[out_idx]->time_base);
+            enc_pkt->pos = -1;
+            av_interleaved_write_frame(ofmt_ctx, enc_pkt);
+        }
+        av_packet_free(&enc_pkt);
+    }
+
+    if (flush) {
+        avcodec_send_frame(enc_ctx, NULL);
+        AVPacket *enc_pkt = av_packet_alloc();
+        while (avcodec_receive_packet(enc_ctx, enc_pkt) >= 0) {
+            enc_pkt->stream_index = out_idx;
+            av_packet_rescale_ts(enc_pkt, enc_ctx->time_base, ofmt_ctx->streams[out_idx]->time_base);
+            enc_pkt->pos = -1;
+            av_interleaved_write_frame(ofmt_ctx, enc_pkt);
+        }
+        av_packet_free(&enc_pkt);
+    }
+    return 0;
+}
+
+FFM_EXPORT int ffm_to_audio(FfmpegMerger* m, const char* input_path, const char* output_path) {
+    if (!m || !input_path || !output_path) {
+        return -1;
+    }
+    av_log_set_level(AV_LOG_ERROR);
+
+    AVFormatContext *ifmt_ctx = NULL, *ofmt_ctx  = NULL;
+    AVCodecContext *dec_ctx = NULL, *enc_ctx = NULL;
+    const AVCodec *decoder = NULL, *encoder = NULL;
+    SwrContext *swr_ctx = NULL;
+    AVAudioFifo *fifo = NULL;
+    AVPacket *pkt = NULL;
+    AVFrame *dec_frame = NULL;
+    AVFrame *swr_frame = NULL;
+    int audio_idx = -1, out_idx = -1;
+    int ret = 0;
+    int64_t pts_counter = 0;
+    bool need_transcode = false;
+
+#ifdef __cplusplus
+    m->total_pieces.store(1);
+    m->progress.store(0.0f);
+#else
+    m->total_pieces = 1;
+    m->progress = 0.0f;
+#endif
+    if (m->bitfield) {
+        free(m->bitfield);
+    }
+    m->bitfield = (uint8_t*)calloc(1, 1);
+
+    pkt = av_packet_alloc();
+    if (!pkt) {
+        return -10;
+    }
+    if ((ret = avformat_open_input(&ifmt_ctx, input_path, NULL, NULL)) < 0) {
+        av_packet_free(&pkt); return -2;
+    }
+    if ((ret = avformat_find_stream_info(ifmt_ctx, NULL)) < 0) {
+        ret = -3;
+        goto cleanup;
+    }
+
+    for (unsigned int i = 0; i < ifmt_ctx->nb_streams; i++) {
+        if (ifmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            audio_idx = (int)i; break;
+        }
+    }
+    if (audio_idx < 0) {
+        ret = -7;
+        goto cleanup;
+    }
+    avformat_alloc_output_context2(&ofmt_ctx, NULL, NULL, output_path);
+    if (!ofmt_ctx) {
+        ret = -6;
+        goto cleanup;
+    }
+
+    {
+        AVCodecID in_id  = ifmt_ctx->streams[audio_idx]->codecpar->codec_id;
+        AVCodecID out_id = ofmt_ctx->oformat->audio_codec;
+        need_transcode = (out_id == AV_CODEC_ID_NONE) || (in_id != out_id);
+    }
+
+    if (need_transcode) {
+        decoder = avcodec_find_decoder(ifmt_ctx->streams[audio_idx]->codecpar->codec_id);
+        if (!decoder) {
+            ret = -13;
+            goto cleanup;
+        }
+        dec_ctx = avcodec_alloc_context3(decoder);
+        if (!dec_ctx) {
+            ret = -14;goto cleanup;
+        }
+        avcodec_parameters_to_context(dec_ctx, ifmt_ctx->streams[audio_idx]->codecpar);
+        if (avcodec_open2(dec_ctx, decoder, NULL) < 0) {
+            ret = -15;
+            goto cleanup;
+        }
+        AVCodecID enc_codec_id = ofmt_ctx->oformat->audio_codec;
+        if (enc_codec_id == AV_CODEC_ID_NONE) {
+            enc_codec_id = AV_CODEC_ID_MP3;
+        }
+        encoder = avcodec_find_encoder(enc_codec_id);
+        if (!encoder) {
+            ret = -16;
+            goto cleanup;
+        }
+        enc_ctx = avcodec_alloc_context3(encoder);
+        if (!enc_ctx) {
+            ret = -17;
+            goto cleanup;
+        }
+
+        AVSampleFormat target_fmt = AV_SAMPLE_FMT_S16;
+        if (encoder->sample_fmts && encoder->sample_fmts[0] != AV_SAMPLE_FMT_NONE) {
+            target_fmt = encoder->sample_fmts[0];
+        }
+        int target_rate = dec_ctx->sample_rate;
+        if (encoder->supported_samplerates) {
+            int best = 0, diff = INT32_MAX;
+            for (int i = 0; encoder->supported_samplerates[i]; i++) {
+                int d = abs(encoder->supported_samplerates[i] - dec_ctx->sample_rate);
+                if (d < diff) {
+                    diff = d;
+                    best = encoder->supported_samplerates[i];
+                }
+            }
+            if (best) {
+                target_rate = best;
+            }
+        }
+
+        enc_ctx->sample_fmt = target_fmt;
+        enc_ctx->sample_rate = target_rate;
+        enc_ctx->bit_rate = 128000;
+        av_channel_layout_copy(&enc_ctx->ch_layout, &dec_ctx->ch_layout);
+        if (ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER) {
+            enc_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+        }
+        if (avcodec_open2(enc_ctx, encoder, NULL) < 0) {
+            ret = -18;
+            goto cleanup;
+        }
+
+        swr_ctx = swr_alloc();
+        if (!swr_ctx) {
+            ret = -20;
+            goto cleanup;
+        }
+        av_opt_set_chlayout (swr_ctx, "in_chlayout", &dec_ctx->ch_layout,  0);
+        av_opt_set_int (swr_ctx, "in_sample_rate", dec_ctx->sample_rate, 0);
+        av_opt_set_sample_fmt (swr_ctx, "in_sample_fmt", dec_ctx->sample_fmt,  0);
+        av_opt_set_chlayout (swr_ctx, "out_chlayout", &enc_ctx->ch_layout,  0);
+        av_opt_set_int (swr_ctx, "out_sample_rate", enc_ctx->sample_rate, 0);
+        av_opt_set_sample_fmt (swr_ctx, "out_sample_fmt", enc_ctx->sample_fmt,  0);
+        if (swr_init(swr_ctx) < 0) {
+            ret = -21; goto cleanup;
+        }
+        fifo = av_audio_fifo_alloc(enc_ctx->sample_fmt, enc_ctx->ch_layout.nb_channels, enc_ctx->frame_size > 0 ? enc_ctx->frame_size * 4 : 4096);
+        if (!fifo) {
+            ret = -22;
+            goto cleanup;
+        }
+        dec_frame = av_frame_alloc();
+        swr_frame = av_frame_alloc();
+        if (!dec_frame || !swr_frame) {
+            ret = -19;
+            goto cleanup;
+        }
+
+        AVStream *out_s = avformat_new_stream(ofmt_ctx, NULL);
+        if (!out_s) {
+            ret = -11;
+            goto cleanup;
+        }
+        avcodec_parameters_from_context(out_s->codecpar, enc_ctx);
+        out_s->codecpar->codec_tag = 0;
+        out_idx = out_s->index;
+    } else {
+        AVStream *out_s = avformat_new_stream(ofmt_ctx, NULL);
+        if (!out_s) {
+            ret = -11;
+            goto cleanup;
+        }
+        avcodec_parameters_copy(out_s->codecpar, ifmt_ctx->streams[audio_idx]->codecpar);
+        out_s->codecpar->codec_tag = 0;
+        out_idx = out_s->index;
+    }
+    if (!(ofmt_ctx->oformat->flags & AVFMT_NOFILE)) {
+        if (avio_open(&ofmt_ctx->pb, output_path, AVIO_FLAG_WRITE) < 0) {
+            ret = -8;
+            goto cleanup;
+        }
+    }
+    ret = avformat_write_header(ofmt_ctx, NULL);
+    if (ret < 0) {
+        goto cleanup;
+    }
+
+    while (av_read_frame(ifmt_ctx, pkt) >= 0) {
+        if (pkt->stream_index != audio_idx) {
+            av_packet_unref(pkt);
+            continue;
+        }
+        if (ifmt_ctx->duration > 0 && pkt->pts != AV_NOPTS_VALUE) {
+            int64_t cur = av_rescale_q(pkt->pts, ifmt_ctx->streams[audio_idx]->time_base, AV_TIME_BASE_Q);
+            float p = (float)cur / (float)ifmt_ctx->duration;
+            if (p > 0.99f) {
+                p = 0.99f;
+            }
+#ifdef __cplusplus
+            m->progress.store(p);
+#else
+            m->progress = p;
+#endif
+        }
+
+        if (need_transcode) {
+            ret = avcodec_send_packet(dec_ctx, pkt);
+            av_packet_unref(pkt);
+            if (ret < 0 && ret != AVERROR(EAGAIN)) {
+                continue;
+            }
+            while (avcodec_receive_frame(dec_ctx, dec_frame) >= 0) {
+                int out_samples = (int)av_rescale_rnd( swr_get_delay(swr_ctx, dec_ctx->sample_rate) + dec_frame->nb_samples, enc_ctx->sample_rate, dec_ctx->sample_rate, AV_ROUND_UP);
+                if (out_samples < 1) {
+                    out_samples = 1;
+                }
+                av_frame_unref(swr_frame);
+                swr_frame->format = enc_ctx->sample_fmt;
+                swr_frame->sample_rate = enc_ctx->sample_rate;
+                swr_frame->nb_samples = out_samples;
+                av_channel_layout_copy(&swr_frame->ch_layout, &enc_ctx->ch_layout);
+                av_frame_get_buffer(swr_frame, 0);
+                int converted = swr_convert(swr_ctx, swr_frame->data, out_samples, (const uint8_t**)dec_frame->data, dec_frame->nb_samples);
+                av_frame_unref(dec_frame);
+                if (converted <= 0) continue;
+                swr_frame->nb_samples = converted;
+
+                av_audio_fifo_write(fifo, (void**)swr_frame->data, converted);
+                encode_from_fifo(fifo, enc_ctx, ofmt_ctx, out_idx, &pts_counter, false);
+            }
+        } else {
+            pkt->stream_index = out_idx;
+            av_packet_rescale_ts(pkt, ifmt_ctx->streams[audio_idx]->time_base, ofmt_ctx->streams[out_idx]->time_base);
+            pkt->pos = -1;
+            ret = av_interleaved_write_frame(ofmt_ctx, pkt);
+            av_packet_unref(pkt);
+            if (ret < 0) {
+                break;
+            }
+        }
+    }
+    if (need_transcode) {
+        {
+            int delay = (int)swr_get_delay(swr_ctx, dec_ctx->sample_rate);
+            if (delay > 0) {
+                int out_samples = (int)av_rescale_rnd(delay, enc_ctx->sample_rate, dec_ctx->sample_rate, AV_ROUND_UP);
+                av_frame_unref(swr_frame);
+                swr_frame->format = enc_ctx->sample_fmt;
+                swr_frame->sample_rate = enc_ctx->sample_rate;
+                swr_frame->nb_samples = out_samples;
+                av_channel_layout_copy(&swr_frame->ch_layout, &enc_ctx->ch_layout);
+                av_frame_get_buffer(swr_frame, 0);
+                int converted = swr_convert(swr_ctx, swr_frame->data, out_samples, NULL, 0);
+                if (converted > 0) {
+                    swr_frame->nb_samples = converted;
+                    av_audio_fifo_write(fifo, (void**)swr_frame->data, converted);
+                }
+            }
+        }
+        encode_from_fifo(fifo, enc_ctx, ofmt_ctx, out_idx, &pts_counter, true);
+    }
+
+    av_write_trailer(ofmt_ctx);
+    m->bitfield[0] = 1;
+#ifdef __cplusplus
+    m->progress.store(1.0f);
+#else
+    m->progress = 1.0f;
+#endif
+    ret = 0;
+
+cleanup:
+    if (fifo) {
+        av_audio_fifo_free(fifo);
+    }
+    if (swr_ctx) {
+        swr_free(&swr_ctx);
+    }
+    if (dec_frame) {
+        av_frame_free(&dec_frame);
+    }
+    if (swr_frame) {
+        av_frame_free(&swr_frame);
+    }
+    if (pkt) {
+        av_packet_free(&pkt);
+    }
+    if (dec_ctx) {
+        avcodec_free_context(&dec_ctx);
+    }
+    if (enc_ctx) {
+        avcodec_free_context(&enc_ctx);
+    }
+    if (ifmt_ctx) {
+        avformat_close_input(&ifmt_ctx);
+    }
+    if (ofmt_ctx) {
+        if (!(ofmt_ctx->oformat->flags & AVFMT_NOFILE)) {
+            avio_closep(&ofmt_ctx->pb);
+        }
+        avformat_free_context(ofmt_ctx);
+    }
+    return (ret < 0) ? ret : 0;
 }
 
 FFM_EXPORT int ffm_merge_files(FfmpegMerger* m, const char **paths, int count, const char *output_path) {

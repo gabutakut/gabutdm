@@ -104,6 +104,7 @@ namespace Gabut {
             };
             row.append (filesizelabel);
             rmdlimg = new Gtk.Image () {
+                halign = Gtk.Align.END,
                 valign = Gtk.Align.CENTER
             };
             row.append (rmdlimg);

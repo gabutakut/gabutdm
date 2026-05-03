@@ -22,6 +22,8 @@ dependencies = [
     dependency ('libavcodec'),
     dependency ('libavutil'),
     dependency ('libaria2'),
+    dependency ('libswscale'),
+    dependency ('libswresample'),
     meson.get_compiler ('vala').find_library ('aria2_wrapper', dirs: vapi),
     meson.get_compiler ('vala').find_library ('ffmpeg_merger', dirs: vapi),
     meson.get_compiler ('c').find_library ('m'),
@@ -31,4 +33,5 @@ dependencies = [
 subdir ('src')
 subdir ('data')
 subdir ('po')
+
 meson.add_install_script ('meson/post_install.py')

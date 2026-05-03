@@ -143,9 +143,12 @@ namespace Gabut {
             header_grid.attach (primarylabel, 1, 0, 1, 1);
             header_grid.attach (filebtn, 1, 1, 1, 1);
 
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.title_widget = header_grid;
-            header.decoration_layout = "none";
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = header_grid
+            };
+            set_titlebar (header);
 
             move_file = new Gtk.Button.with_label (_("Trash")) {
                 width_request = 120,
@@ -179,12 +182,16 @@ namespace Gabut {
                 margin_bottom = 10
             };
             centerbox.set_end_widget (box_action);
-            unowned Gtk.Box area = this.get_content_area ();
-            area.margin_start = 10;
-            area.margin_end = 10;
-            area.halign = Gtk.Align.CENTER;
-            area.append (revtrash);
-            area.append (centerbox);
+
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_start = 10,
+                margin_end = 10,
+                halign = Gtk.Align.CENTER
+            };
+            boxarea.append (revtrash);
+            boxarea.append (centerbox);
+            set_child (boxarea);
+
             move_window (this, revtrash);
         }
 

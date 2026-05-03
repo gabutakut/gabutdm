@@ -75,7 +75,8 @@ namespace Gabut {
         HLSPARALLELCON = 51,
         HLSACTIVE = 52,
         HLSTIMEOUT = 53,
-        HLSRETRIES = 54;
+        HLSRETRIES = 54,
+        GABUTYTB = 55;
 
         public string to_string () {
             switch (this) {
@@ -187,6 +188,8 @@ namespace Gabut {
                     return "hlstimeout";
                 case HLSRETRIES:
                     return "hlsretries";
+                case GABUTYTB:
+                    return "gabutytb";
                 default:
                     return "id";
             }
@@ -286,7 +289,10 @@ namespace Gabut {
         TORRENT = 1,
         URL = 2,
         MAGNETLINK = 3,
-        HLS = 4
+        HLS = 4,
+        YTBAUDIO = 5,
+        YTBMP4 = 6,
+        YTBWEBM = 7
     }
 
     private enum StatusMode {
@@ -1590,6 +1596,7 @@ namespace Gabut {
         ADDTR,
         ADDHLS,
         ADDMAGNET,
+        YTDLP,
         PROPERTY
     }
 
@@ -1636,6 +1643,55 @@ namespace Gabut {
         DONE
     }
 
+    public enum SplashMode {
+        DEFAULT,
+        PROCESSING,
+        SETTING,
+        LOCAL_SERVER,
+        OPEN_FILE,
+        INSERT_LINK,
+        HLS_PROCESSING,
+        START,
+        STOP,
+        START_ALL,
+        STOP_ALL,
+        DIALOG_PROGRESS,
+        CLIPBOARD,
+        PROPERTIES
+    }
+
+    public enum GabutMode {
+        DEFAULT,
+        PROCESSING,
+        SETTING,
+        LOCAL_SERVER,
+        OPEN_FILE,
+        INSERT_LINK,
+        HLS_PROCESSING,
+        START,
+        STOP,
+        START_ALL,
+        STOP_ALL,
+        DIALOG_PROGRESS,
+        SEARCH_FILE,
+        MOVE_TRASH,
+        CLEAR_FILE,
+        FOLDER_LOCATION,
+        PROPERTIES
+    }
+
+    private struct RocketDef {
+        double xo;
+        double phase_off;
+        double scale;
+    }
+
+    private struct LandDef {
+        double xo;
+        double phase_off;
+        double scale;
+    }
+
     private SourceFunc ariacll;
     private Sqlite.Database? gabutdb;
     private Aria2.Engine? engine;
@@ -1646,6 +1702,7 @@ namespace Gabut {
     private int hlsparallel_active;
     private int hls_timeout;
     private int hls_max_retries;
+    private int gbtytbport;
 
     private void menuglobal () {
         cliboardmenu = bool.parse (get_dbsetting (Gabut.DBSettings.CLIPBOARD));
@@ -1654,6 +1711,7 @@ namespace Gabut {
         hls_timeout = int.parse (get_dbsetting (Gabut.DBSettings.HLSTIMEOUT));
         hls_max_retries = int.parse (get_dbsetting (Gabut.DBSettings.HLSRETRIES));
         serverdir = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
+        gbtytbport = int.parse (get_dbsetting (DBSettings.GABUTYTB));
     }
 
     private void setjsonrpchost () {
@@ -2516,6 +2574,142 @@ namespace Gabut {
         return ngettext ("approximately %'d hour", "approximately %'d hours  left", hours).printf (hours);
     }
 
+    private static string seconds_to_time (int seconds, bool need = true) {
+        int sign = 1;
+        if (seconds < 0 && need) {
+            seconds = -seconds;
+            sign = -1;
+        }
+        int hours = seconds / 3600;
+        int min = (seconds % 3600) / 60;
+        int sec = (seconds % 60);
+        if (hours > 0 || !need) {
+            return ("%u:%02u:%02u".printf (sign * hours, min, sec));
+        } else {
+            return ("%02u:%02u".printf (sign * min, sec));
+        }
+    }
+
+    public bool ping_gabutytb (string url) {
+        var root_obj = new Json.Object ();
+        root_obj.set_string_member ("jsonrpc", "2.0");
+        root_obj.set_string_member ("method", "ping");
+        var p = new Json.Object ();
+        p.set_string_member ("url", url);
+        root_obj.set_object_member ("params", p);
+        root_obj.set_int_member ("id", 1);
+        var node = new Json.Node (Json.NodeType.OBJECT);
+        node.set_object (root_obj);
+        var gen = new Json.Generator ();
+        gen.set_root (node);
+        string body = gen.to_data (null);
+        try {
+            var session = new Soup.Session ();
+            var msg = new Soup.Message ("POST", @"http://localhost:$(gbtytbport)");
+            msg.request_headers.set_content_type ("application/json", null);
+            msg.set_request_body_from_bytes ("application/json", new Bytes (body.data));
+            var response = session.send_and_read (msg, null);
+            if (msg.status_code != 200) {
+                return false;
+            }
+            var parser = new Json.Parser ();
+            parser.load_from_data ((string) response.get_data ());
+            var resp_obj = parser.get_root ().get_object ();
+            if (resp_obj.has_member ("error")) {
+                return false;
+            }
+            if (resp_obj.has_member ("result") && resp_obj.get_string_member ("result") == "available") {
+                return true;
+            }
+            return false;
+        } catch (Error e) {
+            return false;
+        }
+    }
+
+    private string resolution_label (int width, int height) {
+        int res = int.max (width, height);
+        if (res >= 7680) {
+            return "8K";
+        }
+        if (res >= 3840) {
+            return "4K";
+        }
+        if (res >= 2560) {
+            return "2K / QHD";
+        }
+        if (res >= 1920) {
+            return "FHD";
+        }
+        if (res >= 1280) {
+            return "HD";
+        }
+        if (res >= 854) {
+            return "SD";
+        }
+        if (res >= 640) {
+            return "nHD";
+        }
+        return "Low";
+    }
+
+    private Gtk.SignalListItemFactory factory_drpd () {
+        var factory = new Gtk.SignalListItemFactory();
+        factory.setup.connect((obj)=> {
+            var item = obj as Gtk.ListItem;
+            var tabs = new Pango.TabArray (1, true);
+            tabs.set_tab (0, Pango.TabAlign.RIGHT, 350);
+            var label = new Gtk.Label (null) {
+                halign = Gtk.Align.START,
+                hexpand = true,
+                xalign = 0,
+                tabs = tabs
+            };
+            item.child = label;
+        });
+        factory.bind.connect((obj)=> {
+            var item = obj as Gtk.ListItem;
+            var label = item.child as Gtk.Label;
+            var str_obj = item.item as FormatItem;
+            if (str_obj != null) {
+                label.label = str_obj.label;
+                if (!item.selected) {
+                    label.attributes = set_attribute (Pango.Weight.SEMIBOLD);
+                } else {
+                    label.attributes = color_attribute (0, 60000, 0);
+                }
+            }
+        });
+        return factory;
+    }
+
+    private Gtk.SignalListItemFactory facto_drpd () {
+        var factory = new Gtk.SignalListItemFactory();
+        factory.setup.connect((obj) => {
+            var item = obj as Gtk.ListItem;
+            var label = new Gtk.Label (null) {
+                halign = Gtk.Align.CENTER,
+                hexpand = true,
+                xalign = 0,
+            };
+            item.child = label;
+        });
+        factory.bind.connect((obj) => {
+            var item = obj as Gtk.ListItem;
+            var label = item.child as Gtk.Label;
+            var str_obj = item.item as Gtk.StringObject;
+            if (str_obj != null) {
+                label.label = str_obj.string;
+                if (!item.selected) {
+                    label.attributes = set_attribute (Pango.Weight.SEMIBOLD);
+                } else {
+                    label.attributes = color_attribute (0, 60000, 0);
+                }
+            }
+        });
+        return factory;
+    }
+
     private string info_succes (string data, InfoSucces succes) {
         return data.split ("<gabut>")[succes];
     }
@@ -2660,7 +2854,27 @@ namespace Gabut {
         return message;
     }
 
-    private string? ext_filename (string uri) {
+    private string? mp4_filename (string uri) {
+        return no_ext (uri) + ".mp4";
+    }
+
+    private string? mp3_filename (string uri) {
+        return no_ext (uri) + ".mp3";
+    }
+
+    private string? m4a_filename (string uri) {
+        return no_ext (uri) + ".m4a";
+    }
+
+    private string? webm_filename (string uri) {
+        return no_ext (uri) + ".webm";
+    }
+
+    private string? opus_filename (string uri) {
+        return no_ext (uri) + ".opus";
+    }
+
+    private string? no_ext (string uri) {
         string without_ext;
         int last_dot = uri.last_index_of (".", 0);
         int last_slash = uri.last_index_of ("/", 0);
@@ -2669,7 +2883,7 @@ namespace Gabut {
         } else {
             without_ext = uri.slice (0, last_dot);
         }
-        return without_ext + ".mp4";
+        return without_ext;
     }
 
     private void notify_app (string message, string msg_bd, GLib.Icon iconimg) {
@@ -3379,13 +3593,14 @@ namespace Gabut {
             hlsparallelcon TEXT    NOT NULL,
             hlsactive      TEXT    NOT NULL,
             hlstimeout     TEXT    NOT NULL,
-            hlsretries     TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, lastclipboard, optimizedow, hlsparallelcon, hlsactive, hlstimeout, hlsretries)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\", \"false\", \"4\", \"1\", \"2000\", \"2\");");
+            hlsretries     TEXT    NOT NULL,
+            gabutytb       TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, lastclipboard, optimizedow, hlsparallelcon, hlsactive, hlstimeout, hlsretries, gabutytb)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\", \"false\", \"4\", \"1\", \"2000\", \"2\", \"3030\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.HLSRETRIES) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.GABUTYTB) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }
@@ -4480,10 +4695,14 @@ namespace Gabut {
         return false;
     }
 
-    private Pango.AttrList set_attribute (Pango.Weight weight, double scale = 0) {
+    private Pango.AttrList set_attribute (Pango.Weight weight, double scale = 0, bool bgr = false) {
         Pango.AttrList attrlist = new Pango.AttrList ();
         if (scale != 0) {
             attrlist.insert (Pango.attr_scale_new (scale));
+        }
+        if (bgr) {
+            attrlist.insert (Pango.attr_foreground_new (60000, 60000, 60000));
+            attrlist.insert (Pango.attr_background_new (0, 0, 0));
         }
         attrlist.insert (Pango.attr_weight_new (weight));
         return attrlist;

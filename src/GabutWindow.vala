@@ -24,11 +24,15 @@ namespace Gabut {
         public signal void send_file (string url);
         public signal void stop_server ();
         public signal void restart_server ();
-        public signal void open_show ();
+        public signal void open_window ();
+        public signal void open_settings ();
+        public signal void open_qrserver ();
+        public signal void open_tfiles (string dict, string title, SplashMode mode = SplashMode.OPEN_FILE);
         public signal bool active_downloader (string ariagid);
         public signal void update_agid (string ariagid, string newgid);
         public signal string get_host ();
         public Gtk.ListBox list_box;
+        private SplashScreen? spalshsc = null;
         private Preferences preferences;
         private QrCode qrcode;
         private ModeButton view_mode;
@@ -44,6 +48,7 @@ namespace Gabut {
         private Gee.ArrayList<AddUrl> linkproperty;
         private Gee.ArrayList<AddTorrent> torrproperty;
         private Gee.ArrayList<AddHls> hlsproperty;
+        private Gee.ArrayList<AddYtdlp> ytbproperty;
         private Gtk.Stack headerstack;
         private Gtk.SearchEntry search_entry;
         private Gtk.CheckButton showtime;
@@ -130,19 +135,17 @@ namespace Gabut {
             openmenu.property_set (MenuItem.LABEL.to_string (), _("Gabut Download Manager"));
             openmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm");
             openmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
-            openmenu.item_activated.connect (()=> open_show ());
+            openmenu.item_activated.connect (()=> open_window ());
             var urlmenu = new DBusMenu.DbusmenuItem ();
             urlmenu.property_set (MenuItem.LABEL.to_string (), _("Add Url/Magnet"));
             urlmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.uri");
             urlmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
-            urlmenu.item_activated.connect (()=> {
-                add_url ("com.github.gabutakut.gabutdm.insertlink");
-            });
+            urlmenu.item_activated.connect (splash_insert);
             var hlsmenu = new DBusMenu.DbusmenuItem ();
             hlsmenu.property_set (MenuItem.LABEL.to_string (), _("Add HLS"));
             hlsmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.hls");
             hlsmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
-            hlsmenu.item_activated.connect (add_hls);
+            hlsmenu.item_activated.connect (splash_hls);
             var opentormenu = new DBusMenu.DbusmenuItem ();
             opentormenu.property_set (MenuItem.LABEL.to_string (), _("Open Torrent"));
             opentormenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.torrent");
@@ -153,16 +156,10 @@ namespace Gabut {
                         GLib.File[] files = run_open_file.end (res);
                         string paths = "";
                         foreach (var file in files) {
-                            if (paths == "") {
-                                paths += file.get_path ();
-                            } else {
-                                paths += file.get_path () + "\n";
-                            }
+                            paths += file.get_path () + "\n";
                         }
                         if (paths != "") {
-                            gbt_screen.on_drop (paths, (uris)=> {
-                                open_list (uris);
-                            });
+                            open_tfiles (paths.strip (), _("Opening torrent…"));
                         }
                     } catch (GLib.Error e) {
                         critical (e.message);
@@ -173,22 +170,22 @@ namespace Gabut {
             setmenu.property_set (MenuItem.LABEL.to_string (), _("Settings"));
             setmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.settings");
             setmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
-            setmenu.item_activated.connect (menuprefernces);
+            setmenu.item_activated.connect (()=> open_settings ());
             var startmenu = new DBusMenu.DbusmenuItem();
             startmenu.property_set (MenuItem.LABEL.to_string (), _("Start All"));
             startmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.active");
             startmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
-            startmenu.item_activated.connect (start_all);
+            startmenu.item_activated.connect (db_startall);
             var pausemenu = new DBusMenu.DbusmenuItem ();
             pausemenu.property_set (MenuItem.LABEL.to_string (), _("Pause All"));
             pausemenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.pause");
             pausemenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
-            pausemenu.item_activated.connect (stop_all);
+            pausemenu.item_activated.connect (db_stopall);
             var qrmenu = new DBusMenu.DbusmenuItem ();
             qrmenu.property_set (MenuItem.LABEL.to_string (), _("Remote"));
             qrmenu.property_set (MenuItem.ICON_NAME.to_string (), "com.github.gabutakut.gabutdm.gohome");
             qrmenu.property_set_bool (MenuItem.VISIBLE.to_string (), true);
-            qrmenu.item_activated.connect (qrmenuopen);
+            qrmenu.item_activated.connect (()=> open_qrserver ());
             menudbus.append_dbus (openmenu);
             menudbus.append_dbus (urlmenu);
             menudbus.append_dbus (hlsmenu);
@@ -382,9 +379,24 @@ namespace Gabut {
             });
             drop_target.drop.connect ((val, x, y) => {
                 var urlist = val.get_string ().strip ();
-                gbt_screen.on_drop (urlist, (urlists)=> {
-                    open_list (urlists);
-                });
+                bool gabutytb = ping_gabutytb (urlist);
+                if (gabutytb) {
+                    gbt_screen.mode = GabutMode.PROCESSING;
+                    gbt_screen.on_ytdlp (urlist, (uris)=> {
+                        var addytdlp = new AddYtdlp () {
+                            transient_for = this,
+                            visible = true
+                        };
+                        addytdlp.url_entry.text = uris;
+                        addytdlp.refer_entry.text = uris;
+                        addytdlp.downloadfile.connect (add_url_box);
+                    });
+                } else {
+                    gbt_screen.mode = GabutMode.OPEN_FILE;
+                    gbt_screen.on_drop (urlist, (urlists)=> {
+                        open_list (urlists);
+                    });
+                }
                 return Gdk.EVENT_PROPAGATE;
             });
             child = overlay;
@@ -400,7 +412,7 @@ namespace Gabut {
                 var uris = urlist.split ("\n");
                 int xs = 0;
                 var lent = uris.length;
-                GLib.Timeout.add (300, () => {
+                GLib.Timeout.add (150, () => {
                     var uri = uris[xs];
                     xs++;
                     send_file (uri);
@@ -424,6 +436,76 @@ namespace Gabut {
             while (child != null) {
                 traverse_widget (child);
                 child = child.get_next_sibling ();
+            }
+        }
+
+        private void splash_hls () {
+            if (spalshsc == null) {
+                spalshsc = new SplashScreen (application) {
+                    mode = SplashMode.HLS_PROCESSING,
+                    visible = true,
+                    title_text = _("Gabut Add HLS")
+                };
+                spalshsc.status_text = _("Opening Window…");
+                spalshsc.preparing.connect (()=> {
+                    spalshsc.status_dm (_("Done…"));
+                });
+                spalshsc.close_request.connect (()=> {
+                    add_hls ();
+                    spalshsc = null;
+                    return GLib.Source.REMOVE;
+                });
+            }
+        }
+
+        private void splash_insert () {
+            if (spalshsc == null) {
+                spalshsc = new SplashScreen (application) {
+                    mode = SplashMode.INSERT_LINK,
+                    visible = true,
+                    title_text = _("Gabut Add Url / Magnet")
+                };
+                spalshsc.status_text = _("Opening Window…");
+                spalshsc.preparing.connect (()=> {
+                    spalshsc.status_dm (_("Done…"));
+                });
+                spalshsc.close_request.connect (()=> {
+                    add_url ("com.github.gabutakut.gabutdm.insertlink");
+                    spalshsc = null;
+                    return GLib.Source.REMOVE;
+                });
+            }
+        }
+
+        private void db_stopall () {
+            if (spalshsc == null) {
+                spalshsc = new SplashScreen (application) {
+                    mode = SplashMode.STOP_ALL,
+                    visible = true,
+                    title_text = _("Gabut Stop Download")
+                };
+                spalshsc.status_text = _("Stoping…");
+                spalshsc.preparing.connect (stoping_dm);
+                spalshsc.close_request.connect (()=> {
+                    spalshsc = null;
+                    return GLib.Source.REMOVE;
+                });
+            }
+        }
+
+        private void db_startall () {
+            if (spalshsc == null) {
+                spalshsc = new SplashScreen (application) {
+                    mode = SplashMode.START_ALL,
+                    visible = true,
+                    title_text = _("Gabut Start Download")
+                };
+                spalshsc.status_text = _("Starting…");
+                spalshsc.preparing.connect (starting_dm);
+                spalshsc.close_request.connect (()=> {
+                    spalshsc = null;
+                    return GLib.Source.REMOVE;
+                });
             }
         }
 
@@ -456,12 +538,12 @@ namespace Gabut {
 
         public async void regunreg_idmenu () throws GLib.Error {
             if (indmenu && dbmenu) {
-                yield dbusindicator.register();
+                yield dbusindicator.register ();
                 dbusindicator.set_status ("Active");
                 dbusindicator.set_icon_name ("com.github.gabutakut.gabutdm");
             } else {
                 dbusindicator.set_status ("Passive");
-                yield dbusindicator.unregister();
+                yield dbusindicator.unregister ();
             }
         }
 
@@ -481,25 +563,19 @@ namespace Gabut {
                     maximize ();
                 }
             } else if (ctrl_pressed && match_keycode (Gdk.Key.q, keycode)) {
+                gbt_screen.mode = GabutMode.PROCESSING;
                 gbt_screen.processing_dl (_("Quit…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         close ();
                     });
                 });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.p, keycode)) {
-                gbt_screen.processing_dl (_("Preferences…") ,()=>{
-                    gbt_screen.sts_finish (()=> {
-                        menuprefernces ();
-                    });
-                });
+                menuprefernces ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.h, keycode)) {
-                gbt_screen.processing_dl (_("Qr Address…") ,()=>{
-                    gbt_screen.sts_finish (()=> {
-                        qrmenuopen ();
-                    });
-                });
+                qrmenuopen ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.s, keycode)) {
                 if (headerstack.visible_child_name != "search") {
+                    gbt_screen.mode = GabutMode.SEARCH_FILE;
                     gbt_screen.processing_dl (_("Search…") ,()=>{
                         gbt_screen.sts_finish (()=> {
                             searchf ();
@@ -511,16 +587,19 @@ namespace Gabut {
                 if (rows.length () < 1) {
                     return false;
                 }
+                gbt_screen.mode = GabutMode.PROPERTIES;
                 gbt_screen.processing_dl (_("Properties…"), ()=> {
                     gbt_screen.sts_finish (()=> {
                         foreach (var row in list_box.get_selected_rows ()) {
                             var rws = (DownloadRow) row;
-                            if (rws.linkmode == LinkMode.URL || rws.linkmode == LinkMode.MAGNETLINK) {
-                                urlprop (rws);
-                            } else if (rws.linkmode == LinkMode.HLS){
-                                hlsprop (rws);
-                            } else {
+                            if (rws.linkmode == LinkMode.TORRENT || rws.linkmode == LinkMode.METALINK) {
                                 torrprop (rws);
+                            } else if (rws.linkmode == LinkMode.HLS) {
+                                hlsprop (rws);
+                            } else if (rws.linkmode == LinkMode.YTBWEBM || rws.linkmode == LinkMode.YTBMP4) {
+                                ytbprop (rws);
+                            } else {
+                                urlprop (rws);
                             }
                         }
                     });
@@ -530,6 +609,7 @@ namespace Gabut {
             } else if (ctrl_pressed && match_keycode (Gdk.Key.x, keycode)) {
                 stop_all ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.y, keycode)) {
+                gbt_screen.mode = GabutMode.HLS_PROCESSING;
                 gbt_screen.processing_dl (_("Add HLS/M3U8…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         add_hls ();
@@ -538,6 +618,7 @@ namespace Gabut {
             } else if (ctrl_pressed && match_keycode (Gdk.Key.a, keycode)) {
                 list_box.select_all ();
             } else if (ctrl_pressed && match_keycode (Gdk.Key.u, keycode)) {
+                gbt_screen.mode = GabutMode.INSERT_LINK;
                 gbt_screen.processing_dl (_("Insert Link…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         add_url ("com.github.gabutakut.gabutdm.insertlink");
@@ -548,6 +629,7 @@ namespace Gabut {
                 if (rows.length () < 1) {
                     return false;
                 }
+                gbt_screen.mode = GabutMode.DIALOG_PROGRESS;
                 gbt_screen.processing_dl (_("Open Progress…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         foreach (var row in list_box.get_selected_rows ()) {
@@ -560,6 +642,7 @@ namespace Gabut {
                 if (rows.length () < 1) {
                     return false;
                 }
+                gbt_screen.mode = GabutMode.START;
                 gbt_screen.processing_dl (_("Start / Stop…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         foreach (var row in list_box.get_selected_rows ()) {
@@ -572,6 +655,7 @@ namespace Gabut {
                 if (rows.length () < 1) {
                     return false;
                 }
+                gbt_screen.mode = GabutMode.FOLDER_LOCATION;
                 gbt_screen.processing_dl (_("Open Location…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         foreach (var row in list_box.get_selected_rows ()) {
@@ -584,12 +668,14 @@ namespace Gabut {
                 if (rows.length () < 1) {
                     return false;
                 }
-                gbt_screen.processing_dl (_("Delete…") ,()=>{
+                gbt_screen.mode = GabutMode.CLEAR_FILE;
+                gbt_screen.processing_dl (_("Clear…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         remove_delete (false);
                     });
                 });
             } else if (ctrl_pressed && match_keycode (Gdk.Key.i, keycode)) {
+                gbt_screen.mode = GabutMode.OPEN_FILE;
                 gbt_screen.processing_dl (_("Open Torrent…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
@@ -597,14 +683,11 @@ namespace Gabut {
                                 GLib.File[] files = run_open_file.end (res);
                                 string paths = "";
                                 foreach (var file in files) {
-                                    if (paths == "") {
-                                        paths += file.get_path ();
-                                    } else {
-                                        paths += file.get_path () + "\n";
-                                    }
+                                    paths += file.get_path () + "\n";
                                 }
                                 if (paths != "") {
-                                    gbt_screen.on_drop (paths, (uris)=> {
+                                    gbt_screen.mode = GabutMode.OPEN_FILE;
+                                    gbt_screen.on_drop (paths.strip (), (uris)=> {
                                         open_list (uris);
                                     });
                                 }
@@ -617,8 +700,10 @@ namespace Gabut {
             }
             switch (keyval) {
                 case Gdk.Key.Escape:
+                    key_anim.trigger (keyval, state);
                     list_box.unselect_all ();
                     if (headerstack.visible_child_name == "search") {
+                        gbt_screen.mode = GabutMode.PROCESSING;
                         gbt_screen.processing_dl (_("Back to Home…") ,()=>{
                             gbt_screen.sts_finish (()=> {
                                 searchf ();
@@ -627,10 +712,12 @@ namespace Gabut {
                     }
                     break;
                 case Gdk.Key.Delete:
+                    key_anim.trigger (keyval, state);
                     var rows = list_box.get_selected_rows ();
                     if (rows.length () < 1) {
                         return false;
                     }
+                    gbt_screen.mode = GabutMode.MOVE_TRASH;
                     gbt_screen.processing_dl (_("Remove…") ,()=>{
                         gbt_screen.sts_finish (()=> {
                             remove_delete ();
@@ -670,6 +757,7 @@ namespace Gabut {
                 });
                 delete_dialog.close_request.connect (()=> {
                     if (removed) {
+                        gbt_screen.mode = deletef? GabutMode.MOVE_TRASH : GabutMode.CLEAR_FILE ;
                         gbt_screen.processing_dl (("Processing…"), ()=>{
                             removing = true;
                             int totaldx = hashrow.size;
@@ -722,13 +810,7 @@ namespace Gabut {
                 tooltip_text = _("Settings\nCTRL + P")
             };
             headerbar.pack_end (menu_button);
-            menu_button.clicked.connect (()=> {
-                gbt_screen.processing_dl (_("Preferences…") ,()=>{
-                    gbt_screen.sts_finish (()=> {
-                        menuprefernces ();
-                    });
-                });
-            });
+            menu_button.clicked.connect (menuprefernces);
 
             var search_button = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.find") {
                 has_frame = false,
@@ -736,7 +818,8 @@ namespace Gabut {
             };
             headerbar.pack_end (search_button);
             search_button.clicked.connect (()=> {
-                gbt_screen.processing_dl (_("Back to Home…") ,()=>{
+                gbt_screen.mode = headerstack.visible_child_name == "mode"? GabutMode.SEARCH_FILE : GabutMode.PROCESSING;
+                gbt_screen.processing_dl (search_button.tooltip_text.replace ("\n", " ") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         searchf ();
                     });
@@ -758,13 +841,7 @@ namespace Gabut {
                 tooltip_text = _("Remote\nCTRL + H")
             };
             headerbar.pack_end (host_button);
-            host_button.clicked.connect (()=> {
-                gbt_screen.processing_dl (_("Qr Address…") ,()=>{
-                    gbt_screen.sts_finish (()=> {
-                        qrmenuopen ();
-                    });
-                });
-            });
+            host_button.clicked.connect (qrmenuopen);
             var add_open = new Gtk.MenuButton () {
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.insertlink"),
                 direction = Gtk.ArrowType.UP,
@@ -814,6 +891,7 @@ namespace Gabut {
                 if (rows.length () < 1) {
                     return;
                 }
+                gbt_screen.mode = GabutMode.CLEAR_FILE;
                 gbt_screen.processing_dl (_("Delete…") ,()=>{
                     gbt_screen.sts_finish (()=> {
                         remove_delete (false);
@@ -848,28 +926,27 @@ namespace Gabut {
                 var add_open = openmn as OpenMenu;
                 switch (add_open.openmn) {
                     case OpenMenus.ADDHLS:
-                        gbt_screen.processing_dl (_("Add HLS/M3U8…") ,()=>{
+                        gbt_screen.mode = GabutMode.HLS_PROCESSING;
+                        gbt_screen.processing_dl (_("Add HLS/M3U8…"), ()=>{
                             gbt_screen.sts_finish (()=> {
                                 add_hls ();
                             });
                         });
                         break;
                     case OpenMenus.OPENMN:
-                        gbt_screen.processing_dl (_("Open Torrent…") ,()=>{
-                            gbt_screen.sts_finish (()=> {
+                        gbt_screen.mode = GabutMode.OPEN_FILE;
+                        gbt_screen.processing_dl (_("Open Torrent…"), ()=>{
+                            gbt_screen.sts_finish (()=>{
                                 run_open_file.begin (this, OpenFiles.OPENFILES, (obj, res)=> {
                                     try {
                                         GLib.File[] files = run_open_file.end (res);
                                         string paths = "";
                                         foreach (var file in files) {
-                                            if (paths == "") {
-                                                paths += file.get_path ();
-                                            } else {
-                                                paths += file.get_path () + "\n";
-                                            }
+                                            paths += file.get_path () + "\n";
                                         }
                                         if (paths != "") {
-                                            gbt_screen.on_drop (paths, (path)=> {
+                                            gbt_screen.mode = GabutMode.OPEN_FILE;
+                                            gbt_screen.on_drop (paths.strip (), (path)=> {
                                                 open_list (path);
                                             });
                                         }
@@ -881,13 +958,15 @@ namespace Gabut {
                         });
                         break;
                     case OpenMenus.ADDMAGNET:
-                        gbt_screen.processing_dl (_("Insert Link…") ,()=>{
+                        gbt_screen.mode = GabutMode.INSERT_LINK;
+                        gbt_screen.processing_dl (_("Add Magnet…") ,()=>{
                             gbt_screen.sts_finish (()=> {
                                 add_url ("com.github.gabutakut.gabutdm.magnet");
                             });
                         });
                         break;
                     default:
+                        gbt_screen.mode = GabutMode.INSERT_LINK;
                         gbt_screen.processing_dl (_("Insert Link…") ,()=>{
                             gbt_screen.sts_finish (()=> {
                                 add_url ("list-add");
@@ -928,6 +1007,17 @@ namespace Gabut {
 
         private void qrmenuopen () {
             if (qrcode == null) {
+                gbt_screen.mode = GabutMode.LOCAL_SERVER;
+                gbt_screen.processing_dl (_("Qr Address…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        menu_openqr ();
+                    });
+                });
+            }
+        }
+
+        public void menu_openqr () {
+            if (qrcode == null) {
                 qrcode = new QrCode () {
                     transient_for = this
                 };
@@ -947,6 +1037,17 @@ namespace Gabut {
         }
 
         private void menuprefernces () {
+            if (preferences == null) {
+                gbt_screen.mode = GabutMode.SETTING;
+                gbt_screen.processing_dl (_("Preferences…") ,()=>{
+                    gbt_screen.sts_finish (()=> {
+                        menupref ();
+                    });
+                });
+            }
+        }
+
+        public void menupref () {
             if (preferences == null) {
                 preferences = new Preferences () {
                     transient_for = this
@@ -1000,6 +1101,7 @@ namespace Gabut {
             linkproperty = new Gee.ArrayList<AddUrl> ();
             torrproperty = new Gee.ArrayList<AddTorrent> ();
             hlsproperty = new Gee.ArrayList<AddHls> ();
+            ytbproperty = new Gee.ArrayList<AddYtdlp> ();
             list_box.selected_rows_changed.connect (()=> {
                 if (list_box.get_selected_rows ().length () > 0) {
                     property_button.popover = get_menuprop ();
@@ -1037,7 +1139,7 @@ namespace Gabut {
             var urisel_popover = new Gtk.Popover () {
                 child = downloadmn
             };
-            urisel_popover.show.connect (() => {
+            urisel_popover.show.connect (()=> {
                 downloadmn.unselect_all ();
             });
             downloadmn.child_activated.connect ((dmmenu)=> {
@@ -1045,7 +1147,8 @@ namespace Gabut {
                 var gdmmenu = dmmenu as GdmMenu;
                 switch (gdmmenu.downloadmenu) {
                     case DownloadMenu.OPENFOLDER:
-                        gbt_screen.processing_dl (_("Open Location…") ,()=>{
+                        gbt_screen.mode = GabutMode.FOLDER_LOCATION;
+                        gbt_screen.processing_dl (_("Open Location…"), ()=>{
                             gbt_screen.sts_finish (()=> {
                                 foreach (var row in list_box.get_selected_rows ()) {
                                     ((DownloadRow) row).open_filesr ();
@@ -1054,23 +1157,27 @@ namespace Gabut {
                         });
                         break;
                     case DownloadMenu.MOVETOTRASH:
-                        gbt_screen.processing_dl (_("Remove…") ,()=>{
+                        gbt_screen.mode = GabutMode.MOVE_TRASH;
+                        gbt_screen.processing_dl (_("Remove…"), ()=>{
                             gbt_screen.sts_finish (()=> {
                                 remove_delete ();
                             });
                         });
                         break;
                     case DownloadMenu.PROPERTIES:
+                        gbt_screen.mode = GabutMode.PROPERTIES;
                         gbt_screen.processing_dl (_("Properties…"), ()=>{
                             gbt_screen.sts_finish (()=> {
                                 foreach (var row in list_box.get_selected_rows ()) {
                                     var rws = (DownloadRow) row;
-                                    if (rws.linkmode == LinkMode.URL || rws.linkmode == LinkMode.MAGNETLINK) {
-                                        urlprop (rws);
+                                    if (rws.linkmode == LinkMode.TORRENT || rws.linkmode == LinkMode.METALINK) {
+                                        torrprop (rws);
                                     } else if (rws.linkmode == LinkMode.HLS){
                                         hlsprop (rws);
+                                    } else if (rws.linkmode == LinkMode.YTBWEBM || rws.linkmode == LinkMode.YTBMP4) {
+                                        ytbprop (rws);
                                     } else {
-                                        torrprop (rws);
+                                        urlprop (rws);
                                     }
                                 }
                             });
@@ -1122,6 +1229,24 @@ namespace Gabut {
             }
         }
 
+        private void ytbprop (DownloadRow row) {
+            if (!ytb_available (row)) {
+                var addytb = new AddYtdlp.Property () {
+                    transient_for = this,
+                    row = row
+                };
+                ytbproperty.add (addytb);
+                addytb.close_request.connect (()=> {
+                    if (ytbproperty.contains (addytb)) {
+                        ytbproperty.remove (addytb);
+                    }
+                    addytb = null;
+                    return GLib.Source.REMOVE;
+                });
+                addytb.set_visible (true);
+            }
+        }
+
         private void hlsprop (DownloadRow row) {
             if (!hls_available (row)) {
                 var addhls = new AddHls.Property () {
@@ -1165,6 +1290,17 @@ namespace Gabut {
         private bool hls_available (DownloadRow row) {
             bool active = false;
             foreach (var propet in hlsproperty) {
+                if (propet.row == row) {
+                    active = true;
+                    break;
+                }
+            }
+            return active;
+        }
+
+        private bool ytb_available (DownloadRow row) {
+            bool active = false;
+            foreach (var propet in ytbproperty) {
                 if (propet.row == row) {
                     active = true;
                     break;
@@ -1818,6 +1954,7 @@ namespace Gabut {
                 view_status ();
             });
             row.openimage.clicked.connect (()=> {
+                gbt_screen.mode = GabutMode.DIALOG_PROGRESS;
                 gbt_screen.processing_dl (_("Open Progress…"), ()=> {
                     gbt_screen.sts_finish (()=> {
                         row.download ();
@@ -1825,11 +1962,30 @@ namespace Gabut {
                 });
             });
             row.start_button.clicked.connect (()=> {
+                gbt_screen.mode = row.status == StatusMode.ACTIVE? GabutMode.START : GabutMode.STOP;
                 gbt_screen.processing_dl (row.start_button.tooltip_text.replace ("\n", " "), ()=> {
                     gbt_screen.sts_finish (()=> {
                         row.action_btn ();
                     });
                 });
+            });
+            row.rowbus.item_activated.connect (()=> {
+                if (spalshsc == null) {
+                    spalshsc = new SplashScreen (application) {
+                        mode = SplashMode.DIALOG_PROGRESS,
+                        visible = true,
+                        title_text = _("Gabut Open Progress")
+                    };
+                    spalshsc.status_text = _("Opening Window…");
+                    spalshsc.preparing.connect (()=> {
+                        spalshsc.status_dm (_("Done…"));
+                    });
+                    spalshsc.close_request.connect (()=> {
+                        row.download ();
+                        spalshsc = null;
+                        return GLib.Source.REMOVE;
+                    });
+                }
             });
             row.update_agid.connect ((ariagid, newgid)=> update_agid (ariagid, newgid));
             if (list_box.get_selected_row () == null) {
@@ -1979,123 +2135,161 @@ namespace Gabut {
             if (starting || stoping || removing) {
                 return;
             }
-            gbt_screen.processing_dl (_("Processing…"), ()=> {
-                hlsmanbox.hlsdlboxs.sort ((GLib.CompareDataFunc)sort_hls);
-                hlsmanbox.on_start_download (()=> {
-                    if (hls_rows_only () < 1) {
-                        gbt_screen.status_dm ("Completed!");
-                        starting = false;
-                        update_info ();
-                        view_status ();
-                        return;
-                    }
-                    int index = actwaiting ();
-                    int onstr = beforest ();
-                    int count = 0;
-                    int startdl = 0;
-                    int totalrow = count_rows_only ();
-                    GLib.Idle.add (() => {
-                        if (totalrow > 0) {
-                            starting = true;
-                            var row = (DownloadRow) list_box.get_row_at_index (count);
-                            if (row.linkmode != LinkMode.HLS) {
-                                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                                    if (row.status == StatusMode.PAUSED) {
-                                        new Thread<void> ("startdl%d".printf (startdl), () => {
-                                            aria_position (row.ariagid, index);
-                                            aria_unpause (row.ariagid);
-                                            MainContext.default ().invoke (()=> {
-                                                row.update_sts ();
-                                                return GLib.Source.REMOVE;
-                                            });
-                                        });
-                                        index++;
-                                        startdl++;
-                                        labelview.label = _("Starting… (%i of %i)").printf (startdl, onstr);
-                                        var fraction = (double) startdl / (double) onstr;
-                                        gbt_screen.update_progress (fraction, _("%s %d/%d %s").printf ("Starting…", startdl, onstr, sanitize_utf8 (row.filename).make_valid ()));
-                                        indicatorstatus ();
-                                    }
-                                }
-                            }
-                            count++;
-                        }
-                        if (count >= totalrow) {
-                            starting = false;
-                            update_info ();
-                            view_status ();
-                            gbt_screen.status_dm ("Completed!");
-                        }
-                        return starting;
-                    });
-                }, (xs, total, filename)=> {
-                    starting = true;
-                    var fraction = (double) xs / (double) total;
-                    labelview.label = _("Starting… (%i of %i)").printf (xs, total);
-                    indicatorstatus ();
-                    gbt_screen.update_progress (fraction, filename);
-                });
-            });
+            gbt_screen.mode = GabutMode.START_ALL;
+            gbt_screen.processing_dl (_("Processing…"), starting_dm);
         }
 
         private void stop_all () {
             if (starting || stoping || removing) {
                 return;
             }
-            gbt_screen.processing_dl (_("Processing…"), ()=> {
-                hlsmanbox.on_stop_download (()=> {
-                    int index = 0;
-                    int count = 0;
-                    int acti = actwaiting ();
-                    if (acti < 1) {
+            gbt_screen.mode = GabutMode.STOP_ALL;
+            gbt_screen.processing_dl (_("Processing…"), stoping_dm);
+        }
+
+        private void starting_dm () {
+            hlsmanbox.hlsdlboxs.sort ((GLib.CompareDataFunc)sort_hls);
+            hlsmanbox.on_start_download (()=> {
+                if (reguler_only () < 1) {
+                    if (spalshsc != null) {
+                        spalshsc.status_dm (_("Done…"));
+                    } else {
+                        gbt_screen.status_dm ("Completed!");
+                    }
+                    starting = false;
+                    update_info ();
+                    view_status ();
+                    return;
+                }
+                int index = actwaiting ();
+                int onstr = beforest ();
+                int count = 0;
+                int startdl = 0;
+                int totalrow = count_rows_only ();
+                GLib.Idle.add (() => {
+                    if (totalrow > 0) {
+                        starting = true;
+                        var row = (DownloadRow) list_box.get_row_at_index (count);
+                        if (row.linkmode != LinkMode.HLS) {
+                            if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                                if (row.status == StatusMode.PAUSED) {
+                                    new Thread<void> ("startdl%d".printf (startdl), () => {
+                                        aria_position (row.ariagid, index);
+                                        aria_unpause (row.ariagid);
+                                        MainContext.default ().invoke (()=> {
+                                            row.update_sts ();
+                                            return GLib.Source.REMOVE;
+                                        });
+                                    });
+                                    index++;
+                                    startdl++;
+                                    labelview.label = _("Starting… (%i of %i)").printf (startdl, onstr);
+                                    var fraction = (double) startdl / (double) onstr;
+                                    if (spalshsc != null) {
+                                        spalshsc.fraction = fraction;
+                                        spalshsc.status_text = _("%s %d/%d %s").printf ("Starting…", startdl, onstr, sanitize_utf8 (row.filename).make_valid ());
+                                    } else {
+                                        gbt_screen.update_progress (fraction, _("%s %d/%d %s").printf ("Starting…", startdl, onstr, sanitize_utf8 (row.filename).make_valid ()));
+                                    }
+                                    indicatorstatus ();
+                                }
+                            }
+                        }
+                        count++;
+                    }
+                    if (count >= totalrow) {
+                        starting = false;
+                        update_info ();
+                        view_status ();
+                        gbt_screen.status_dm ("Completed!");
+                    }
+                    return starting;
+                });
+            }, (xs, total, filename)=> {
+                starting = true;
+                var fraction = (double) xs / (double) total;
+                labelview.label = _("Starting… (%i of %i)").printf (xs, total);
+                indicatorstatus ();
+                if (spalshsc != null) {
+                    spalshsc.fraction = fraction;
+                    spalshsc.status_text = filename;
+                } else {
+                    gbt_screen.update_progress (fraction, filename);
+                }
+            });
+        }
+
+        private void stoping_dm () {
+            hlsmanbox.on_stop_download (()=> {
+                int index = 0;
+                int count = 0;
+                int acti = actwaiting ();
+                if (acti < 1) {
+                    stoping = false;
+                    update_info ();
+                    aria_pause_all ();
+                    view_status ();
+                    if (spalshsc != null) {
+                        spalshsc.status_dm (_("Done…"));
+                    } else {
+                        gbt_screen.status_dm ("Completed!");
+                    }
+                    return;
+                }
+                int totalrow = count_rows_only ();
+                GLib.Idle.add (() => {
+                    if (totalrow > 0) {
+                        stoping = true;
+                        var row = (DownloadRow) list_box.get_row_at_index (index);
+                        if (row.linkmode != LinkMode.HLS) {
+                            if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
+                                count++;
+                                labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
+                                var fraction = (double) count / (double) acti;
+                                if (spalshsc != null) {
+                                    spalshsc.fraction = fraction;
+                                    spalshsc.status_text = _("%s %d/%d %s").printf ("Stoping…", count, acti, sanitize_utf8 (row.filename).make_valid ());
+                                } else {
+                                    gbt_screen.update_progress (fraction, _("%s %d/%d %s").printf ("Stoping…", count, acti, sanitize_utf8 (row.filename).make_valid ()));
+                                }
+                                indicatorstatus ();
+                                new Thread<void> ("stopdl%d".printf (count), () => {
+                                    aria_pause (row.ariagid);
+                                    if (row.status == StatusMode.WAIT) {
+                                        MainContext.default ().invoke (()=> {
+                                            row.update_sts ();
+                                            return GLib.Source.REMOVE;
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                        index++;
+                    }
+                    if (index >= totalrow) {
                         stoping = false;
                         update_info ();
                         aria_pause_all ();
                         view_status ();
-                        gbt_screen.status_dm ("Completed!");
-                        return;
-                    }
-                    int totalrow = count_rows_only ();
-                    GLib.Idle.add (() => {
-                        if (totalrow > 0) {
-                            stoping = true;
-                            var row = (DownloadRow) list_box.get_row_at_index (index);
-                            if (row.linkmode != LinkMode.HLS) {
-                                if (row.status != StatusMode.COMPLETE && row.status != StatusMode.ERROR) {
-                                    count++;
-                                    labelview.label = _("Stoping… (%i of %i)").printf (count, acti);
-                                    var fraction = (double) count / (double) acti;
-                                    gbt_screen.update_progress (fraction, _("%s %d/%d %s").printf ("Stoping…", count, acti, sanitize_utf8 (row.filename).make_valid ()));
-                                    indicatorstatus ();
-                                    new Thread<void> ("stopdl%d".printf (count), () => {
-                                        aria_pause (row.ariagid);
-                                        if (row.status == StatusMode.WAIT) {
-                                            MainContext.default ().invoke (() => {
-                                                row.update_sts ();
-                                                return GLib.Source.REMOVE;
-                                            });
-                                        }
-                                    });
-                                }
-                            }
-                            index++;
-                        }
-                        if (index >= totalrow) {
-                            stoping = false;
-                            update_info ();
-                            aria_pause_all ();
-                            view_status ();
+                        if (spalshsc != null) {
+                            spalshsc.status_dm (_("Done…"));
+                        } else {
                             gbt_screen.status_dm ("Completed!");
                         }
-                        return stoping;
-                    });
-                }, (xs, tota, filename)=> {
-                    stoping = true;
-                    labelview.label = _("Stoping… (%i of %i)").printf (xs, tota);
-                    indicatorstatus ();
-                    var fraction = (double) xs / (double) tota;
-                    gbt_screen.update_progress (fraction, filename);
+                    }
+                    return stoping;
                 });
+            }, (xs, tota, filename)=> {
+                stoping = true;
+                labelview.label = _("Stoping… (%i of %i)").printf (xs, tota);
+                indicatorstatus ();
+                var fraction = (double) xs / (double) tota;
+                if (spalshsc != null) {
+                    spalshsc.fraction = fraction;
+                    spalshsc.status_text = filename;
+                } else {
+                    gbt_screen.update_progress (fraction, filename);
+                }
             });
         }
 
@@ -2280,6 +2474,9 @@ namespace Gabut {
                 return;
             }
             index_rowdm = 0;
+            alertview.title =_("No Download Files");
+            alertview.description = _("Drag and Drop URL, Torrent, Metalink, Magnet URIs.");
+            alertview.icon_name = "com.github.gabutakut.gabutdm";
             if (headerstack.visible_child_name == "search") {
                 if (search_entry.text.strip () == "") {
                     list_box.set_filter_func ((item) => {
@@ -2308,13 +2505,11 @@ namespace Gabut {
                 });
                 if (!item_visible) {
                     alertview.title =_("No Found");
-                    alertview.description = _("Drag and Drop URL, Torrent, Metalink, Magnet URIs.");
                     alertview.icon_name = "com.github.gabutakut.gabutdm.notfound";
                 }
                 return;
             }
             list_box.set_filter_func ((item) => {
-                alertview.description = _("Drag and Drop URL, Torrent, Metalink, Magnet URIs.");
                 switch (view_mode.selected) {
                     case 1:
                         bool actived = ((DownloadRow)item).status == StatusMode.ACTIVE;
@@ -2361,8 +2556,6 @@ namespace Gabut {
                         return errord;
                     default:
                         index_rowdm++;
-                        alertview.title =_("No Download Files");
-                        alertview.icon_name = "com.github.gabutakut.gabutdm.error";
                         return true;
                 }
             });
@@ -2383,7 +2576,7 @@ namespace Gabut {
             return count;
         }
 
-        private int hls_rows_only () {
+        private int reguler_only () {
             int count = 0;
             var models = list_box.observe_children ();
             for (uint x = 0; x < models.get_n_items (); x++) {

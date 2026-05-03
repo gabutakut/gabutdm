@@ -21,30 +21,38 @@
 
 [CCode (cheader_filename = "ffmpeg_merger.h")]
 namespace Ffmpeg {
-    [CCode (cname = "FfmpegReader", free_function = "ffm_reader_unref")]
+    [CCode (cname = "FfmpegReader", free_function = "ffmpeg_reader_unref")]
     public class Reader {
         [CCode (cname = "ffm_reader_create")]
         public Reader();
         [CCode (cname = "ffm_reader_open_path")]
         public int open_path(string path);
         [CCode (cname = "ffm_reader_open_buffer")]
-        public int open_buffer([CCode (array_length = true, array_length_pos = 1)] uint8[] data);
+        public int open_buffer([CCode (array_length_type = "size_t")] uint8[] data);
         [CCode (cname = "ffm_reader_get_width")]
         public int get_width();
         [CCode (cname = "ffm_reader_get_height")]
         public int get_height();
         [CCode (cname = "ffm_reader_get_success")]
         public int get_success();
-        [CCode (cname="ffm_reader_validate_path")]
-        public int validate_path (string path);
+        [CCode (cname = "ffm_reader_validate_path")]
+        public int validate_path(string path);
+        [CCode (cname = "ffm_reader_ts_thumbnail_from_buffer")]
+        public uint8* ts_thumbnail_from_buffer([CCode (array_length_type = "size_t")] uint8[] data, out int out_w, out int out_h, out int out_stride);
+        [CCode (cname = "ffm_reader_auto_thumbnail_from_buffer")]
+        public uint8* auto_thumbnail_from_buffer([CCode (array_length_type = "size_t")] uint8[] data, out int out_w, out int out_h, out int out_stride);
     }
 
     [CCode (cname = "FfmpegMerger", free_function = "ffmpeg_merger_unref")]
     public class Merger {
         [CCode (cname = "ffm_merger_create")]
         public Merger();
+        [CCode (cname = "ffm_combine_file")]
+        public int combine_file(string video_path, string audio_path, string output_path);
+        [CCode (cname = "ffm_to_audio")]
+        public int to_audio(string input_path, string output_path);
         [CCode (cname = "ffm_merge_files")]
-        public int merge_files([CCode (array_length = false, array_null_terminated = true)]string[] paths, int count, string output_path);
+        public int merge_files([CCode (array_length = false)] string[] paths, int count, string output_path);
         [CCode (cname = "ffm_get_last_progress")]
         public float get_last_progress();
         [CCode (cname = "ffm_get_bitfield_hex")]

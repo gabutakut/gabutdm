@@ -128,15 +128,19 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            view_mode.append_text (_("Files"));
-            view_mode.append_text (_("Info"));
-            view_mode.append_text (_("Proxy"));
-            view_mode.append_text (_("Option"));
-            view_mode.append_text (_("Torrent"));
+            view_mode.append_icon_text ("folder", _("Files"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.info", _("Info"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.proxy", _("Proxy"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.hdd", _("Option"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.torrent",_("Torrent"));
             view_mode.selected = 0;
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.title_widget = view_mode;
-            header.decoration_layout = "none";
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = view_mode
+            };
+            set_titlebar (header);
+
             Gtk.Box main_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 10) {
                 margin_start = 10,
                 margin_end = 10,
@@ -584,11 +588,13 @@ namespace Gabut {
                     box_action.set_end_widget (close_button);
                     break;
             }
-            unowned Gtk.Box boxarea = this.get_content_area ();
-            boxarea.margin_start = 10;
-            boxarea.margin_end = 10;
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_start = 10,
+                margin_end = 10
+            };
             boxarea.append (stack);
             boxarea.append (box_action);
+            set_child (boxarea);
 
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {

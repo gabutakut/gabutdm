@@ -105,9 +105,12 @@ namespace Gabut {
             view_mode.append_icon ("com.github.gabutakut.gabutdm.notify", 32);
             view_mode.selected = 0;
 
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.decoration_layout = "none";
-            header.title_widget = view_mode;
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = view_mode
+            };
+            set_titlebar (header);
 
             var boxshrot = new Gtk.Grid () {
                 margin_top = 10,
@@ -671,7 +674,12 @@ namespace Gabut {
                 tooltip_text = _("Enable disk cache. If SIZE is 0, the disk cache is disabled"),
                 value = double.parse (pharse_options (pack_data, AriaOptions.DISK_CACHE))
             };
-
+            var portytb = new Gtk.SpinButton.with_range (0, 9999, 1) {
+                width_request = 300,
+                hexpand = true,
+                tooltip_text = _("Enable disk cache. If SIZE is 0, the disk cache is disabled"),
+                value = double.parse (get_dbsetting (DBSettings.GABUTYTB))
+            };
             var allocate_flow = new Gtk.FlowBox ();
             var allocate_popover = new Gtk.Popover () {
                 child = allocate_flow
@@ -716,14 +724,16 @@ namespace Gabut {
             moreoptions.attach (local_port, 0, 3, 1, 1);
             moreoptions.attach (headerlabel (_("BT Listen Port:"), 300), 0, 4, 1, 1);
             moreoptions.attach (bt_listenport, 0, 5, 1, 1);
-            moreoptions.attach (headerlabel (_("File Allocation:"), 300), 0, 6, 1, 1);
-            moreoptions.attach (allocate_button, 0, 7, 2, 1);
+            moreoptions.attach (headerlabel (_("GabutYTB Port:"), 300), 0, 6, 1, 1);
+            moreoptions.attach (portytb, 0, 7, 1, 1);
             moreoptions.attach (headerlabel (_("RPC Max Request Size (in Byte):"), 300), 1, 0, 1, 1);
             moreoptions.attach (maxrequest, 1, 1, 1, 1);
             moreoptions.attach (headerlabel (_("Disk Cache (in Byte):"), 300), 1, 2, 1, 1);
             moreoptions.attach (diskcache, 1, 3, 1, 1);
             moreoptions.attach (headerlabel (_("DHT Listen Port:"), 300), 1, 4, 1, 1);
             moreoptions.attach (dht_listenport, 1, 5, 1, 1);
+            moreoptions.attach (headerlabel (_("File Allocation:"), 300), 1, 6, 1, 1);
+            moreoptions.attach (allocate_button, 1, 7, 1, 1);
 
             var dialognotify = new Gtk.CheckButton.with_label (_("Open dialog succes when download complete")) {
                 margin_top = 5,
@@ -917,6 +927,7 @@ namespace Gabut {
                 set_dbsetting (DBSettings.HLSACTIVE, hlsactive.value.to_string ());
                 set_dbsetting (DBSettings.HLSTIMEOUT, hlstimeout.value.to_string ());
                 set_dbsetting (DBSettings.HLSRETRIES, hlsretry.value.to_string ());
+                set_dbsetting (DBSettings.GABUTYTB, portytb.value.to_string ());
                 if (style_mode.id != int.parse (get_dbsetting (DBSettings.STYLE))
                 || tdefault.active != bool.parse (get_dbsetting (DBSettings.TDEFAULT))
                 || theme_mode.id.to_string () != get_dbsetting (DBSettings.THEMESELECT)
@@ -995,12 +1006,15 @@ namespace Gabut {
             box_action.attach (save_button, 0, 0);
             box_action.attach (close_button, 1, 0);
 
-            unowned Gtk.Box boxarea = this.get_content_area ();
-            boxarea.margin_start = 10;
-            boxarea.margin_end = 10;
-            boxarea.halign = Gtk.Align.CENTER;
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_start = 10,
+                margin_end = 10,
+                halign = Gtk.Align.CENTER
+            };
             boxarea.append (stack);
             boxarea.append (box_action);
+            set_child (boxarea);
+
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
                     case 1:

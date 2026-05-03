@@ -148,6 +148,8 @@ namespace Gabut {
             }
             retry_count = 0;
             total_size = 0;
+            max_del_retries = 0;
+            max_wait_retries = 0;
             completed = false;
             status = StatusMode.WAIT;
             status_changed (index, StatusMode.WAIT, "Waiting");
