@@ -93,6 +93,8 @@ executable (
     'AppSplash.vala',
     'GabutScreen.vala',
     'KeyAnimOverlay.vala',
+    'AddYtdlp.vala',
+    'FormatItem.vala',
     dependencies: dependencies,
     cpp_args: ['-std=c++17'],
     link_args: ['-lm', '-lstdc++'],

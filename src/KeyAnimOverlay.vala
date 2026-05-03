@@ -43,7 +43,7 @@ namespace Gabut {
         construct {
             badges = new KeyBadge[MAX_BADGES];
             set_draw_func (on_draw);
-            GLib.Timeout.add (15, () => {
+            GLib.Timeout.add (14, () => {
                 tick += 0.05;
                 bool any = false;
                 bool any_just_died = false;

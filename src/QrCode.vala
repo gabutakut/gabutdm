@@ -79,9 +79,13 @@ namespace Gabut {
             header_grid.attach (primary, 1, 0, 1, 1);
             header_grid.attach (secondary, 1, 1, 1, 1);
 
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.title_widget = header_grid;
-            header.decoration_layout = "none";
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = header_grid
+            };
+            set_titlebar (header);
+
             qrpaint = new QrcodePaint () {
                 icon_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm", 128)
             };
@@ -131,10 +135,14 @@ namespace Gabut {
             box_action.attach (host_button, 0, 0);
             box_action.attach (close_button, 1, 0);
 
-            unowned Gtk.Box boxarea = this.get_content_area ();
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                halign = Gtk.Align.CENTER
+            };
             boxarea.append (imageqr);
             boxarea.append (link_box);
             boxarea.append (box_action);
+            set_child (boxarea);
+
             move_window (this, imageqr);
         }
 

@@ -53,7 +53,13 @@ actions = [
     '.system.svg',
     '.notify.svg',
     '.verify.svg',
-    '.notfound.svg'
+    '.notfound.svg',
+    '.sendrecv.svg',
+    '.proxy.svg',
+    '.locked.svg',
+    '.info.svg',
+    '.limiter.svg',
+    '.ytb.svg'
 ]
 
 foreach m : actions

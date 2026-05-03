@@ -42,14 +42,16 @@ namespace Gabut {
             set {
                 _linkmode = value;
                 prpaint.icon_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.progress", 48);
-                if (linkmode == LinkMode.METALINK) {
+                if (_linkmode == LinkMode.METALINK) {
                     prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.metalink", 48);
-                } else if (linkmode == LinkMode.MAGNETLINK) {
+                } else if (_linkmode == LinkMode.MAGNETLINK) {
                     prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.magnet", 48);
-                } else if (linkmode == LinkMode.TORRENT) {
+                } else if (_linkmode == LinkMode.TORRENT) {
                     prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.torrent", 48);
-                } else if (linkmode == LinkMode.HLS) {
+                } else if (_linkmode == LinkMode.HLS) {
                     prpaint.badge_paintable = load_icon_paintable ("applications-multimedia", 48);
+                } else if (_linkmode == LinkMode.YTBAUDIO || _linkmode == LinkMode.YTBMP4 || _linkmode == LinkMode.YTBWEBM) {
+                    prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.ytb", 48);
                 } else {
                     prpaint.badge_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.insertlink", 48);
                 }
@@ -106,15 +108,86 @@ namespace Gabut {
                         if (ariagid != null || linkmode == LinkMode.HLS) {
                             actpaint.icon_paintable = load_icon_paintable ("com.github.gabutakut.gabutdm.complete", 24);
                             start_button.tooltip_text = _("Complete\nCTRL + V");
+                            if (linkmode == LinkMode.YTBAUDIO) {
+                                if (filename != null) {
+                                    var filep = File.new_for_path (filepath);
+                                    string mp3_p = mp3_filename (filep.get_path ());
+                                    var ffmpeg = new Ffmpeg.Merger ();
+                                    int thread_done_int = 0;
+                                    new Thread<void>("merworker-%s".printf (filename), () => {
+                                        thread_done_int = ffmpeg.to_audio (filep.get_path (), mp3_p);
+                                        AtomicInt.set (ref thread_done_int, 1);
+                                    });
+                                    GLib.Timeout.add (100, () => {
+                                        fraction = (double) ffmpeg.get_last_progress();
+                                        string hex_bitfield = ffmpeg.hex_bitfield();
+                                        bitfield_widget.set_bitfield_data(hex_bitfield, 1);
+                                        bool is_done = AtomicInt.get (ref thread_done_int) == 1;
+                                        if (is_done || fraction >= 1.0) {
+                                            try {
+                                                filep.delete ();
+                                                pathname = filepath = mp3_p;
+                                                var info = File.new_for_path (filepath).query_info (GLib.FileAttribute.STANDARD_SIZE, GLib.FileQueryInfoFlags.NONE);
+                                                labeltransfer = GLib.format_size (info.get_size ());
+                                                notify_app (_("Download Complete"), filename, GLib.ContentType.get_icon (fileordir));
+                                                play_sound ("complete");
+                                                if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
+                                                    send_dialog ();
+                                                }
+                                                ffmpeg = null;
+                                            } catch (Error e) {
+                                                GLib.warning (e.message);
+                                            }
+                                            return false;
+                                        }
+                                        return true; 
+                                    });
+                                }
+                            } else if (linkmode == LinkMode.YTBMP4) {
+                                if (filename != null) {
+                                    var filep = File.new_for_path (filepath);
+                                    string m4a_a = m4a_filename(filep.get_path ());
+                                    if (!GLib.FileUtils.test (m4a_a, GLib.FileTest.EXISTS)) {
+                                        hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (m4a_a);
+                                        filepath = m4a_a;
+                                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                                        status = StatusMode.ACTIVE;
+                                        break;
+                                    }
+                                    string new_mp4 = no_ext (filep.get_path ())+"_combine.mp4";
+                                    string mp4_old = mp4_filename (filep.get_path ());
+                                    combine_file (mp4_old, m4a_a, new_mp4);
+                                }
+                            } else if (linkmode == LinkMode.YTBWEBM) {
+                                if (filename != null) {
+                                    var filep = File.new_for_path (filepath);
+                                    string opus_a = opus_filename(filep.get_path ());
+                                    if (!GLib.FileUtils.test (opus_a, GLib.FileTest.EXISTS)) {
+                                        hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (opus_a);
+                                        filepath = opus_a;
+                                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                                        status = StatusMode.ACTIVE;
+                                        break;
+                                    }
+                                    string new_webm = no_ext (filep.get_path ())+"_combine.webm";
+                                    string webm_old = webm_filename (filep.get_path ());
+                                    combine_file (webm_old, opus_a, new_webm);
+                                }
+                            }
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
+                            if (_pathname != null) {
+                                open_thum ();
+                            }
                             if (filename != null) {
                                 GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
-                                notify_app (_("Download Complete"), filename, GLib.ContentType.get_icon (fileordir));
-                                play_sound ("complete");
-                                if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
-                                    if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
-                                        send_dialog ();
+                                if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
+                                    if (linkmode != LinkMode.YTBMP4 && linkmode != LinkMode.YTBWEBM && linkmode != LinkMode.YTBAUDIO) {
+                                        notify_app (_("Download Complete"), filename, GLib.ContentType.get_icon (fileordir));
+                                        play_sound ("complete");
+                                        if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
+                                            send_dialog ();
+                                        }
                                     }
                                 }
                             }
@@ -252,7 +325,7 @@ namespace Gabut {
                 }
                 if (filepath != null && filepath != "") {
                     var file = File.new_for_path (filepath);
-                    if (linkmode == LinkMode.URL) {
+                    if (linkmode == LinkMode.URL || linkmode == LinkMode.YTBAUDIO || linkmode == LinkMode.YTBMP4 || linkmode == LinkMode.YTBWEBM) {
                         if (_filepath != null) {
                             filename = file.get_basename ();
                             pathname = file.get_path ();
@@ -418,13 +491,13 @@ namespace Gabut {
             }
         }
 
-        public DownloadRow.Hls (string url, Gee.HashMap<string, string> options, int linkmode) {
+        public DownloadRow.Hls (string gbturl, Gee.HashMap<string, string> options, int linkmode) {
             this.hashoption = options;
             this.linkmode = linkmode;
-            this.url = url;
+            this.url = gbturl;
             errorcode = _("HLS waiting data…");
             bitfield_widget.set_bitfield_data ( "",  0);
-            bitfield_widget.connectionsdl= "0";
+            bitfield_widget.connectionsdl = "0";
             labeltransfer = "-";
             ariagid = "";
         }
@@ -455,19 +528,26 @@ namespace Gabut {
             if (transferred > 0 && totalsize > 0) {
                 fraction = (double) transferred / (double) totalsize;
             }
+            if (status == StatusMode.COMPLETE) {
+                if (pathname != null) {
+                    open_thum ();
+                }
+            }
         }
 
-        public DownloadRow.Url (string url, Gee.HashMap<string, string> options, int linkmode) {
+        public DownloadRow.Url (string gbturl, Gee.HashMap<string, string> options, int linkmode) {
             this.hashoption = options;
             this.linkmode = linkmode;
             if (linkmode == LinkMode.TORRENT) {
-                ariagid = aria_torrent (url, hashoption, actwaiting ());
+                ariagid = aria_torrent (gbturl, hashoption, actwaiting ());
             } else if (linkmode == LinkMode.METALINK) {
-                ariagid = aria_metalink (url, hashoption, actwaiting ());
+                ariagid = aria_metalink (gbturl, hashoption, actwaiting ());
+            } else if (linkmode == LinkMode.YTBMP4 || linkmode == LinkMode.YTBWEBM) {
+                ariagid = aria_url (gbturl.split ("gabutytb")[1].split ("gabutytb")[0], hashoption, actwaiting ());
             } else {
-                ariagid = aria_url (url, hashoption, actwaiting ());
+                ariagid = aria_url (gbturl, hashoption, actwaiting ());
             }
-            this.url = url;
+            this.url = gbturl;
             errorcode = _("Waiting download data…");
             if (options.has_key (AriaOptions.SELECT_FILE.to_string ())) {
                 selectedtr = options.@get (AriaOptions.SELECT_FILE.to_string ());
@@ -479,7 +559,6 @@ namespace Gabut {
                 valign = Gtk.Align.CENTER
             };
             rowbus = new DBusMenu.DbusmenuItem ();
-            rowbus.item_activated.connect (download);
 
             prpaint = new ProgressPaintable () {
                 icon_ratio = 0.75,
@@ -585,7 +664,26 @@ namespace Gabut {
                 ariagid = aria_torrent (url, hashoption, actwaiting ());
             } else if (linkmode == LinkMode.METALINK) {
                 ariagid = aria_metalink (url, hashoption, actwaiting ());
-            } else if (linkmode == LinkMode.URL) {
+            } else if (linkmode == LinkMode.YTBMP4 || linkmode == LinkMode.YTBWEBM) {
+                if (linkmode == LinkMode.YTBMP4) {
+                    if (filepath.has_suffix (".m4a")) {
+                        var filep = File.new_for_path (filepath);
+                        string m4a_a = m4a_filename(filep.get_path ());
+                        hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (m4a_a);
+                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                        return;
+                    }
+                } else if (linkmode == LinkMode.YTBWEBM) {
+                    if (filepath.has_suffix (".opus")) {
+                        var filep = File.new_for_path (filepath);
+                        string opus_a = opus_filename(filep.get_path ());
+                        hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (opus_a);
+                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                        return;
+                    }
+                }
+                ariagid = aria_url (url.split ("gabutytb")[1].split ("gabutytb")[0], hashoption, actwaiting ());
+            } else if (linkmode == LinkMode.URL || linkmode == LinkMode.YTBAUDIO) {
                 ariagid = aria_url (url, hashoption, actwaiting ());
             } else if (linkmode == LinkMode.MAGNETLINK) {
                 ariagid = aria_url (url, hashoption, actwaiting ());
@@ -706,7 +804,7 @@ namespace Gabut {
                 case "":
                     return StatusMode.NOTHING;
                 default:
-                    if (linkmode != LinkMode.URL && ariagid != null) {
+                    if (linkmode == LinkMode.TORRENT && ariagid != null) {
                         if (bool.parse (aria_tell_status (ariagid, TellStatus.SEEDER))) {
                             return StatusMode.SEED;
                         } else {
@@ -770,6 +868,84 @@ namespace Gabut {
                     }
                 }
             }
+        }
+
+        private void combine_file (string vpath, string apath, string outpath) {
+            var ffmpeg = new Ffmpeg.Merger ();
+            int thread_done_int = 0;
+            new Thread<void>("merworker-%s".printf (filename), () => {
+                int result = ffmpeg.combine_file (vpath, apath, outpath);
+                AtomicInt.set (ref thread_done_int, result == 0 ? 1 : result);
+            });
+            GLib.Timeout.add (100, () => {
+                fraction = (double) ffmpeg.get_last_progress ();
+                string hex_bitfield = ffmpeg.hex_bitfield ();
+                bitfield_widget.set_bitfield_data (hex_bitfield, 2);
+                int done = AtomicInt.get (ref thread_done_int);
+                if (done == 0) {
+                    return true;
+                }
+                fraction = (double) ffmpeg.get_last_progress ();
+                bitfield_widget.set_bitfield_data (ffmpeg.hex_bitfield (), 2);
+                if (done < 0) {
+                    status = StatusMode.ERROR;
+                    labeltransfer = _("combine_file failed: %d".printf (done));
+                } else {
+                    try {
+                        GLib.FileUtils.remove (vpath);
+                        GLib.FileUtils.remove (apath);
+                        pathname = filepath = outpath;
+                        var info = File.new_for_path (outpath).query_info (GLib.FileAttribute.STANDARD_SIZE, GLib.FileQueryInfoFlags.NONE);
+                        labeltransfer = GLib.format_size (info.get_size ());
+                        open_thum ();
+                        if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
+                            send_dialog ();
+                        }
+                    } catch (Error e) {
+                        GLib.warning (e.message);
+                    }
+                }
+                ffmpeg = null;
+                return false;
+            });
+        }
+
+        private void open_thum () {
+            if (pathname != null) {
+                var filem = File.new_for_path (pathname);
+                if (get_mime_type (filem).contains ("video/")) {
+                    if (GLib.FileUtils.test (pathname, GLib.FileTest.EXISTS)) {
+                        open_file_min.begin (filem);
+                    }
+                }
+            }
+        }
+
+        private async void open_file_min (GLib.File file) throws Error {
+            var info = file.query_info ("standard::size", FileQueryInfoFlags.NONE);
+            int64 file_size = info.get_size ();
+            const int64 MAX_CHUNK = 4 * 1024 * 1024;
+            int64 read_size = file_size < MAX_CHUNK ? file_size : MAX_CHUNK;
+            var input = file.read ();
+            ((GLib.Seekable) input).seek (0, GLib.SeekType.SET);
+            uint8[] buffer = new uint8[read_size];
+            size_t bytes_read = 0;
+            input.read_all (buffer, out bytes_read);
+            input.close ();
+            thumnails (buffer[0:bytes_read]);
+        }
+
+        private void thumnails (uint8[] data) {
+            var ffmpeg = new Ffmpeg.Reader ();
+            int out_w, out_h, out_stride;
+            uint8* ffdata = ffmpeg.auto_thumbnail_from_buffer (data, out out_w, out out_h, out out_stride);
+            unowned uint8[] pixel_data = (uint8[]) ffdata;
+            pixel_data.length = out_stride * out_h;
+            if (pixel_data != null) {
+                var pixbuf = new Gdk.Pixbuf.from_data(pixel_data, Gdk.Colorspace.RGB, false, 8, out_w, out_h, out_stride);
+                bitfield_widget.set_thumbnail(pixbuf);
+            }
+            ffmpeg = null;
         }
     }
 }

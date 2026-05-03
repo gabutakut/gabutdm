@@ -185,20 +185,22 @@ namespace Gabut {
             hashoptions = new Gee.HashMap<string, string> ();
             var view_mode = new ModeButton () {
                 hexpand = true,
-                homogeneous = true,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            view_mode.append_text (_("Address"));
-            view_mode.append_text (_("Proxy"));
-            view_mode.append_text (_("Login"));
-            view_mode.append_text (_("Option"));
-            view_mode.append_text (_("Checksum"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.uri", _("Address"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.proxy", _("Proxy"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.locked", _("Login"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.hdd", _("Option"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.hash", _("Checksum"));
             view_mode.selected = 0;
 
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.title_widget = view_mode;
-            header.decoration_layout = "none";
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = view_mode
+            };
+            set_titlebar (header);
 
             folder_location = new Gtk.Button () {
                 tooltip_text = _("The directory to store the downloaded file")
@@ -625,11 +627,13 @@ namespace Gabut {
                     box_action.set_end_widget (close_button);
                     break;
             }
-            unowned Gtk.Box boxarea = this.get_content_area ();
-            boxarea.margin_start = 10;
-            boxarea.margin_end = 10;
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_start = 10,
+                margin_end = 10
+            };
             boxarea.append (stack);
             boxarea.append (box_action);
+            set_child (boxarea);
 
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
@@ -768,19 +772,11 @@ namespace Gabut {
         }
 
         private void savetoaria () {
-            aria_unpause (row.ariagid);
             aria_remove (row.ariagid);
-            if (row.url.has_prefix ("magnet:?")) {
-                row.linkmode = LinkMode.MAGNETLINK;
-                var rowariagid = aria_url (row.url, hashoptions, actwaiting ());
-                update_agid (row.ariagid, rowariagid);
-                row.ariagid = rowariagid;
-            } else {
-                row.linkmode = LinkMode.URL;
-                var rowariagid = aria_url (row.url, hashoptions, actwaiting ());
-                update_agid (row.ariagid, rowariagid);
-                row.ariagid = rowariagid;
-            }
+            aria_deleteresult (row.ariagid);
+            var rowariagid = aria_url (row.url, hashoptions, actwaiting ());
+            update_agid (row.ariagid, rowariagid);
+            row.ariagid = rowariagid;
             row.status = row.status_aria (aria_tell_status (row.ariagid, TellStatus.STATUS));
             if (!db_option_exist (row.url)) {
                 set_dboptions (row.url, hashoptions);
@@ -866,12 +862,21 @@ namespace Gabut {
                 string reffer = aria_get_option (row.ariagid, AriaOptions.REFERER);
                 if (reffer != "") {
                     refer_entry.text = reffer.contains ("\\/")? reffer.replace ("\\/", "/") : reffer;
+                } else {
+                    refer_entry.text = hashoptions.@get (AriaOptions.REFERER.to_string ());
                 }
                 string agntusr = aria_get_option (row.ariagid, AriaOptions.USER_AGENT);
                 if (agntusr != "") {
                     useragent_entry.text = agntusr.contains ("\\/")? agntusr.replace ("\\/", "/") : agntusr;
+                } else {
+                    useragent_entry.text = hashoptions.@get (AriaOptions.USER_AGENT.to_string ());
                 }
-                name_entry.text = aria_get_option (row.ariagid, AriaOptions.OUT);
+                string? name = aria_get_option (row.ariagid, AriaOptions.OUT);
+                if (name != "") {
+                    name_entry.text = name;
+                } else {
+                    name_entry.text = row.filename;
+                }
                 foreach (var b in ProxyMethods.get_all ()) {
                     var promed = method_flow.get_child_at_index (b);
                     if (((ProxyMethod) promed).method.to_string ().down () == aria_get_option (row.ariagid, AriaOptions.PROXY_METHOD).down ()) {

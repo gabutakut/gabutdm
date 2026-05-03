@@ -115,6 +115,14 @@ namespace Gabut {
             return "com.github.gabutakut.gabutdm.progress";
         }
 
+        public string get_view_name (int index) {
+            var new_item = item_map[index] as ModeItem;
+            if (new_item != null) {
+                return ((Gtk.Label) new_item.child.get_last_child ()).label;
+            }
+            return "";
+        }
+
         public void set_active (int new_active_index) {
             if (new_active_index <= -1) {
                 _selected = -1;

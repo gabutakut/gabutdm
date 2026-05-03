@@ -38,6 +38,10 @@ namespace Gabut {
         private Gtk.Button fetch_btn;
         private Gtk.DropDown res_dropdown;
         private Gtk.StringList res_model;
+        private Gtk.Picture picture_blurry;
+        private Gtk.Picture picture_sharp;
+        private Gtk.Label duration_label;
+        private Gtk.Stack thumb_stack;
         private Cancellable cancellable = new Cancellable ();
         private bool resolution;
         private string [] urlhls = null;
@@ -94,20 +98,23 @@ namespace Gabut {
 
         construct {
             hashoptions = new Gee.HashMap<string, string> ();
-            options_list = new Gee.ArrayList<HlsOption>();
+            options_list = new Gee.ArrayList<HlsOption> ();
             var view_mode = new ModeButton () {
                 hexpand = true,
                 homogeneous = true,
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            view_mode.append_text (_("Address"));
-            view_mode.append_text (_("Option"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.uri", _("Address"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.hdd", _("Option"));
             view_mode.selected = 0;
 
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.title_widget = view_mode;
-            header.decoration_layout = "none";
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = view_mode
+            };
+            set_titlebar (header);
 
             folder_location = new Gtk.Button () {
                 tooltip_text = _("The directory to store the downloaded file")
@@ -146,39 +153,70 @@ namespace Gabut {
                 placeholder_text = _("Follow source name")
             };
 
-            fetch_btn = new Gtk.Button.with_label("Fetch");
-            fetch_btn.clicked.connect(on_fetch_master_clicked);
-            res_model = new Gtk.StringList(new string[] { "None" });
-            var factory = new Gtk.SignalListItemFactory();
-            factory.setup.connect((obj) => {
-                var item = obj as Gtk.ListItem;
-                var label = new Gtk.Label(null);
-                label.halign = Gtk.Align.CENTER;
-                label.hexpand = true;
-                item.child = label;
-            });
-            factory.bind.connect((obj) => {
-                var item = obj as Gtk.ListItem;
-                var label = item.child as Gtk.Label;
-                var str_obj = item.item as Gtk.StringObject;
-                if (str_obj != null) {
-                    label.label = str_obj.string;
-                }
-            });
-            res_dropdown = new Gtk.DropDown(res_model, null);
-            res_dropdown.factory = factory;
-            var addrquality = new Gtk.Grid () {
-                column_spacing = 10,
-                halign = Gtk.Align.CENTER,
-                valign = Gtk.Align.CENTER
+            fetch_btn = new Gtk.Button.from_icon_name ("com.github.gabutakut.gabutdm.sendrecv") {
+                has_frame = false,
+                tooltip_text = _("Fetch")
             };
-            addrquality.attach (headerlabel (_("Address:"), 660), 0, 0, 2, 1);
-            addrquality.attach (link_entry, 0, 1, 2, 1);
-            addrquality.attach (headerlabel (_("Qality:"), 650), 0, 2, 2, 1);
-            addrquality.attach (fetch_btn, 0, 3, 1, 1);
-            addrquality.attach (res_dropdown, 1, 3, 1, 1);
-            addrquality.attach (headerlabel (_("Filename:"), 425), 0, 5, 2, 1);
-            addrquality.attach (name_entry, 0, 6, 2, 1);
+            fetch_btn.clicked.connect(on_fetch_master_clicked);
+            header.pack_end (fetch_btn);
+            res_model = new Gtk.StringList(new string[] { "None" });
+
+            res_dropdown = new Gtk.DropDown(res_model, null) {
+                factory = facto_drpd ()
+            };
+
+            var addrquality = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+            addrquality.append (headerlabel (_("Address:"), 390));
+            addrquality.append (link_entry);
+            addrquality.append (headerlabel (_("Qality:"), 390));
+            addrquality.append (res_dropdown);
+            addrquality.append (headerlabel (_("Filename:"), 390));
+            addrquality.append (name_entry);
+
+            var imagethumb = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.ytb") {
+                valign = Gtk.Align.CENTER,
+                pixel_size = 128
+            };
+            picture_blurry = new Gtk.Picture () {
+                valign = Gtk.Align.CENTER,
+                width_request = 280,
+                can_shrink = true
+            };
+            picture_sharp = new Gtk.Picture () {
+                valign = Gtk.Align.CENTER,
+                width_request = 280,
+                can_shrink = true
+            };
+            thumb_stack = new Gtk.Stack () {
+                valign = Gtk.Align.CENTER,
+                transition_type = Gtk.StackTransitionType.CROSSFADE,
+                transition_duration = 500
+            };
+            thumb_stack.add_named (imagethumb, "icon");
+            thumb_stack.add_named (picture_blurry, "blur");
+            thumb_stack.add_named (picture_sharp, "sharp");
+            thumb_stack.set_visible_child_name ("icon");
+            move_window (this, thumb_stack);
+
+            var meta_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 2);
+
+            duration_label = new Gtk.Label ("") {
+                halign = Gtk.Align.END,
+                valign = Gtk.Align.END,
+                margin_end = 4,
+                margin_bottom = 30,
+                can_target = false,
+                focusable = false,
+                attributes = set_attribute (Pango.Weight.ULTRABOLD, 1.4, true)
+            };
+            var overlay = new Gtk.Overlay () {
+                child = thumb_stack
+            };
+            overlay.add_overlay (duration_label);
+
+            var info_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 8);
+            info_box.append (overlay);
+            info_box.append (addrquality);
 
             useragent_entry = new MediaEntry ("avatar-default", "edit-paste") {
                 width_request = 200,
@@ -215,9 +253,9 @@ namespace Gabut {
                 transition_duration = 500,
                 height_request = 210
             };
-            stack.add_named (addrquality, "addrquality");
+            stack.add_named (info_box, "info_box");
             stack.add_named (moregrid, "moregrid");
-            stack.visible_child = addrquality;
+            stack.visible_child = info_box;
             stack.set_visible (true);
 
             var close_button = new Gtk.Button.with_label (_("Cancel")) {
@@ -266,7 +304,6 @@ namespace Gabut {
                 close ();
             });
             var box_action = new Gtk.CenterBox () {
-                margin_top = 10,
                 margin_bottom = 10
             };
 
@@ -285,11 +322,13 @@ namespace Gabut {
                     box_action.set_end_widget (close_button);
                     break;
             }
-            unowned Gtk.Box boxarea = this.get_content_area ();
-            boxarea.margin_start = 10;
-            boxarea.margin_end = 10;
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_start = 10,
+                margin_end = 10
+            };
             boxarea.append (stack);
             boxarea.append (box_action);
+            set_child (boxarea);
 
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
@@ -297,7 +336,7 @@ namespace Gabut {
                         stack.visible_child = moregrid;
                         break;
                     default:
-                        stack.visible_child = addrquality;
+                        stack.visible_child = info_box;
                         break;
                 }
             });
@@ -322,39 +361,36 @@ namespace Gabut {
             if (url == "" || !url.has_prefix("http")) {
                 return;
             }
+            thumb_stack.set_visible_child_name ("icon");
             fetch_btn.sensitive = false;
             new Thread<void> ("%s".printf (GLib.Checksum.compute_for_string (ChecksumType.MD5, url, url.length)), () => {
-                Soup.Session session = new Soup.Session ();
                 try {
-                    var mess = full_message ("GET", url, useragent_entry.text, headerc);
-                    var stream = session.send(mess, cancellable);
-                        var dis = new GLib.DataInputStream(stream);
-                        var sb = new GLib.StringBuilder();
-                        string line;
-                        while ((line = dis.read_line()) != null) {
-                            sb.append(line).append("gabuthls");
-                        }
-                        stream.close ();
-                        dis.close ();
-                        mess = null;
-                        parse_master_content (url, sb.str);
-                        MainContext.default ().invoke (() => {
-                            update_dropdown_ui();
-                            fetch_btn.sensitive = save_button.sensitive = start_button.sensitive = later_button.sensitive = true;
-                            return GLib.Source.REMOVE;
-                        });
-                    } catch (GLib.Error e) {
-                        if (session != null) {
-                            session.abort ();
-                            session = null;
-                        }
-                        fetch_btn.sensitive = true;
-                    } finally {
-                        if (session != null) {
-                            session.abort ();
-                            session = null;
-                        }
+                    var sb = new GLib.StringBuilder();
+                    string? urlh = hls_url (url);
+                    if (urlh == "") {
+                        throw new GLib.IOError.FAILED("Failed fetch");
                     }
+                    sb.append (urlh);
+                    parse_master_content ( url, sb.str);
+                    MainContext.default ().invoke (() => {
+                        update_dropdown_ui ();
+                        fetch_btn.sensitive = save_button.sensitive = start_button.sensitive = later_button.sensitive = true;
+                        if (!resolution) {
+                            return false;
+                        }
+                        uint idx = res_dropdown.get_selected();
+                        if (idx == Gtk.INVALID_LIST_POSITION || (int)idx >= options_list.size) {
+                            return false;
+                        }
+                        var selected = options_list.get((int)idx);
+                        load_urs (selected.url);
+                        return GLib.Source.REMOVE;
+                    });
+                } catch (GLib.Error e) {
+                    if (!cancellable.is_cancelled ()) {
+                        fetch_btn.sensitive = true;
+                    }
+                }
             });
         }
 
@@ -392,17 +428,22 @@ namespace Gabut {
                     rescheck += seg_url;
                     urlhls += line;
                 }
-                var ffmpeg = new Ffmpeg.Reader ();
                 Soup.Session session = new Soup.Session ();
-                string urlhl = rescheck[(int)(rescheck.length / 2)];
+                string urlhl = rescheck[rescheck.length / 8];
+                var ffmpeg = new Ffmpeg.Reader ();
                 try {
                     GLib.Bytes? stream = session.send_and_read (full_message ("GET", urlhl, useragent_entry.text, headerc), cancellable);
                     if (stream == null) {
                         throw new GLib.IOError.FAILED("Error");
                     }
-                    ffmpeg.open_buffer(stream.get_data ());
-                    current_res = @"$(ffmpeg.get_width())x$(ffmpeg.get_height()) : $(rescheck.length) Segment";
-                    options_list.add(new HlsOption (current_res, base_url));
+                    if (!cancellable.is_cancelled ()) {
+                        uint8[] data = stream.get_data ();
+                        ffmpeg.open_buffer(data);
+                        thumnails (data);
+                        current_res = @"[ $(resolution_label (ffmpeg.get_width(), ffmpeg.get_height())) ] $(ffmpeg.get_width())x$(ffmpeg.get_height())";
+                        duration_label.label = @" $(rescheck.length) ";
+                        options_list.add(new HlsOption (current_res, base_url));
+                    }
                     stream = null;
                     ffmpeg = null;
                     rescheck = null;
@@ -421,6 +462,87 @@ namespace Gabut {
             }
         }
 
+        private void load_urs (string urls) {
+            new Thread<void> ("%s".printf (GLib.Checksum.compute_for_string (ChecksumType.MD5, urls, urls.length)), () => {
+                try {
+                    Soup.Session sessions = new Soup.Session ();
+                    var messs = full_message ("GET", urls, useragent_entry.text, headerc);
+                    var streams = sessions.send(messs, cancellable);
+                    if (!cancellable.is_cancelled ()) {
+                        var diss = new GLib.DataInputStream(streams);
+                        string lines;
+                        string[] rescheck = null;
+                        while ((lines = diss.read_line()) != null) {
+                            string linex = lines.strip();
+                            if (linex.length == 0 || linex.has_prefix("#")) {
+                                continue;
+                            }
+                            string seg_url;
+                            try {
+                                seg_url = GLib.Uri.resolve_relative (urls, linex, GLib.UriFlags.NONE);
+                            } catch (GLib.UriError e) {
+                                continue;
+                            }
+                            rescheck += seg_url;
+                        }
+                        Soup.Session sessionx = new Soup.Session ();
+                        string urlhl = rescheck[rescheck.length / 8];
+                        GLib.Bytes? streamx = sessionx.send_and_read (full_message ("GET", urlhl, useragent_entry.text, headerc), cancellable);
+                        if (!cancellable.is_cancelled ()) {
+                            if (streamx == null) {
+                                return;
+                            }
+                            thumnails (streamx.get_data ());
+                            duration_label.label = @" $(rescheck.length) ";
+                        }
+                    }
+                } catch (GLib.Error e) {}
+            });
+        }
+
+        private void thumnails (uint8[] data) {
+            var ffmpeg = new Ffmpeg.Reader ();
+            int out_w, out_h, out_stride;
+            uint8* ffdata = ffmpeg.ts_thumbnail_from_buffer (data, out out_w, out out_h, out out_stride);
+            unowned uint8[] pixel_data = (uint8[]) ffdata;
+            pixel_data.length = out_stride * out_h;
+            if (pixel_data != null) {
+                var pixbuf = new Gdk.Pixbuf.from_data(pixel_data, Gdk.Colorspace.RGB, false, 8, out_w, out_h, out_stride);
+                load_thumbnail.begin (pixbuf);
+            }
+            ffmpeg = null;
+        }
+
+        private async void load_thumbnail (Gdk.Pixbuf pixbuf) throws Error {
+            const int TARGET_W = 280;
+            const int TARGET_H = 157;
+            int src_w = pixbuf.get_width ();
+            int src_h = pixbuf.get_height ();
+            double scale = double.min ((double) TARGET_W / src_w, (double) TARGET_H / src_h);
+            int scaled_w = (int) (src_w * scale);
+            int scaled_h = (int) (src_h * scale);
+            int offset_x = (TARGET_W - scaled_w) / 2;
+            int offset_y = (TARGET_H - scaled_h) / 2;
+            double tiny_scale = double.min (16.0 / src_w, 9.0 / src_h);
+            int tiny_w = int.max (1, (int)(src_w * tiny_scale));
+            int tiny_h = int.max (1, (int)(src_h * tiny_scale));
+            var tiny = pixbuf.scale_simple (tiny_w, tiny_h, Gdk.InterpType.NEAREST);
+            var blurry_canvas = new Gdk.Pixbuf (Gdk.Colorspace.RGB, false, 8, TARGET_W, TARGET_H);
+            blurry_canvas.fill (0x000000ff);
+            var blurry_scaled = tiny.scale_simple (scaled_w, scaled_h, Gdk.InterpType.BILINEAR);
+            blurry_scaled.copy_area (0, 0, scaled_w, scaled_h, blurry_canvas, offset_x, offset_y);
+            var sharp_canvas = new Gdk.Pixbuf (Gdk.Colorspace.RGB, false, 8, TARGET_W, TARGET_H);
+            sharp_canvas.fill (0x000000ff);
+            var sharp_scaled = pixbuf.scale_simple (scaled_w, scaled_h, Gdk.InterpType.BILINEAR);
+            sharp_scaled.copy_area (0, 0, scaled_w, scaled_h, sharp_canvas, offset_x, offset_y);
+            picture_blurry.set_paintable (Gdk.Texture.for_pixbuf (blurry_canvas));
+            thumb_stack.set_visible_child_name ("blur");
+            Idle.add (load_thumbnail.callback);
+            yield;
+            picture_sharp.set_paintable (Gdk.Texture.for_pixbuf (sharp_canvas));
+            thumb_stack.set_visible_child_name ("sharp");
+        }
+
         private void on_start_clicked(bool start) {
             var sb = new GLib.StringBuilder();
             sb.append(link_entry.text).append("gabuthls");
@@ -432,35 +554,20 @@ namespace Gabut {
                 start_button.sensitive = later_button.sensitive = false;
                 var selected = options_list.get((int)idx).url;
                 new Thread<void> ("%s".printf (GLib.Checksum.compute_for_string (ChecksumType.MD5, selected, selected.length)), () => {
-                    Soup.Session session = new Soup.Session ();
                     try {
-                        var mess = full_message ("GET", selected, useragent_entry.text, headerc);
-                        var stream = session.send(mess, cancellable);
-                        var dis = new GLib.DataInputStream(stream);
-                        string line;
-                        while ((line = dis.read_line ()) != null) {
-                            sb.append(line).append("gabuthls");
+                        string? urlh = hls_url (selected);
+                        if (urlh == "") {
+                            throw new GLib.IOError.FAILED("Failed fetch");
                         }
-                        stream.close ();
-                        dis.close ();
-                        mess = null;
+                        sb.append(urlh);
                         MainContext.default ().invoke (() => {
                             downloadfile (sb.str, hashoptions, start, LinkMode.HLS);
                             close ();
                             return GLib.Source.REMOVE;
                         });
                     } catch (GLib.Error e) {
-                        if (session != null) {
-                            session.abort ();
-                            session = null;
-                        }
                         start_button.sensitive = later_button.sensitive = true;
                         set_visible (true);
-                    } finally {
-                        if (session != null) {
-                            session.abort ();
-                            session = null;
-                        }
                     }
                 });
                 set_visible (false);
@@ -477,9 +584,32 @@ namespace Gabut {
             var regex = new GLib.Regex("RESOLUTION=([0-9]+x[0-9]+)");
             GLib.MatchInfo match;
             if (regex.match(line, 0, out match)) {
-                return match.fetch(1);
+                return "[ %s ] %s".printf (resolution_label (int.parse (match.fetch(1).split ("x")[0]), int.parse (match.fetch(1).split ("x")[1])), match.fetch(1));
             }
             return "Unknown";
+        }
+
+        private string hls_url (string gbturl) throws Error {
+            var sb = new GLib.StringBuilder();
+            Soup.Session session = new Soup.Session ();
+            var mess = full_message ("GET", gbturl, useragent_entry.text, headerc);
+            var stream = session.send(mess, cancellable);
+            if (!cancellable.is_cancelled ()) {
+                var dis = new GLib.DataInputStream(stream);
+                string line;
+                while ((line = dis.read_line ()) != null) {
+                    sb.append(line).append("gabuthls");
+                }
+                stream.close ();
+                dis.close ();
+                if (session != null) {
+                    session.abort ();
+                    session = null;
+                }
+                mess = null;
+                return sb.str;
+            }
+            return "";
         }
 
         private void update_dropdown_ui() {
@@ -488,7 +618,7 @@ namespace Gabut {
                 items += opt.resolution;
             }
             if (items.length > 0) {
-                res_model.splice(0, res_model.get_n_items(), items);
+                res_model.splice(0, res_model.get_n_items (), items);
             }
         }
 
@@ -535,30 +665,15 @@ namespace Gabut {
                 if (idx == Gtk.INVALID_LIST_POSITION || (int)idx >= options_list.size) {
                     return;
                 }
-                Soup.Session session = new Soup.Session ();
                 try {
                     var selected = options_list.get((int)idx);
-                    var mess = full_message ("GET", selected.url, useragent_entry.text, headerc);
-                    var stream = session.send(mess, cancellable);
-                    var dis = new GLib.DataInputStream(stream);
-                    string line;
-                    while ((line = dis.read_line()) != null) {
-                        sb.append(line).append("gabuthls");
+                    string? urlh = hls_url (selected.url);
+                    if (urlh == "") {
+                        throw new GLib.IOError.FAILED("Failed fetch");
                     }
+                    sb.append(urlh);
                     row.update_url (hashoptions, name_entry.text, sb.str);
-                    stream.close ();
-                    dis.close ();
-                    mess = null;
                 } catch (GLib.Error e) {
-                    if (session != null) {
-                        session.abort ();
-                        session = null;
-                    }
-                } finally {
-                    if (session != null) {
-                        session.abort ();
-                        session = null;
-                    }
                 }
             } else {
                 foreach (var line in urlhls) {

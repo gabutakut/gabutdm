@@ -35,6 +35,7 @@ namespace Gabut {
         private int custom_columns;
         private bool use_custom_grid;
         private bool show_labels;
+        private Gdk.Pixbuf? thumbnail_pixbuf = null;
 
         private const double TOP_PADDING = 16.0;
         private const double BOTTOM_PADDING = 16.0;
@@ -81,6 +82,11 @@ namespace Gabut {
                 this.visual_boxes_multiplier = multiplier;
                 queue_draw();
             }
+        }
+
+        public void set_thumbnail(Gdk.Pixbuf? pixbuf) {
+            this.thumbnail_pixbuf = pixbuf;
+            queue_draw();
         }
 
         public int get_visual_boxes_multiplier() {
@@ -525,32 +531,126 @@ namespace Gabut {
             }
         }
 
+      private void draw_thumbnail(Cairo.Context cr, int width, int height) {
+            if (thumbnail_pixbuf == null) {
+                return;
+            }
+            int src_w = thumbnail_pixbuf.get_width();
+            int src_h = thumbnail_pixbuf.get_height();
+
+            double scale = (double)width / src_w;
+            double scaled_h = src_h * scale;
+
+            double dest_y;
+            if (scaled_h > height) {
+                dest_y = -(scaled_h - height) / 2.0;
+            } else {
+                dest_y = (height - scaled_h) / 2.0;
+            }
+
+            cr.save();
+            cr.rectangle(0, 0, width, height);
+            cr.clip();
+            cr.scale(scale, scale);
+            Gdk.cairo_set_source_pixbuf(cr, thumbnail_pixbuf, 0.0, dest_y / scale);
+            cr.paint();
+            cr.restore();
+        }
+
         private void draw_bitfield(Gtk.DrawingArea area, Cairo.Context cr, int width, int height) {
             cr.set_source_rgb(0.95, 0.95, 0.95);
             cr.rectangle(0, 0, width, height);
             cr.fill();
-            if (bitfield.length == 0 || total_pieces == 0) {
-                draw_empty_state(cr, width, height);
-                return;
-            }
+
             if (show_labels) {
-                draw_labels(cr, width, height);
-            }
-            double available_width, available_height, start_x, start_y;
-            int boxes_per_row, rows_needed, total_visual_boxes;
-            calculate_grid_dimensions(width, height, out available_width, out available_height, out start_x, out start_y, out boxes_per_row, out rows_needed, out total_visual_boxes);
-            if (show_labels) {
-                double bitfield_area_y = TOP_PADDING;
-                double bitfield_area_height = height - TOP_PADDING - BOTTOM_PADDING;
+                cr.set_source_rgb(0.85, 0.85, 0.85);
+                cr.rectangle(0, 0, width, TOP_PADDING);
+                cr.fill();
+                cr.set_source_rgb(0.85, 0.85, 0.85);
+                cr.rectangle(0, height - BOTTOM_PADDING, width, BOTTOM_PADDING);
+                cr.fill();
                 cr.set_source_rgb(0.98, 0.98, 0.98);
-                cr.rectangle(0, bitfield_area_y, width, bitfield_area_height);
+                cr.rectangle(0, TOP_PADDING, width, height - TOP_PADDING - BOTTOM_PADDING);
                 cr.fill();
             } else {
                 cr.set_source_rgb(0.98, 0.98, 0.98);
                 cr.rectangle(0, 0, width, height);
                 cr.fill();
             }
+
+            draw_thumbnail(cr, width, height);
+
+            if (bitfield.length == 0 || total_pieces == 0) {
+                draw_empty_state(cr, width, height);
+                if (show_labels) {
+                    draw_labels(cr, width, height);
+                }
+                return;
+            }
+
+            double available_width, available_height, start_x, start_y;
+            int boxes_per_row, rows_needed, total_visual_boxes;
+            calculate_grid_dimensions(width, height, out available_width, out available_height, out start_x, out start_y, out boxes_per_row, out rows_needed, out total_visual_boxes);
+
             draw_bitfield_boxes(cr, start_x, start_y, boxes_per_row, rows_needed, total_visual_boxes);
+
+            if (show_labels) {
+                draw_labels_text_only(cr, width, height);
+            }
+        }
+
+        private void draw_labels_text_only(Cairo.Context cr, int width, int height) {
+            if (!show_labels) {
+                return;
+            }
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.45);
+            cr.rectangle(0, 0, width, TOP_PADDING);
+            cr.fill();
+
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.45);
+            cr.rectangle(0, height - BOTTOM_PADDING, width, BOTTOM_PADDING);
+            cr.fill();
+
+            cr.set_source_rgba(1.0, 1.0, 1.0, 0.2);
+            cr.set_line_width(1.0);
+            cr.move_to(0, TOP_PADDING);
+            cr.line_to(width, TOP_PADDING);
+            cr.stroke();
+            cr.move_to(0, height - BOTTOM_PADDING);
+            cr.line_to(width, height - BOTTOM_PADDING);
+            cr.stroke();
+
+            cr.set_source_rgb(0.0, 0.0, 0.0);
+            var filename_layout = Pango.cairo_create_layout(cr);
+            filename_layout.set_font_description(Pango.FontDescription.from_string("Noto Sans Bold 8"));
+            double filename_max_width = width - 20;
+            string display_filename = truncate_text_with_ellipsis(filename_layout, filename, filename_max_width);
+            filename_layout.set_markup(GLib.Markup.escape_text(display_filename).make_valid(), -1);
+            Pango.Rectangle ink_rect, logical_rect;
+            filename_layout.get_pixel_extents(out ink_rect, out logical_rect);
+            double text_y = ((TOP_PADDING - ink_rect.height) / 2.0) - ink_rect.y + 1.5;
+            cr.move_to(10, text_y);
+            Pango.cairo_show_layout(cr, filename_layout);
+
+            cr.set_source_rgb(0.0, 0.0, 0.0);
+            var label_layout = Pango.cairo_create_layout(cr);
+            label_layout.set_font_description(Pango.FontDescription.from_string("Sans Bold 8"));
+            var cn_layout = Pango.cairo_create_layout(cr);
+            cn_layout.set_font_description(Pango.FontDescription.from_string("Sans Bold 8"));
+            string cn_text = "CN: " + connectionsdl;
+            cn_layout.set_text(cn_text, -1);
+            cn_layout.get_extents(out ink_rect, out logical_rect);
+            double cn_width = logical_rect.width / Pango.SCALE;
+            double label_max_width = width - 20 - cn_width;
+            string display_label = truncate_text_with_ellipsis(label_layout, labeltransfer, label_max_width);
+            label_layout.set_text(display_label, -1);
+            label_layout.get_extents(out ink_rect, out logical_rect);
+            double label_height = logical_rect.height / Pango.SCALE;
+            double bottom_text_y = height - BOTTOM_PADDING + (BOTTOM_PADDING - label_height) / 2;
+            cr.move_to(10, bottom_text_y);
+            Pango.cairo_show_layout(cr, label_layout);
+            cr.move_to(width - cn_width - 10, bottom_text_y);
+            Pango.cairo_show_layout(cr, cn_layout);
         }
     }
 }

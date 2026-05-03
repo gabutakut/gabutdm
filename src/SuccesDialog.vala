@@ -87,9 +87,12 @@ namespace Gabut {
             header_grid.attach (primarylabel, 1, 0, 1, 1);
             header_grid.attach (filesizelabel, 1, 1, 1, 1);
 
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.title_widget = header_grid;
-            header.decoration_layout = "none";
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = header_grid
+            };
+            set_titlebar (header);
 
             address = new MediaEntry.info ("com.github.gabutakut.gabutdm.insertlink", "com.github.gabutakut.gabutdm.complete") {
                 hexpand = true,
@@ -167,12 +170,16 @@ namespace Gabut {
             };
             centerbox.set_start_widget (box_action);
             centerbox.set_end_widget (close_button);
-            unowned Gtk.Box area = this.get_content_area ();
-            area.margin_start = 10;
-            area.margin_end = 10;
-            area.halign = Gtk.Align.CENTER;
-            area.append (dialogmain);
-            area.append (centerbox);
+
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_start = 10,
+                margin_end = 10,
+                halign = Gtk.Align.CENTER
+            };
+            boxarea.append (dialogmain);
+            boxarea.append (centerbox);
+            set_child (boxarea);
+
             move_window (this, dialogmain);
         }
 

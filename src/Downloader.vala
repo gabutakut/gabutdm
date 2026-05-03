@@ -218,9 +218,9 @@ namespace Gabut {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER
             };
-            view_mode.append_text (_("Download Status"));
-            view_mode.append_text (_("Download Files"));
-            view_mode.append_text (_("Speed Limiter"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.info", _("Download Status"));
+            view_mode.append_icon_text ("folder", _("Download Files"));
+            view_mode.append_icon_text ("com.github.gabutakut.gabutdm.limiter", _("Speed Limiter"));
             view_mode.selected = 0;
             view_mode.notify["selected"].connect (() => {
                 switch (view_mode.selected) {
@@ -230,14 +230,14 @@ namespace Gabut {
                             return;
                         }
                         try {
-                            var parser = new Json.Parser();
+                            var parser = new Json.Parser ();
                             parser.load_from_data(json_str, -1);
-                            Json.Node? root = parser.get_root();
+                            Json.Node? root = parser.get_root ();
                             if (root == null) {
                                 return;
                             }
                             if (!structure_ready) {
-                                new Thread<void?> ("openfiles-%s".printf(ariagid), () => {
+                                new Thread<void?> ("openfiles-%s".printf (ariagid), () => {
                                     parse_aria2_response(root);
                                 });
                             }
@@ -254,9 +254,13 @@ namespace Gabut {
                         break;
                 }
             });
-            unowned Gtk.HeaderBar header = this.get_header_bar ();
-            header.decoration_layout = "none";
-            header.title_widget = view_mode;
+
+            var header = new Gtk.HeaderBar () {
+                hexpand = true,
+                decoration_layout = "none",
+                title_widget = view_mode
+            };
+            set_titlebar (header);
 
             bitfield_widget = new BitfieldWidget (false, 1) {
                 width_request = 650
@@ -571,12 +575,14 @@ namespace Gabut {
                 transition_type = Gtk.RevealerTransitionType.SWING_DOWN,
                 child = connpeers
             };
-            unowned Gtk.Box boxarea = this.get_content_area ();
-            boxarea.margin_start = 10;
-            boxarea.margin_end = 10;
+            var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
+                margin_start = 10,
+                margin_end = 10
+            };
             boxarea.append (boxstatus);
             boxarea.append (centerbox);
             boxarea.append (revcon);
+            set_child (boxarea);
 
             notify["switch-rev"].connect (()=> {
                 if (switch_rev) {

@@ -34,7 +34,7 @@ namespace Gabut {
         }
 
         construct {
-            engine = new Aria2.Engine();
+            engine = new Aria2.Engine ();
             GLib.OptionEntry [] options = new GLib.OptionEntry [3];
             options [0] = { "startingup", 's', GLib.OptionFlags.NONE, GLib.OptionArg.NONE, null, "Starup", "Run App on Startup" };
             options [1] = { GLib.OPTION_REMAINING, 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING_ARRAY, null, "Array file", "Open File or URIs" };
@@ -44,8 +44,10 @@ namespace Gabut {
 
         public override int command_line (GLib.ApplicationCommandLine command) {
             if (spalshsc == null && gabutwindow == null) {
-                spalshsc = new SplashScreen (this);
-                spalshsc.set_visible (true);
+                spalshsc = new SplashScreen (this) {
+                    mode = SplashMode.DEFAULT,
+                    visible = true
+                };
             }
             if (gabutdb == null) {
                 if (open_database (out gabutdb) != Sqlite.OK) {
@@ -59,10 +61,10 @@ namespace Gabut {
             }
             var dict = command.get_options_dict ();
             bool cremaint = dict.contains (GLib.OPTION_REMAINING);
-            if (dict.contains ("startingup")) {
-                var dbstartup = bool.parse (get_dbsetting (DBSettings.STARTUP));
-                flatpack_autostart.begin (dbstartup);
-                default_autostart.begin (dbstartup);
+            bool starting = dict.contains ("startingup");
+            bool dbstartup = true;
+            if (starting) {
+                dbstartup = bool.parse (get_dbsetting (DBSettings.STARTUP));
                 if (!dbstartup) {
                     spalshsc.preparing.connect (()=> {
                         spalshsc.status_dm (_("Starting on startup disabled…"));
@@ -72,6 +74,8 @@ namespace Gabut {
                 }
             }
             if (gabutwindow == null) {
+                flatpack_autostart.begin (dbstartup);
+                default_autostart.begin (dbstartup);
                 start_engine.begin ();
                 var gabutserver = new GabutServer ();
                 gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
@@ -80,7 +84,10 @@ namespace Gabut {
                 add_window (gabutwindow);
 
                 gabutwindow.send_file.connect (dialog_url);
-                gabutwindow.open_show.connect (open_now);
+                gabutwindow.open_window.connect (open_window);
+                gabutwindow.open_qrserver.connect (open_qrserver);
+                gabutwindow.open_settings.connect (open_settings);
+                gabutwindow.open_tfiles.connect (open_dict);
                 gabutwindow.stop_server.connect (()=> {
                     gabutserver.stop_server ();
                 });
@@ -150,8 +157,10 @@ namespace Gabut {
                 });
                 spalshsc.close_request.connect (()=> {
                     play_sound ("device-added");
-                    if (!dict.contains ("startingup") && !cremaint) {
-                        open_now ();
+                    if (!starting && !cremaint) {
+                        if (!gabutwindow.is_visible ()) {
+                            gabutwindow.present ();
+                        }
                     }
                     spalshsc = null;
                     if (cremaint) {
@@ -166,9 +175,11 @@ namespace Gabut {
                 gabutwindow.close_request.connect (()=> {
                     if (!bool.parse (get_dbsetting (DBSettings.ONBACKGROUND))) {
                         if (spalshsc == null && gabutwindow != null) {
-                            spalshsc = new SplashScreen (this);
+                            spalshsc = new SplashScreen (this) {
+                                mode = SplashMode.DEFAULT,
+                                visible = true
+                            };
                             spalshsc.status_text = "Preparing…";
-                            spalshsc.set_visible (true);
                             spalshsc.preparing.connect (()=> {
                                 spalshsc.save_all_download (gabutwindow);
                             });
@@ -181,34 +192,49 @@ namespace Gabut {
                     return GLib.Source.REMOVE;
                 });
             } else {
-                if (dict.contains ("startingup") || cremaint) {
+                if (starting || cremaint) {
                     if (cremaint) {
                         open_dict (string.joinv ("\n", dict.lookup_value (GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY).get_strv ()), _("Try to Open"));
                     }
                     return base.command_line (command);
                 }
-                open_now ();
+                open_window ();
             }
             return base.command_line (command);
         }
 
-        private void open_dict (string dict, string title) {
+        private void open_dict (string dict, string title, SplashMode mode = SplashMode.OPEN_FILE) {
             if (spalshsc == null) {
                 spalshsc = new SplashScreen (this) {
-                    is_processing = true,
+                    mode = mode,
+                    visible = true,
                     title_text = title
                 };
-                spalshsc.status_text = "Opening…";
-                spalshsc.set_visible (true);
+                spalshsc.status_text = _("Opening…");
+                bool gabutytb = false;
+                string urlgbtytb = "";
                 spalshsc.preparing.connect (()=> {
-                    spalshsc.prosessing_files (dict);
+                    var uris = dict.split ("\n");
+                    spalshsc.status_text = _("Connecting…");
+                    new Thread<void> ("urlfetch", ()=> {
+                        gabutytb = ping_gabutytb (uris[0]);
+                        MainContext.default ().invoke (()=> {
+                            if (!gabutytb) {
+                                spalshsc.prosessing_files (dict);
+                            } else {
+                                spalshsc.status_dm ("Completed!  ✓");
+                                urlgbtytb = uris[0];
+                            }
+                            return GLib.Source.REMOVE;
+                        });
+                    });
                 });
                 spalshsc.open_files.connect ((urlist)=> {
                     if (urlist.contains ("\n")) {
                         var uris = urlist.split ("\n");
                         int x = 0;
                         var lent = uris.length;
-                        GLib.Timeout.add (250, () => {
+                        GLib.Timeout.add (150, () => {
                             var uri = uris[x].strip ();
                             dialog_url (uri);
                             x++;
@@ -219,6 +245,15 @@ namespace Gabut {
                     }
                 });
                 spalshsc.close_request.connect (()=> {
+                    if (gabutytb) {
+                        var addytdlp = new AddYtdlp () {
+                            transient_for = gabutwindow,
+                            visible = true
+                        };
+                        addytdlp.url_entry.text = urlgbtytb.strip ();
+                        addytdlp.refer_entry.text = urlgbtytb.strip ();
+                        addytdlp.downloadfile.connect (gabutwindow.add_url_box);
+                    }
                     play_sound ("device-removed");
                     spalshsc = null;
                     return GLib.Source.REMOVE;
@@ -226,9 +261,62 @@ namespace Gabut {
             }
         }
 
-        private void open_now () {
-            if (!gabutwindow.is_visible ()) {
-                gabutwindow.set_visible (true);
+        private void open_window () {
+            if (spalshsc == null) {
+                if (!gabutwindow.is_visible ()) {
+                    spalshsc = new SplashScreen (this) {
+                        mode = SplashMode.DEFAULT,
+                        visible = true,
+                        title_text = _("Gabut Download Manager")
+                    };
+                    spalshsc.status_text = _("Opening Window…");
+                    spalshsc.preparing.connect (()=> {
+                        spalshsc.status_dm (_("Done…"));
+                    });
+                    spalshsc.close_request.connect (()=> {
+                        gabutwindow.present ();
+                        spalshsc = null;
+                        return GLib.Source.REMOVE;
+                    });
+                }
+            }
+        }
+
+        private void open_settings () {
+            if (spalshsc == null) {
+                spalshsc = new SplashScreen (this) {
+                    mode = SplashMode.SETTING,
+                    visible = true,
+                    title_text = _("Gabut Settings")
+                };
+                spalshsc.status_text = _("Opening Window…");
+                spalshsc.preparing.connect (()=> {
+                    spalshsc.status_dm (_("Done…"));
+                });
+                spalshsc.close_request.connect (()=> {
+                    gabutwindow.menupref ();
+                    spalshsc = null;
+                    return GLib.Source.REMOVE;
+                });
+            }
+        }
+
+        private void open_qrserver () {
+            if (spalshsc == null) {
+                spalshsc = new SplashScreen (this) {
+                    mode = SplashMode.LOCAL_SERVER,
+                    visible = true,
+                    title_text = _("Gabut Server")
+                };
+                spalshsc.status_text = _("Opening Window…");
+                spalshsc.preparing.connect (()=> {
+                    spalshsc.status_dm (_("Done…"));
+                });
+                spalshsc.close_request.connect (()=> {
+                    gabutwindow.menu_openqr ();
+                    spalshsc = null;
+                    return GLib.Source.REMOVE;
+                });
             }
         }
 
@@ -258,7 +346,8 @@ namespace Gabut {
 
         public void dialog_succes (string strdata) {
             var succesdl = new SuccesDialog (strdata) {
-                transient_for = gabutwindow
+                transient_for = gabutwindow,
+                visible = true
             };
             succesdls.append (succesdl);
             succesdl.close_request.connect (()=> {
@@ -272,7 +361,6 @@ namespace Gabut {
                 }
                 return GLib.Source.REMOVE;
             });
-            succesdl.set_visible (true);
         }
 
         public void dialog_server (MatchInfo match_info) {
@@ -283,19 +371,20 @@ namespace Gabut {
             if (is_hls (urls)) {
                 var addhls = new AddHls () {
                     transient_for = gabutwindow,
-                    portserver = match_info
+                    portserver = match_info,
+                    visible = true
                 };
                 addhls.downloadfile.connect (gabutwindow.add_url_box);
                     addhls.close_request.connect (()=> {
                     addhls = null;
                     return GLib.Source.REMOVE;
                 });
-                addhls.set_visible (true);
                 return;
             }
             var addurl = new AddUrl () {
                 transient_for = gabutwindow,
-                portserver = match_info
+                portserver = match_info,
+                visible = true
             };
             addurls.append (addurl);
             addurl.downloadfile.connect (gabutwindow.add_url_box);
@@ -310,7 +399,6 @@ namespace Gabut {
                 }
                 return GLib.Source.REMOVE;
             });
-            addurl.set_visible (true);
         }
 
         public void dialog_url (string link) {
@@ -318,10 +406,10 @@ namespace Gabut {
                 if (is_hls (link)) {
                     var addhls = new AddHls () {
                         transient_for = gabutwindow,
-                        url_link = link.strip ()
+                        url_link = link.strip (),
+                        visible = true
                     };
                     addhls.downloadfile.connect (gabutwindow.add_url_box);
-                    addhls.set_visible (true);
                 } else {
                     if (link.has_prefix ("magnet:?")) {
                         link.replace ("tr.N=", "tr=");
@@ -329,6 +417,7 @@ namespace Gabut {
                     var addurl = new AddUrl () {
                         transient_for = gabutwindow,
                         url_link = link.strip (),
+                        visible = true,
                         url_icon = link.has_prefix ("magnet:?")? "com.github.gabutakut.gabutdm.magnet" : "com.github.gabutakut.gabutdm.insertlink"
                     };
                     addurls.append (addurl);
@@ -344,12 +433,12 @@ namespace Gabut {
                         }
                         return GLib.Source.REMOVE;
                     });
-                    addurl.set_visible (true);
                 }
             } else if (link.has_suffix (".torrent") || link.has_suffix (".metalink")) {
                 if (GLib.FileUtils.test (link, GLib.FileTest.EXISTS)) {
                     var addtrr = new AddTorrent () {
-                        transient_for = gabutwindow
+                        transient_for = gabutwindow,
+                        visible = true
                     };
                     addtrr.load_torrent (link);
                     addtrr.downloadfile.connect (gabutwindow.add_url_box);
@@ -357,7 +446,6 @@ namespace Gabut {
                         addtrr = null;
                         return GLib.Source.REMOVE;
                     });
-                    addtrr.set_visible (true);
                 }
             }
         }
@@ -388,7 +476,8 @@ namespace Gabut {
         private void download (string aria_gid) {
             var downloader = new Downloader ()  {
                 transient_for = gabutwindow,
-                ariagid = aria_gid
+                ariagid = aria_gid,
+                visible = true
             };
             downloaders.append (downloader);
             downloader.show.connect (()=> {
@@ -411,7 +500,6 @@ namespace Gabut {
             downloader.actions_button.connect ((ariagid, status)=> {
                 return gabutwindow.server_action (ariagid, status);
             });
-            downloader.set_visible (true);
         }
 
         private bool on_clipboard () {
@@ -419,12 +507,12 @@ namespace Gabut {
                 if (clipboard.formats.contain_gtype (GLib.Type.STRING)) {
                     clipboard.read_text_async.begin (null, (obj, res)=> {
                         try {
-                            string? textclip = clipboard.read_text_async.end (res);
+                            string? textclip = clipboard.read_text_async.end (res).strip ();
                             if (textclip != null && textclip != lastclipboard) {
                                 if (!url_active (textclip)) {
                                     if (is_url (textclip) || textclip.has_suffix (".torrent") || textclip.has_suffix (".metalink")) {
                                         lastclipboard = set_dbsetting (Gabut.DBSettings.LASTCLIPBOARD, textclip);
-                                        open_dict (textclip, _("Clipboard Processing"));
+                                        open_dict (textclip, _("Clipboard Processing"), SplashMode.CLIPBOARD);
                                     }
                                 }
                             }

@@ -229,7 +229,7 @@ namespace Gabut {
             }
         }
 
-        public int64 estimate_total_size() {
+        public int64 estimate_total_size () {
             int64 completed_segments = 0;
             int64 completed_tsize = 0;
             foreach (var downloader in downloaders) {
@@ -450,7 +450,7 @@ namespace Gabut {
             merged_ts = true;
             var filepath = GLib.File.new_for_path(output_dir);
             var output_path = GLib.Path.build_filename(filepath.get_parent().get_path(), filename);
-            mp4path = sanitize_output_path (ext_filename (output_path));
+            mp4path = sanitize_output_path (mp4_filename (output_path));
             var ffmpeg = new Ffmpeg.Merger();
             new Thread<void>("merworker-%u".printf (filename.hash ()), () => {
                 int result = ffmpeg.merge_files(file_list, file_list.length, mp4path);

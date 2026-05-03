@@ -89,10 +89,11 @@ namespace Gabut {
         private DbusStatusWhacher dbusstatuswatcher = null;
         private string _app_uri;
         private uint _registration_id = 0;
+        private uint _subscribe_dbus = 0;
 
         public DbusIndicator (string desktop_file) {
             this._app_uri = "application://%s.desktop".printf(desktop_file);
-            _menu = new GLib.ObjectPath("/com/canonical/unity/launcherentry/%u".printf(_app_uri.hash()));
+            _menu = new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf(_app_uri.hash()));
         }
 
         public async void register () throws GLib.Error {
@@ -112,6 +113,7 @@ namespace Gabut {
                 _registration_id = 0;
             }
             if (dbusstatuswatcher != null) {
+                ((GLib.DBusProxy) dbusstatuswatcher).g_connection.signal_unsubscribe (_subscribe_dbus);
                 dbusstatuswatcher = null;
             }
         }
@@ -120,7 +122,7 @@ namespace Gabut {
         private async void start_buswach () throws GLib.Error {
             dbusstatuswatcher = yield GLib.Bus.get_proxy <DbusStatusWhacher> (GLib.BusType.SESSION, "org.kde.StatusNotifierWatcher", "/StatusNotifierWatcher", GLib.DBusProxyFlags.NONE, null);
             if (dbusstatuswatcher != null) {
-                ((GLib.DBusProxy) dbusstatuswatcher).g_connection.signal_subscribe (null, "org.kde.StatusNotifierWatcher", null, "/StatusNotifierWatcher", null, GLib.DBusSignalFlags.NONE, () => {});
+                _subscribe_dbus = ((GLib.DBusProxy) dbusstatuswatcher).g_connection.signal_subscribe (null, "org.kde.StatusNotifierWatcher", null, "/StatusNotifierWatcher", null, GLib.DBusSignalFlags.NONE, () => {});
                 dbusstatuswatcher.register_status_notifier_item (_menu);
                 _id = GLib.Environment.get_application_name ();
             }
