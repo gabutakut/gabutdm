@@ -1961,6 +1961,13 @@ namespace Gabut {
         }
 
         public void processing_dl (string info, DnDScreenCallback callback) {
+            if (!gdmanim) {
+                if (callback != null) {
+                    callback ();
+                    drop_state = DropState.IDLE;
+                    return;
+                }
+            }
             if (_state == DropState.PROCESSING) {
                 return;
             }
@@ -1982,9 +1989,14 @@ namespace Gabut {
         }
 
         public void status_dm (string info) {
+            if (!gdmanim) {
+                drop_state = DropState.IDLE;
+                target_overlay = 0.0;
+                return;
+            }
             status_text = info;
             fraction = 1.0;
-            GLib.Timeout.add (250, () => {
+            GLib.Timeout.add (350, () => {
                 drop_state = DropState.IDLE;
                 target_overlay = 0.0;
                 return false;
@@ -1992,9 +2004,17 @@ namespace Gabut {
         }
 
         public void sts_finish (DnDScreenCallback callback) {
+            if (!gdmanim) {
+                if (callback != null) {
+                    callback ();
+                    drop_state = DropState.IDLE;
+                    target_overlay = 0.0;
+                    return;
+                }
+            }
             status_text = _("Done!  ✓");
             fraction = 1.0;
-            GLib.Timeout.add (250, () => {
+            GLib.Timeout.add (350, () => {
                 drop_state = DropState.IDLE;
                 target_overlay = 0.0;
                 if (callback != null) {

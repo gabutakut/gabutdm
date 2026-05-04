@@ -31,14 +31,31 @@ jobs:
 
       - name: Import GPG key
         run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --pinentry-mode loopback --import
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | \
+            gpg --batch --yes --pinentry-mode loopback --import
+          gpg --batch --yes --pinentry-mode loopback \
+            --command-fd 0 --expert --edit-key ${{ secrets.GPG_KEY_ID }} \
+            <<< "trust
+          5
+          y
+          quit"
+
+      - name: Setup dput
+        run: |
+          cat > ~/.dput.cf << EOF
+          [ppa]
+          fqdn = ppa.launchpad.net
+          method = ftp
+          incoming = ~%(ppa)s/ubuntu
+          login = anonymous
+          allow_unsigned_uploads = 0
+          EOF
 
       - name: Prepare source tarball
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           cd ..
           cp -r gabutdm gabutdm-${VERSION}
-          # nama harus sesuai dengan Package di debian/changelog
           tar -czf com.github.gabutakut.gabutdm_${VERSION}.orig.tar.gz gabutdm-${VERSION}
 
       - name: Build package
@@ -49,18 +66,14 @@ jobs:
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           cd ../gabutdm-${VERSION}
+          dch --newversion "${VERSION}" \
+              --distribution noble \
+              --force-distribution \
+              -b \
+              "Release ${VERSION}"
           chmod 644 debian/changelog debian/control debian/copyright
-
-          # Build tanpa sign dulu
+          chmod +x debian/rules
           dpkg-buildpackage -S -sa -d --no-sign
-
-          # Sign manual pakai passphrase
-          echo "${{ secrets.GPG_PASSPHRASE }}" | \
-            gpg --batch --yes --pinentry-mode loopback \
-            --passphrase-fd 0 \
-            -u ${{ secrets.GPG_KEY_ID }} \
-            --clearsign ../*.dsc
-
           echo "${{ secrets.GPG_PASSPHRASE }}" | \
             debsign -k${{ secrets.GPG_KEY_ID }} \
             --no-re-sign \

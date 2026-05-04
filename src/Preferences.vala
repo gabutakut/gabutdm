@@ -771,6 +771,12 @@ namespace Gabut {
                 active = bool.parse (get_dbsetting (DBSettings.CLIPBOARD))
             };
 
+            var animation = new Gtk.CheckButton.with_label (_("Animation on Transition")) {
+                margin_top = 5,
+                width_request = 610,
+                active = bool.parse (get_dbsetting (DBSettings.ANIMATION))
+            };
+
             var dbusmenu = new Gtk.CheckButton.with_label (_("Dbus Menu")) {
                 margin_top = 5,
                 width_request = 610,
@@ -870,18 +876,19 @@ namespace Gabut {
             notifyopt.attach (retonhide, 0, 5, 1, 1);
             notifyopt.attach (appstartup, 0, 6, 1, 1);
             notifyopt.attach (appclipboard, 0, 7, 1, 1);
-            notifyopt.attach (headerlabel (_("Dbus Settings:"), 500), 0, 8, 1, 1);
-            notifyopt.attach (dbusmenu, 0, 9, 1, 1);
-            notifyopt.attach (menuindicator, 0, 10, 1, 1);
-            notifyopt.attach (label_rev, 0, 11, 1, 1);
-            notifyopt.attach (headerlabel (_("Notify:"), 500), 0, 12, 1, 1);
-            notifyopt.attach (systemnotif, 0, 13, 1, 1);
-            notifyopt.attach (dialognotify, 0, 14, 1, 1);
-            notifyopt.attach (soundnotif, 0, 15, 1, 1);
-            notifyopt.attach (headerlabel (_("File Download:"), 500), 0, 16, 1, 1);
-            notifyopt.attach (allowrepl, 0, 17, 1, 1);
-            notifyopt.attach (autorename, 0, 18, 1, 1);
-            notifyopt.attach (optimdw, 0, 19, 1, 1);
+            notifyopt.attach (animation, 0, 8, 1, 1);
+            notifyopt.attach (headerlabel (_("Dbus Settings:"), 500), 0, 9, 1, 1);
+            notifyopt.attach (dbusmenu, 0, 10, 1, 1);
+            notifyopt.attach (menuindicator, 0, 11, 1, 1);
+            notifyopt.attach (label_rev, 0, 12, 1, 1);
+            notifyopt.attach (headerlabel (_("Notify:"), 500), 0, 13, 1, 1);
+            notifyopt.attach (systemnotif, 0, 14, 1, 1);
+            notifyopt.attach (dialognotify, 0, 15, 1, 1);
+            notifyopt.attach (soundnotif, 0, 16, 1, 1);
+            notifyopt.attach (headerlabel (_("File Download:"), 500), 0, 17, 1, 1);
+            notifyopt.attach (allowrepl, 0, 18, 1, 1);
+            notifyopt.attach (autorename, 0, 19, 1, 1);
+            notifyopt.attach (optimdw, 0, 20, 1, 1);
             label_mode.sensitive = dbusmenu.active && menuindicator.active;
 
             var notyscr = new Gtk.ScrolledWindow () {
@@ -915,6 +922,7 @@ namespace Gabut {
             save_button.clicked.connect (()=> {
                 set_dbsetting (DBSettings.ONBACKGROUND, retonhide.active.to_string ());
                 set_dbsetting (DBSettings.CLIPBOARD, appclipboard.active.to_string ());
+                set_dbsetting (DBSettings.ANIMATION, animation.active.to_string ());
                 set_dbsetting (DBSettings.MENUINDICATOR, menuindicator.active.to_string ());
                 set_dbsetting (DBSettings.DIALOGNOTIF, dialognotify.active.to_string ());
                 set_dbsetting (DBSettings.STARTUP, appstartup.active.to_string ());
