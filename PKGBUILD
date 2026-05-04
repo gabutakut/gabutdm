@@ -1,6 +1,6 @@
 # Maintainer: Torikul Habib <torik.habib@gmail.com>
 pkgname=gabutdm-master
-pkgver=2.9.2
+pkgver=2.9.3
 pkgrel=2
 pkgdesc="Simple, fast, and powerful Download Manager built with GTK4"
 arch=('x86_64')
