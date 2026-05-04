@@ -31,6 +31,19 @@
     <binary>com.github.gabutakut.gabutdm</binary>
   </provides>
 ​  <releases>
+    <release version="2.9.1" date="2026-05-04">
+      <description>
+        <p>Fix Not Responding HLS/M3U8 Downloader</p>
+        <p>Improve Server viewer</p>
+        <p>Login Server style viewer</p>
+        <p>Fix flatpack startup</p>
+        <p>Progress on icon start</p>
+        <p>Smooth Animation</p>
+        <p>Splash screen info startup</p>
+        <p>Youtube With Plugin</p>
+        <p>Animtion toggle</p>
+      </description>
+    </release>
     <release version="2.9.0" date="2026-05-03">
       <description>
         <p>Fix Not Responding HLS/M3U8 Downloader</p>

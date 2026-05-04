@@ -76,7 +76,8 @@ namespace Gabut {
         HLSACTIVE = 52,
         HLSTIMEOUT = 53,
         HLSRETRIES = 54,
-        GABUTYTB = 55;
+        GABUTYTB = 55,
+        ANIMATION = 56;
 
         public string to_string () {
             switch (this) {
@@ -190,6 +191,8 @@ namespace Gabut {
                     return "hlsretries";
                 case GABUTYTB:
                     return "gabutytb";
+                case ANIMATION:
+                    return "animation";
                 default:
                     return "id";
             }
@@ -1698,6 +1701,7 @@ namespace Gabut {
     private GLib.File serverdir;
     private string aria_listent;
     private bool cliboardmenu;
+    private bool gdmanim;
     private int hlsparalell_dld;
     private int hlsparallel_active;
     private int hls_timeout;
@@ -1706,6 +1710,7 @@ namespace Gabut {
 
     private void menuglobal () {
         cliboardmenu = bool.parse (get_dbsetting (Gabut.DBSettings.CLIPBOARD));
+        gdmanim = bool.parse (get_dbsetting (Gabut.DBSettings.ANIMATION));
         hlsparalell_dld = int.parse (get_dbsetting (Gabut.DBSettings.HLSPARALLELCON));
         hlsparallel_active = int.parse (get_dbsetting (Gabut.DBSettings.HLSACTIVE));
         hls_timeout = int.parse (get_dbsetting (Gabut.DBSettings.HLSTIMEOUT));
@@ -3594,13 +3599,14 @@ namespace Gabut {
             hlsactive      TEXT    NOT NULL,
             hlstimeout     TEXT    NOT NULL,
             hlsretries     TEXT    NOT NULL,
-            gabutytb       TEXT    NOT NULL);
-            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, lastclipboard, optimizedow, hlsparallelcon, hlsactive, hlstimeout, hlsretries, gabutytb)
-            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\", \"false\", \"4\", \"1\", \"2000\", \"2\", \"3030\");");
+            gabutytb       TEXT    NOT NULL,
+            animation      TEXT    NOT NULL);
+            INSERT INTO settings (id, rpcport, maxtries, connserver, timeout, dir, retry, rpcsize, btmaxpeers, diskcache, maxactive, bttimeouttrack, split, maxopenfile, dialognotif, systemnotif, onbackground, iplocal, portlocal, seedtime, overwrite, autorenaming, allocation, startup, style, uploadlimit, downloadlimit, btlistenport, dhtlistenport, bttracker, bttrackerexc, splitsize, lowestspeed, uriselector, pieceselector, clipboard, sharedir, switchdir, sortby, ascedescen, showtime, showdate, dbusmenu, tdefault, notifsound, menuindicator, labelmode, themeselect, themecustom, lastclipboard, optimizedow, hlsparallelcon, hlsactive, hlstimeout, hlsretries, gabutytb, animation)
+            VALUES (1, \"6807\", \"5\", \"6\", \"60\", \"$(dir.replace ("/", "\\/"))\", \"0\", \"2097152\", \"55\", \"16777216\", \"5\", \"60\", \"5\", \"100\", \"true\", \"true\", \"true\", \"true\", \"2021\", \"0\", \"false\", \"false\", \"None\", \"true\", \"1\", \"128000\", \"0\", \"21301\", \"26701\", \"\", \"\", \"20971520\", \"0\", \"feedback\", \"default\", \"true\", \"$(dir)\", \"false\", \"0\", \"0\", \"false\", \"false\", \"false\", \"false\", \"false\", \"false\", \"0\", \"0\" ,\"Breeze\", \"\", \"false\", \"4\", \"1\", \"2000\", \"2\", \"3030\", \"true\");");
     }
 
     private void settings_table () {
-        if ((db_get_cols ("settings") - 1) != DBSettings.GABUTYTB) {
+        if ((db_get_cols ("settings") - 1) != DBSettings.ANIMATION) {
             gabutdb.exec ("DROP TABLE settings;");
             table_settings (gabutdb);
         }

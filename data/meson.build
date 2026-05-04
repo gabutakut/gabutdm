@@ -1,4 +1,3 @@
-# Install icons
 install_data (
     join_paths ('icons', 'apps', meson.project_name () + '.svg'),
     install_dir: join_paths (get_option ('datadir'), 'icons', 'hicolor', 'scalable', 'apps')
