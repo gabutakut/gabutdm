@@ -16,10 +16,10 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y devscripts debhelper dh-make meson ninja-build valac \
-          libgtk-4-dev libadwaita-1-dev libsoup-3.0-dev \
+          libgtk-4-dev libadwaita-1-dev libsoup-3.0-dev\
           libgee-0.8-dev libjson-glib-dev libqrencode-dev \
           libsqlite3-dev libcanberra-dev libgdk-pixbuf-2.0-dev \
-          libcairo2-dev libavformat-dev libavcodec-dev libavutil-dev libaria2-0-dev \
+          libcairo2-dev libavformat-dev libavcodec-dev libavutil-dev libaria2-0-dev libavdevice-dev \
           dput gnupg
 
       - name: Setup GPG
