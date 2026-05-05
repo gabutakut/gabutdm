@@ -1,12 +1,17 @@
 name: gabutdm
-version: "2.8.5"
+version: "2.9.3"
 grade: stable
 base: core24
 summary: Simple and Faster Download Manager
 description: |
-    Gabut Download Manager application that can download all you need like Link URIs Metallink Magnetlink Torrents using Aria2c and,
-    an application that has a local server service interface. also file transfers from smartphones.
-    This application prioritizes convenience, full of features and an attractive appearance.
+     ✔ Multi-protocol downloads
+    ✔ Torrent support
+    ✔ HLS/M3U8 support
+    ✔ Youtube support
+    ✔ File selection before download
+    ✔ Modern GTK4 interface
+    ✔ Lightweight & fast
+    ✔ Linux-first experience
 
 confinement: strict
 parts:
@@ -37,6 +42,7 @@ parts:
         - libavformat-dev
         - libavcodec-dev
         - libaria2-0-dev
+        - libavdevice-dev
     stage-packages:
         - libx11-dev
         - libxau-dev
