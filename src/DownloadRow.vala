@@ -150,7 +150,7 @@ namespace Gabut {
                                     if (!GLib.FileUtils.test (m4a_a, GLib.FileTest.EXISTS)) {
                                         hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (m4a_a);
                                         filepath = m4a_a;
-                                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, actwaiting ());
                                         status = StatusMode.ACTIVE;
                                         break;
                                     }
@@ -165,7 +165,7 @@ namespace Gabut {
                                     if (!GLib.FileUtils.test (opus_a, GLib.FileTest.EXISTS)) {
                                         hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (opus_a);
                                         filepath = opus_a;
-                                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, actwaiting ());
                                         status = StatusMode.ACTIVE;
                                         break;
                                     }
@@ -176,12 +176,12 @@ namespace Gabut {
                             }
                         }
                         if (linkmode != LinkMode.MAGNETLINK) {
-                            if (_pathname != null) {
-                                open_thum ();
-                            }
                             if (filename != null) {
                                 GLib.Application.get_default ().lookup_action ("destroy").activate (new Variant.string (ariagid));
                                 if (pathname != null && pathname != "" && fileordir != "" && fileordir != null) {
+                                    if (linkmode != LinkMode.HLS) {
+                                        open_thum (pathname);
+                                    }
                                     if (linkmode != LinkMode.YTBMP4 && linkmode != LinkMode.YTBWEBM && linkmode != LinkMode.YTBAUDIO) {
                                         notify_app (_("Download Complete"), filename, GLib.ContentType.get_icon (fileordir));
                                         play_sound ("complete");
@@ -530,14 +530,14 @@ namespace Gabut {
             }
             if (status == StatusMode.COMPLETE) {
                 if (pathname != null) {
-                    open_thum ();
+                    open_thum (filepath);
                 }
             }
         }
 
-        public DownloadRow.Url (string gbturl, Gee.HashMap<string, string> options, int linkmode) {
+        public DownloadRow.Url (string gbturl, Gee.HashMap<string, string> options, int linkmod) {
             this.hashoption = options;
-            this.linkmode = linkmode;
+            this.linkmode = linkmod;
             if (linkmode == LinkMode.TORRENT) {
                 ariagid = aria_torrent (gbturl, hashoption, actwaiting ());
             } else if (linkmode == LinkMode.METALINK) {
@@ -670,7 +670,7 @@ namespace Gabut {
                         var filep = File.new_for_path (filepath);
                         string m4a_a = m4a_filename(filep.get_path ());
                         hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (m4a_a);
-                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, actwaiting ());
                         return;
                     }
                 } else if (linkmode == LinkMode.YTBWEBM) {
@@ -678,7 +678,7 @@ namespace Gabut {
                         var filep = File.new_for_path (filepath);
                         string opus_a = opus_filename(filep.get_path ());
                         hashoption[AriaOptions.OUT.to_string ()] = GLib.Path.get_basename (opus_a);
-                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, 0);
+                        ariagid = aria_url (url.split ("gabutytb")[2], hashoption, actwaiting ());
                         return;
                     }
                 }
@@ -897,7 +897,7 @@ namespace Gabut {
                         pathname = filepath = outpath;
                         var info = File.new_for_path (outpath).query_info (GLib.FileAttribute.STANDARD_SIZE, GLib.FileQueryInfoFlags.NONE);
                         labeltransfer = GLib.format_size (info.get_size ());
-                        open_thum ();
+                        open_thum (pathname);
                         if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                             send_dialog ();
                         }
@@ -910,35 +910,19 @@ namespace Gabut {
             });
         }
 
-        private void open_thum () {
-            if (pathname != null) {
-                var filem = File.new_for_path (pathname);
-                if (get_mime_type (filem).contains ("video/")) {
-                    if (GLib.FileUtils.test (pathname, GLib.FileTest.EXISTS)) {
-                        open_file_min.begin (filem);
-                    }
+        public void open_thum (string filep) {
+            var filem = File.new_for_path (filep);
+            if (get_mime_type (filem).contains ("video/")) {
+                if (filem.query_exists ()) {
+                    thumnails (filep);
                 }
             }
         }
 
-        private async void open_file_min (GLib.File file) throws Error {
-            var info = file.query_info ("standard::size", FileQueryInfoFlags.NONE);
-            int64 file_size = info.get_size ();
-            const int64 MAX_CHUNK = 4 * 1024 * 1024;
-            int64 read_size = file_size < MAX_CHUNK ? file_size : MAX_CHUNK;
-            var input = file.read ();
-            ((GLib.Seekable) input).seek (0, GLib.SeekType.SET);
-            uint8[] buffer = new uint8[read_size];
-            size_t bytes_read = 0;
-            input.read_all (buffer, out bytes_read);
-            input.close ();
-            thumnails (buffer[0:bytes_read]);
-        }
-
-        private void thumnails (uint8[] data) {
+        private void thumnails (string path) {
             var ffmpeg = new Ffmpeg.Reader ();
             int out_w, out_h, out_stride;
-            uint8* ffdata = ffmpeg.auto_thumbnail_from_buffer (data, out out_w, out out_h, out out_stride);
+            uint8* ffdata = ffmpeg.thumbnail_from_path (path, out out_w, out out_h, out out_stride);
             unowned uint8[] pixel_data = (uint8[]) ffdata;
             pixel_data.length = out_stride * out_h;
             if (pixel_data != null) {

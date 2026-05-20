@@ -56,24 +56,19 @@ FFM_EXPORT int ffm_reader_open_path(FfmpegReader* r, const char* path) {
     r->width = 0;
     r->height = 0;
     r->success = 0;
-
     AVFormatContext* fmt_ctx = NULL;
     av_log_set_level(AV_LOG_QUIET);
-
     const AVInputFormat* ifmt = av_find_input_format("mpegts");
-
     AVDictionary *opts = NULL;
     av_dict_set(&opts, "probesize", "20000000", 0);
     av_dict_set(&opts, "analyzeduration", "20000000", 0);
     av_dict_set(&opts, "scan_all_pmts", "1", 0);
-
     if (avformat_open_input(&fmt_ctx, path, ifmt, &opts) < 0) {
         if (opts) {
             av_dict_free(&opts);
         }
         return -2;
     }
-
     if (avformat_find_stream_info(fmt_ctx, NULL) >= 0) {
         for (int i = 0; i < (int)fmt_ctx->nb_streams; i++) {
             AVCodecParameters *p = fmt_ctx->streams[i]->codecpar;
@@ -87,7 +82,6 @@ FFM_EXPORT int ffm_reader_open_path(FfmpegReader* r, const char* path) {
             }
         }
     }
-
     if (opts) {
         av_dict_free(&opts);
     }
@@ -102,7 +96,6 @@ FFM_EXPORT int ffm_reader_open_buffer(FfmpegReader* r, const unsigned char* data
     r->width = 0;
     r->height = 0;
     r->success = 0;
-
     AVFormatContext* fmt_ctx = avformat_alloc_context();
     if (!fmt_ctx) {
         return -2;
@@ -112,39 +105,29 @@ FFM_EXPORT int ffm_reader_open_buffer(FfmpegReader* r, const unsigned char* data
         size_t size;
         size_t pos;
     };
-
     BufferData bd = { data, size, 0 };
-
     auto read_packet = [](void* opaque, uint8_t* buf, int buf_size) -> int {
         BufferData* bd = (BufferData*)opaque;
-
         if (bd->pos >= bd->size) {
             return AVERROR_EOF;
         }
         int remaining = bd->size - bd->pos;
         int to_read = buf_size < remaining ? buf_size : remaining;
-
         memcpy(buf, bd->data + bd->pos, to_read);
         bd->pos += to_read;
-
         return to_read;
     };
-
     uint8_t* avio_buffer = (uint8_t*)av_malloc(4096);
     AVIOContext* avio_ctx = avio_alloc_context(avio_buffer, 4096, 0, &bd, read_packet, NULL, NULL);
-
     fmt_ctx->pb = avio_ctx;
     fmt_ctx->flags |= AVFMT_FLAG_CUSTOM_IO;
-
     const AVInputFormat* ifmt = av_find_input_format("mpegts");
-
     if (avformat_open_input(&fmt_ctx, NULL, ifmt, NULL) < 0) {
         av_free(avio_ctx->buffer);
         avio_context_free(&avio_ctx);
         avformat_free_context(fmt_ctx);
         return -3;
     }
-
     if (avformat_find_stream_info(fmt_ctx, NULL) >= 0) {
         for (int i = 0; i < (int)fmt_ctx->nb_streams; i++) {
             AVCodecParameters *p = fmt_ctx->streams[i]->codecpar;
@@ -158,7 +141,6 @@ FFM_EXPORT int ffm_reader_open_buffer(FfmpegReader* r, const unsigned char* data
             }
         }
     }
-
     avformat_close_input(&fmt_ctx);
     av_free(avio_ctx->buffer);
     avio_context_free(&avio_ctx);
@@ -217,14 +199,179 @@ FFM_EXPORT int ffm_reader_validate_path(FfmpegReader* r, const char* path) {
     return 0;
 }
 
+FFM_EXPORT uint8_t* ffm_reader_thumbnail_from_path(FfmpegReader* r, const char* path, int* out_w, int* out_h, int* out_stride) {
+    (void)r;
+    if (!path || !out_w || !out_h || !out_stride) {
+        return NULL;
+    }
+    AVFormatContext* ifmt_ctx = NULL;
+    AVCodecContext* codec_ctx = NULL;
+    const AVCodec* codec = NULL;
+    AVFrame* frame = NULL;
+    AVFrame* frame_rgb = NULL;
+    AVPacket* pkt = NULL;
+    struct SwsContext* sws_ctx = NULL;
+    uint8_t* out_buffer = NULL;
+    int video_idx = -1;
+    bool frame_finished = false;
+    bool sws_ok = false;
+
+    pkt = av_packet_alloc();
+    if (!pkt) {
+        goto fail;
+    }
+    if (avformat_open_input(&ifmt_ctx, path, NULL, NULL) < 0) {
+        goto fail;
+    }
+    if (avformat_find_stream_info(ifmt_ctx, NULL) < 0) {
+        goto fail;
+    }
+    for (unsigned int i = 0; i < ifmt_ctx->nb_streams; i++) {
+        if (ifmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            video_idx = (int)i;
+            break;
+        }
+    }
+    if (video_idx == -1) {
+        goto fail;
+    }
+    codec = avcodec_find_decoder(ifmt_ctx->streams[video_idx]->codecpar->codec_id);
+    if (!codec) {
+        goto fail;
+    }
+    codec_ctx = avcodec_alloc_context3(codec);
+    if (!codec_ctx) {
+        goto fail;
+    }
+    if (avcodec_parameters_to_context(codec_ctx, ifmt_ctx->streams[video_idx]->codecpar) < 0) {
+        goto fail;
+    }
+    codec_ctx->thread_count = 1;
+    codec_ctx->thread_type = 0;
+    codec_ctx->err_recognition = AV_EF_IGNORE_ERR | AV_EF_CAREFUL;
+    codec_ctx->flags2 |= AV_CODEC_FLAG2_FAST;
+    if (avcodec_open2(codec_ctx, codec, NULL) < 0) {
+        goto fail;
+    }
+    frame = av_frame_alloc();
+    frame_rgb = av_frame_alloc();
+    if (!frame || !frame_rgb) {
+        goto fail;
+    }
+    {
+        int64_t seek_target = 0;
+        int64_t total_duration = ifmt_ctx->duration;
+        if (total_duration > 0) {
+            seek_target = total_duration / 10;
+            if (seek_target < 3LL * AV_TIME_BASE) {
+                seek_target = 3LL * AV_TIME_BASE;
+            }
+            if (seek_target > 30LL * AV_TIME_BASE) {
+                seek_target = 30LL * AV_TIME_BASE;
+            }
+        } else {
+            seek_target = 5LL * AV_TIME_BASE;
+        }
+        av_seek_frame(ifmt_ctx, -1, seek_target, AVSEEK_FLAG_BACKWARD);
+        avcodec_flush_buffers(codec_ctx);
+    }
+    {
+        int consecutive_errors = 0;
+        while (av_read_frame(ifmt_ctx, pkt) >= 0) {
+            if (pkt->stream_index != video_idx) {
+                av_packet_unref(pkt);
+                continue;
+            }
+            int ret = avcodec_send_packet(codec_ctx, pkt);
+            av_packet_unref(pkt);
+            if (ret < 0) {
+                if (++consecutive_errors > 100) break;
+                continue;
+            }
+            ret = avcodec_receive_frame(codec_ctx, frame);
+            if (ret == 0) {
+                if (frame->width  > 0 &&
+                    frame->height > 0 &&
+                    frame->format != AV_PIX_FMT_NONE &&
+                    frame->format >= 0) {
+                    frame_finished = true;
+                    break;
+                }
+                av_frame_unref(frame);
+            }
+            consecutive_errors = 0;
+        }
+    }
+    if (!frame_finished) {
+        avcodec_send_packet(codec_ctx, NULL);
+        if (avcodec_receive_frame(codec_ctx, frame) == 0 && frame->width  > 0 && frame->height > 0 && frame->format != AV_PIX_FMT_NONE && frame->format >= 0) {
+            frame_finished = true;
+        }
+    }
+    if (!frame_finished) {
+        goto fail;
+    }
+    frame_rgb->format = AV_PIX_FMT_RGB24;
+    frame_rgb->width = frame->width;
+    frame_rgb->height = frame->height;
+    if (av_frame_get_buffer(frame_rgb, 1) < 0) {
+        goto fail;
+    }
+    if (av_frame_make_writable(frame_rgb) < 0) {
+        goto fail;
+    }
+    sws_ctx = sws_getContext(frame->width, frame->height, (AVPixelFormat)frame->format, frame->width, frame->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL, NULL, NULL);
+    if (!sws_ctx) {
+        goto fail;
+    }
+    if (sws_scale(sws_ctx,(const uint8_t* const*)frame->data, frame->linesize, 0, frame->height, frame_rgb->data, frame_rgb->linesize) <= 0) {
+        goto fail;
+    }
+    *out_w = frame_rgb->width;
+    *out_h = frame_rgb->height;
+    *out_stride = frame_rgb->linesize[0];
+    {
+        size_t total = (size_t)(*out_stride) * (size_t)(*out_h);
+        out_buffer = (uint8_t*)malloc(total);
+        if (!out_buffer) {
+            goto fail;
+        }
+        memcpy(out_buffer, frame_rgb->data[0], total);
+    }
+    sws_ok = true;
+fail:
+    if (sws_ctx) {
+        sws_freeContext(sws_ctx);
+    }
+    if (frame) {
+        av_frame_free(&frame);
+    }
+    if (frame_rgb) {
+        av_frame_free(&frame_rgb);
+    }
+    if (codec_ctx) {
+        avcodec_free_context(&codec_ctx);
+    }
+    if (pkt) {
+        av_packet_free(&pkt);
+    }
+    if (ifmt_ctx) {
+        avformat_close_input(&ifmt_ctx);
+    }
+    if (!sws_ok && out_buffer) {
+        free(out_buffer);
+        out_buffer = NULL;
+        *out_w = *out_h = *out_stride = 0;
+    }
+    return out_buffer;
+}
+
 static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride, const char* force_format) {
     if (!data || size == 0 || !out_w || !out_h || !out_stride) {
         return NULL;
     }
-
     struct BufCtx { const unsigned char* data; size_t size; size_t pos; };
     BufCtx bc = { data, size, 0 };
-
     auto read_fn = [](void* opaque, uint8_t* buf, int buf_size) -> int {
         BufCtx* bc = (BufCtx*)opaque;
         if (bc->pos >= bc->size) return AVERROR_EOF;
@@ -234,7 +381,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
         bc->pos += (size_t)to_read;
         return to_read;
     };
-
     auto seek_fn = [](void* opaque, int64_t offset, int whence) -> int64_t {
         BufCtx* bc = (BufCtx*)opaque;
         int64_t new_pos = 0;
@@ -252,7 +398,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
         bc->pos = (size_t)new_pos;
         return new_pos;
     };
-
     uint8_t* avio_buf = (uint8_t*)av_malloc(8192);
     if (!avio_buf) {
         return NULL;
@@ -262,7 +407,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
         av_free(avio_buf);
         return NULL;
     }
-
     AVFormatContext* ifmt_ctx = avformat_alloc_context();
     if (!ifmt_ctx) {
         av_free(avio_ctx->buffer);
@@ -272,7 +416,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
     ifmt_ctx->pb = avio_ctx;
     ifmt_ctx->flags |= AVFMT_FLAG_CUSTOM_IO;
     ifmt_ctx->flags |= AVFMT_FLAG_IGNIDX;
-
     const AVInputFormat* ifmt = force_format? av_find_input_format(force_format) : NULL;
     AVCodecContext* codec_ctx = NULL;
     const AVCodec* codec = NULL;
@@ -285,7 +428,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
     bool frame_finished = false;
     bool sws_ok = false;
     bool fmt_opened = false;
-
     pkt = av_packet_alloc();
     if (!pkt) {
         goto fail;
@@ -337,11 +479,9 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
     if (!frame || !frame_rgb) {
         goto fail;
     }
-
     {
         int64_t seek_target = 0;
         int64_t bitrate = ifmt_ctx->bit_rate;
-
         if (bitrate > 0) {
             int64_t readable_duration = ((int64_t)size * 8LL * AV_TIME_BASE) / bitrate;
             seek_target = readable_duration / 2;
@@ -358,11 +498,9 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
         } else {
             seek_target = 10LL * AV_TIME_BASE;
         }
-
         av_seek_frame(ifmt_ctx, -1, seek_target, AVSEEK_FLAG_BACKWARD);
         avcodec_flush_buffers(codec_ctx);
     }
-
     {
         int consecutive_errors = 0;
         while (av_read_frame(ifmt_ctx, pkt) >= 0) {
@@ -370,17 +508,14 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
                 av_packet_unref(pkt);
                 continue;
             }
-
             int ret = avcodec_send_packet(codec_ctx, pkt);
             av_packet_unref(pkt);
-
             if (ret < 0) {
                 if (++consecutive_errors > 100) {
                     break;
                 }
                 continue;
             }
-
             ret = avcodec_receive_frame(codec_ctx, frame);
             if (ret == 0) {
                 if (frame->width  > 0 && frame->height > 0 && frame->format != AV_PIX_FMT_NONE && frame->format >= 0) {
@@ -392,7 +527,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
             consecutive_errors = 0;
         }
     }
-
     if (!frame_finished) {
         avcodec_send_packet(codec_ctx, NULL);
         if (avcodec_receive_frame(codec_ctx, frame) == 0 && frame->width  > 0 && frame->height > 0 && frame->format != AV_PIX_FMT_NONE && frame->format >= 0) {
@@ -402,7 +536,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
     if (!frame_finished) {
         goto fail;
     }
-
     frame_rgb->format = AV_PIX_FMT_RGB24;
     frame_rgb->width  = frame->width;
     frame_rgb->height = frame->height;
@@ -422,7 +555,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
     *out_w = frame_rgb->width;
     *out_h = frame_rgb->height;
     *out_stride = frame_rgb->linesize[0];
-
     {
         size_t total = (size_t)(*out_stride) * (size_t)(*out_h);
         out_buffer = (uint8_t*)malloc(total);
@@ -432,7 +564,6 @@ static uint8_t* ffm_get_thumbnail_internal(const unsigned char* data, size_t siz
         memcpy(out_buffer, frame_rgb->data[0], total);
     }
     sws_ok = true;
-
 fail:
     if (sws_ctx) {
         sws_freeContext(sws_ctx);

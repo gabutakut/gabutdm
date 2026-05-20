@@ -41,6 +41,8 @@ namespace Ffmpeg {
         public uint8* ts_thumbnail_from_buffer([CCode (array_length_type = "size_t")] uint8[] data, out int out_w, out int out_h, out int out_stride);
         [CCode (cname = "ffm_reader_auto_thumbnail_from_buffer")]
         public uint8* auto_thumbnail_from_buffer([CCode (array_length_type = "size_t")] uint8[] data, out int out_w, out int out_h, out int out_stride);
+        [CCode (cname = "ffm_reader_thumbnail_from_path")]
+        public uint8* thumbnail_from_path(string path, out int out_w, out int out_h, out int out_stride);
     }
 
     [CCode (cname = "FfmpegMerger", free_function = "ffmpeg_merger_unref")]

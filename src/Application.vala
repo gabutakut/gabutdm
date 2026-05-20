@@ -215,7 +215,6 @@ namespace Gabut {
                 string urlgbtytb = "";
                 spalshsc.preparing.connect (()=> {
                     var uris = dict.split ("\n");
-                    spalshsc.status_text = _("Connecting…");
                     new Thread<void> ("urlfetch", ()=> {
                         gabutytb = ping_gabutytb (uris[0]);
                         MainContext.default ().invoke (()=> {

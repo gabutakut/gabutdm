@@ -29,24 +29,26 @@ namespace Gabut {
         public Gee.ArrayList<string> segment_urls;
         public Gee.ArrayList<string> files;
         public Gtk.ListBox hls_list_box;
+        public DownloadRow dmrow { get; construct;}
         public bool merged_ts { get; set; default = false;}
         public bool processing { get; set; default = false;}
         public string output_dir = "";
-        public string fileordir;
         public string filename;
         public string mp4path;
         public double progressmerg { get; set; }
         public int totalcomp { get; set; }
         public int selected { get; set; default = 0;}
         public int status { get; set; default = StatusMode.WAIT;}
-        public int64 timeadded { get; set; }
         public int64 total_dl { get; set; }
-        public string useragent;
         private int active_downloaders = 0;
         private int idle_time = 0;
         private int view_time = 0;
         private uint queue_timeout_id = 0;
         private bool verify_download = false;
+
+        public HLSLBox (DownloadRow row) {
+            Object (dmrow: row);
+        }
 
         construct {
             files = new Gee.ArrayList<string>();
@@ -98,7 +100,7 @@ namespace Gabut {
             for (int i = 0; i < segment_urls.size; i++) {
                 string url = segment_urls[i];
                 var output_file = GLib.Path.build_filename(output_dir, "segment_%05d.ts".printf(i));
-                var downloader = new SegmentDownloader(i, url, output_file, useragent);
+                var downloader = new SegmentDownloader(i, url, output_file);
                 downloader.status_changed.connect((idx, status, info)=> {
                     MainContext.get_thread_default ().invoke (()=> {
                         update_file_status(idx, downloader.status, downloader.total_size, downloader.progress_percent, info);
@@ -347,10 +349,11 @@ namespace Gabut {
         }
 
         public int64? find_totaldl () {
-            total_dl = 0;
+            int64 total = 0;
             foreach (var downloader in downloaders) {
-                total_dl += downloader.total_size;
+                total += downloader.total_size;
             }
+            total_dl = total;
             return total_dl;
         }
 
@@ -485,6 +488,7 @@ namespace Gabut {
                         if (totalcomp < segment_urls.size) {
                             status = StatusMode.PAUSED;
                         }
+                        dmrow.open_thum (mp4path);
                     }
                     return false;
                 }

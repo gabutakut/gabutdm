@@ -4,14 +4,8 @@ grade: stable
 base: core24
 summary: Simple and Faster Download Manager
 description: |
-     ✔ Multi-protocol downloads
-    ✔ Torrent support
-    ✔ HLS/M3U8 support
-    ✔ Youtube support
-    ✔ File selection before download
-    ✔ Modern GTK4 interface
-    ✔ Lightweight & fast
-    ✔ Linux-first experience
+    Gabut Download Manager application support Multi-protocol downloads Torrent support HLS/M3U8 support Youtube support File selection before download
+    Modern GTK4 interface Lightweight & fast Linux-first experience
 
 confinement: strict
 parts:

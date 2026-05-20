@@ -2834,15 +2834,13 @@ namespace Gabut {
         }
     }
 
-    private Soup.Message? full_message (string? method, string? url, string? useragt, string? cookie) throws Error {
+    private Soup.Message? full_message (string? method, string? url, string? cookie) throws Error {
         var message = new Soup.Message (method, url);
         var reqesthead = message.get_request_headers();
         if (reqesthead == null) {
             throw new GLib.IOError.CLOSED ("Message Error");
         }
-        if (useragt != null) {
-            message.request_headers.append ("User-Agent", useragt);
-        }
+        message.request_headers.append ("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36");
         if (cookie != null) {
             message.request_headers.append ("Cookie", cookie);
         }

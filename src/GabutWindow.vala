@@ -1652,12 +1652,7 @@ namespace Gabut {
                     }
                 }
                 options[AriaOptions.DIR.to_string ()] = row.filepath = row.pathname = opt_dir.get_path ();
-                string useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
-                var useuseragt = options.has_key (AriaOptions.USER_AGENT.to_string ());
-                if (useuseragt) {
-                    useragent = options.@get (AriaOptions.USER_AGENT.to_string ());
-                }
-                append_hls (row, url, dm_fname, opt_dir.get_path (), useragent, later);
+                append_hls (row, url, dm_fname, opt_dir.get_path (), later);
                 row.filepath = row.pathname = opt_dir.get_path ();
                 play_sound ("device-added");
                 add_db_download (row);
@@ -1692,7 +1687,7 @@ namespace Gabut {
             set_dboptions (url, options);
         }
 
-        public void append_hls (DownloadRow row, string url, string fname, string directory, string useragent, bool later = true) {
+        public void append_hls (DownloadRow row, string url, string fname, string directory, bool later = true) {
             row.filename = fname;
             string homeurl = "";
             string[] hlslink = null;
@@ -1704,12 +1699,9 @@ namespace Gabut {
                 }
                 hlslink += urlhls[b];
             }
-            var hlslbox = new HLSLBox () {
+            var hlslbox = new HLSLBox (row) {
                 filename = fname,
-                timeadded = row.timeadded,
-                fileordir = row.fileordir,
-                output_dir = directory,
-                useragent = useragent
+                output_dir = directory
             };
             var added = hlslbox.segment_urls.size;
 
@@ -1873,7 +1865,7 @@ namespace Gabut {
                             row.totalsize = hlslbox.total_dl;
                             var pathname = hlslbox.mp4path;
                             if (pathname != null) {
-                                row.filepath = row.pathname = pathname;
+                                row.pathname = row.filepath = pathname;
                             }
                             row.filename = hlslbox.filename;
                             update_download (row);
@@ -1903,6 +1895,8 @@ namespace Gabut {
             } else {
                 if (row.status != StatusMode.COMPLETE) {
                     hlslbox.on_stop_download ();
+                } else {
+                    row.open_thum (row.filepath);
                 }
             }
             hlsmanbox.active_hlsrow = hlsmanbox.find_active ();
@@ -2366,9 +2360,9 @@ namespace Gabut {
                     return sort_b (deascend);
                 }
             } else if (sorttype.get_index () == 2) {
-                if (row1.fileordir != null && row2.fileordir != null) {
-                    var fordir1 = row1.fileordir.down ();
-                    var fordir2 = row2.fileordir.down ();
+                if (row1.dmrow.fileordir != null && row2.dmrow.fileordir != null) {
+                    var fordir1 = row1.dmrow.fileordir.down ();
+                    var fordir2 = row2.dmrow.fileordir.down ();
                     if (fordir1 > fordir2) {
                         return sort_a (deascend);
                     }
@@ -2379,8 +2373,8 @@ namespace Gabut {
                     return 0;
                 }
             } else {
-                var timeadded1 = row1.timeadded;
-                var timeadded2 = row2.timeadded;
+                var timeadded1 = row1.dmrow.timeadded;
+                var timeadded2 = row2.dmrow.timeadded;
                 if (timeadded1 > timeadded2) {
                     return sort_a (deascend);
                 }

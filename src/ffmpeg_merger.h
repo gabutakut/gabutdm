@@ -57,6 +57,7 @@ FFM_EXPORT int ffm_reader_get_success(FfmpegReader* r);
 FFM_EXPORT int ffm_reader_validate_path(FfmpegReader* r, const char* path);
 FFM_EXPORT uint8_t* ffm_reader_ts_thumbnail_from_buffer(FfmpegReader* r, const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride);
 FFM_EXPORT uint8_t* ffm_reader_auto_thumbnail_from_buffer( FfmpegReader* r, const unsigned char* data, size_t size, int* out_w, int* out_h, int* out_stride);
+FFM_EXPORT uint8_t* ffm_reader_thumbnail_from_path(FfmpegReader* r, const char* path, int* out_w, int* out_h, int* out_stride);
 
 typedef struct FfmpegMerger FfmpegMerger;
 FFM_EXPORT FfmpegMerger* ffm_merger_create();

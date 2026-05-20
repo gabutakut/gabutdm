@@ -46,15 +46,6 @@ namespace Gabut {
                 _output_path = value;
             }
         }
-        private string _useragent;
-        public string useragent {
-            get {
-                return _useragent;
-            }
-            construct {
-                _useragent = value;
-            }
-        }
         public double progress_percent { get; set; default = 0.0; }
         public bool completed { get; set; default = false; }
         public bool success { get; set; default = false; }
@@ -76,8 +67,8 @@ namespace Gabut {
         private uint size_timeout_id = 0;
         private uint retry_timeout_id = 0;
 
-        public SegmentDownloader (int i, string u, string jsout, string useragent) {
-            Object (index: i, url: u, output_path: jsout, useragent: useragent);
+        public SegmentDownloader (int i, string u, string jsout) {
+            Object (index: i, url: u, output_path: jsout);
         }
 
         construct {
@@ -212,7 +203,7 @@ namespace Gabut {
                 if (reqesthead == null) {
                     throw new GLib.IOError.CLOSED ("Header Error");
                 }
-                msg_get.request_headers.append ("User-Agent",useragent);
+                msg_get.request_headers.append ("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36");
                 msg_get.request_headers.append ("Accept", "*/*");
                 msg_get.request_headers.append ("Accept-Encoding", "identity");
                 msg_get.request_headers.append ("Connection", "keep-alive");
@@ -301,6 +292,10 @@ namespace Gabut {
                                 complete_download ();
                             } else {
                                 file.trash ();
+                                var control = GLib.File.new_for_path (this.control_path);
+                                if (control.query_exists ()) {
+                                    control.delete ();
+                                }
                                 on_wait ();
                                 max_del_retries++;
                             }
@@ -346,6 +341,10 @@ namespace Gabut {
                         complete_download ();
                     } else {
                         file.trash ();
+                        var control = GLib.File.new_for_path (this.control_path);
+                        if (control.query_exists ()) {
+                            control.delete ();
+                        }
                         max_del_retries++;
                         throw new GLib.IOError.FAILED ("Not Valid");
                     }
@@ -453,7 +452,7 @@ namespace Gabut {
             int64 current_pos = part_obj.get_int_member ("current_pos");
             int64 end_offset = part_obj.get_int_member ("end_offset");
             var msg = new Soup.Message ("GET", this.url);
-            msg.request_headers.append ("User-Agent", useragent);
+            msg.request_headers.append ("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36");
             msg.request_headers.append ("Accept", "*/*");
             msg.request_headers.append ("Accept-Encoding", "identity");
             msg.request_headers.append ("Connection", "keep-alive");

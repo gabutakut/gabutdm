@@ -1673,12 +1673,8 @@ namespace Gabut {
                         gabutwindow.on_append (row);
                         row.notify_property ("status");
                     } else {
-                        string useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
-                        if (row.hashoption.has_key (AriaOptions.USER_AGENT.to_string ())) {
-                            useragent = row.hashoption.@get (AriaOptions.USER_AGENT.to_string ());
-                        }
                         row.pathname = row.filepath;
-                        gabutwindow.append_hls (row, row.url, row.filename, row.filepath, useragent);
+                        gabutwindow.append_hls (row, row.url, row.filename, row.filepath);
                     }
                 }
                 x++;

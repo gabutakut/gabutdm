@@ -432,7 +432,7 @@ namespace Gabut {
                 string urlhl = rescheck[rescheck.length / 8];
                 var ffmpeg = new Ffmpeg.Reader ();
                 try {
-                    GLib.Bytes? stream = session.send_and_read (full_message ("GET", urlhl, useragent_entry.text, headerc), cancellable);
+                    GLib.Bytes? stream = session.send_and_read (full_message ("GET", urlhl, headerc), cancellable);
                     if (stream == null) {
                         throw new GLib.IOError.FAILED("Error");
                     }
@@ -466,7 +466,7 @@ namespace Gabut {
             new Thread<void> ("%s".printf (GLib.Checksum.compute_for_string (ChecksumType.MD5, urls, urls.length)), () => {
                 try {
                     Soup.Session sessions = new Soup.Session ();
-                    var messs = full_message ("GET", urls, useragent_entry.text, headerc);
+                    var messs = full_message ("GET", urls, headerc);
                     var streams = sessions.send(messs, cancellable);
                     if (!cancellable.is_cancelled ()) {
                         var diss = new GLib.DataInputStream(streams);
@@ -487,7 +487,7 @@ namespace Gabut {
                         }
                         Soup.Session sessionx = new Soup.Session ();
                         string urlhl = rescheck[rescheck.length / 8];
-                        GLib.Bytes? streamx = sessionx.send_and_read (full_message ("GET", urlhl, useragent_entry.text, headerc), cancellable);
+                        GLib.Bytes? streamx = sessionx.send_and_read (full_message ("GET", urlhl, headerc), cancellable);
                         if (!cancellable.is_cancelled ()) {
                             if (streamx == null) {
                                 return;
@@ -518,28 +518,39 @@ namespace Gabut {
             const int TARGET_H = 157;
             int src_w = pixbuf.get_width ();
             int src_h = pixbuf.get_height ();
-            double scale = double.min ((double) TARGET_W / src_w, (double) TARGET_H / src_h);
-            int scaled_w = (int) (src_w * scale);
-            int scaled_h = (int) (src_h * scale);
-            int offset_x = (TARGET_W - scaled_w) / 2;
-            int offset_y = (TARGET_H - scaled_h) / 2;
-            double tiny_scale = double.min (16.0 / src_w, 9.0 / src_h);
-            int tiny_w = int.max (1, (int)(src_w * tiny_scale));
-            int tiny_h = int.max (1, (int)(src_h * tiny_scale));
-            var tiny = pixbuf.scale_simple (tiny_w, tiny_h, Gdk.InterpType.NEAREST);
-            var blurry_canvas = new Gdk.Pixbuf (Gdk.Colorspace.RGB, false, 8, TARGET_W, TARGET_H);
-            blurry_canvas.fill (0x000000ff);
-            var blurry_scaled = tiny.scale_simple (scaled_w, scaled_h, Gdk.InterpType.BILINEAR);
-            blurry_scaled.copy_area (0, 0, scaled_w, scaled_h, blurry_canvas, offset_x, offset_y);
-            var sharp_canvas = new Gdk.Pixbuf (Gdk.Colorspace.RGB, false, 8, TARGET_W, TARGET_H);
-            sharp_canvas.fill (0x000000ff);
-            var sharp_scaled = pixbuf.scale_simple (scaled_w, scaled_h, Gdk.InterpType.BILINEAR);
-            sharp_scaled.copy_area (0, 0, scaled_w, scaled_h, sharp_canvas, offset_x, offset_y);
-            picture_blurry.set_paintable (Gdk.Texture.for_pixbuf (blurry_canvas));
+            double cover_scale = double.max ((double) TARGET_W / src_w, (double) TARGET_H / src_h);
+            int cover_w = (int) (src_w * cover_scale);
+            int cover_h = (int) (src_h * cover_scale);
+            int crop_x = (cover_w - TARGET_W) / 2;
+            int crop_y = (cover_h - TARGET_H) / 2;
+            var cover_scaled = pixbuf.scale_simple (cover_w, cover_h, Gdk.InterpType.BILINEAR);
+            double tiny_scale = double.min (20.0 / cover_w, 20.0 / cover_h);
+            int tiny_w = int.max (1, (int) (cover_w * tiny_scale));
+            int tiny_h = int.max (1, (int) (cover_h * tiny_scale));
+            var tiny_bg = cover_scaled.scale_simple (tiny_w, tiny_h, Gdk.InterpType.NEAREST);
+            var blurry_bg = tiny_bg.scale_simple (cover_w, cover_h, Gdk.InterpType.BILINEAR);
+            var bg_sharp = new Gdk.Pixbuf (Gdk.Colorspace.RGB, false, 8, TARGET_W, TARGET_H);
+            var bg_blurry = new Gdk.Pixbuf (Gdk.Colorspace.RGB, false, 8, TARGET_W, TARGET_H);
+            cover_scaled.copy_area (crop_x, crop_y, TARGET_W, TARGET_H, bg_sharp, 0, 0);
+            blurry_bg.copy_area (crop_x, crop_y, TARGET_W, TARGET_H, bg_blurry, 0, 0);
+            double fit_scale = double.min ((double) TARGET_W / src_w, (double) TARGET_H / src_h);
+            int fit_w = (int) (src_w * fit_scale);
+            int fit_h = (int) (src_h * fit_scale);
+            int offset_x = (TARGET_W - fit_w) / 2;
+            int offset_y = (TARGET_H - fit_h) / 2;
+            var sharp_fg = pixbuf.scale_simple (fit_w, fit_h, Gdk.InterpType.BILINEAR);
+            double tiny_fg_scale = double.min (16.0 / src_w, 9.0 / src_h);
+            int tiny_fg_w = int.max (1, (int) (src_w * tiny_fg_scale));
+            int tiny_fg_h = int.max (1, (int) (src_h * tiny_fg_scale));
+            var tiny_fg = pixbuf.scale_simple (tiny_fg_w, tiny_fg_h, Gdk.InterpType.NEAREST);
+            var blurry_fg = tiny_fg.scale_simple (fit_w, fit_h, Gdk.InterpType.BILINEAR);
+            sharp_fg.copy_area (0, 0, fit_w, fit_h, bg_sharp,  offset_x, offset_y);
+            blurry_fg.copy_area (0, 0, fit_w, fit_h, bg_blurry, offset_x, offset_y);
+            picture_blurry.set_paintable (Gdk.Texture.for_pixbuf (bg_blurry));
             thumb_stack.set_visible_child_name ("blur");
             Idle.add (load_thumbnail.callback);
             yield;
-            picture_sharp.set_paintable (Gdk.Texture.for_pixbuf (sharp_canvas));
+            picture_sharp.set_paintable (Gdk.Texture.for_pixbuf (bg_sharp));
             thumb_stack.set_visible_child_name ("sharp");
         }
 
@@ -592,7 +603,7 @@ namespace Gabut {
         private string hls_url (string gbturl) throws Error {
             var sb = new GLib.StringBuilder();
             Soup.Session session = new Soup.Session ();
-            var mess = full_message ("GET", gbturl, useragent_entry.text, headerc);
+            var mess = full_message ("GET", gbturl, headerc);
             var stream = session.send(mess, cancellable);
             if (!cancellable.is_cancelled ()) {
                 var dis = new GLib.DataInputStream(stream);
