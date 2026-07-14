@@ -1728,9 +1728,7 @@ namespace Gabut {
             var parser = new Json.Parser ();
             parser.load_from_data (result);
             return parser.get_root ().get_object ().get_string_member ("result");
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return "";
     }
 
@@ -1741,8 +1739,7 @@ namespace Gabut {
             message.set_request_body_from_bytes (Soup.FORM_MIME_TYPE_MULTIPART, new GLib.Bytes (datas.data));
             GLib.Bytes bytes = session.send_and_read (message);
             return (string) bytes.get_data ();
-        } catch (Error e) {
-            GLib.warning (e.message);
+        } catch {
             if (session != null) {
                 session.abort ();
                 session = null;
@@ -1771,7 +1768,7 @@ namespace Gabut {
             sesc.close ();
             message = null;
             return content;
-        } catch (Error e) {
+        } catch {
             if (session != null) {
                 session.abort ();
                 session = null;
@@ -1892,7 +1889,7 @@ namespace Gabut {
         var parser = new Json.Parser();
         try {
             parser.load_from_data(aresult);
-        } catch (Error e) {
+        } catch {
             return liststore;
         }
         var root = parser.get_root().get_object();
@@ -1935,9 +1932,7 @@ namespace Gabut {
                     return tellus;
                 }
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return "";
     }
 
@@ -1957,7 +1952,7 @@ namespace Gabut {
         var parser = new Json.Parser();
         try {
             parser.load_from_data(json_text);
-        } catch (Error e) {
+        } catch {
             return "";
         }
         var root = parser.get_root().get_object();
@@ -2024,7 +2019,7 @@ namespace Gabut {
         var parser = new Json.Parser();
         try {
             parser.load_from_data(json_text);
-        } catch (Error e) {
+        } catch {
             return listgid;
         }
         var root = parser.get_root().get_object();
@@ -2052,7 +2047,7 @@ namespace Gabut {
         var parser = new Json.Parser();
         try {
             parser.load_from_data(json_text);
-        } catch (Error e) {
+        } catch {
             return real_waiting;
         }
         var root = parser.get_root().get_object();
@@ -2101,9 +2096,7 @@ namespace Gabut {
                     match_info.next ();
                 }
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return serverstore;
     }
 
@@ -2121,9 +2114,7 @@ namespace Gabut {
                     return ariaopt;
                 }
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return "";
     }
 
@@ -2146,9 +2137,7 @@ namespace Gabut {
             if (regex.match_full (result, -1, 0, 0, out match_info)) {
                 return match_info.fetch (1);
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return "";
     }
 
@@ -2194,9 +2183,7 @@ namespace Gabut {
             stats += objres.get_string_member("numStopped");
             stats += objres.get_string_member("numStoppedTotal");
             return stats;
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return stats;
     }
 
@@ -2322,9 +2309,7 @@ namespace Gabut {
                     return tellus;
                 }
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return "";
     }
 
@@ -2338,9 +2323,7 @@ namespace Gabut {
                     return getfile.contains ("\\/")? getfile.replace ("\\/", "/") : getfile;
                 }
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return "";
     }
 
@@ -2351,9 +2334,7 @@ namespace Gabut {
             if (regex.match_full (status, -1, 0, 0, out match_info)) {
                 return match_info.fetch (1);
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return "";
     }
 
@@ -2460,7 +2441,7 @@ namespace Gabut {
             var regex_double = new Regex ("//+");
             clean = regex_double.replace(clean, -1, 0, "/");
             return clean;
-        } catch (RegexError e) {
+        } catch {
             return dirty_path;
         }
     }
@@ -2476,9 +2457,7 @@ namespace Gabut {
                 }
                 n_files++;
             }
-        } catch (Error e) {
-            GLib.warning (e.message);
-        }
+        } catch {}
         return n_files;
     }
 
@@ -2553,8 +2532,16 @@ namespace Gabut {
     private async void write_file (GLib.Bytes bytes, string filename) throws Error {
         var file = File.new_for_path (filename);
         GLib.FileOutputStream out_stream = yield file.create_async (FileCreateFlags.REPLACE_DESTINATION, GLib.Priority.DEFAULT, null);
-        out_stream.write (bytes.get_data ());
-        out_stream.close ();
+        Error? write_error = null;
+        try {
+            yield out_stream.write_bytes_async (bytes, GLib.Priority.DEFAULT, null);
+        } catch (Error e) {
+            write_error = e;
+        }
+        yield out_stream.close_async (GLib.Priority.DEFAULT, null);
+        if (write_error != null) {
+            throw write_error;
+        }
     }
 
     private string format_time (int seconds) {
@@ -2627,7 +2614,7 @@ namespace Gabut {
                 return true;
             }
             return false;
-        } catch (Error e) {
+        } catch {
             return false;
         }
     }
@@ -2735,7 +2722,7 @@ namespace Gabut {
                 }
             }
             return string.joinv (",", list.to_array ());
-        } catch (Error e) {
+        } catch {
             return cleaned.replace ("\n", ",").replace (" ", "");
         }
     }
@@ -2793,7 +2780,7 @@ namespace Gabut {
         try {
             FileInfo infos = fileinput.query_info (GLib.FileAttribute.STANDARD_CONTENT_TYPE, GLib.FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
             return infos.get_content_type ();
-        } catch (Error e) {
+        } catch {
             return "";
         }
     }
@@ -2803,9 +2790,7 @@ namespace Gabut {
         if (!config_dir.query_exists ()) {
             try {
                 config_dir.make_directory_with_parents ();
-            } catch (Error e) {
-                warning (e.message);
-            }
+            } catch {}
         }
         return config_dir.get_path ();
     }
@@ -2814,18 +2799,21 @@ namespace Gabut {
         return GLib.Path.build_filename (config_folder (Environment.get_application_name ()), Environment.get_application_name () + name);
     }
 
-    private async void fetch_data (string url, string filename) throws Error {
+    private async void fetch_data (string url, string filename) {
         Soup.Session session = new Soup.Session ();
         try {
             var msg = new Soup.Message ("GET", url);
             var bytes = yield session.send_and_read_async (msg, Soup.MessagePriority.NORMAL, null);
-            write_file.begin (bytes, filename);
-        } catch (Error e) {
+            write_file.begin (bytes, filename, (obj, res)=>{
+                try {
+                    write_file.end (res);
+                } catch {}
+            });
+        } catch {
             if (session != null) {
                 session.abort ();
                 session = null;
             }
-            warning (e.message);
         } finally {
             if (session != null) {
                 session.abort ();
@@ -4733,9 +4721,7 @@ namespace Gabut {
                     return ip;
                 }
             }
-        } catch (Error e) {
-            warning (e.message);
-        }
+        } catch {}
         return "127.0.0.1";
     }
 
@@ -4762,5 +4748,22 @@ namespace Gabut {
         } else {
             gtk_settings.gtk_theme_name = themesel == 0? "Default" : themename;
         }
+    }
+
+    [CCode (cheader_filename = "ftw.h", cname = "nftw")]
+    extern int c_nftw (string path, nftw_callback fn, int descriptors, int flags);
+
+    [CCode (cheader_filename = "stdio.h", cname = "remove")]
+    extern int c_remove (string path);
+
+    [CCode (has_target = false)]
+    public delegate int nftw_callback (string fpath, void* sb, int typeflag, void* ftwbuf);
+
+    static int function_rm_item (string fpath, void* sb, int typeflag, void* ftwbuf) {
+        return c_remove (fpath);
+    }
+
+    public int linux_rm_rf (string path) {
+        return c_nftw (path, function_rm_item, 64, 9);
     }
 }

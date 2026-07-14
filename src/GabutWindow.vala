@@ -70,6 +70,7 @@ namespace Gabut {
         private bool starting = false;
         private bool stoping = false;
         private bool waitme = false;
+        private bool dbusmsts = false;
 
         SortBy _sorttype = null;
         SortBy sorttype {
@@ -161,9 +162,7 @@ namespace Gabut {
                         if (paths != "") {
                             open_tfiles (paths.strip (), _("Opening torrent…"));
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
             var setmenu = new DBusMenu.DbusmenuItem ();
@@ -194,8 +193,16 @@ namespace Gabut {
             menudbus.append_dbus (pausemenu);
             menudbus.append_dbus (setmenu);
             menudbus.append_dbus (qrmenu);
-            setup_dbusmenu.begin ();
-            regunreg_idmenu.begin ();
+            setup_dbusmenu.begin ((obj, res)=>{
+                try {
+                    setup_dbusmenu.end (res);
+                } catch {}
+            });
+            regunreg_idmenu.begin ((obj, res)=>{
+                try {
+                    regunreg_idmenu.end (res);
+                } catch {}
+            });
             hlsmanbox = new HlsManBox ();
             alertview = new AlertView (
                 _("No File Download"),
@@ -527,23 +534,36 @@ namespace Gabut {
             if (dbmenu) {
                 yield launcher_entry.register ();
                 yield menudbus.start ();
-                launcher_entry.set_quicklist.begin (menudbus.get_dbus_path ());
-            } else {
+                launcher_entry.set_quicklist.begin (menudbus.get_dbus_path (), (obj, res)=>{
+                    try {
+                        launcher_entry.set_quicklist.end (res);
+                    } catch {}
+                });
+                if (!dbusmsts && indmenu && dbmenu) {
+                    yield dbusindicator.register ();
+                    dbusmsts = true;
+                }
+            } else{
                 yield menudbus.stop ();
+                launcher_entry.set_quicklist.begin (new GLib.ObjectPath (""), (obj, res)=>{
+                    try {
+                        launcher_entry.set_quicklist.end (res);
+                    } catch {}
+                });
                 if (launcher_entry.is_registered ()) {
                     yield launcher_entry.unregister ();
                 }
+                yield dbusindicator.unregister ();
+                dbusmsts = false;
             }
         }
 
         public async void regunreg_idmenu () throws GLib.Error {
             if (indmenu && dbmenu) {
-                yield dbusindicator.register ();
                 dbusindicator.set_status ("Active");
                 dbusindicator.set_icon_name ("com.github.gabutakut.gabutdm");
             } else {
                 dbusindicator.set_status ("Passive");
-                yield dbusindicator.unregister ();
             }
         }
 
@@ -691,9 +711,7 @@ namespace Gabut {
                                         open_list (uris);
                                     });
                                 }
-                            } catch (GLib.Error e) {
-                                critical (e.message);
-                            }
+                            } catch {}
                         });
                     });
                 });
@@ -746,13 +764,19 @@ namespace Gabut {
                     datarow = hashrow,
                     totalrow = totalrow,
                     icimg = deletef? "user-trash-full" : "com.github.gabutakut.gabutdm.clear",
-                    primmelb = deletef? _("Move to Trash") : _("Remove from list"),
-                    infolabel = deletef? _("Delete") : _("Clear"),
-                    labelrm = deletef? _("Delete") : _("Remove")
+                    primmelb = deletef? _("Delete from drive") : _("Remove from list"),
+                    infolabel = deletef? _("Trash") : _("Clear"),
+                    labelrm = deletef? _("Trash") : _("Remove"),
                 };
+                delete_dialog.del_permanent.visible = deletef;
                 var removed = false;
                 delete_dialog.move_file.clicked.connect (()=> {
                     removed = true;
+                    delete_dialog.close ();
+                });
+                var permanentd = false;
+                delete_dialog.del_permanent.clicked.connect (()=> {
+                    permanentd = removed = true;
                     delete_dialog.close ();
                 });
                 delete_dialog.close_request.connect (()=> {
@@ -775,7 +799,7 @@ namespace Gabut {
                                     var selr = ((DownloadRow) list_box.get_selected_row ());
                                     if (selr != null) {
                                         if (deletef) {
-                                            selr.to_trash ();
+                                            selr.to_trash (permanentd);
                                         } else {
                                             selr.remove_down ();
                                         }
@@ -910,7 +934,11 @@ namespace Gabut {
         }
 
         public Gtk.Popover get_openmenu () {
-            var addopen = new Gtk.FlowBox ();
+            var addopen = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             foreach (var openmenu in OpenMenus.get_all ()) {
                 addopen.append (new OpenMenu (openmenu));
             }
@@ -950,9 +978,7 @@ namespace Gabut {
                                                 open_list (path);
                                             });
                                         }
-                                    } catch (GLib.Error e) {
-                                        critical (e.message);
-                                    }
+                                    } catch {}
                                 });
                             });
                         });
@@ -1085,8 +1111,16 @@ namespace Gabut {
             if (bool.parse (get_dbsetting (DBSettings.MENUINDICATOR)) != indmenu) {
                 indmenu = bool.parse (get_dbsetting (DBSettings.MENUINDICATOR));
             }
-            setup_dbusmenu.begin ();
-            regunreg_idmenu.begin ();
+            setup_dbusmenu.begin ((obj, res)=>{
+                try {
+                    setup_dbusmenu.end (res);
+                } catch {}
+            });
+            regunreg_idmenu.begin ((obj, res)=>{
+                try {
+                    regunreg_idmenu.end (res);
+                } catch {}
+            });
             preferences = null;
         }
 
@@ -1110,7 +1144,6 @@ namespace Gabut {
                 }
                 labelselect.label = list_box.get_selected_rows ().length ().to_string ();
             });
-
             var shortbutton = new Gtk.MenuButton () {
                 direction = Gtk.ArrowType.UP,
                 child = new Gtk.Image.from_icon_name ("com.github.gabutakut.gabutdm.opt"),
@@ -1132,7 +1165,11 @@ namespace Gabut {
         }
 
         public Gtk.Popover get_menuprop () {
-            var downloadmn = new Gtk.FlowBox ();
+            var downloadmn = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             foreach (var dmmenu in DownloadMenu.get_all ()) {
                 downloadmn.append (new GdmMenu (dmmenu));
             }
@@ -1310,7 +1347,11 @@ namespace Gabut {
         }
 
         public Gtk.Popover get_menu () {
-            var sort_flow = new Gtk.FlowBox ();
+            var sort_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             showtime = new Gtk.CheckButton.with_label (_("Time")) {
                 halign = Gtk.Align.CENTER,
                 valign = Gtk.Align.CENTER,
@@ -1425,6 +1466,11 @@ namespace Gabut {
         }
 
         public override void show () {
+            setup_dbusmenu.begin ((obj, res)=>{
+                try {
+                    setup_dbusmenu.end (res);
+                } catch {}
+            });
             menudbus.delete_dbus (openmenu);
             base.show ();
         }
@@ -1437,11 +1483,31 @@ namespace Gabut {
                     int stoped = 5;
                     Timeout.add (500, ()=> {
                         if (launcher_entry != null) {
-                            launcher_entry.set_count.begin (0);
-                            launcher_entry.set_count_visible.begin (false);
-                            launcher_entry.set_urgent.begin (false);
-                            launcher_entry.set_progress.begin (0);
-                            launcher_entry.set_progress_visible.begin (false);
+                            launcher_entry.set_count.begin (0, (obj, res)=>{
+                                try {
+                                    launcher_entry.set_count.end (res);
+                                } catch {}
+                            });
+                            launcher_entry.set_count_visible.begin (false, (obj, res)=>{
+                                try {
+                                    launcher_entry.set_count_visible.end (res);
+                                } catch {}
+                            });
+                            launcher_entry.set_urgent.begin (false, (obj, res)=>{
+                                try {
+                                    launcher_entry.set_urgent.end (res);
+                                } catch {}
+                            });
+                            launcher_entry.set_progress.begin (0, (obj, res)=>{
+                                try {
+                                    launcher_entry.set_progress.end (res);
+                                } catch {}
+                            });
+                            launcher_entry.set_progress_visible.begin (false, (obj, res)=>{
+                                try {
+                                    launcher_entry.set_progress_visible.end (res);
+                                } catch {}
+                            });
                         }
                         update_info ();
                         stoped--;
@@ -1597,7 +1663,7 @@ namespace Gabut {
                     } else if (urlhash[1] == "hls") {
                         var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
                         if (check == urlhash[0]) {
-                            row.start_button.clicked (); 
+                            row.start_button.clicked ();
                         }
                     }
                 }
@@ -1618,7 +1684,7 @@ namespace Gabut {
                     } else if (ariagid[1] == "hls") {
                         var check = GLib.Checksum.compute_for_string (ChecksumType.MD5, row.url, row.url.length);
                         if (check == ariagid[0]) {
-                            row.to_trash (); 
+                            row.to_trash ();
                         }
                     }
                 }
@@ -1647,9 +1713,7 @@ namespace Gabut {
                 if (!opt_dir.query_exists ()) {
                     try {
                         opt_dir.make_directory_with_parents ();
-                    } catch (Error e) {
-                        warning (e.message);
-                    }
+                    } catch {}
                 }
                 options[AriaOptions.DIR.to_string ()] = row.filepath = row.pathname = opt_dir.get_path ();
                 append_hls (row, url, dm_fname, opt_dir.get_path (), later);
@@ -1704,7 +1768,6 @@ namespace Gabut {
                 output_dir = directory
             };
             var added = hlslbox.segment_urls.size;
-
             foreach (string l in hlslink) {
                 string lines = l.strip();
                 if (lines.length == 0 || lines.has_prefix("#")) {
@@ -1713,7 +1776,7 @@ namespace Gabut {
                 string seg_url;
                 try {
                     seg_url = GLib.Uri.resolve_relative(homeurl, lines, GLib.UriFlags.NONE);
-                } catch (GLib.UriError e) {
+                } catch {
                     continue;
                 }
                 if (!hlslbox.segment_urls.contains(seg_url)) {
@@ -1760,7 +1823,7 @@ namespace Gabut {
                     string seg_url;
                     try {
                         seg_url = GLib.Uri.resolve_relative(homeurl, lines, GLib.UriFlags.NONE);
-                    } catch (GLib.UriError e) {
+                    } catch {
                         continue;
                     }
                     if (!hlslbox.segment_urls.contains(seg_url)) {
@@ -1788,7 +1851,11 @@ namespace Gabut {
                     update_info ();
                     if (dbmenu) {
                         if (launcher_entry != null) {
-                            launcher_entry.set_progress.begin (hlslbox.merged_ts? hlslbox.progressmerg : hlsmanbox.find_progress ());
+                            launcher_entry.set_progress.begin (hlslbox.merged_ts? hlslbox.progressmerg : hlsmanbox.find_progress (), (obj, res)=>{
+                                try {
+                                    launcher_entry.set_progress.end (res);
+                                } catch {}
+                            });
                         }
                     }
                     updateinf = 0;
@@ -1860,18 +1927,14 @@ namespace Gabut {
                 row.status = hlslbox.status;
                 if (hlslbox.status == StatusMode.COMPLETE) {
                     if (hlslbox.totalcomp >= hlslbox.segment_urls.size) {
-                        try {
-                            File.new_for_path (row.pathname).trash ();
-                            row.totalsize = hlslbox.total_dl;
-                            var pathname = hlslbox.mp4path;
-                            if (pathname != null) {
-                                row.pathname = row.filepath = pathname;
-                            }
-                            row.filename = hlslbox.filename;
-                            update_download (row);
-                        } catch (Error e) {
-                            GLib.warning (e.message);
+                        linux_rm_rf (row.pathname);
+                        row.totalsize = hlslbox.total_dl;
+                        var pathname = hlslbox.mp4path;
+                        if (pathname != null) {
+                            row.pathname = row.filepath = pathname;
                         }
+                        row.filename = hlslbox.filename;
+                        update_download (row);
                     } else {
                         row.status = hlslbox.status = StatusMode.PAUSED;
                         update_download (row);
@@ -2002,7 +2065,11 @@ namespace Gabut {
                 if (fraction > 0.0) {
                     if (dbmenu) {
                         if (launcher_entry != null) {
-                            launcher_entry.set_progress.begin (fraction);
+                            launcher_entry.set_progress.begin (fraction, (obj, res)=>{
+                                try {
+                                    launcher_entry.set_progress.end (res);
+                                } catch {}
+                            });
                         }
                     }
                 }
@@ -2020,15 +2087,47 @@ namespace Gabut {
             allactive = int.parse (infol[GlobalStat.NUMACTIVE]) + hlsmanbox.active_hlsrow;
             if (launcher_entry != null) {
                 if (allactive > 0) {
-                    launcher_entry.set_urgent.begin (true);
-                    launcher_entry.set_count.begin (allactive);
-                    launcher_entry.set_count_visible.begin (true);
-                    launcher_entry.set_progress_visible.begin (true);
+                    launcher_entry.set_urgent.begin (true, (obj, res)=>{
+                        try {
+                            launcher_entry.set_urgent.end (res);
+                        } catch {}
+                    });
+                    launcher_entry.set_count.begin (allactive, (obj, res)=>{
+                        try {
+                            launcher_entry.set_count.end (res);
+                        } catch {}
+                    });
+                    launcher_entry.set_count_visible.begin (true, (obj, res)=>{
+                        try {
+                            launcher_entry.set_count_visible.end (res);
+                        } catch {}
+                    });
+                    launcher_entry.set_progress_visible.begin (true, (obj, res)=>{
+                        try {
+                            launcher_entry.set_progress_visible.end (res);
+                        } catch {}
+                    });
                 } else {
-                    launcher_entry.set_urgent.begin (false);
-                    launcher_entry.set_count.begin (0);
-                    launcher_entry.set_count_visible.begin (false);
-                    launcher_entry.set_progress_visible.begin (false);
+                    launcher_entry.set_urgent.begin (false, (obj, res)=>{
+                        try {
+                            launcher_entry.set_urgent.end (res);
+                        } catch {}
+                    });
+                    launcher_entry.set_count.begin (0, (obj, res)=>{
+                        try {
+                            launcher_entry.set_count.end (res);
+                        } catch {}
+                    });
+                    launcher_entry.set_count_visible.begin (false, (obj, res)=>{
+                        try {
+                            launcher_entry.set_count_visible.end (res);
+                        } catch {}
+                    });
+                    launcher_entry.set_progress_visible.begin (false, (obj, res)=>{
+                        try {
+                            launcher_entry.set_progress_visible.end (res);
+                        } catch {}
+                    });
                 }
             }
             download_rate.label = GLib.format_size (allactive > 0? (int64.parse (infol[GlobalStat.DOWNLOADSPEED]) + hlsmanbox.find_speed ()) : 0);

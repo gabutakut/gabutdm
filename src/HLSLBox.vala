@@ -462,6 +462,15 @@ namespace Gabut {
                         simple_progress (_("Merged Error"));
                         status = StatusMode.ERROR;
                         merged_ts = false;
+                    } else {
+                        dmrow.open_thum (mp4path);
+                        if (status == StatusMode.COMPLETE) {
+                            notify_app (_("Download Complete"), filename, GLib.ContentType.get_icon (get_mime_type (File.new_for_path (mp4path))));
+                            play_sound ("complete");
+                            if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
+                                dmrow.send_dialog ();
+                            }
+                        }
                     }
                     return false;
                 });
@@ -481,14 +490,13 @@ namespace Gabut {
                         }
                         status = StatusMode.COMPLETE;
                         merged_ts = false;
-                    } catch (GLib.Error e) {
+                    } catch {
                         ffmpeg = null;
                     } finally {
                         ffmpeg = null;
                         if (totalcomp < segment_urls.size) {
                             status = StatusMode.PAUSED;
                         }
-                        dmrow.open_thum (mp4path);
                     }
                     return false;
                 }

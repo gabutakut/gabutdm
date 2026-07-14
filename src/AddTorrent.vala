@@ -316,9 +316,7 @@ namespace Gabut {
                         if (file != null) {
                             selectfd = file;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
             selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/"));
@@ -356,7 +354,11 @@ namespace Gabut {
                 tooltip_text = _("Seed previously downloaded files without verifying piece hashes"),
                 width_request = 350
             };
-            encrypt_flow = new Gtk.FlowBox ();
+            encrypt_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var encrypt_popover = new Gtk.Popover () {
                 child = encrypt_flow
             };
@@ -402,7 +404,11 @@ namespace Gabut {
             encryptgrid.attach (encrypt, 1, 4, 1, 1);
             encryptgrid.attach (encrypt_button, 1, 5, 1, 1);
 
-            save_flow = new Gtk.FlowBox ();
+            save_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             foreach (var mprx in MyProxy.get_all ()) {
                 save_flow.append (new ProxyRecently (mprx));
             }
@@ -417,7 +423,11 @@ namespace Gabut {
             myrcproxy = save_flow.get_child_at_index (0) as ProxyRecently;
             ((Gtk.Label)myrcproxy.get_last_child ()).attributes = color_attribute (0, 60000, 0);
 
-            type_flow = new Gtk.FlowBox ();
+            type_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var type_popover = new Gtk.Popover () {
                 child = type_flow
             };

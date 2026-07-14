@@ -92,7 +92,7 @@ namespace Gabut {
         private uint _subscribe_dbus = 0;
 
         public DbusIndicator (string desktop_file) {
-            this._app_uri = "application://%s.desktop".printf(desktop_file);
+            _app_uri = "application://%s.desktop".printf(desktop_file);
             _menu = new GLib.ObjectPath ("/com/canonical/unity/launcherentry/%u".printf(_app_uri.hash()));
         }
 

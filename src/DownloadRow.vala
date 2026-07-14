@@ -134,10 +134,9 @@ namespace Gabut {
                                                 if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                                                     send_dialog ();
                                                 }
+                                                update_download (this);
                                                 ffmpeg = null;
-                                            } catch (Error e) {
-                                                GLib.warning (e.message);
-                                            }
+                                            } catch {}
                                             return false;
                                         }
                                         return true; 
@@ -182,7 +181,7 @@ namespace Gabut {
                                     if (linkmode != LinkMode.HLS) {
                                         open_thum (pathname);
                                     }
-                                    if (linkmode != LinkMode.YTBMP4 && linkmode != LinkMode.YTBWEBM && linkmode != LinkMode.YTBAUDIO) {
+                                    if (linkmode != LinkMode.HLS && linkmode != LinkMode.YTBMP4 && linkmode != LinkMode.YTBWEBM && linkmode != LinkMode.YTBAUDIO) {
                                         notify_app (_("Download Complete"), filename, GLib.ContentType.get_icon (fileordir));
                                         play_sound ("complete");
                                         if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
@@ -215,8 +214,7 @@ namespace Gabut {
                                         linkmode = LinkMode.TORRENT;
                                         foundgid = true;
                                         ariagid = ariagd;
-                                    } catch (Error e) {
-                                        warning (e.message);
+                                    } catch {
                                     } finally {
                                         add_db_download (this);
                                         set_dboptions (url, hashoption);
@@ -816,7 +814,7 @@ namespace Gabut {
             }
         }
 
-        private void send_dialog () {
+        public void send_dialog () {
             var gabutinfo = new GabutSucces ();
             if (linkmode == LinkMode.TORRENT) {
                 if (url.has_prefix ("magnet:?")) {
@@ -835,7 +833,7 @@ namespace Gabut {
             GLib.Application.get_default ().lookup_action ("succes").activate (new Variant.string (gabutinfo.get_info ()));
         }
 
-        public void to_trash () {
+        public void to_trash (bool perman = false) {
             if (pathname == null && linkmode == LinkMode.TORRENT) {
                 var file = File.new_for_path (filepath);
                 pathname = GLib.File.new_build_filename (file.get_path ().split (filename)[0], filename).get_path ();
@@ -845,15 +843,21 @@ namespace Gabut {
                 try {
                     var filec = File.new_for_path (@"$(pathname).aria2");
                     if (filec.query_exists ()) {
-                        filec.trash ();
+                        if (!perman) {
+                            filec.trash ();
+                        } else {
+                            linux_rm_rf (filec.get_path ());
+                        }
                     }
                     var filep = File.new_for_path (pathname);
                     if (filep.query_exists ()) {
-                        filep.trash ();
+                        if (!perman) {
+                            filep.trash ();
+                        } else {
+                            linux_rm_rf (pathname);
+                        }
                     }
-                } catch (Error e) {
-                    GLib.warning (e.message);
-                }
+                } catch {}
             }
         }
 
@@ -862,9 +866,17 @@ namespace Gabut {
                 var file = File.new_for_path (pathname);
                 if (file.query_exists ()) {
                     if (fileordir == "inode/directory") {
-                        open_fileman.begin (file.get_uri ());
+                        open_fileman.begin (file.get_uri (), (obj, res)=>{
+                            try {
+                                open_fileman.end (res);
+                            } catch {}
+                        });
                     } else {
-                        open_fileman.begin (file.get_parent ().get_uri ());
+                        open_fileman.begin (file.get_parent ().get_uri (), (obj, res)=>{
+                            try {
+                                open_fileman.end (res);
+                            } catch {}
+                        });
                     }
                 }
             }
@@ -901,9 +913,8 @@ namespace Gabut {
                         if (bool.parse (get_dbsetting (DBSettings.DIALOGNOTIF))) {
                             send_dialog ();
                         }
-                    } catch (Error e) {
-                        GLib.warning (e.message);
-                    }
+                        update_download (this);
+                    } catch {}
                 }
                 ffmpeg = null;
                 return false;

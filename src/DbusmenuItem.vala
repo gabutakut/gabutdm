@@ -182,9 +182,7 @@ namespace Gabut {
             if (is_started) {
                 try {
                     dbusmenu_server.set_root(root);
-                } catch (GLib.Error e) {
-                    GLib.warning("Failed to update menu on server: %s", e.message);
-                }
+                } catch {}
             }
         }
 
@@ -195,9 +193,7 @@ namespace Gabut {
                     if (is_started) {
                         try {
                             dbusmenu_server.set_root(root);
-                        } catch (GLib.Error e) {
-                            GLib.warning("Failed to update menu on server: %s", e.message);
-                        }
+                        } catch {}
                     }
                     return true;
                 }
@@ -213,9 +209,7 @@ namespace Gabut {
             if (is_started) {
                 try {
                     dbusmenu_server.set_root(root);
-                } catch (GLib.Error e) {
-                    GLib.warning("Failed to update menu on server: %s", e.message);
-                }
+                } catch {}
             }
         }
 
@@ -228,9 +222,7 @@ namespace Gabut {
             if (is_started) {
                 try {
                     dbusmenu_server.set_root(root);
-                } catch (GLib.Error e) {
-                    GLib.warning("Failed to update menu on server: %s", e.message);
-                }
+                } catch {}
             }
         }
 

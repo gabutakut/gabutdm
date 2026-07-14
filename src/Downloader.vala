@@ -241,9 +241,7 @@ namespace Gabut {
                                     parse_aria2_response(root);
                                 });
                             }
-                        } catch (Error e) {
-                            GLib.warning (e.message);
-                        }
+                        } catch {}
                         break;
                     case 2:
                         down_limit.value = double.parse (aria_get_option (ariagid, AriaOptions.MAX_DOWNLOAD_LIMIT)) / 1024;
@@ -953,7 +951,11 @@ namespace Gabut {
                         return;
                     }
                     if (file.query_exists()) {
-                        open_fileman.begin (file.get_parent ().get_uri ());
+                        open_fileman.begin (file.get_parent ().get_uri (), (obj, res)=>{
+                            try {
+                                open_fileman.end (res);
+                            } catch {}
+                        });
                     }
                 });
                 open_button.set_data<ulong>("open-handler", hid);
@@ -1412,7 +1414,11 @@ namespace Gabut {
                     return;
                 }
                 var ffile = File.new_for_path (file.full_path);
-                open_fileman.begin (ffile.get_parent ().get_uri ());
+                open_fileman.begin (ffile.get_parent ().get_uri (), (obj, res)=>{
+                    try {
+                        open_fileman.end (res);
+                    } catch {}
+                });
             });
 
             row.append(open_button);
@@ -1583,9 +1589,7 @@ namespace Gabut {
                 if (structure_ready) {
                     update_progress_only(root);
                 }
-            } catch (Error e) {
-                GLib.warning (e.message);
-            }
+            } catch {}
         }
 
         private void parse_aria2_response(Json.Node root_node) {

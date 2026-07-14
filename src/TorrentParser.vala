@@ -29,7 +29,7 @@ namespace Gabut {
                 uint8[] contents;
                 GLib.FileUtils.get_data(filepath, out contents);
                 return parsetorrent (contents);
-            } catch (GLib.Error e) {
+            } catch {
                 return null;
             }
         }

@@ -96,6 +96,7 @@ executable (
     'AddYtdlp.vala',
     'FormatItem.vala',
     dependencies: dependencies,
+    c_args: ['-D_GNU_SOURCE'],
     cpp_args: ['-std=c++17'],
     link_args: ['-lm', '-lstdc++'],
     install: true

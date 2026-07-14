@@ -44,7 +44,8 @@ namespace Gabut {
         private Gtk.Stack thumb_stack;
         private Cancellable cancellable = new Cancellable ();
         private bool resolution;
-        private string [] urlhls = null;
+        private string[] urlhls = null;
+        private int lenghthls = 0;
 
         File _selectfd = null;
         File selectfd {
@@ -127,9 +128,7 @@ namespace Gabut {
                         if (file != null) {
                             selectfd = file;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
             selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR));
@@ -231,10 +230,18 @@ namespace Gabut {
             refer_entry.icon_press.connect ((icp)=> {
                 if (icp == Gtk.EntryIconPosition.PRIMARY) {
                     if (refer_entry.text != "") {
-                        open_fileman.begin (refer_entry.text);
+                        open_fileman.begin (refer_entry.text, (obj, res)=>{
+                            try {
+                                open_fileman.end (res);
+                            } catch {}
+                        });
                     }
                 } else if (icp == Gtk.EntryIconPosition.SECONDARY) {
-                    refer_entry.get_value.begin ();
+                    refer_entry.get_value.begin ((obj, res)=>{
+                        try {
+                            refer_entry.get_value.end (res);
+                        } catch {}
+                    });
                 }
             });
             var moregrid = new Gtk.Grid () {
@@ -356,7 +363,7 @@ namespace Gabut {
             base.close ();
         }
 
-        private void on_fetch_master_clicked() {
+        private void on_fetch_master_clicked () {
             string url = link_entry.text;
             if (url == "" || !url.has_prefix("http")) {
                 return;
@@ -386,7 +393,7 @@ namespace Gabut {
                         load_urs (selected.url);
                         return GLib.Source.REMOVE;
                     });
-                } catch (GLib.Error e) {
+                } catch {
                     if (!cancellable.is_cancelled ()) {
                         fetch_btn.sensitive = true;
                     }
@@ -422,7 +429,7 @@ namespace Gabut {
                     string seg_url;
                     try {
                         seg_url = GLib.Uri.resolve_relative (base_url, line, GLib.UriFlags.NONE);
-                    } catch (GLib.UriError e) {
+                    } catch {
                         continue;
                     }
                     rescheck += seg_url;
@@ -446,9 +453,8 @@ namespace Gabut {
                     }
                     stream = null;
                     ffmpeg = null;
-                    rescheck = null;
                     lines = null;
-                } catch (GLib.Error e) {
+                } catch {
                     if (session != null) {
                         session.abort ();
                         session = null;
@@ -472,15 +478,17 @@ namespace Gabut {
                         var diss = new GLib.DataInputStream(streams);
                         string lines;
                         string[] rescheck = null;
+                        lenghthls = 1;
                         while ((lines = diss.read_line()) != null) {
                             string linex = lines.strip();
+                            lenghthls++;
                             if (linex.length == 0 || linex.has_prefix("#")) {
                                 continue;
                             }
                             string seg_url;
                             try {
                                 seg_url = GLib.Uri.resolve_relative (urls, linex, GLib.UriFlags.NONE);
-                            } catch (GLib.UriError e) {
+                            } catch {
                                 continue;
                             }
                             rescheck += seg_url;
@@ -496,7 +504,7 @@ namespace Gabut {
                             duration_label.label = @" $(rescheck.length) ";
                         }
                     }
-                } catch (GLib.Error e) {}
+                } catch {}
             });
         }
 
@@ -508,7 +516,11 @@ namespace Gabut {
             pixel_data.length = out_stride * out_h;
             if (pixel_data != null) {
                 var pixbuf = new Gdk.Pixbuf.from_data(pixel_data, Gdk.Colorspace.RGB, false, 8, out_w, out_h, out_stride);
-                load_thumbnail.begin (pixbuf);
+                load_thumbnail.begin (pixbuf, (obj, res)=>{
+                    try {
+                        load_thumbnail.end (res);
+                    } catch {}
+                });
             }
             ffmpeg = null;
         }
@@ -556,7 +568,7 @@ namespace Gabut {
 
         private void on_start_clicked(bool start) {
             var sb = new GLib.StringBuilder();
-            sb.append(link_entry.text).append("gabuthls");
+            sb.append(link_entry.text).append ("gabuthls");
             if (resolution) {
                 uint idx = res_dropdown.get_selected();
                 if (idx == Gtk.INVALID_LIST_POSITION || (int)idx >= options_list.size) {
@@ -570,13 +582,16 @@ namespace Gabut {
                         if (urlh == "") {
                             throw new GLib.IOError.FAILED("Failed fetch");
                         }
+                        if (urlh.split ("gabuthls").length != lenghthls) {
+                            throw new GLib.IOError.FAILED("Failed fetch");
+                        }
                         sb.append(urlh);
                         MainContext.default ().invoke (() => {
                             downloadfile (sb.str, hashoptions, start, LinkMode.HLS);
                             close ();
                             return GLib.Source.REMOVE;
                         });
-                    } catch (GLib.Error e) {
+                    } catch {
                         start_button.sensitive = later_button.sensitive = true;
                         set_visible (true);
                     }
@@ -682,10 +697,12 @@ namespace Gabut {
                     if (urlh == "") {
                         throw new GLib.IOError.FAILED("Failed fetch");
                     }
+                        if (urlh.split ("gabuthls").length != lenghthls) {
+                        throw new GLib.IOError.FAILED("Failed fetch");
+                    }
                     sb.append(urlh);
                     row.update_url (hashoptions, name_entry.text, sb.str);
-                } catch (GLib.Error e) {
-                }
+                } catch {}
             } else {
                 foreach (var line in urlhls) {
                     sb.append(line).append("gabuthls");

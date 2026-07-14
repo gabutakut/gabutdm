@@ -349,7 +349,11 @@ namespace Gabut {
             sel_box.append (info_box);
             sel_box.append (url_entry);
 
-            save_flow = new Gtk.FlowBox ();
+            save_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             foreach (var mprx in MyProxy.get_all ()) {
                 save_flow.append (new ProxyRecently (mprx));
             }
@@ -364,7 +368,11 @@ namespace Gabut {
             myrcproxy = save_flow.get_child_at_index (0) as ProxyRecently;
             ((Gtk.Label)myrcproxy.get_last_child ()).attributes = color_attribute (0, 60000, 0);
 
-            type_flow = new Gtk.FlowBox ();
+            type_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var type_popover = new Gtk.Popover () {
                 child = type_flow
             };
@@ -460,9 +468,7 @@ namespace Gabut {
                         if (file != null) {
                             selectfd = file;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
             selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR).replace ("\\/", "/"));
@@ -487,10 +493,18 @@ namespace Gabut {
             refer_entry.icon_press.connect ((icp)=> {
                 if (icp == Gtk.EntryIconPosition.PRIMARY) {
                     if (refer_entry.text != "") {
-                        open_fileman.begin (refer_entry.text);
+                        open_fileman.begin (refer_entry.text, (obj, res)=>{
+                            try {
+                                open_fileman.end (res);
+                            } catch {}
+                        });
                     }
                 } else if (icp == Gtk.EntryIconPosition.SECONDARY) {
-                    ((MediaEntry)refer_entry).get_value.begin ();
+                    ((MediaEntry)refer_entry).get_value.begin ((obj, res)=>{
+                        try {
+                            ((MediaEntry)refer_entry).get_value.end (res);
+                        } catch {}
+                    });
                 }
             });
             var moregrid = new Gtk.Grid () {
@@ -597,14 +611,28 @@ namespace Gabut {
             if (url != "") {
                 thumb_stack.set_visible_child_name ("icon");
                 if (url.contains ("gabutytb")) {
-                    do_fetch.begin (url.split ("gabutytb")[0]);
+                    do_fetch.begin (url.split ("gabutytb")[0], (obj, res)=>{
+                        try {
+                            do_fetch.end (res);
+                        } catch (GLib.Error e) {
+                            stsimg.icon_name = "com.github.gabutakut.gabutdm.error";
+                            stsimg.tooltip_text = _("❌ Failed: %s".printf (e.message));
+                        }
+                    });
                 } else {
-                    do_fetch.begin (url);
+                    do_fetch.begin (url, (obj, res)=>{
+                        try {
+                            do_fetch.end (res);
+                        } catch (GLib.Error e) {
+                            stsimg.icon_name = "com.github.gabutakut.gabutdm.error";
+                            stsimg.tooltip_text = _("❌ Failed: %s".printf (e.message));
+                        }
+                    });
                 }
             }
         }
 
-        private async void do_fetch (string url) {
+        private async void do_fetch (string url) throws Error {
             set_loading (true);
             stsimg.icon_name = "com.github.gabutakut.gabutdm.complete";
             stsimg.tooltip_text = _("Connecting…");
@@ -622,39 +650,34 @@ namespace Gabut {
             string payload = gen.to_data (null);
             var msg = new Soup.Message ("POST", @"http://localhost:$(gbtytbport)");
             msg.set_request_body_from_bytes ("application/json", new GLib.Bytes (payload.data));
-            try {
-                var bytes = yield http_session.send_and_read_async (msg, GLib.Priority.DEFAULT, null);
-                if (msg.get_status () == 200) {
-                    var stream = new GLib.MemoryInputStream.from_bytes (bytes);
-                    var parser = new Json.Parser ();
-                    yield parser.load_from_stream_async (stream, null);
-                    var res_root = parser.get_root ().get_object ();
-                    if (res_root.has_member ("error")) {
-                        var err_obj = res_root.get_object_member ("error");
-                        string err_msg = err_obj.has_member ("message")? err_obj.get_string_member ("message") : _("Unknown error");
-                        stsimg.icon_name = "com.github.gabutakut.gabutdm.error";
-                        stsimg.tooltip_text = _("❌ %s".printf (err_msg));
-                    } else if (res_root.has_member ("result")) {
-                        var result = res_root.get_object_member ("result");
-                        string user_agent = result.has_member ("user_agent") ? result.get_string_member ("user_agent") : "";
-                        string cookie_str = result.has_member ("cookie_header") ? result.get_string_member ("cookie_header"): "";
-                        if (cookie_str != "") {
-                            headerc = cookie_str;
-                        }
-                        if (user_agent != "") {
-                            useragent_entry.text = user_agent;
-                        }
-                        update_ui_with_result (res_root.get_object_member ("result"));
-                        stsimg.icon_name = "com.github.gabutakut.gabutdm.complete";
-                        stsimg.tooltip_text = _("✓ Done.");
-                    }
-                } else {
+            var bytes = yield http_session.send_and_read_async (msg, GLib.Priority.DEFAULT, null);
+            if (msg.get_status () == 200) {
+                var stream = new GLib.MemoryInputStream.from_bytes (bytes);
+                var parser = new Json.Parser ();
+                yield parser.load_from_stream_async (stream, null);
+                var res_root = parser.get_root ().get_object ();
+                if (res_root.has_member ("error")) {
+                    var err_obj = res_root.get_object_member ("error");
+                    string err_msg = err_obj.has_member ("message")? err_obj.get_string_member ("message") : _("Unknown error");
                     stsimg.icon_name = "com.github.gabutakut.gabutdm.error";
-                    stsimg.tooltip_text = _("✗ Server Error: %u".printf (msg.get_status ()));
+                    stsimg.tooltip_text = _("❌ %s".printf (err_msg));
+                } else if (res_root.has_member ("result")) {
+                    var result = res_root.get_object_member ("result");
+                    string user_agent = result.has_member ("user_agent") ? result.get_string_member ("user_agent") : "";
+                    string cookie_str = result.has_member ("cookie_header") ? result.get_string_member ("cookie_header"): "";
+                    if (cookie_str != "") {
+                        headerc = cookie_str;
+                    }
+                    if (user_agent != "") {
+                        useragent_entry.text = user_agent;
+                    }
+                    update_ui_with_result (res_root.get_object_member ("result"));
+                    stsimg.icon_name = "com.github.gabutakut.gabutdm.complete";
+                    stsimg.tooltip_text = _("✓ Done.");
                 }
-            } catch (GLib.Error e) {
+            } else {
                 stsimg.icon_name = "com.github.gabutakut.gabutdm.error";
-                stsimg.tooltip_text = _("❌ Failed: %s".printf (e.message));
+                stsimg.tooltip_text = _("✗ Server Error: %u".printf (msg.get_status ()));
             }
             set_loading (false);
         }
@@ -664,7 +687,11 @@ namespace Gabut {
             duration_label.set_text (" %s ".printf (seconds_to_time((int)res.get_int_member ("duration"))));
             string thumb = res.get_string_member ("thumbnail") ?? "";
             if (thumb != "") {
-                load_thumbnail.begin (thumb);
+                load_thumbnail.begin (thumb, (obj, res)=>{
+                    try {
+                        load_thumbnail.end (res);
+                    } catch {}
+                });
             }
             mp4_video_m.remove_all ();
             webm_video_m.remove_all ();

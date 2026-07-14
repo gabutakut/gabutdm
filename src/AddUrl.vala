@@ -213,9 +213,7 @@ namespace Gabut {
                         if (file != null) {
                             selectfd = file;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
             selectfd = File.new_for_path (get_dbsetting (DBSettings.DIR));
@@ -316,7 +314,11 @@ namespace Gabut {
             alllink.attach (folder_location, 1, 6, 2, 1);
             alllink.attach (rightinfo, 3, 0, 1, 8);
 
-            method_flow = new Gtk.FlowBox ();
+            method_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var method_popover = new Gtk.Popover () {
                 child = method_flow
             };
@@ -338,7 +340,11 @@ namespace Gabut {
             method_popover.show.connect (() => {
                 method_flow.unselect_all ();
             });
-            save_flow = new Gtk.FlowBox ();
+            save_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             foreach (var mprx in MyProxy.get_all ()) {
                 save_flow.append (new ProxyRecently (mprx));
             }
@@ -353,7 +359,11 @@ namespace Gabut {
             myrcproxy = save_flow.get_child_at_index (0) as ProxyRecently;
             ((Gtk.Label)myrcproxy.get_last_child ()).attributes = color_attribute (0, 60000, 0);
 
-            type_flow = new Gtk.FlowBox ();
+            type_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var type_popover = new Gtk.Popover () {
                 child = type_flow
             };
@@ -439,7 +449,11 @@ namespace Gabut {
             proxygrid.attach (headerlabel (_("Password:"), 300), 1, 5, 1, 1);
             proxygrid.attach (pass_entry, 1, 6, 1, 1);
 
-            login_flow = new Gtk.FlowBox ();
+            login_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var login_popover = new Gtk.Popover () {
                 child = login_flow
             };
@@ -496,10 +510,18 @@ namespace Gabut {
             refer_entry.icon_press.connect ((icp)=> {
                 if (icp == Gtk.EntryIconPosition.PRIMARY) {
                     if (refer_entry.text != "") {
-                        open_fileman.begin (refer_entry.text);
+                        open_fileman.begin (refer_entry.text, (obj, res)=>{
+                            try {
+                                open_fileman.end (res);
+                            } catch {}
+                        });
                     }
                 } else if (icp == Gtk.EntryIconPosition.SECONDARY) {
-                    refer_entry.get_value.begin ();
+                    refer_entry.get_value.begin ((obj, res)=>{
+                        try {
+                            refer_entry.get_value.end (res);
+                        } catch {}
+                    });
                 }
             });
 
@@ -513,7 +535,11 @@ namespace Gabut {
             moregrid.attach (headerlabel (_("Referer:"), 425), 1, 2, 1, 1);
             moregrid.attach (refer_entry, 1, 3, 1, 1);
 
-            checksums_flow = new Gtk.FlowBox ();
+            checksums_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var checksums_popover = new Gtk.Popover () {
                 child = checksums_flow
             };
@@ -582,7 +608,11 @@ namespace Gabut {
             ((Gtk.Label) start_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             start_button.clicked.connect (()=> {
                 set_option ();
-                download_send.begin (false);
+                download_send.begin (false, (obj, res)=>{
+                    try {
+                        download_send.end (res);
+                    } catch {}
+                });
                 close ();
             });
 
@@ -593,7 +623,11 @@ namespace Gabut {
             ((Gtk.Label) later_button.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
             later_button.clicked.connect (()=> {
                 set_option ();
-                download_send.begin (true);
+                download_send.begin (true, (obj, res)=>{
+                    try {
+                        download_send.end (res);
+                    } catch {}
+                });
                 close ();
             });
 

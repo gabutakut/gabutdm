@@ -137,7 +137,11 @@ namespace Gabut {
             open_button.clicked.connect (()=> {
                 var file = File.new_for_path (output_file);
                 if (file.query_exists ()) {
-                    open_fileman.begin (file.get_uri());
+                    open_fileman.begin (file.get_uri(), (obj, res)=>{
+                        try {
+                            open_fileman.end (res);
+                        } catch {}
+                    });
                 }
             });
             box.append(open_button);

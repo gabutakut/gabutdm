@@ -237,7 +237,7 @@ namespace Gabut {
                                 session = null;
                             }
                             input.close ();
-                        } catch (GLib.Error e) {}
+                        } catch {}
                     });
                 }
                 if (session != null) {
@@ -302,7 +302,7 @@ namespace Gabut {
                             ffread = null;
                             return GLib.Source.REMOVE;
                         }
-                    } catch (GLib.Error e) {}
+                    } catch {}
                 }
                 return processing;
             });
@@ -384,6 +384,7 @@ namespace Gabut {
                 if (file.query_exists ()) {
                     var info = file.query_info (GLib.FileAttribute.STANDARD_SIZE, GLib.FileQueryInfoFlags.NONE);
                     if ((int64) info.get_size () < this.total_size && this.total_size >= 1024) {
+                        file.delete ();
                         var out_stream = file.replace (null, false, GLib.FileCreateFlags.NONE, cancellable);
                         out_stream.truncate (this.total_size, cancellable);
                         out_stream.close ();
@@ -494,7 +495,7 @@ namespace Gabut {
                         input.close ();
                         msg = null;
                         buffer = null;
-                    } catch (GLib.Error e) {}
+                    } catch {}
                 });
             }
             part_obj.set_boolean_member ("is_finished", true);
@@ -580,7 +581,7 @@ namespace Gabut {
             if (shared_stream != null) {
                 try {
                     shared_stream.close ();
-                } catch (Error e) {
+                } catch {
                 } finally {
                     shared_stream = null;
                 }
@@ -603,7 +604,7 @@ namespace Gabut {
             if (shared_stream != null) {
                 try {
                     shared_stream.close ();
-                } catch (Error e) {
+                } catch {
                 } finally {
                     shared_stream = null;
                 }

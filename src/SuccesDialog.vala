@@ -132,7 +132,11 @@ namespace Gabut {
             open_file.clicked.connect (()=> {
                 var file = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH));
                 if (file.query_exists ()) {
-                    open_fileman.begin (file.get_uri ());
+                    open_fileman.begin (file.get_uri (), (obj, res)=>{
+                        try {
+                            open_fileman.end (res);
+                        } catch {}
+                    });
                 }
                 close ();
             });
@@ -153,9 +157,17 @@ namespace Gabut {
             open_folder.clicked.connect (()=> {
                 var file = File.new_for_path (info_succes (datastr, InfoSucces.FILEPATH));
                 if (info_succes (datastr, InfoSucces.ICONNAME) == "inode/directory") {
-                    open_fileman.begin (file.get_uri ());
+                    open_fileman.begin (file.get_uri (), (obj, res)=>{
+                        try {
+                            open_fileman.end (res);
+                        } catch {}
+                    });
                 } else {
-                    open_fileman.begin (file.get_parent ().get_uri ());
+                    open_fileman.begin (file.get_parent ().get_uri (), (obj, res)=>{
+                        try {
+                            open_fileman.end (res);
+                        } catch {}
+                    });
                 }
                 close ();
             });

@@ -22,6 +22,7 @@
 namespace Gabut {
     public class DeleteDialog : Gtk.Dialog {
         public Gtk.Button move_file;
+        public Gtk.Button del_permanent;
         public Gee.ArrayList<DownloadRow> datarow;
         public string infolabel;
         public int totalrow;
@@ -108,7 +109,7 @@ namespace Gabut {
 
             item_file = new Gtk.Label ("") {
                 ellipsize = Pango.EllipsizeMode.END,
-                max_width_chars = 58,
+                max_width_chars = 65,
                 use_markup = true,
                 wrap = true,
                 xalign = 0,
@@ -159,6 +160,12 @@ namespace Gabut {
                 width_request = 120,
                 height_request = 25
             };
+            del_permanent = new Gtk.Button.with_label (_("Permanent")) {
+                width_request = 120,
+                height_request = 25
+            };
+            ((Gtk.Label) del_permanent.get_last_child ()).attributes = set_attribute (Pango.Weight.SEMIBOLD);
+
             notify["labelrm"].connect(()=> {
                 move_file.label = labelrm;
             });
@@ -179,9 +186,10 @@ namespace Gabut {
 
             var centerbox = new Gtk.CenterBox () {
                 margin_top = 10,
-                margin_bottom = 10
+                margin_bottom = 10,
+                start_widget = del_permanent,
+                end_widget = box_action
             };
-            centerbox.set_end_widget (box_action);
 
             var boxarea = new Gtk.Box (Gtk.Orientation.VERTICAL, 0) {
                 margin_start = 10,

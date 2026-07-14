@@ -1,6 +1,6 @@
 pkgbase = gabutdm-master
 	pkgdesc = Simple, fast, and powerful Download Manager built with GTK4
-	pkgver = 2.9.3
+	pkgver = 2.9.4
 	pkgrel = 2
 	url = https://github.com/gabutakut/gabutdm
 	arch = x86_64

@@ -219,7 +219,11 @@ namespace Gabut {
                 value = double.parse (pharse_options (pack_data, AriaOptions.LOWEST_SPEED_LIMIT)) / 1024
             };
 
-            var stream_flow = new Gtk.FlowBox ();
+            var stream_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var stream_popover = new Gtk.Popover () {
                 child = stream_flow
             };
@@ -249,7 +253,11 @@ namespace Gabut {
             stream_popover.show.connect (() => {
                 stream_flow.unselect_all ();
             });
-            var urisel_flow = new Gtk.FlowBox ();
+            var urisel_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var urisel_popover = new Gtk.Popover () {
                 child = urisel_flow
             };
@@ -420,9 +428,7 @@ namespace Gabut {
                             file.load_contents (null, out content, null);
                             trackertext.buffer.text = (string) content;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
 
@@ -481,9 +487,7 @@ namespace Gabut {
                             file.load_contents (null, out content, null);
                             etrackertext.buffer.text = (string) content;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
             var fformat_etr = new Gtk.Button.from_icon_name ("view-refresh") {
@@ -550,9 +554,7 @@ namespace Gabut {
                         if (file != null) {
                             selectfd = file;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
 
@@ -568,9 +570,7 @@ namespace Gabut {
                         if (file != null) {
                             selectfs = file;
                         }
-                    } catch (GLib.Error e) {
-                        critical (e.message);
-                    }
+                    } catch {}
                 });
             });
             selectfs = File.new_for_path (get_dbsetting (DBSettings.SHAREDIR));
@@ -680,7 +680,11 @@ namespace Gabut {
                 tooltip_text = _("Enable disk cache. If SIZE is 0, the disk cache is disabled"),
                 value = double.parse (get_dbsetting (DBSettings.GABUTYTB))
             };
-            var allocate_flow = new Gtk.FlowBox ();
+            var allocate_flow = new Gtk.FlowBox () {
+                orientation = Gtk.Orientation.HORIZONTAL,
+                max_children_per_line = 1,
+                min_children_per_line = 1
+            };
             var allocate_popover = new Gtk.Popover () {
                 child = allocate_flow
             };
@@ -950,8 +954,16 @@ namespace Gabut {
                 if (label_mode.id != int.parse (get_dbsetting (DBSettings.LABELMODE))) {
                     set_dbsetting (DBSettings.LABELMODE, label_mode.id.to_string ());
                 }
-                flatpack_autostart.begin (appstartup.active);
-                default_autostart.begin (appstartup.active);
+                flatpack_autostart.begin (appstartup.active, (obj, res)=>{
+                    try {
+                        default_autostart.end (res);
+                    } catch {}
+                });
+                default_autostart.begin (appstartup.active, (obj, res)=>{
+                    try {
+                        default_autostart.end (res);
+                    } catch {}
+                });
                 if (engine.is_running ()) {
                     aria_set_globalops (AriaOptions.MAX_TRIES, set_dbsetting (DBSettings.MAXTRIES, numbtries.value.to_string ()));
                     aria_set_globalops (AriaOptions.MAX_CONNECTION_PER_SERVER, set_dbsetting (DBSettings.CONNSERVER, numbconn.value.to_string ()));
@@ -990,7 +1002,11 @@ namespace Gabut {
                     || bt_listenport.value != double.parse (aria_get_globalops (AriaOptions.LISTEN_PORT))
                     || dht_listenport.value != double.parse (aria_get_globalops (AriaOptions.DHT_LISTEN_PORT))
                     || fileallocation.fileallocation.to_string ().down () != aria_get_globalops (AriaOptions.FILE_ALLOCATION)) {
-                        start_engine.begin ();
+                        start_engine.begin ((obj, res)=>{
+                            try {
+                                start_engine.end (res);
+                            } catch {}
+                        });
                         close ();
                     } else if (local_port.value.to_string () != get_dbsetting (DBSettings.PORTLOCAL)) {
                         set_dbsetting (DBSettings.PORTLOCAL, local_port.value.to_string ());

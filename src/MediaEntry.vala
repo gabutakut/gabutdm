@@ -71,7 +71,11 @@ namespace Gabut {
                         if (pos == Gtk.EntryIconPosition.PRIMARY) {
                             clipboard.set_text (text);
                         } else if (pos == Gtk.EntryIconPosition.SECONDARY) {
-                            get_value.begin ();
+                            get_value.begin ((obj, res)=>{
+                                try {
+                                    get_value.end (res);
+                                } catch {}
+                            });
                         }
                         break;
                 }

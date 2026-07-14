@@ -218,7 +218,7 @@ namespace Gabut {
 
             switch (_state) {
                 case DropState.HOVERING:
-                    draw_drop_zone   (cr, cx, cy, w, h);
+                    draw_drop_zone (cr, cx, cy, w, h);
                     draw_hover_label (cr, cx, cy);
                     break;
                 case DropState.PROCESSING:
@@ -246,7 +246,7 @@ namespace Gabut {
                 case GabutMode.OPEN_FILE:
                     draw_open_file_icon (cr, cx, cy); break;
                 case GabutMode.INSERT_LINK:
-                    draw_insert_link_icon  (cr, cx, cy); break;
+                    draw_insert_link_icon (cr, cx, cy); break;
                 case GabutMode.HLS_PROCESSING:
                     draw_hls_icon (cr, cx, cy); break;
                 case GabutMode.START:
@@ -281,7 +281,7 @@ namespace Gabut {
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, r * 0.8);
             double ga = 0.10 + 0.08 * Math.sin (anim_tick * 3.0);
             glow.add_color_stop_rgba (0.0, 0.88, 0.77, 0.14, ga);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, r * 0.8, 0, 2 * Math.PI);
             cr.fill ();
@@ -306,18 +306,18 @@ namespace Gabut {
             double r2 = 15.0 * pulse_scale;
             double gx1 = cx - 13.0, gy1 = cy + 4.0;
             double gx2 = gx1 + r1 + r2 - 2.0, gy2 = cy - 8.0;
-            double angle1 =  ring_angle;
+            double angle1 = ring_angle;
             double angle2 = -ring_angle * (r1 / r2);
             double ga = 0.13 + 0.07 * Math.sin (anim_tick * 2.5);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 58);
             glow.add_color_stop_rgba (0.0, 0.88, 0.77, 0.14, ga * 1.6);
-            glow.add_color_stop_rgba (0.5, 0.63, 0.0,  0.90, ga * 0.6);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (0.5, 0.63, 0.0, 0.90, ga * 0.6);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 58, 0, 2 * Math.PI);
             cr.fill ();
             draw_gear (cr, gx1, gy1, r1, 10, angle1, 0.88, 0.77, 0.14);
-            draw_gear (cr, gx2, gy2, r2,  6, angle2, 0.63, 0.0,  0.90);
+            draw_gear (cr, gx2, gy2, r2, 6, angle2, 0.63, 0.0, 0.90);
             cr.restore ();
         }
 
@@ -380,7 +380,7 @@ namespace Gabut {
             double ga = 0.15 + 0.08 * Math.sin (anim_tick * 1.8);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 52);
             glow.add_color_stop_rgba (0.0, 0.0, 0.85, 0.45, ga * 1.7);
-            glow.add_color_stop_rgba (1.0, 0.0, 0.0,  0.0, 0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 52, 0, 2 * Math.PI);
             cr.fill ();
@@ -431,11 +431,11 @@ namespace Gabut {
                 double px = cx + Math.cos (phase) * orbit;
                 double py = cy + Math.sin (phase) * orbit;
                 double pa = 0.40 + 0.50 * Math.sin (anim_tick * 3.0 + i * 1.2);
-                double ps = 4.5  + 2.5  * Math.sin (anim_tick * 2.5 + i);
+                double ps = 4.5 + 2.5 * Math.sin (anim_tick * 2.5 + i);
                 if (i % 2 == 0) {
                     cr.set_source_rgba (0.88, 0.60, 0.14, pa);
                 } else {
-                    cr.set_source_rgba (0.63, 0.0,  0.90, pa);
+                    cr.set_source_rgba (0.63, 0.0, 0.90, pa);
                 }
                 rounded_rect (cr, px - ps / 2.0, py - ps / 2.0, ps, ps, 1.5);
                 cr.fill ();
@@ -448,7 +448,7 @@ namespace Gabut {
             double ga = 0.14 + 0.10 * Math.sin (anim_tick * 2.8);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 44);
             glow.add_color_stop_rgba (0.0, 0.88, 0.55, 0.0, ga * 1.9);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0, 0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 44, 0, 2 * Math.PI);
             cr.fill ();
@@ -495,8 +495,8 @@ namespace Gabut {
             double ga = 0.12 + 0.08 * Math.sin (anim_tick * 2.4);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 56);
             glow.add_color_stop_rgba (0.0, 0.10, 0.65, 1.0, ga * 1.8);
-            glow.add_color_stop_rgba (0.5, 0.0,  0.35, 0.8, ga * 0.5);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0, 0.0);
+            glow.add_color_stop_rgba (0.5, 0.0, 0.35, 0.8, ga * 0.5);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 56, 0, 2 * Math.PI);
             cr.fill ();
@@ -561,7 +561,7 @@ namespace Gabut {
                 double sa = (1.0 - merge_gap / 6.0) * 0.9;
                 var sg = new Cairo.Pattern.radial (cx, chain_y, 0, cx, chain_y, 14);
                 sg.add_color_stop_rgba (0.0, 1.0, 0.95, 0.55, sa);
-                sg.add_color_stop_rgba (1.0, 0.0, 0.0,  0.0,  0.0);
+                sg.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
                 cr.set_source (sg);
                 cr.arc (cx, chain_y, 14, 0, 2 * Math.PI);
                 cr.fill ();
@@ -573,9 +573,9 @@ namespace Gabut {
             cr.save ();
             double ga = 0.14 + 0.09 * Math.sin (anim_tick * 2.0);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 58);
-            glow.add_color_stop_rgba (0.0, 1.0,  0.25, 0.10, ga * 1.6);
+            glow.add_color_stop_rgba (0.0, 1.0, 0.25, 0.10, ga * 1.6);
             glow.add_color_stop_rgba (0.5, 0.80, 0.05, 0.40, ga * 0.5);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 58, 0, 2 * Math.PI);
             cr.fill ();
@@ -619,7 +619,7 @@ namespace Gabut {
                 double fx2 = fs_x + 4.0 + i * fw_frame - scroll_off;
                 double seg_alpha = 0.35 + 0.30 * Math.sin (anim_tick * 1.8 + i * 0.9);
                 if (i % 2 == 0) {
-                    cr.set_source_rgba (1.0,  0.25, 0.05, seg_alpha * 0.55);
+                    cr.set_source_rgba (1.0, 0.25, 0.05, seg_alpha * 0.55);
                 } else {
                     cr.set_source_rgba (0.80, 0.10, 0.30, seg_alpha * 0.40);
                 }
@@ -684,11 +684,11 @@ namespace Gabut {
                 var fg1 = new Cairo.Pattern.radial (0, 18, 0, 0, 18 + fh * 0.6, fh * 0.8);
                 fg1.add_color_stop_rgba (0.0, 1.0, 0.65, 0.10, 0.90 * fp);
                 fg1.add_color_stop_rgba (0.5, 1.0, 0.30, 0.05, 0.55 * fp);
-                fg1.add_color_stop_rgba (1.0, 0.8, 0.10, 0.0,  0.0);
+                fg1.add_color_stop_rgba (1.0, 0.8, 0.10, 0.0, 0.0);
                 cr.set_source (fg1);
                 cr.move_to (-7, 18);
                 cr.curve_to (-10, 18 + fh * 0.5, -4, 18 + fh, 0, 18 + fh);
-                cr.curve_to  (4,  18 + fh,  10,  18 + fh * 0.5, 7, 18);
+                cr.curve_to (4, 18 + fh, 10, 18 + fh * 0.5, 7, 18);
                 cr.close_path ();
                 cr.fill ();
                 var fg2 = new Cairo.Pattern.radial (0, 18, 0, 0, 18 + fh * 0.4, fh * 0.4);
@@ -697,7 +697,7 @@ namespace Gabut {
                 cr.set_source (fg2);
                 cr.move_to (-4, 18);
                 cr.curve_to (-5, 18 + fh * 0.35, 0, 18 + fh * 0.6, 0, 18 + fh * 0.55);
-                cr.curve_to  (0, 18 + fh * 0.6, 5, 18 + fh * 0.35, 4, 18);
+                cr.curve_to (0, 18 + fh * 0.6, 5, 18 + fh * 0.35, 4, 18);
                 cr.close_path ();
                 cr.fill ();
             }
@@ -764,7 +764,7 @@ namespace Gabut {
             var glow = new Cairo.Pattern.radial (cx, cy + 10, 0, cx, cy + 10, 60);
             glow.add_color_stop_rgba (0.0, 1.0, 0.55, 0.10, ga * 2.0);
             glow.add_color_stop_rgba (0.5, 1.0, 0.25, 0.05, ga * 0.6);
-            glow.add_color_stop_rgba (1.0, 0.0, 0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy + 10, 60, 0, 2 * Math.PI);
             cr.fill ();
@@ -824,7 +824,7 @@ namespace Gabut {
             double ga = 0.10 + 0.06 * Math.sin (anim_tick * 2.2);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 56);
             glow.add_color_stop_rgba (0.0, 0.25, 0.70, 1.0, ga * 1.6);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0, 0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 56, 0, 2 * Math.PI);
             cr.fill ();
@@ -875,7 +875,7 @@ namespace Gabut {
             var glow = new Cairo.Pattern.radial (cx, cy + 14, 0, cx, cy + 14, 75);
             glow.add_color_stop_rgba (0.0, 1.0, 0.60, 0.05, ga * 1.8);
             glow.add_color_stop_rgba (0.5, 0.90, 0.25, 0.05, ga * 0.5);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy + 14, 75, 0, 2 * Math.PI);
             cr.fill ();
@@ -912,8 +912,8 @@ namespace Gabut {
             }
 
             for (int i = 0; i < 5; i++) {
-                double sa  = 0.08 + 0.07 * Math.sin (anim_tick * 1.8 + i * 0.9);
-                double sr  = 10.0 + i * 5.0;
+                double sa = 0.08 + 0.07 * Math.sin (anim_tick * 1.8 + i * 0.9);
+                double sr = 10.0 + i * 5.0;
                 double sxo = (i % 2 == 0 ? -1 : 1) * i * 9.0;
                 cr.set_source_rgba (0.72, 0.70, 0.66, sa);
                 cr.arc (cx + sxo, cy + 26, sr, 0, 2 * Math.PI);
@@ -930,7 +930,7 @@ namespace Gabut {
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 72);
             glow.add_color_stop_rgba (0.0, 0.20, 0.65, 1.0, ga * 1.6);
             glow.add_color_stop_rgba (0.5, 0.10, 0.30, 0.70, ga * 0.4);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 72, 0, 2 * Math.PI);
             cr.fill ();
@@ -986,7 +986,7 @@ namespace Gabut {
             double ga = 0.12 + 0.08 * Math.sin (anim_tick * 2.2);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 58);
             glow.add_color_stop_rgba (0.0, 0.20, 0.85, 1.0, ga * 1.7);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0, 0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 58, 0, 2 * Math.PI);
             cr.fill ();
@@ -1080,7 +1080,7 @@ namespace Gabut {
             double ga = 0.12 + 0.07 * Math.sin (anim_tick * 2.5);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 58);
             glow.add_color_stop_rgba (0.0, 1.0, 0.35, 0.15, ga * 1.6);
-            glow.add_color_stop_rgba (1.0, 0.0, 0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 58, 0, 2 * Math.PI);
             cr.fill ();
@@ -1138,7 +1138,7 @@ namespace Gabut {
             double fly_a = (t < 0.85) ? 0.92 : (1.0 - t) / 0.15 * 0.92;
 
             for (int i = 1; i <= 5; i++) {
-                double tt  = double.max (0.0, t - i * 0.06);
+                double tt = double.max (0.0, t - i * 0.06);
                 double trx = (1-tt)*(1-tt)*p0x + 2*(1-tt)*tt*p1x + tt*tt*p2x;
                 double try_ = (1-tt)*(1-tt)*p0y + 2*(1-tt)*tt*p1y + tt*tt*p2y;
                 cr.set_source_rgba (1.0, 0.50, 0.15, fly_a * 0.18 / i);
@@ -1181,7 +1181,7 @@ namespace Gabut {
             double ga = 0.11 + 0.07 * Math.sin (anim_tick * 1.8);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 58);
             glow.add_color_stop_rgba (0.0, 1.0, 0.80, 0.25, ga * 1.5);
-            glow.add_color_stop_rgba (1.0, 0.0, 0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 58, 0, 2 * Math.PI);
             cr.fill ();
@@ -1204,9 +1204,9 @@ namespace Gabut {
                 } else {
                     file_x = file_base_x;
                 }
-                double file_y  = cy + 10.0 - i * 2.0;
-                double file_a  = (file_x > cx + 62) ? 0.0 : 0.75 - i * 0.10;
-                double tilt_r  = (broom_x > file_base_x - 12) ? 0.25 + i * 0.08 : 0.0;
+                double file_y = cy + 10.0 - i * 2.0;
+                double file_a = (file_x > cx + 62) ? 0.0 : 0.75 - i * 0.10;
+                double tilt_r = (broom_x > file_base_x - 12) ? 0.25 + i * 0.08 : 0.0;
                 cr.save ();
                 cr.translate (file_x, file_y);
                 cr.rotate (tilt_r);
@@ -1272,7 +1272,7 @@ namespace Gabut {
             double ga = 0.12 + 0.07 * Math.sin (anim_tick * 2.0);
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 58);
             glow.add_color_stop_rgba (0.0, 0.20, 0.88, 0.50, ga * 1.7);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 58, 0, 2 * Math.PI);
             cr.fill ();
@@ -1330,7 +1330,7 @@ namespace Gabut {
 
             var pin_glow = new Cairo.Pattern.radial (0, 0, 0, 0, 0, 14);
             pin_glow.add_color_stop_rgba (0.0, 1.0, 0.90, 0.20, 0.38);
-            pin_glow.add_color_stop_rgba (1.0, 0.0, 0.0,  0.0,  0.0);
+            pin_glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (pin_glow);
             cr.arc (0, 0, 14, 0, 2 * Math.PI);
             cr.fill ();
@@ -1389,7 +1389,7 @@ namespace Gabut {
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, r + tooth_h + 14);
             glow.add_color_stop_rgba (0.0, 0.88, 0.70, 0.14, ga * 1.8);
             glow.add_color_stop_rgba (0.5, 0.63, 0.10, 0.80, ga * 0.7);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, r + tooth_h + 14, 0, 2 * Math.PI);
             cr.fill ();
@@ -1399,7 +1399,7 @@ namespace Gabut {
             var tglow = new Cairo.Pattern.radial (0, 0, r * 0.5, 0, 0, r + tooth_h);
             tglow.add_color_stop_rgba (0.0, 0.88, 0.77, 0.14, 0.0);
             tglow.add_color_stop_rgba (0.7, 0.88, 0.77, 0.14, 0.18 * pulse_scale);
-            tglow.add_color_stop_rgba (1.0, 1.0,  0.45, 0.05, 0.0);
+            tglow.add_color_stop_rgba (1.0, 1.0, 0.45, 0.05, 0.0);
             cr.set_source (tglow);
             cr.arc (0, 0, r + tooth_h, 0, 2 * Math.PI);
             cr.fill ();
@@ -1462,7 +1462,7 @@ namespace Gabut {
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, 58);
             glow.add_color_stop_rgba (0.0, 1.0, 0.75, 0.20, ga * 1.8);
             glow.add_color_stop_rgba (0.5, 0.80, 0.35, 0.05, ga * 0.6);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0,  0.0,  0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, 58, 0, 2 * Math.PI);
             cr.fill ();
@@ -1475,10 +1475,10 @@ namespace Gabut {
             cr.new_path ();
             cr.move_to (-hw, -hh);
             cr.curve_to (-hw, -hh * 0.55, -5, -4, 0, 0);
-            cr.curve_to   (5, 4, hw, hh * 0.55, hw, hh);
+            cr.curve_to (5, 4, hw, hh * 0.55, hw, hh);
             cr.line_to (-hw, hh);
-            cr.curve_to (-hw,  hh * 0.55, -5,  4, 0,  0);
-            cr.curve_to   (5,  -4, hw, -hh * 0.55, hw, -hh);
+            cr.curve_to (-hw, hh * 0.55, -5, 4, 0, 0);
+            cr.curve_to (5, -4, hw, -hh * 0.55, hw, -hh);
             cr.close_path ();
             var glass_g = new Cairo.Pattern.linear (0, -hh, 0, hh);
             glass_g.add_color_stop_rgba (0.0, 0.20, 0.15, 0.05, 0.82);
@@ -1488,10 +1488,10 @@ namespace Gabut {
             cr.fill ();
             cr.new_path ();
             cr.move_to (-hw, -hh);
-            cr.curve_to (-hw, -hh * 0.55, -5, -4,  0,  0);
-            cr.curve_to (5, 4, hw,  hh * 0.55,  hw,  hh);
+            cr.curve_to (-hw, -hh * 0.55, -5, -4, 0, 0);
+            cr.curve_to (5, 4, hw, hh * 0.55, hw, hh);
             cr.line_to (-hw, hh);
-            cr.curve_to (-hw,  hh * 0.55, -5, 4, 0, 0);
+            cr.curve_to (-hw, hh * 0.55, -5, 4, 0, 0);
             cr.curve_to (5, -4, hw, -hh * 0.55, hw, -hh);
             cr.close_path ();
             cr.set_source_rgba (0.95, 0.75, 0.25, 0.78);
@@ -1503,11 +1503,11 @@ namespace Gabut {
                 cr.save ();
                 cr.new_path ();
                 cr.move_to (-hw + 1, -hh + 1);
-                cr.curve_to (-hw + 1, -hh * 0.55, -4, -5,  0,  0);
-                cr.curve_to   (4, 5, hw - 1, hh * 0.55, hw - 1, hh - 1);
+                cr.curve_to (-hw + 1, -hh * 0.55, -4, -5, 0, 0);
+                cr.curve_to (4, 5, hw - 1, hh * 0.55, hw - 1, hh - 1);
                 cr.line_to (-hw + 1, hh - 1);
                 cr.curve_to (-hw + 1, hh * 0.55, -4, 5, 0, 0);
-                cr.curve_to   (4, -5, hw - 1, -hh * 0.55, hw - 1, -hh + 1);
+                cr.curve_to (4, -5, hw - 1, -hh * 0.55, hw - 1, -hh + 1);
                 cr.close_path ();
                 cr.clip ();
                 double sand_top = -hh + 2;
@@ -1517,7 +1517,7 @@ namespace Gabut {
                 cr.new_path ();
                 cr.move_to (-sand_hw2, sand_y);
                 cr.line_to ( sand_hw2, sand_y);
-                cr.curve_to  (sand_hw2 * 0.3, sand_y * 0.35, sand_hw2 * 0.3, sand_y * 0.35, 0, 0);
+                cr.curve_to (sand_hw2 * 0.3, sand_y * 0.35, sand_hw2 * 0.3, sand_y * 0.35, 0, 0);
                 cr.curve_to (-sand_hw2 * 0.3, sand_y * 0.35, -sand_hw2 * 0.3, sand_y * 0.35, -sand_hw2, sand_y);
                 cr.close_path ();
                 var sg = new Cairo.Pattern.linear (0, sand_y, 0, 0);
@@ -1533,11 +1533,11 @@ namespace Gabut {
                 cr.save ();
                 cr.new_path ();
                 cr.move_to (-hw + 1, -hh + 1);
-                cr.curve_to (-hw + 1, -hh * 0.55, -4, -5,  0,  0);
-                cr.curve_to (4,   5,  hw - 1,  hh * 0.55,  hw - 1,  hh - 1);
-                cr.line_to (-hw + 1,  hh - 1);
-                cr.curve_to (-hw + 1,  hh * 0.55, -4,  5,  0,  0);
-                cr.curve_to (4,  -5,  hw - 1, -hh * 0.55,  hw - 1, -hh + 1);
+                cr.curve_to (-hw + 1, -hh * 0.55, -4, -5, 0, 0);
+                cr.curve_to (4, 5, hw - 1, hh * 0.55, hw - 1, hh - 1);
+                cr.line_to (-hw + 1, hh - 1);
+                cr.curve_to (-hw + 1, hh * 0.55, -4, 5, 0, 0);
+                cr.curve_to (4, -5, hw - 1, -hh * 0.55, hw - 1, -hh + 1);
                 cr.close_path ();
                 cr.clip ();
                 double bot = hh - 2;
@@ -1556,8 +1556,8 @@ namespace Gabut {
                 cr.fill ();
                 cr.restore ();
             }
-            double stream_a   = 0.70 + 0.30 * Math.sin (anim_tick * 8.0);
-            double stream_len = 8.0  + 4.0  * (Math.sin (anim_tick * 3.5)).abs ();
+            double stream_a = 0.70 + 0.30 * Math.sin (anim_tick * 8.0);
+            double stream_len = 8.0 + 4.0 * (Math.sin (anim_tick * 3.5)).abs ();
             var stg = new Cairo.Pattern.linear (0, -2, 0, stream_len + 2);
             stg.add_color_stop_rgba (0.0, 0.98, 0.82, 0.30, stream_a);
             stg.add_color_stop_rgba (1.0, 0.98, 0.82, 0.30, 0.0);
@@ -1646,8 +1646,8 @@ namespace Gabut {
             double a = 0.14 * pulse_scale;
             halo.add_color_stop_rgba (0.00, 0.63, 0.0, 0.9, a * 1.4);
             halo.add_color_stop_rgba (0.35, 0.63, 0.0, 0.9, a * 0.6);
-            halo.add_color_stop_rgba (0.60, 1.0,  0.1, 0.0, a * 0.3);
-            halo.add_color_stop_rgba (1.00, 0.0,  0.0, 0.0, 0.0);
+            halo.add_color_stop_rgba (0.60, 1.0, 0.1, 0.0, a * 0.3);
+            halo.add_color_stop_rgba (1.00, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (halo);
             cr.arc (cx, cy, pulse * 2.4, 0, 2 * Math.PI);
             cr.fill ();
@@ -1665,11 +1665,11 @@ namespace Gabut {
                             g.add_color_stop_rgba (0, 0.88, 0.77, 0.14, a);
                             g.add_color_stop_rgba (1, 0.88, 0.77, 0.14, 0);
                         } else if (i % 3 == 1) {
-                            g.add_color_stop_rgba (0, 0.63, 0.0,  0.9,  a);
-                            g.add_color_stop_rgba (1, 0.63, 0.0,  0.9,  0);
+                            g.add_color_stop_rgba (0, 0.63, 0.0, 0.9, a);
+                            g.add_color_stop_rgba (1, 0.63, 0.0, 0.9, 0);
                         } else {
                             g.add_color_stop_rgba (0, 1.0, 0.14, 0.03, a);
-                            g.add_color_stop_rgba (1, 1.0,  0.14, 0.03, 0);
+                            g.add_color_stop_rgba (1, 1.0, 0.14, 0.03, 0);
                         }
                         cr.set_source (g);
                         cr.arc (p.x, p.y, p.size * 2.2, 0, 2 * Math.PI);
@@ -1705,9 +1705,9 @@ namespace Gabut {
                 if (i % 3 == 0) {
                     cr.set_source_rgba (0.88, 0.77, 0.14, br * 0.75);
                 } else if (i % 3 == 1) {
-                    cr.set_source_rgba (0.63, 0.0,  0.9,  br * 0.75);
+                    cr.set_source_rgba (0.63, 0.0, 0.9, br * 0.75);
                 } else {
-                    cr.set_source_rgba (1.0,  0.14, 0.03, br * 0.75);
+                    cr.set_source_rgba (1.0, 0.14, 0.03, br * 0.75);
                 }
                 cr.arc (0, 0, R, a1, a2);
                 cr.stroke ();
@@ -1730,7 +1730,7 @@ namespace Gabut {
             var glow = new Cairo.Pattern.radial (cx, cy, 0, cx, cy, r);
             glow.add_color_stop_rgba (0.0, 0.63, 0.0, 0.9, 0.14);
             glow.add_color_stop_rgba (0.6, 0.63, 0.0, 0.9, 0.06);
-            glow.add_color_stop_rgba (1.0, 0.0,  0.0, 0.0, 0.0);
+            glow.add_color_stop_rgba (1.0, 0.0, 0.0, 0.0, 0.0);
             cr.set_source (glow);
             cr.arc (cx, cy, r, 0, 2 * Math.PI);
             cr.fill ();
@@ -1845,9 +1845,9 @@ namespace Gabut {
                 cr.clip ();
                 rounded_rect (cr, margin, bar_y, bar_w, bar_h, radius);
                 var pg = new Cairo.Pattern.linear (margin, 0, margin + bar_w, 0);
-                pg.add_color_stop_rgb (0.0, 0.63, 0.0,  0.90);
+                pg.add_color_stop_rgb (0.0, 0.63, 0.0, 0.90);
                 pg.add_color_stop_rgb (0.5, 0.88, 0.50, 0.14);
-                pg.add_color_stop_rgb (1.0, 1.0,  0.14, 0.03);
+                pg.add_color_stop_rgb (1.0, 1.0, 0.14, 0.03);
                 cr.set_source (pg);
                 cr.fill ();
                 rounded_rect (cr, margin, bar_y, fill_w, bar_h / 2.0, radius);
@@ -1856,7 +1856,7 @@ namespace Gabut {
                 cr.restore ();
             }
             if (_fraction > 0.0 && _fraction < 1.0) {
-                double edge_x  = margin + bar_w * _fraction;
+                double edge_x = margin + bar_w * _fraction;
                 double edge_cy = bar_y + bar_h / 2.0;
                 double ga = 0.5 + 0.5 * Math.sin (anim_tick * 6.0);
                 var eg = new Cairo.Pattern.radial (edge_x, edge_cy, 0, edge_x, edge_cy, 8);
@@ -1872,7 +1872,7 @@ namespace Gabut {
         private void rounded_rect (Cairo.Context cr, double x, double y, double w, double h, double r) {
             cr.new_path ();
             cr.arc (x + r, y + r, r, Math.PI, 3 * Math.PI / 2);
-            cr.arc (x + w - r, y + r, r, 3 * Math.PI / 2,   0);
+            cr.arc (x + w - r, y + r, r, 3 * Math.PI / 2, 0);
             cr.arc (x + w - r, y + h - r, r, 0, Math.PI / 2);
             cr.arc (x + r, y + h - r, r, Math.PI / 2, Math.PI);
             cr.close_path ();
@@ -2012,7 +2012,7 @@ namespace Gabut {
                     return;
                 }
             }
-            status_text = _("Done!  ✓");
+            status_text = _("Done! ✓");
             fraction = 1.0;
             GLib.Timeout.add (350, () => {
                 drop_state = DropState.IDLE;

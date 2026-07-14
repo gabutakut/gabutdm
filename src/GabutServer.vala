@@ -36,6 +36,11 @@ namespace Gabut {
         construct {
             users = new GLib.HashTable<string, string> (GLib.str_hash, GLib.str_equal);
             usercookie = new GLib.HashTable<string, string> (GLib.str_hash, GLib.str_equal);
+            settings_user ();
+        }
+
+        public void settings_user () {
+            users.remove_all ();
             foreach (var user in get_users ()) {
                 users.insert (user.user, user.passwd);
             }
@@ -254,7 +259,7 @@ namespace Gabut {
                             write_file.begin (body, filed.get_path (), (obj, res)=> {
                                 try {
                                     write_file.end (res);
-                                } catch (GLib.Error e) {
+                                } catch {
                                 } finally {
                                     notify_app (_("File Transfered"), _("%s").printf (filename), new ThemedIcon (GLib.ContentType.get_generic_icon_name (headers.get_content_type (null))));
                                     play_sound ("complete");
@@ -272,7 +277,11 @@ namespace Gabut {
                     if (reslink != "") {
                         if (reslink.has_prefix ("http://") || reslink.has_prefix ("https://") || reslink.has_prefix ("ftp://") || reslink.has_prefix ("sftp://")) {
                             notify_app (_("Open Link"), reslink, new ThemedIcon ("insert-link"));
-                            open_fileman.begin (reslink);
+                            open_fileman.begin (reslink, (obj, res)=>{
+                                try {
+                                    open_fileman.end (res);
+                                } catch {}
+                            });
                             play_sound ("complete");
                         }
                     }
@@ -337,7 +346,11 @@ namespace Gabut {
                 if (file.query_exists ()) {
                     var fitype = file.query_file_type (FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
                     if (fitype == FileType.REGULAR) {
-                        open_file.begin (msg, file);
+                        open_file.begin (msg, file, (obj, res)=>{
+                            try {
+                                open_file.end (res);
+                            } catch {}
+                        });
                         return;
                     }
                 }
@@ -345,10 +358,18 @@ namespace Gabut {
                 var ftype = filegbt.query_file_type (FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
                 msg.set_status (Soup.Status.OK, "OK");
                 if (ftype == FileType.DIRECTORY) {
-                    directory_mode.begin (msg, filegbt, serverdir);
+                    directory_mode.begin (msg, filegbt, serverdir, (obj, res)=>{
+                        try {
+                            directory_mode.end (res);
+                        } catch {}
+                    });
                     return;
                 } else if (ftype == FileType.REGULAR) {
-                    open_file.begin (msg, filegbt);
+                    open_file.begin (msg, filegbt, (obj, res)=>{
+                        try {
+                            open_file.end (res);
+                        } catch {}
+                    });
                     return;
                 }
                 if (!filegbt.query_exists ()) {
@@ -370,9 +391,7 @@ namespace Gabut {
                         msg.set_response ("text/html", Soup.MemoryUse.COPY, html.data);
                         msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
                     }
-                } catch (Error e) {
-                    GLib.warning (e.message);
-                }
+                } catch {}
             } else if (msg.get_method () == "GET") {
                 var username = get_session_user (msg);
                 string html = get_home (username, is_authenticated (msg));
@@ -536,8 +555,10 @@ namespace Gabut {
                                 method: \"POST\",
                                 body: \"$(row.ariagid)\"
                             }).then(r => r.json()).then(data => {
-                                document.getElementById(\"bar$(row.ariagid)\").style.width = (data.fraction * 100) + \"%\";
-                                document.getElementById(\"label$(row.ariagid)\").innerText = data.label;
+                                const bar = document.getElementById(`bar$(row.ariagid)`);
+                                const label = document.getElementById(`label$(row.ariagid)`);
+                                if (bar) bar.style.width = (data.fraction * 100) + \"%\";
+                                if (label) label.innerText = data.label;
                             }).catch(() => {
                                 window.location.reload();
                             });";
@@ -547,8 +568,10 @@ namespace Gabut {
                                 method: \"POST\",
                                 body: \"$(check)\"
                             }).then(r => r.json()).then(data => {
-                                document.getElementById(\"bar$(check)\").style.width = (data.fraction * 100) + \"%\";
-                                document.getElementById(\"label$(check)\").innerText = data.label;
+                                const bar = document.getElementById(`bar$(check)`);
+                                const label = document.getElementById(`label$(check)`);
+                                if (bar) bar.style.width = (data.fraction * 100) + \"%\";
+                                if (label) label.innerText = data.label;
                             }).catch(() => {
                                 window.location.reload();
                             });";
@@ -580,7 +603,11 @@ namespace Gabut {
                     return;
                 }
                 msg.set_status (Soup.Status.OK, _("OK"));
-                directory_mode.begin (msg, serverdir, serverdir);
+                directory_mode.begin (msg, serverdir, serverdir, (obj, res)=>{
+                    try {
+                        directory_mode.end (res);
+                    } catch {}
+                });
             } else {
                 string html = get_not_found ();
                 msg.set_response ("text/html", Soup.MemoryUse.COPY, html.data);
@@ -600,23 +627,19 @@ namespace Gabut {
             } else {
                 sbuilder += "<div class=\"dm-name dm-loading\">Loading information…</div>";
             }
-            if (row.totalsize > 0) {
+            sbuilder += "<div class=\"dm-progress\"><div class=\"dm-progress-track\">";
+            if (row.totalsize > 0 && row.linkmode != LinkMode.HLS) {
                 double pct = fraction * 100.0;
-                sbuilder += "<div class=\"dm-progress\"><div class=\"dm-progress-track\">";
                 sbuilder += @"<div class=\"dm-progress-fill\" id=\"bar$(row.ariagid)\" style=\"width:$(pct)%\"></div>";
-                sbuilder += "</div></div>";
             } else if (row.linkmode == LinkMode.HLS) {
-                sbuilder += "<div class=\"dm-progress\"><div class=\"dm-progress-track\">";
                 sbuilder += @"<div class=\"dm-progress-fill\" id=\"bar$(check)\" style=\"width:$(row.fraction * 100)%\"></div>";
-                sbuilder += "</div></div>";
             } else {
-                sbuilder += "<div class=\"dm-progress\"><div class=\"dm-progress-track\">";
                 sbuilder += "<div class=\"dm-progress-fill dm-indeterminate\"></div>";
-                sbuilder += "</div></div>";
             }
+            sbuilder += "</div></div>";
             if (row.labeltransfer != null) {
                 if (path == "/Downloading") {
-                    string label_id = row.linkmode != LinkMode.HLS ? @"label$(row.ariagid)" : @"label$(check)";
+                    string label_id = row.linkmode != LinkMode.HLS? @"label$(row.ariagid)" : @"label$(check)";
                     sbuilder += @"<div class=\"dm-label\" id=\"$(label_id)\"></div>";
                 } else {
                     sbuilder += @"<div class=\"dm-label\">$(row.labeltransfer.to_ascii ())</div>";
@@ -888,7 +911,11 @@ namespace Gabut {
                 msg.set_status (Soup.Status.NOT_FOUND, "Not Found");
                 return;
             }
-            open_file.begin (msg, file);
+            open_file.begin (msg, file, (obj, res)=>{
+                try {
+                    open_file.end (res);
+                } catch {}
+            });
         }
 
         private void rawpix_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
@@ -927,15 +954,27 @@ namespace Gabut {
         }
 
         private void dir_list_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            file_in_dir.begin (server, msg, path, query, ServerType.AUDIO);
+            file_in_dir.begin (server, msg, path, query, ServerType.AUDIO, (obj, res)=>{
+                try {
+                    file_in_dir.end (res);
+                } catch {}
+            });
         }
 
         private void dir_list_video_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            file_in_dir.begin (server, msg, path, query, ServerType.VIDEO);
+            file_in_dir.begin (server, msg, path, query, ServerType.VIDEO, (obj, res)=>{
+                try {
+                    file_in_dir.end (res);
+                } catch {}
+            });
         }
 
         private void dir_list_image_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            file_in_dir.begin (server, msg, path, query, ServerType.IMG);
+            file_in_dir.begin (server, msg, path, query, ServerType.IMG, (obj, res)=>{
+                try {
+                    file_in_dir.end (res);
+                } catch {}
+            });
         }
 
         private async void file_in_dir (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query, ServerType servtype) throws Error {
@@ -1061,55 +1100,59 @@ namespace Gabut {
                 msg.set_status (Soup.Status.OK, "OK");
                 msg.set_response ("application/json", Soup.MemoryUse.COPY, "{\"status\":\"ok\"}".data);
             } catch (Error e) {
-                msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, "Error");
+                msg.set_status (Soup.Status.INTERNAL_SERVER_ERROR, e.message);
             }
         }
 
         private void pdfjs_lib_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".pdf.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".pdf.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "application/javascript");
         }
         private void pdfjs_worker_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".pdf.worker.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".pdf.worker.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js", "application/javascript");
         }
         private void mammoth_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".mammoth.browser.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".mammoth.browser.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js", "application/javascript");
         }
         private void sheetjs_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".xlsx.full.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".xlsx.full.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", "application/javascript");
         }
         private void libarchive_js_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".libarchive.js"), "https://unpkg.com/libarchive.js/dist/libarchive.js", "application/javascript");
+            external_jslibs (msg, file_config (".libarchive.js"), "https://unpkg.com/libarchive.js/dist/libarchive.js", "application/javascript");
         }
         private void worker_archive_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".worker-bundle.js"), "https://unpkg.com/libarchive.js/dist/worker-bundle.js", "application/javascript");
+            external_jslibs (msg, file_config (".worker-bundle.js"), "https://unpkg.com/libarchive.js/dist/worker-bundle.js", "application/javascript");
         }
         private void play_mpeg_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".mpegts.min.js"), "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".mpegts.min.js"), "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js", "application/javascript");
         }
         private void play_mpg_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".mpeg.play.js"), "https://cdn.jsdelivr.net/npm/jsmpeg@1.0.0/jsmpg.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".mpeg.play.js"), "https://cdn.jsdelivr.net/npm/jsmpeg@1.0.0/jsmpg.min.js", "application/javascript");
         }
         private void jsmediatags_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".jsmediatags.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".jsmediatags.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js", "application/javascript");
         }
         private void jsjzip_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".jszip.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js", "application/javascript");
+            external_jslibs (msg, file_config (".jszip.min.js"), "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js", "application/javascript");
         }
         private void wasm_archive_handler (Soup.Server server, Soup.ServerMessage msg, string path, GLib.HashTable<string, string>? query) {
-            external_jslibs.begin (msg, file_config (".libarchive.wasm"), "https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/dist/libarchive.wasm", "application/wasm");
+            external_jslibs (msg, file_config (".libarchive.wasm"), "https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/dist/libarchive.wasm", "application/wasm");
         }
 
-        private async void external_jslibs (Soup.ServerMessage msg, string file_path, string fallback_url, string content_type) throws Error {
+        private void external_jslibs (Soup.ServerMessage msg, string file_path, string fallback_url, string content_type) {
             var file = File.new_for_path (file_path);
-            if (file.query_exists ()) {
-                uint8[] data;
-                file.load_contents (null, out data, null);
-                msg.set_response (content_type, Soup.MemoryUse.COPY, data);
-                msg.set_status (Soup.Status.OK, "OK");
-            } else {
-                fetch_data.begin (fallback_url, file_path);
-                msg.set_redirect (Soup.Status.TEMPORARY_REDIRECT, fallback_url);
-            }
+            try {
+                if (file.query_exists ()) {
+                    uint8[] data;
+                    file.load_contents (null, out data, null);
+                    msg.set_response (content_type, Soup.MemoryUse.COPY, data);
+                    msg.set_status (Soup.Status.OK, "OK");
+                } else {
+                    fetch_data.begin (fallback_url, file_path, (obj, res)=>{
+                        fetch_data.end (res);
+                    });
+                    msg.set_redirect (Soup.Status.TEMPORARY_REDIRECT, fallback_url);
+                }
+            } catch {}
         }
 
         private int sort_dm (DownloadRow row1, DownloadRow row2, string username) {

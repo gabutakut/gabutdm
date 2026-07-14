@@ -74,11 +74,27 @@ namespace Gabut {
                 }
             }
             if (gabutwindow == null) {
-                flatpack_autostart.begin (dbstartup);
-                default_autostart.begin (dbstartup);
-                start_engine.begin ();
+                flatpack_autostart.begin (dbstartup, (obj, res)=>{
+                    try {
+                        flatpack_autostart.end (res);
+                    } catch {}
+                });
+                default_autostart.begin (dbstartup, (obj, res)=>{
+                    try {
+                        default_autostart.end (res);
+                    } catch {}
+                });
+                start_engine.begin ((obj, res)=>{
+                    try {
+                        start_engine.end (res);
+                    } catch {}
+                });
                 var gabutserver = new GabutServer ();
-                gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
+                gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)), (obj, res)=>{
+                    try {
+                        gabutserver.set_listent.end (res);
+                    } catch {}
+                });
                 gabutserver.send_post_data.connect (dialog_server);
                 gabutwindow = new GabutWindow ();
                 add_window (gabutwindow);
@@ -95,11 +111,16 @@ namespace Gabut {
                     return download_active (ariagid);
                 });
                 gabutwindow.get_host.connect (()=> {
+                    gabutserver.settings_user ();
                     return gabutserver.get_address ();
                 });
                 gabutwindow.restart_server.connect (()=> {
                     gabutserver.stop_server ();
-                    gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)));
+                    gabutserver.set_listent.begin (int.parse (get_dbsetting (DBSettings.PORTLOCAL)), (obj, res)=>{
+                        try {
+                            gabutserver.set_listent.end (res);
+                        } catch {}
+                    });
                 });
                 gabutwindow.update_agid.connect ((ariagid, newgid)=> {
                     foreach (var download in downloaders) {
@@ -515,9 +536,7 @@ namespace Gabut {
                                     }
                                 }
                             }
-                        } catch (GLib.Error e) {
-                            critical (e.message);
-                        }
+                        } catch {}
                     });
                 }
             }
