@@ -217,6 +217,7 @@ namespace Gabut {
                     if (cremaint) {
                         open_dict (string.joinv ("\n", dict.lookup_value (GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY).get_strv ()), _("Try to Open"));
                     }
+                    gabutwindow.present ();
                     return base.command_line (command);
                 }
                 open_window ();
@@ -298,6 +299,8 @@ namespace Gabut {
                         spalshsc = null;
                         return GLib.Source.REMOVE;
                     });
+                } else {
+                    gabutwindow.present ();
                 }
             }
         }
